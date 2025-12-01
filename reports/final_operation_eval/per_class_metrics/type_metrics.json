@@ -1,0 +1,26 @@
+{
+  "SPECIAL": {
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "support": 2327
+  },
+  "COMMAND": {
+    "precision": 0.4615,
+    "recall": 1.0,
+    "f1": 0.6316,
+    "support": 12
+  },
+  "PARAMETER": {
+    "precision": 0.6217,
+    "recall": 1.0,
+    "f1": 0.7668,
+    "support": 572
+  },
+  "NUMERIC": {
+    "precision": 0.2839,
+    "recall": 1.0,
+    "f1": 0.4422,
+    "support": 779
+  }
+}

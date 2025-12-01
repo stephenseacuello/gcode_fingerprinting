@@ -1,0 +1,42 @@
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies (minimal for inference)
+RUN pip install --no-cache-dir \
+    numpy \
+    torch \
+    fastapi \
+    uvicorn \
+    pydantic
+
+# Copy source code
+COPY src/miracle/api/ ./src/miracle/api/
+COPY src/miracle/model/ ./src/miracle/model/
+COPY src/miracle/utilities/ ./src/miracle/utilities/
+COPY src/miracle/__init__.py ./src/miracle/
+
+# Copy model checkpoint (if available)
+# COPY outputs/multihead_aug_v2/checkpoint_best.pt ./models/checkpoint_best.pt
+
+# Set Python path
+ENV PYTHONPATH=/app/src
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health')"
+
+# Run API server
+CMD ["uvicorn", "miracle.api.server:app", "--host", "0.0.0.0", "--port", "8000"]

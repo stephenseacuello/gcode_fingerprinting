@@ -1,0 +1,160 @@
+{
+  "face": [
+    {
+      "true_class": "F",
+      "pred_class": "Z",
+      "count": 50
+    },
+    {
+      "true_class": "F",
+      "pred_class": "Y",
+      "count": 21
+    },
+    {
+      "true_class": "R",
+      "pred_class": "Z",
+      "count": 15
+    },
+    {
+      "true_class": "F",
+      "pred_class": "X",
+      "count": 9
+    },
+    {
+      "true_class": "F",
+      "pred_class": "R",
+      "count": 4
+    }
+  ],
+  "pocket": [
+    {
+      "true_class": "F",
+      "pred_class": "Y",
+      "count": 400
+    },
+    {
+      "true_class": "F",
+      "pred_class": "X",
+      "count": 9
+    }
+  ],
+  "adaptive": [
+    {
+      "true_class": "F",
+      "pred_class": "Y",
+      "count": 476
+    },
+    {
+      "true_class": "F",
+      "pred_class": "X",
+      "count": 70
+    }
+  ],
+  "face150025": [
+    {
+      "true_class": "F",
+      "pred_class": "Y",
+      "count": 340
+    },
+    {
+      "true_class": "F",
+      "pred_class": "X",
+      "count": 54
+    }
+  ],
+  "pocket150025": [
+    {
+      "true_class": "F",
+      "pred_class": "Z",
+      "count": 46
+    },
+    {
+      "true_class": "R",
+      "pred_class": "Z",
+      "count": 11
+    },
+    {
+      "true_class": "F",
+      "pred_class": "Y",
+      "count": 8
+    },
+    {
+      "true_class": "F",
+      "pred_class": "R",
+      "count": 3
+    }
+  ],
+  "adaptive150025": [
+    {
+      "true_class": "F",
+      "pred_class": "Y",
+      "count": 412
+    },
+    {
+      "true_class": "X",
+      "pred_class": "Y",
+      "count": 31
+    },
+    {
+      "true_class": "Y",
+      "pred_class": "X",
+      "count": 19
+    },
+    {
+      "true_class": "F",
+      "pred_class": "Z",
+      "count": 17
+    },
+    {
+      "true_class": "F",
+      "pred_class": "X",
+      "count": 9
+    }
+  ],
+  "damageface": [
+    {
+      "true_class": "F",
+      "pred_class": "Y",
+      "count": 130
+    },
+    {
+      "true_class": "F",
+      "pred_class": "Z",
+      "count": 5
+    }
+  ],
+  "damagepocket": [
+    {
+      "true_class": "F",
+      "pred_class": "Y",
+      "count": 113
+    },
+    {
+      "true_class": "F",
+      "pred_class": "X",
+      "count": 17
+    }
+  ],
+  "damageadaptive": [
+    {
+      "true_class": "F",
+      "pred_class": "Y",
+      "count": 135
+    },
+    {
+      "true_class": "Y",
+      "pred_class": "X",
+      "count": 17
+    },
+    {
+      "true_class": "F",
+      "pred_class": "Z",
+      "count": 7
+    },
+    {
+      "true_class": "F",
+      "pred_class": "X",
+      "count": 2
+    }
+  ]
+}

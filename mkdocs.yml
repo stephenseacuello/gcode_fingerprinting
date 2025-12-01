@@ -1,0 +1,180 @@
+# MkDocs Configuration for G-Code Fingerprinting Documentation
+
+site_name: G-Code Fingerprinting Documentation
+site_description: Machine Learning system for inferring G-code from 3D printer sensor data
+site_author: ELE 588 Applied Machine Learning Team
+site_url: https://your-domain.com/gcode-fingerprinting
+
+# Repository
+repo_name: gcode-fingerprinting
+repo_url: https://github.com/your-org/gcode-fingerprinting
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2025 ELE 588 Team
+
+# Theme configuration
+theme:
+  name: material
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+  icon:
+    repo: fontawesome/brands/github
+
+# Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Extra JavaScript (for MathJax)
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Extra CSS
+extra_css:
+  - stylesheets/extra.css
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\-\.]+'
+      lang: en
+  - minify:
+      minify_html: true
+  - git-revision-date-localized:
+      enable_creation_date: true
+
+# Page tree
+nav:
+  - Home: index.md
+
+  - Getting Started:
+    - Quick Start: getting_started/quickstart.md
+    - Installation: getting_started/installation.md
+    - Data Preparation: getting_started/data_preparation.md
+    - First Training Run: getting_started/first_training.md
+
+  - Architecture:
+    - System Overview: architecture/system_overview.md
+    - Model Architecture: architecture/model_architecture.md
+    - Data Pipeline: architecture/data_pipeline.md
+    - Multi-Head Design: architecture/multihead_design.md
+
+  - User Guide:
+    - Training Models: user_guide/training.md
+    - Hyperparameter Tuning: HYPERPARAMETER_TUNING.md
+    - Data Augmentation: user_guide/augmentation.md
+    - Evaluation: user_guide/evaluation.md
+    - Production Deployment: PRODUCTION_DEPLOYMENT.md
+
+  - API Reference:
+    - REST API: api/rest_api.md
+    - Python Client: api/python_client.md
+    - Model Inference: api/inference.md
+
+  - Development:
+    - Testing Guide: TESTING.md
+    - Contributing: development/contributing.md
+    - Code Style: development/code_style.md
+    - CI/CD: development/cicd.md
+
+  - Tutorials:
+    - Basic Training: tutorials/01_basic_training.md
+    - Custom Dataset: tutorials/02_custom_dataset.md
+    - Advanced Augmentation: tutorials/03_augmentation.md
+    - Model Export: tutorials/04_model_export.md
+    - Deployment: tutorials/05_deployment.md
+
+  - Results:
+    - Training Results: TRAINING_RESULTS_SUMMARY.md
+    - Benchmarks: results/benchmarks.md
+    - Model Comparisons: results/model_comparison.md
+
+  - About:
+    - Project Overview: about/overview.md
+    - Research Paper: about/paper.md
+    - Team: about/team.md
+    - License: about/license.md
+
+# Social links
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/your-org/gcode-fingerprinting
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/gcode-fingerprinting/
+
+  version:
+    provider: mike

@@ -1,0 +1,25 @@
+{
+  "prediction_metrics": {
+    "type_acc": 0.25166667357087136,
+    "type_acc_std": 0.09572820451185135,
+    "command_acc": 1.0,
+    "command_acc_std": 0.0,
+    "param_type_acc": 0.25000000685453416,
+    "param_type_acc_std": 0.09860133114562201,
+    "param_value_mae": 0.5305165236070752,
+    "param_value_mae_std": 0.4161943332884925,
+    "param_value_tolerance_acc": 0.035000001043081284,
+    "param_value_tolerance_acc_std": 0.06788470820450956
+  },
+  "grammar_metrics": {
+    "total_sequences": 100,
+    "valid_sequences": 100,
+    "modal_conflicts": 0,
+    "arc_violations": 0,
+    "rapid_feed_violations": 0,
+    "single_letter_violations": 0,
+    "total_violations": 0,
+    "validity_rate": 1.0,
+    "avg_violations_per_seq": 0.0
+  }
+}

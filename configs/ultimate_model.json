@@ -1,0 +1,51 @@
+{
+  "name": "ultimate-model-v1",
+  "description": "Ultimate model combining all improvements: 512 hidden dims, focal loss, SWA, regression, enhanced logging",
+  "model_config": {
+    "d_model": 512,
+    "lstm_layers": 6,
+    "n_heads": 8,
+    "dropout": 0.2
+  },
+  "training_args": {
+    "batch_size": 32,
+    "lr": 5.415e-05,
+    "weight_decay": 0.05,
+    "grad_clip": 1.0,
+    "optimizer": "adamw",
+    "max_epochs": 50,
+    "patience": 10
+  },
+  "loss_config": {
+    "command_weight": 5.0,
+    "operation_weight": 2.0,
+    "param_type_weight": 3.0,
+    "param_value_weight": 1.0,
+    "grammar_weight": 0.2,
+    "use_focal_loss": true,
+    "focal_gamma": 2.5,
+    "label_smoothing": 0.0
+  },
+  "scheduler_config": {
+    "lr_scheduler": "cosine",
+    "warmup_epochs": 3
+  },
+  "swa_config": {
+    "use_swa": true,
+    "swa_start_epoch": 40
+  },
+  "augmentation_config": {
+    "use_augmentation": true,
+    "oversample_factor": 3
+  },
+  "notes": [
+    "512 hidden dims (2x capacity from 256)",
+    "6 decoder layers (+1 from default 5)",
+    "Focal loss with gamma=2.5 for class imbalance",
+    "SWA starting at epoch 40 for better generalization",
+    "Direct regression for param_value (Huber loss)",
+    "Aggressive class weights from outputs/class_weights_aggressive.json",
+    "Enhanced per-class logging for diagnostics",
+    "3x oversampling for rare tokens"
+  ]
+}

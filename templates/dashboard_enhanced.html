@@ -1,0 +1,3990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Code Fingerprinting Dashboard - Enhanced v2.1</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-card: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --accent-color: #2196F3;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --error-color: #f44336;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-card: #242424;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border-color: #404040;
+            --shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #45a049;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        [data-theme="dark"] .badge-success {
+            background: #1b5e20;
+            color: #a5d6a7;
+        }
+
+        .badge-warning {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        [data-theme="dark"] .badge-warning {
+            background: #e65100;
+            color: #ffcc80;
+        }
+
+        .badge-info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        [data-theme="dark"] .badge-info {
+            background: #0d47a1;
+            color: #90caf9;
+        }
+
+        .control-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .control-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg-secondary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-color);
+            transition: width 0.3s ease;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .status-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .prediction-box {
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .prediction-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .prediction-gcode {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            color: var(--accent-color);
+        }
+
+        .prediction-confidence {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--success-color);
+        }
+
+        .top-k-list {
+            margin-top: 1rem;
+        }
+
+        .top-k-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .top-k-rank {
+            width: 24px;
+            height: 24px;
+            background: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
+
+        .top-k-gcode {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            min-width: 80px;
+        }
+
+        .top-k-bar {
+            flex: 1;
+            height: 24px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 0.75rem;
+        }
+
+        .top-k-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-color), var(--success-color));
+            transition: width 0.3s ease;
+        }
+
+        .top-k-prob {
+            min-width: 60px;
+            text-align: right;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-box {
+            background: var(--bg-secondary);
+            padding: 0.75rem;
+            border-radius: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        /* Smooth transitions for all cards */
+        .control-card, .stats-card, [style*="background: var(--bg-card)"] {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .control-card:hover, .stats-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Button enhancements */
+        button {
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Loading state animations */
+        .loading-shimmer {
+            background: linear-gradient(
+                90deg,
+                var(--bg-secondary) 25%,
+                var(--bg-card) 50%,
+                var(--bg-secondary) 75%
+            );
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        /* Success/Error message animations */
+        .success, .error {
+            animation: slideIn 0.3s ease;
+        }
+
+        /* Card entrance animations */
+        .metric-card, .prediction-card, .attention-card {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Attention heatmap canvas hover effect */
+        #attentionHeatmap {
+            transition: transform 0.2s ease;
+            cursor: crosshair;
+        }
+
+        #attentionHeatmap:hover {
+            transform: scale(1.02);
+        }
+
+        /* Improved gradient backgrounds */
+        .gradient-bg-blue {
+            background: linear-gradient(135deg, rgba(120, 200, 255, 0.1), rgba(200, 150, 255, 0.1));
+        }
+
+        .gradient-bg-green {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(100, 221, 23, 0.1));
+        }
+
+        .gradient-bg-orange {
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1));
+        }
+
+        /* Enhanced dark mode colors */
+        [data-theme="dark"] button:hover {
+            box-shadow: 0 4px 12px rgba(120, 200, 255, 0.3);
+        }
+
+        [data-theme="dark"] .control-card:hover,
+        [data-theme="dark"] .stats-card:hover {
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        [data-theme="dark"] .error {
+            background: #b71c1c;
+            color: #ffcdd2;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .heatmap-container {
+            height: 400px;
+            margin-top: 1rem;
+        }
+
+        .position-3d-container {
+            height: 500px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="header">
+        <div class="header-content">
+            <h1>🔧 G-Code Fingerprinting Dashboard</h1>
+            <div class="header-controls">
+                <button class="theme-toggle" id="themeToggle" title="Toggle dark mode">🌙</button>
+                <button class="btn btn-primary" id="exportBtn">📥 Export CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Error Display -->
+        <div class="error" id="errorBox"></div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <div class="control-row">
+                <div class="control-group">
+                    <label for="modelSelect">Model</label>
+                    <select id="modelSelect">
+                        <option value="">Loading models...</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="csvSelect">CSV Data</label>
+                    <select id="csvSelect">
+                        <option value="">Loading CSV files...</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="speedSlider">Speed: <span id="speedValue">1x</span></label>
+                    <input type="range" id="speedSlider" min="1" max="10" value="1" step="1">
+                </div>
+            </div>
+
+            <div class="control-row">
+                <button class="btn btn-success" id="startBtn">▶ Start</button>
+                <button class="btn btn-secondary" id="pauseBtn">⏸ Pause</button>
+                <button class="btn btn-secondary" id="resetBtn">↺ Reset</button>
+                <button class="btn btn-primary" id="batchEvaluateBtn" style="margin-left: 20px;">⚡ Batch Evaluate</button>
+            </div>
+
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-value" id="currentIdx">0</div>
+                    <div class="status-label">Current Index</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="totalRows">0</div>
+                    <div class="status-label">Total Rows</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="bufferSize">0</div>
+                    <div class="status-label">Buffer Size</div>
+                </div>
+                <div class="status-item">
+                    <div class="status-value" id="fps">0</div>
+                    <div class="status-label">FPS</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-2">
+            <!-- Token-Level Prediction -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Next Token Prediction</h2>
+                    <span class="badge badge-success">Token-Level</span>
+                </div>
+                <div class="prediction-box">
+                    <div class="prediction-main">
+                        <div class="prediction-gcode" id="currentGcode">---</div>
+                        <div class="prediction-confidence" id="currentConfidence">0%</div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-box">
+                            <div class="stat-label">Anomaly Score</div>
+                            <div class="stat-value" id="anomalyScore">0.000</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Fingerprint Score</div>
+                            <div class="stat-value" id="fingerprintScore">0.000</div>
+                        </div>
+                    </div>
+                    <div class="stats-row" style="margin-top: 0.5rem;">
+                        <div class="stat-box">
+                            <div class="stat-label">Reconstruction Score</div>
+                            <div class="stat-value" id="reconstructionScore">0.000</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Timestamp</div>
+                            <div class="stat-value" id="timestamp" style="font-size: 0.9rem;">--:--:--</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Operation Type</div>
+                            <div class="stat-value" id="operationType">---</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top-K Predictions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Top-5 Next Tokens</h2>
+                    <span class="badge badge-info">Confidence</span>
+                </div>
+                <div class="top-k-list" id="topKList">
+                    <div class="loading active">
+                        <div class="spinner"></div>
+                        Waiting for predictions...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Command Generation -->
+        <div class="card full-width" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 class="card-title">Full G-Code Command Generation</h2>
+                <span class="badge badge-warning">Autoregressive</span>
+            </div>
+            <div class="prediction-box" style="padding: 1rem;">
+                <div style="display: flex; gap: 2rem; align-items: center;">
+                    <div style="flex: 1;">
+                        <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Generated Command:</div>
+                        <div style="font-size: 1.5rem; font-family: 'Courier New', monospace; font-weight: 600; color: var(--accent-color);" id="fullCommand">---</div>
+                    </div>
+                    <div style="min-width: 150px; text-align: center; padding: 1rem; background: var(--bg-secondary); border-radius: 8px;">
+                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Avg. Confidence</div>
+                        <div style="font-size: 1.75rem; font-weight: 700; color: var(--success-color);" id="fullCommandConfidence">0%</div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); font-size: 0.85rem; color: var(--text-secondary);">
+                    This predicts a complete G-code command by generating multiple tokens sequentially. Token-level prediction above shows only the next single token.
+                </div>
+            </div>
+        </div>
+
+        <!-- Generation Settings Panel -->
+        <div class="card full-width" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 class="card-title">Generation Settings</h2>
+                <span class="badge badge-info">Configure</span>
+            </div>
+            <div style="padding: 1.5rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <!-- Enable Toggle -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="enableAutoregressive" checked style="width: 20px; height: 20px;">
+                            <span style="font-weight: 500;">Enable Autoregressive Generation</span>
+                        </label>
+                    </div>
+
+                    <!-- Beam Search Toggle -->
+                    <div>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="useBeamSearch" style="width: 20px; height: 20px;">
+                            <span style="font-weight: 500;">Use Beam Search</span>
+                        </label>
+                    </div>
+
+                    <!-- Max Tokens -->
+                    <div>
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">
+                            Max Tokens: <span id="maxTokensValue">15</span>
+                        </label>
+                        <input type="range" id="maxTokens" min="5" max="50" value="15" style="width: 100%;">
+                    </div>
+
+                    <!-- Beam Size -->
+                    <div>
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">
+                            Beam Size: <span id="beamSizeValue">1</span>
+                        </label>
+                        <input type="range" id="beamSize" min="1" max="5" value="1" style="width: 100%;">
+                    </div>
+
+                    <!-- Temperature -->
+                    <div>
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">
+                            Temperature: <span id="temperatureValue">1.0</span>
+                        </label>
+                        <input type="range" id="temperature" min="0.1" max="2.0" step="0.1" value="1.0" style="width: 100%;">
+                    </div>
+
+                    <!-- Top-P -->
+                    <div>
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">
+                            Top-P (Nucleus): <span id="topPValue">1.0</span>
+                        </label>
+                        <input type="range" id="topP" min="0.1" max="1.0" step="0.05" value="1.0" style="width: 100%;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generation History -->
+        <div class="card full-width" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 class="card-title">Generation History (Last 10)</h2>
+                <button class="btn btn-secondary" onclick="exportGcode()">Export G-Code</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;" id="historyTable">
+                    <thead>
+                        <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                            <th style="padding: 0.75rem; text-align: left;">#</th>
+                            <th style="padding: 0.75rem; text-align: left;">Predicted</th>
+                            <th style="padding: 0.75rem; text-align: left;">Ground Truth</th>
+                            <th style="padding: 0.75rem; text-align: center;">Match</th>
+                            <th style="padding: 0.75rem; text-align: center;">Edit Dist.</th>
+                            <th style="padding: 0.75rem; text-align: center;">Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr><td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No history yet...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Analytics Grid -->
+        <div class="grid grid-2" style="margin-top: 1.5rem;">
+            <!-- Command Type Distribution -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Command Type Distribution</h2>
+                    <span class="badge badge-info">Live</span>
+                </div>
+                <div class="chart-container" id="commandTypesChart"></div>
+            </div>
+
+            <!-- Per-Token Confidence -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Per-Token Confidence</h2>
+                    <span class="badge badge-success">Current</span>
+                </div>
+                <div class="chart-container" id="tokenConfidenceChart"></div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid grid-2">
+            <!-- Anomaly Score Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Anomaly Score Timeline</h2>
+                    <span class="badge badge-warning" id="anomalyBadge">Mean: 0.000</span>
+                </div>
+                <div class="chart-container" id="anomalyChart"></div>
+            </div>
+
+            <!-- Confidence Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Confidence Timeline</h2>
+                    <span class="badge badge-success" id="confidenceBadge">Mean: 0%</span>
+                </div>
+                <div class="chart-container" id="confidenceChart"></div>
+            </div>
+        </div>
+
+        <!-- Confusion Matrix - GCode -->
+        <div class="card full-width">
+            <div class="card-header">
+                <h2 class="card-title">Live Confusion Matrix - GCode Commands</h2>
+                <span class="badge badge-info">Real-time Accuracy</span>
+            </div>
+            <div class="heatmap-container" id="confusionMatrix"></div>
+        </div>
+
+        <!-- Component-Level Confusion Matrices -->
+        <div class="card full-width" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 class="card-title">Component-Level Classification Metrics</h2>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <span class="badge badge-info">Multi-Head Predictions</span>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; font-size: 0.875rem;">
+                        <span>Normalization:</span>
+                        <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                            <input type="radio" name="cmNormalization" value="none" checked onchange="updateConfusionMatrixNormalization(this.value)"> Raw
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                            <input type="radio" name="cmNormalization" value="row" onchange="updateConfusionMatrixNormalization(this.value)"> Recall
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.25rem; cursor: pointer;">
+                            <input type="radio" name="cmNormalization" value="col" onchange="updateConfusionMatrixNormalization(this.value)"> Precision
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid of confusion matrices -->
+            <div style="padding: 1.5rem;">
+                <!-- Overall Metrics Summary -->
+                <div id="cmMetricsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;"></div>
+
+                <!-- Row 1: Operation Type and Command Type -->
+                <div class="grid grid-2" style="margin-bottom: 1.5rem;">
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem; font-size: 1rem; color: var(--text-secondary);">Operation Type</h3>
+                        <div class="heatmap-container" id="confusionMatrixOperation" style="min-height: 300px;"></div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem; font-size: 1rem; color: var(--text-secondary);">GCode Type</h3>
+                        <div class="heatmap-container" id="confusionMatrixType" style="min-height: 300px;"></div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Command and Parameter Type -->
+                <div class="grid grid-2" style="margin-bottom: 1.5rem;">
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem; font-size: 1rem; color: var(--text-secondary);">Command</h3>
+                        <div class="heatmap-container" id="confusionMatrixCommand" style="min-height: 300px;"></div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 0.5rem; font-size: 1rem; color: var(--text-secondary);">Parameter Type</h3>
+                        <div class="heatmap-container" id="confusionMatrixParamType" style="min-height: 300px;"></div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Parameter Value -->
+                <div style="margin-bottom: 0;">
+                    <h3 style="margin-bottom: 0.5rem; font-size: 1rem; color: var(--text-secondary);">Parameter Value</h3>
+                    <div class="heatmap-container" id="confusionMatrixParamValue" style="min-height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- t-SNE Embeddings Visualization -->
+        <div class="card full-width" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 class="card-title">t-SNE Fingerprint Embeddings</h2>
+                <span class="badge badge-info" id="tsneBadge">Loading...</span>
+            </div>
+            <div class="chart-container" id="tsneChart" style="min-height: 500px;"></div>
+        </div>
+
+        <!-- Advanced Analytics -->
+        <div class="grid grid-2">
+            <!-- Sensor Heatmap (Time Series) -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Sensor Time Series</h2>
+                    <span class="badge badge-info">Last 50 Readings</span>
+                </div>
+                <div class="chart-container" id="sensorHeatmap"></div>
+            </div>
+
+            <!-- Sensor Measurement Heatmap (Current) -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Sensor Measurements</h2>
+                    <span class="badge badge-success">Current Snapshot</span>
+                </div>
+                <div class="chart-container" id="sensorMeasurementHeatmap"></div>
+            </div>
+
+            <!-- 3D Position Plot -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">3D Machine Position</h2>
+                    <span class="badge badge-success">Trajectory</span>
+                </div>
+                <div class="position-3d-container" id="position3D"></div>
+            </div>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="card full-width">
+            <div class="card-header">
+                <h2 class="card-title">Performance Metrics</h2>
+                <span class="badge badge-info">Running Statistics</span>
+            </div>
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-label">Anomaly (Mean ± Std)</div>
+                    <div class="stat-value" id="anomalyMean">0.000 ± 0.000</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Confidence (Mean ± Std)</div>
+                    <div class="stat-value" id="confidenceMean">0% ± 0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkpoint Manager -->
+        <div class="card full-width" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 class="card-title">Checkpoint Manager</h2>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-primary" id="compareBtn" style="padding: 0.25rem 0.75rem; font-size: 0.875rem; display: none;" onclick="compareSelectedCheckpoints()">Compare Selected</button>
+                    <button class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;" onclick="loadCheckpoints()">↻ Refresh</button>
+                </div>
+            </div>
+            <div style="padding: 1.5rem;">
+                <div id="checkpointsList">
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">Loading checkpoints...</p>
+                </div>
+
+                <!-- Comparison Results -->
+                <div id="comparisonResults" style="display: none; margin-top: 1.5rem; border-top: 2px solid var(--border-color); padding-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600;">Comparison Results</h3>
+                        <button class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;" onclick="closeComparison()">Close</button>
+                    </div>
+                    <div id="comparisonTable"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- W&B Sweep Monitoring -->
+        <div class="card full-width" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 class="card-title">W&B Sweep Monitor</h2>
+                <div style="display: flex; gap: 0.5rem;">
+                    <span class="badge badge-warning" id="wandbStatus">Not Configured</span>
+                    <button class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;" onclick="refreshSweeps()">↻ Refresh</button>
+                </div>
+            </div>
+            <div style="padding: 1.5rem;">
+                <!-- Configuration Form -->
+                <div id="wandbConfigForm" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: flex-end;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">W&B Entity</label>
+                        <input type="text" id="wandbEntity" placeholder="your-entity"
+                               style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-primary);">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">W&B Project</label>
+                        <input type="text" id="wandbProject" placeholder="your-project"
+                               style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-primary);">
+                    </div>
+                    <button class="btn btn-primary" onclick="configureWandb()">Connect</button>
+                </div>
+
+                <!-- Sweep Selection -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Select Sweep</label>
+                    <select id="sweepSelect" onchange="loadSweepDetails()"
+                            style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-primary);">
+                        <option value="">Configure W&B first...</option>
+                    </select>
+                </div>
+
+                <!-- Sweep Details -->
+                <div id="sweepDetails" style="display: none;">
+                    <!-- Sweep Info -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="stat-box">
+                            <div class="stat-label">Sweep State</div>
+                            <div class="stat-value" id="sweepState">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Total Runs</div>
+                            <div class="stat-value" id="sweepRunCount">0</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Best Metric</div>
+                            <div class="stat-value" id="sweepBestMetric">-</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-label">Optimization Goal</div>
+                            <div class="stat-value" id="sweepGoal">-</div>
+                        </div>
+                    </div>
+
+                    <!-- Top Runs Table -->
+                    <div style="margin-top: 1.5rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Top 5 Runs</h3>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse;" id="sweepRunsTable">
+                                <thead>
+                                    <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                                        <th style="padding: 0.75rem; text-align: left;">Rank</th>
+                                        <th style="padding: 0.75rem; text-align: left;">Run Name</th>
+                                        <th style="padding: 0.75rem; text-align: left;">State</th>
+                                        <th style="padding: 0.75rem; text-align: right;">Metric Value</th>
+                                        <th style="padding: 0.75rem; text-align: left;">Config</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sweepRunsBody">
+                                    <tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No runs yet...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Parameter Importance (placeholder for future enhancement) -->
+                    <div style="margin-top: 1.5rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Configuration Ranges</h3>
+                        <div id="sweepConfigRanges" style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px;">
+                            <p style="color: var(--text-secondary); text-align: center;">Select a sweep to view configuration details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- Hyperparameter Sweep Analytics -->
+        <!-- ============================================ -->
+        <div class="card full-width" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 class="card-title">📊 Hyperparameter Sweep Analytics</h2>
+                <span class="badge badge-info">488 Runs Analyzed</span>
+            </div>
+            <div style="padding: 1.5rem;">
+                <!-- Top Models Comparison -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Top 5 Models</h3>
+                    <div id="topModelsTable"></div>
+                </div>
+
+                <!-- Parallel Coordinates Plot -->
+                <div style="margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Hyperparameter → Performance Relationships</h3>
+                    <div id="parallelCoordinatesChart" style="min-height: 500px;"></div>
+                </div>
+
+                <!-- Parameter Importance -->
+                <div>
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Parameter Importance</h3>
+                    <div id="parameterImportanceChart" style="min-height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- Phase 2: Error Analysis Dashboard -->
+        <!-- ============================================ -->
+        <div style="margin-top: 2rem;">
+            <div style="background: var(--bg-card); border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">🔍</span>
+                    Error Analysis Dashboard
+                </h2>
+
+                <button onclick="loadErrorAnalysis()" class="btn btn-primary" style="margin-bottom: 1rem;">
+                    🔍 Analyze Prediction Errors
+                </button>
+
+                <div id="errorAnalysisResults" style="display: none;">
+                    <!-- Component Error Rates -->
+                    <div id="componentErrorCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;"></div>
+
+                    <!-- Error Distribution Chart -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Error Rate by Component</h3>
+                        <div id="componentErrorChart" style="min-height: 300px;"></div>
+                    </div>
+
+                    <!-- Temporal Error Pattern -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Error Pattern Over Time</h3>
+                        <div id="temporalErrorChart" style="min-height: 250px;"></div>
+                    </div>
+
+                    <!-- Top Misclassifications -->
+                    <div>
+                        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Top 10 Misclassifications</h3>
+                        <div id="topMisclassificationsTable"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- Sequence Alignment Viewer -->
+        <!-- ============================================ -->
+        <div class="card full-width" style="margin-top: 1.5rem;">
+            <div class="card-header">
+                <h2 class="card-title">🔤 Sequence Alignment: Predicted vs Ground Truth</h2>
+                <button onclick="loadSequenceAlignment()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                    ↻ Refresh
+                </button>
+            </div>
+            <div style="padding: 1.5rem;">
+                <div id="sequenceAlignmentContainer">
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                        Click "Batch Evaluate" or run inference to populate sequence alignments
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- Existing Error Analysis (Legacy) -->
+        <!-- ============================================ -->
+        <div style="margin-top: 2rem; display: none;">
+            <div style="background: var(--bg-card); border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📊</span>
+                    Legacy Error Analysis
+                </h2>
+
+                <div>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                            <thead>
+                                    <tr style="background: var(--bg-secondary); text-align: left;">
+                                        <th style="padding: 0.75rem; border-bottom: 2px solid var(--border-color);">Index</th>
+                                        <th style="padding: 0.75rem; border-bottom: 2px solid var(--border-color);">Error Type</th>
+                                        <th style="padding: 0.75rem; border-bottom: 2px solid var(--border-color);">Predicted</th>
+                                        <th style="padding: 0.75rem; border-bottom: 2px solid var(--border-color);">Ground Truth</th>
+                                        <th style="padding: 0.75rem; border-bottom: 2px solid var(--border-color);">Edit Distance</th>
+                                        <th style="padding: 0.75rem; border-bottom: 2px solid var(--border-color);">Confidence</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="errorTableBody">
+                                    <tr><td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No errors to display</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- Phase 2: Live G-code Editor & Tester -->
+        <!-- ============================================ -->
+        <div style="margin-top: 2rem;">
+            <div style="background: var(--bg-card); border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">✏️</span>
+                    Live G-code Editor & Tester
+                </h2>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Enter G-code:</label>
+                    <textarea id="gcodeInput" rows="8" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.875rem; background: var(--bg-secondary);" placeholder="G0 X10.5 Y20.3&#10;G1 Z5.0 F1500&#10;M3 S1000"></textarea>
+                </div>
+
+                <button onclick="testGcode()" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 1rem;">
+                    Test G-code
+                </button>
+
+                <div id="gcodeTestResults" style="display: none; margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 4px;">
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem;">Test Results:</h3>
+                    <div id="gcodeTestContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- Phase 3: Data Explorer -->
+        <!-- ============================================ -->
+        <div style="margin-top: 2rem;">
+            <div style="background: var(--bg-card); border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📊</span>
+                    Data Explorer
+                </h2>
+
+                <button onclick="loadDataStats()" style="padding: 0.5rem 1rem; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 1rem;">
+                    Load Data Statistics
+                </button>
+
+                <div id="dataStatsResults" style="display: none;">
+                    <!-- Dataset Split Summary -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; border-left: 4px solid #3b82f6;">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Train Samples</div>
+                            <div id="trainSamples" style="font-size: 1.5rem; font-weight: 700;">0</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; border-left: 4px solid #10b981;">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Val Samples</div>
+                            <div id="valSamples" style="font-size: 1.5rem; font-weight: 700;">0</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; border-left: 4px solid #f59e0b;">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Test Samples</div>
+                            <div id="testSamples" style="font-size: 1.5rem; font-weight: 700;">0</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; border-left: 4px solid #8b5cf6;">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Vocabulary Size</div>
+                            <div id="vocabSize" style="font-size: 1.5rem; font-weight: 700;">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Feature Dimensions -->
+                    <div style="margin-top: 1.5rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Feature Dimensions</h3>
+                        <div id="featureDims" style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px;">
+                            <p style="color: var(--text-secondary);">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- Phase 3: Report Generator -->
+        <!-- ============================================ -->
+        <div style="margin-top: 2rem; margin-bottom: 2rem;">
+            <div style="background: var(--bg-card); border-radius: 8px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center;">
+                    <span style="margin-right: 0.5rem;">📄</span>
+                    Report Generator
+                </h2>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Report Title:</label>
+                    <input type="text" id="reportTitle" value="Model Evaluation Report" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary);">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Report Format:</label>
+                    <select id="reportFormat" style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-secondary);">
+                        <option value="markdown">Markdown (.md)</option>
+                        <option value="html">HTML (.html)</option>
+                        <option value="json">JSON (.json)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        <input type="checkbox" id="includeMetrics" checked style="margin-right: 0.5rem;">
+                        Include Metrics
+                    </label>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        <input type="checkbox" id="includeConfig" checked style="margin-right: 0.5rem;">
+                        Include Configuration
+                    </label>
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        <input type="checkbox" id="includeHistory" style="margin-right: 0.5rem;">
+                        Include Generation History
+                    </label>
+                </div>
+
+                <button onclick="generateReport()" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Generate Report
+                </button>
+
+                <div id="reportResults" style="display: none; margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 4px;">
+                    <div id="reportContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attention Visualization -->
+        <div style="margin-top: 2rem;">
+            <div style="background: var(--bg-card); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                    <span style="font-size: 1.5rem;">🔍</span>
+                    <h2 style="margin: 0; font-size: 1.3rem; font-weight: 600; color: var(--text-color);">
+                        Attention Visualization
+                    </h2>
+                </div>
+
+                <div style="margin-bottom: 1rem; padding: 0.75rem; background: linear-gradient(135deg, rgba(120, 200, 255, 0.1), rgba(200, 150, 255, 0.1)); border-radius: 6px; border-left: 3px solid var(--accent-color);">
+                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                        Visualizes which sensor timesteps the model attended to when making predictions.
+                        Brighter colors indicate higher attention weights.
+                    </p>
+                </div>
+
+                <div id="attentionAvailable" style="display: none;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <button onclick="loadAttentionWeights()" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                            Load Attention Map
+                        </button>
+                        <button onclick="toggleAttentionRefresh()" id="autoRefreshBtn" style="padding: 0.5rem 1.5rem; background: var(--bg-secondary); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">
+                            Auto-Refresh: OFF
+                        </button>
+                    </div>
+
+                    <div id="attentionContainer" style="min-height: 400px;">
+                        <canvas id="attentionHeatmap" style="width: 100%; height: 400px; border-radius: 8px; background: var(--bg-secondary);"></canvas>
+                    </div>
+
+                    <div style="margin-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                                <strong>Legend:</strong>
+                                <span style="display: inline-block; width: 15px; height: 15px; background: linear-gradient(to right, rgba(120, 200, 255, 0.2), rgba(120, 200, 255, 1)); border-radius: 2px; vertical-align: middle; margin-left: 0.5rem;"></span>
+                                Low → High Attention
+                            </div>
+                            <div id="attentionTimestamp" style="font-size: 0.85rem; color: var(--text-secondary);"></div>
+                        </div>
+                    </div>
+
+                    <!-- Attention Stats -->
+                    <div id="attentionStats" style="display: none; margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 6px;">
+                        <h3 style="margin-top: 0; font-size: 1rem; font-weight: 600;">Attention Statistics</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Max Attention</div>
+                                <div id="maxAttention" style="font-size: 1.1rem; font-weight: 600; color: var(--accent-color);">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Mean Attention</div>
+                                <div id="meanAttention" style="font-size: 1.1rem; font-weight: 600;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Peak Timestep</div>
+                                <div id="peakTimestep" style="font-size: 1.1rem; font-weight: 600;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Shape</div>
+                                <div id="attentionShape" style="font-size: 1.1rem; font-weight: 600;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="attentionUnavailable" style="display: block; padding: 2rem; text-align: center; color: var(--text-secondary);">
+                    <p>Attention visualization is only available for multi-head models.</p>
+                    <p style="font-size: 0.9rem;">Load a multi-head checkpoint to enable this feature.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO connection
+        const socket = io({
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionAttempts: 5
+        });
+
+        // State
+        const state = {
+            running: false,
+            speed: 1,
+            interval: null,
+            history: [],
+            position3DHistory: [],
+            fpsCounter: { count: 0, lastTime: Date.now() },
+            connected: false,
+        };
+
+        // WebSocket Event Handlers
+        socket.on('connect', () => {
+            console.log('WebSocket connected');
+            state.connected = true;
+            showSuccess('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('WebSocket disconnected');
+            state.connected = false;
+            showError('Disconnected from server');
+            state.running = false;
+        });
+
+        socket.on('connection_status', (data) => {
+            console.log('Connection status:', data);
+        });
+
+        socket.on('inference_started', (data) => {
+            console.log('Inference started:', data);
+            state.running = true;
+        });
+
+        socket.on('inference_stopped', (data) => {
+            console.log('Inference stopped:', data);
+            state.running = false;
+        });
+
+        socket.on('inference_completed', (data) => {
+            console.log('Inference completed:', data);
+            state.running = false;
+            showSuccess(`Finished processing ${data.total_processed} samples!`);
+        });
+
+        socket.on('prediction_update', (data) => {
+            // Update predictions
+            if (data.predictions) {
+                updatePredictions(data.predictions);
+                updateTopK(data.predictions.top_k || []);
+                updateStats(data.predictions.running_stats || {});
+
+                // Update sensor heatmaps
+                if (data.predictions.sensor_data) {
+                    updateSensorHeatmap(data.predictions.sensor_data);
+                    updateSensorMeasurementHeatmap(data.predictions.sensor_data);
+                }
+
+                // Update 3D position
+                if (data.predictions.position_3d) {
+                    state.position3DHistory.push(data.predictions.position_3d);
+                    if (state.position3DHistory.length > 200) {
+                        state.position3DHistory.shift();
+                    }
+                    update3DPosition();
+                }
+
+                // Add to history
+                state.history.push(data.predictions);
+                if (state.history.length > 200) {
+                    state.history.shift();
+                }
+                updateTimelineCharts();
+
+                // Update FPS
+                updateFPS();
+            }
+
+            // Update progress
+            document.getElementById('currentIdx').textContent = data.current_idx;
+            document.getElementById('totalRows').textContent = data.total_rows;
+            const progress = (data.current_idx / data.total_rows) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        });
+
+        socket.on('status_update', (status) => {
+            document.getElementById('currentIdx').textContent = status.current_idx;
+            document.getElementById('totalRows').textContent = status.total_rows;
+            document.getElementById('bufferSize').textContent = status.buffer_size;
+
+            const progress = status.total_rows > 0 ? (status.current_idx / status.total_rows) * 100 : 0;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        });
+
+        socket.on('error', (data) => {
+            console.error('WebSocket error:', data);
+            showError(data.error || 'An error occurred');
+            if (data.hint) {
+                console.warn('Hint:', data.hint);
+            }
+            state.running = false;
+        });
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.setAttribute('data-theme', newTheme);
+            themeToggle.textContent = newTheme === 'light' ? '🌙' : '☀️';
+
+            // Re-render charts with new theme
+            updateAllCharts();
+        });
+
+        // Load models and CSV files
+        async function loadModels() {
+            const response = await fetch('/api/models');
+            const models = await response.json();
+            const select = document.getElementById('modelSelect');
+            select.innerHTML = '<option value="">Select a model...</option>';
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.path;
+                option.textContent = `${model.name} (${model.type})`;
+                select.appendChild(option);
+            });
+        }
+
+        async function loadCSVFiles() {
+            const response = await fetch('/api/csv_files');
+            const files = await response.json();
+            const select = document.getElementById('csvSelect');
+            select.innerHTML = '<option value="">Select a CSV file...</option>';
+            files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file.path;
+                option.textContent = file.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Load model
+        document.getElementById('modelSelect').addEventListener('change', async (e) => {
+            const path = e.target.value;
+            if (!path) return;
+
+            showLoading('Loading model...');
+            try {
+                const response = await fetch('/api/load_model', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    showSuccess('Model loaded successfully!');
+                } else {
+                    showError(result.error);
+                }
+            } catch (err) {
+                showError('Failed to load model: ' + err.message);
+            }
+            hideLoading();
+        });
+
+        // Load CSV
+        document.getElementById('csvSelect').addEventListener('change', async (e) => {
+            const path = e.target.value;
+            if (!path) return;
+
+            showLoading('Loading CSV...');
+            try {
+                const response = await fetch('/api/load_csv', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById('totalRows').textContent = result.total_rows;
+                    showSuccess(`Loaded ${result.total_rows} rows!`);
+                } else {
+                    showError(result.error);
+                }
+            } catch (err) {
+                showError('Failed to load CSV: ' + err.message);
+            }
+            hideLoading();
+        });
+
+        // Control buttons
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!state.connected) {
+                showError('Not connected to server');
+                return;
+            }
+            console.log('Starting inference via WebSocket');
+            socket.emit('start_inference');
+            state.running = true;
+        });
+
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            console.log('Stopping inference via WebSocket');
+            socket.emit('stop_inference');
+            state.running = false;
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', async () => {
+            // Reset via HTTP for now (can be converted to WebSocket later)
+            await fetch('/api/control', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'reset' })
+            });
+            socket.emit('stop_inference');
+            state.running = false;
+            state.history = [];
+            state.position3DHistory = [];
+            await updateStatus();
+            updateAllCharts();
+        });
+
+        // Batch Evaluate button
+        document.getElementById('batchEvaluateBtn').addEventListener('click', async () => {
+            if (!confirm('Run batch evaluation on entire dataset? This will reset current confusion matrices.')) {
+                return;
+            }
+
+            const btn = document.getElementById('batchEvaluateBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Evaluating...';
+
+            try {
+                const response = await fetch('/api/batch_evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ max_samples: 10000 })  // Limit to 10k samples for performance
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(`Batch evaluation complete!\n\nProcessed: ${result.processed}\nSkipped: ${result.skipped}\n\nConfusion matrices populated:\n` +
+                        `- GCode: ${result.confusion_matrices.gcode} labels\n` +
+                        `- Operation: ${result.confusion_matrices.operation} labels\n` +
+                        `- Type: ${result.confusion_matrices.type} labels\n` +
+                        `- Command: ${result.confusion_matrices.command} labels\n` +
+                        `- Param Type: ${result.confusion_matrices.param_type} labels\n` +
+                        `- Param Value: ${result.confusion_matrices.param_value} labels`
+                    );
+
+                    // Update all confusion matrices
+                    await updateConfusionMatrix();
+                    await updateComponentConfusionMatrices();
+                } else {
+                    alert(`Batch evaluation failed: ${result.error}`);
+                }
+            } catch (err) {
+                console.error('Batch evaluation error:', err);
+                alert(`Error: ${err.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '⚡ Batch Evaluate';
+            }
+        });
+
+        // Speed slider (WebSocket streams at backend speed, slider now controls visualization throttling)
+        document.getElementById('speedSlider').addEventListener('input', (e) => {
+            state.speed = parseInt(e.target.value);
+            document.getElementById('speedValue').textContent = `${state.speed}x`;
+            // Note: WebSocket backend streams at fixed rate, speed slider could be used
+            // for client-side throttling/buffering in future improvements
+        });
+
+        // Export button
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            window.location.href = '/api/export';
+        });
+
+        async function updateStatus() {
+            const response = await fetch('/api/status');
+            const status = await response.json();
+
+            document.getElementById('currentIdx').textContent = status.current_idx;
+            document.getElementById('totalRows').textContent = status.total_rows;
+            document.getElementById('bufferSize').textContent = status.buffer_size;
+
+            const progress = status.total_rows > 0 ? (status.current_idx / status.total_rows) * 100 : 0;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        function updatePredictions(pred) {
+            // Update token-level prediction
+            document.getElementById('currentGcode').textContent = pred.gcode_text || '---';
+            document.getElementById('currentConfidence').textContent =
+                `${(pred.gcode_confidence * 100).toFixed(1)}%`;
+            document.getElementById('anomalyScore').textContent =
+                pred.anomaly_score.toFixed(3);
+            document.getElementById('fingerprintScore').textContent =
+                pred.fingerprint_score ? pred.fingerprint_score.toFixed(3) : '0.000';
+            document.getElementById('reconstructionScore').textContent =
+                pred.reconstruction_score ? pred.reconstruction_score.toFixed(3) : '0.000';
+            document.getElementById('operationType').textContent =
+                pred.operation_type || '---';
+
+            if (pred.timestamp) {
+                const time = new Date(pred.timestamp);
+                document.getElementById('timestamp').textContent =
+                    time.toLocaleTimeString();
+            }
+
+            // Update full command generation
+            document.getElementById('fullCommand').textContent = pred.full_command || '---';
+            document.getElementById('fullCommandConfidence').textContent =
+                `${(pred.full_command_confidence * 100).toFixed(1)}%`;
+
+            // Update per-token confidence chart if available
+            if (pred.token_breakdown) {
+                updateTokenConfidenceChart(pred.token_breakdown);
+            }
+        }
+
+        function updateTopK(topK) {
+            const container = document.getElementById('topKList');
+
+            if (topK.length === 0) {
+                container.innerHTML = '<div class="loading active"><div class="spinner"></div>Waiting for predictions...</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            topK.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = 'top-k-item';
+                div.innerHTML = `
+                    <div class="top-k-rank">${idx + 1}</div>
+                    <div class="top-k-gcode">${item.gcode}</div>
+                    <div class="top-k-bar">
+                        <div class="top-k-bar-fill" style="width: ${item.confidence * 100}%"></div>
+                    </div>
+                    <div class="top-k-prob">${(item.confidence * 100).toFixed(1)}%</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateStats(stats) {
+            document.getElementById('anomalyMean').textContent =
+                `${stats.anomaly_mean?.toFixed(3) || '0.000'} ± ${stats.anomaly_std?.toFixed(3) || '0.000'}`;
+            document.getElementById('confidenceMean').textContent =
+                `${(stats.confidence_mean * 100)?.toFixed(1) || '0'}% ± ${(stats.confidence_std * 100)?.toFixed(1) || '0'}%`;
+
+            document.getElementById('anomalyBadge').textContent =
+                `Mean: ${stats.anomaly_mean?.toFixed(3) || '0.000'}`;
+            document.getElementById('confidenceBadge').textContent =
+                `Mean: ${(stats.confidence_mean * 100)?.toFixed(1) || '0'}%`;
+        }
+
+        // Initialize timeline charts once
+        let chartsInitialized = false;
+
+        function initializeTimelineCharts() {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            // Anomaly chart
+            const anomalyTrace = {
+                x: [],
+                y: [],
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#FF9800', width: 2 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(255, 152, 0, 0.2)',
+            };
+
+            Plotly.newPlot('anomalyChart', [anomalyTrace], {
+                margin: { t: 10, r: 10, b: 30, l: 40 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor },
+                xaxis: { title: 'Time', color: textColor, gridcolor: isDark ? '#404040' : '#e0e0e0' },
+                yaxis: { title: 'Score', color: textColor, gridcolor: isDark ? '#404040' : '#e0e0e0' },
+            }, { displayModeBar: false, responsive: true });
+
+            // Confidence chart
+            const confidenceTrace = {
+                x: [],
+                y: [],
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#4CAF50', width: 2 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(76, 175, 80, 0.2)',
+            };
+
+            Plotly.newPlot('confidenceChart', [confidenceTrace], {
+                margin: { t: 10, r: 10, b: 30, l: 40 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor },
+                xaxis: { title: 'Time', color: textColor, gridcolor: isDark ? '#404040' : '#e0e0e0' },
+                yaxis: { title: 'Confidence %', color: textColor, gridcolor: isDark ? '#404040' : '#e0e0e0' },
+            }, { displayModeBar: false, responsive: true });
+
+            chartsInitialized = true;
+        }
+
+        function updateTimelineCharts() {
+            if (!chartsInitialized) {
+                initializeTimelineCharts();
+            }
+
+            if (state.history.length === 0) return;
+
+            const lastPoint = state.history[state.history.length - 1];
+            const xValue = state.history.length - 1;
+
+            // Use extendTraces for efficient incremental updates
+            try {
+                Plotly.extendTraces('anomalyChart', {
+                    x: [[xValue]],
+                    y: [[lastPoint.anomaly_score]]
+                }, [0], 200);  // Keep last 200 points
+
+                Plotly.extendTraces('confidenceChart', {
+                    x: [[xValue]],
+                    y: [[lastPoint.gcode_confidence * 100]]
+                }, [0], 200);  // Keep last 200 points
+            } catch (err) {
+                console.error('Chart update error:', err);
+                // Fallback: re-initialize charts if extend fails
+                chartsInitialized = false;
+                initializeTimelineCharts();
+            }
+        }
+
+        async function updateConfusionMatrix() {
+            const response = await fetch('/api/confusion_matrix');
+            const data = await response.json();
+
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            if (data.labels.length === 0) {
+                return;
+            }
+
+            const heatmapTrace = {
+                z: data.matrix,
+                x: data.labels,
+                y: data.labels,
+                type: 'heatmap',
+                colorscale: 'Blues',
+                showscale: true,
+            };
+
+            Plotly.newPlot('confusionMatrix', [heatmapTrace], {
+                margin: { t: 10, r: 10, b: 80, l: 80 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor },
+                xaxis: { title: 'Predicted', side: 'bottom', color: textColor },
+                yaxis: { title: 'True', color: textColor },
+            }, { displayModeBar: false, responsive: true });
+        }
+
+        // State for confusion matrix normalization
+        let cmNormalizationMode = 'none';
+
+        // Helper function to render a confusion matrix heatmap
+        async function renderConfusionMatrix(apiEndpoint, elementId, colorscale = 'Blues', matrixType = null) {
+            try {
+                // Use normalized endpoint if matrixType is provided and normalization is enabled
+                let url = apiEndpoint;
+                if (matrixType && cmNormalizationMode !== 'none') {
+                    url = `/api/confusion_matrix/${matrixType}/normalized?mode=${cmNormalizationMode}`;
+                } else if (matrixType) {
+                    url = `/api/confusion_matrix/${matrixType}/normalized?mode=none`;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const isDark = body.getAttribute('data-theme') === 'dark';
+                const bgColor = isDark ? '#242424' : '#ffffff';
+                const textColor = isDark ? '#e0e0e0' : '#333333';
+
+                if (data.empty || data.labels.length === 0) {
+                    // Show placeholder message
+                    const element = document.getElementById(elementId);
+                    if (element) {
+                        element.innerHTML = `
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; min-height: 200px; color: var(--text-secondary);">
+                                <p>No data yet - start inference to populate</p>
+                            </div>
+                        `;
+                    }
+                    return data;
+                }
+
+                // Format hover text based on normalization
+                let hovertemplate = 'True: %{y}<br>Predicted: %{x}<br>';
+                if (data.normalization === 'row') {
+                    hovertemplate += 'Recall: %{z:.2%}<extra></extra>';
+                } else if (data.normalization === 'col') {
+                    hovertemplate += 'Precision: %{z:.2%}<extra></extra>';
+                } else {
+                    hovertemplate += 'Count: %{z}<extra></extra>';
+                }
+
+                const heatmapTrace = {
+                    z: data.matrix,
+                    x: data.labels,
+                    y: data.labels,
+                    type: 'heatmap',
+                    colorscale: colorscale,
+                    showscale: true,
+                    hovertemplate: hovertemplate,
+                    zmin: (data.normalization !== 'none') ? 0 : undefined,
+                    zmax: (data.normalization !== 'none') ? 1 : undefined,
+                };
+
+                Plotly.newPlot(elementId, [heatmapTrace], {
+                    margin: { t: 10, r: 10, b: 60, l: 60 },
+                    paper_bgcolor: bgColor,
+                    plot_bgcolor: bgColor,
+                    font: { color: textColor, size: 10 },
+                    xaxis: { title: 'Predicted', side: 'bottom', color: textColor },
+                    yaxis: { title: 'True', color: textColor },
+                    annotations: data.normalization_label ? [{
+                        text: data.normalization_label,
+                        xref: 'paper',
+                        yref: 'paper',
+                        x: 0.5,
+                        y: 1.05,
+                        showarrow: false,
+                        font: { size: 10, color: textColor }
+                    }] : []
+                }, { displayModeBar: false, responsive: true });
+
+                return data;
+            } catch (err) {
+                console.error(`Error rendering confusion matrix for ${elementId}:`, err);
+                return null;
+            }
+        }
+
+        // Update normalization mode and re-render all CMs
+        async function updateConfusionMatrixNormalization(mode) {
+            cmNormalizationMode = mode;
+            await updateComponentConfusionMatrices();
+
+            // Update metrics summary if data available
+            if (mode !== 'none') {
+                updateConfusionMatrixMetricsSummary();
+            }
+        }
+
+        async function updateConfusionMatrixMetricsSummary() {
+            try {
+                // Fetch one CM with normalization to get overall metrics
+                const response = await fetch(`/api/confusion_matrix/command/normalized?mode=${cmNormalizationMode}`);
+                const data = await response.json();
+
+                if (data.overall_metrics && !data.empty) {
+                    const metrics = data.overall_metrics;
+                    const summaryHtml = `
+                        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; text-align: center;">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Accuracy</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;">${(metrics.accuracy * 100).toFixed(2)}%</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; text-align: center;">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Macro Precision</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;">${(metrics.macro_precision * 100).toFixed(2)}%</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; text-align: center;">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Macro Recall</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;">${(metrics.macro_recall * 100).toFixed(2)}%</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; text-align: center;">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Macro F1</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;">${(metrics.macro_f1 * 100).toFixed(2)}%</div>
+                        </div>
+                        <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; text-align: center;">
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Total Samples</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;">${metrics.total_samples}</div>
+                        </div>
+                    `;
+                    document.getElementById('cmMetricsSummary').innerHTML = summaryHtml;
+                }
+            } catch (err) {
+                console.error('Error updating CM metrics summary:', err);
+            }
+        }
+
+        // Update all component-level confusion matrices
+        async function updateComponentConfusionMatrices() {
+            await Promise.all([
+                renderConfusionMatrix('/api/confusion_matrix/operation', 'confusionMatrixOperation', 'Greens', 'operation'),
+                renderConfusionMatrix('/api/confusion_matrix/type', 'confusionMatrixType', 'Purples', 'type'),
+                renderConfusionMatrix('/api/confusion_matrix/command', 'confusionMatrixCommand', 'Oranges', 'command'),
+                renderConfusionMatrix('/api/confusion_matrix/param_type', 'confusionMatrixParamType', 'Reds', 'param_type'),
+                renderConfusionMatrix('/api/confusion_matrix/param_value', 'confusionMatrixParamValue', 'YlOrRd', 'param_value'),
+            ]);
+        }
+
+        // Rolling buffer for sensor time series (last 50 readings)
+        const sensorHistory = [];
+        const MAX_SENSOR_HISTORY = 50;
+
+        function updateSensorHeatmap(sensorData) {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            // Add current reading to history
+            sensorHistory.push(sensorData);
+            if (sensorHistory.length > MAX_SENSOR_HISTORY) {
+                sensorHistory.shift();
+            }
+
+            // Extract all unique measurement types across all sensors
+            const measurementTypes = new Set();
+            Object.keys(sensorData).forEach(sensor => {
+                const parts = sensor.split('.');
+                if (parts.length > 1) {
+                    measurementTypes.add(parts[1]); // Ax, Ay, Az, Gx, Gy, etc.
+                }
+            });
+
+            const sortedMeasurements = Array.from(measurementTypes).sort();
+
+            // Build time series matrix: rows = measurement types, columns = time steps
+            const z = [];
+            const text = [];
+            const yLabels = sortedMeasurements;
+            const xLabels = sensorHistory.map((_, i) => `t-${sensorHistory.length - 1 - i}`).reverse();
+
+            sortedMeasurements.forEach(measurement => {
+                const row = [];
+                const textRow = [];
+
+                sensorHistory.forEach((historicalData, timeIdx) => {
+                    // Average all sensors with this measurement type at this time
+                    const sensors = Object.keys(historicalData).filter(s => s.endsWith(`.${measurement}`));
+                    if (sensors.length > 0) {
+                        const avgValue = sensors.reduce((sum, s) => sum + historicalData[s], 0) / sensors.length;
+                        row.push(avgValue);
+                        textRow.push(`${measurement} (t-${sensorHistory.length - 1 - timeIdx}): ${avgValue.toFixed(3)}`);
+                    } else {
+                        row.push(0);
+                        textRow.push('');
+                    }
+                });
+
+                z.push(row);
+                text.push(textRow);
+            });
+
+            const heatmapTrace = {
+                z: z,
+                x: xLabels,
+                y: yLabels,
+                type: 'heatmap',
+                colorscale: 'Viridis',
+                showscale: true,
+                text: text,
+                hovertemplate: '%{text}<extra></extra>',
+            };
+
+            Plotly.newPlot('sensorHeatmap', [heatmapTrace], {
+                title: {
+                    text: 'Sensor Measurements Over Time',
+                    font: { color: textColor, size: 12 }
+                },
+                margin: { t: 40, r: 80, b: 60, l: 100 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor, size: 10 },
+                xaxis: {
+                    title: 'Time Steps',
+                    tickangle: -45,
+                    color: textColor,
+                    gridcolor: isDark ? '#404040' : '#e0e0e0'
+                },
+                yaxis: {
+                    title: 'Measurement Type',
+                    color: textColor,
+                    gridcolor: isDark ? '#404040' : '#e0e0e0'
+                },
+            }, { displayModeBar: false, responsive: true });
+        }
+
+        function updateSensorMeasurementHeatmap(sensorData) {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            // Define desired measurement types in order
+            const desiredMeasurements = ['Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Temp', 'Press', 'Prox', 'ColorA', 'ColorR', 'ColorB', 'ColorG', 'RMS', 'Gesture'];
+
+            // Extract sensor locations and organize by measurement type
+            const sensorLocations = new Set();
+            const measurementsBySensor = {};
+
+            Object.keys(sensorData).forEach(sensorKey => {
+                const parts = sensorKey.split('.');
+                if (parts.length > 1) {
+                    const location = parts[0];  // e.g., "frame_r1", "xa_motor", "stat"
+                    const measurement = parts[1]; // e.g., "Ax", "Ay", "Gz"
+
+                    sensorLocations.add(location);
+
+                    if (!measurementsBySensor[location]) {
+                        measurementsBySensor[location] = {};
+                    }
+                    measurementsBySensor[location][measurement] = sensorData[sensorKey];
+                }
+            });
+
+            const sortedLocations = Array.from(sensorLocations).sort();
+
+            // Build matrix: rows = sensor locations, columns = measurement types
+            const z = [];
+            const text = [];
+            const yLabels = sortedLocations;
+            const xLabels = desiredMeasurements;
+
+            sortedLocations.forEach(location => {
+                const row = [];
+                const textRow = [];
+
+                desiredMeasurements.forEach(measurement => {
+                    const value = measurementsBySensor[location]?.[measurement] || 0;
+                    row.push(value);
+                    textRow.push(`${location}.${measurement}: ${value.toFixed(3)}`);
+                });
+
+                z.push(row);
+                text.push(textRow);
+            });
+
+            const heatmapTrace = {
+                z: z,
+                x: xLabels,
+                y: yLabels,
+                type: 'heatmap',
+                colorscale: 'Viridis',
+                showscale: true,
+                text: text,
+                hovertemplate: '%{text}<extra></extra>',
+            };
+
+            Plotly.newPlot('sensorMeasurementHeatmap', [heatmapTrace], {
+                title: {
+                    text: 'Current Sensor Readings by Measurement Type',
+                    font: { color: textColor, size: 12 }
+                },
+                margin: { t: 40, r: 80, b: 80, l: 120 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor, size: 10 },
+                xaxis: {
+                    title: 'Measurement Type',
+                    tickangle: -45,
+                    color: textColor,
+                    gridcolor: isDark ? '#404040' : '#e0e0e0'
+                },
+                yaxis: {
+                    title: 'Sensor Location',
+                    color: textColor,
+                    gridcolor: isDark ? '#404040' : '#e0e0e0'
+                },
+            }, { displayModeBar: false, responsive: true });
+        }
+
+        // Initialize 3D position chart once
+        let position3DInitialized = false;
+
+        function initialize3DPosition() {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            const trace = {
+                x: [],
+                y: [],
+                z: [],
+                mode: 'lines+markers',
+                type: 'scatter3d',
+                marker: {
+                    size: 2,
+                    color: [],
+                    colorscale: 'Jet',
+                    showscale: false,
+                },
+                line: {
+                    color: '#2196F3',
+                    width: 2
+                },
+            };
+
+            Plotly.newPlot('position3D', [trace], {
+                margin: { t: 10, r: 10, b: 10, l: 10 },
+                paper_bgcolor: bgColor,
+                scene: {
+                    xaxis: { title: 'X', color: textColor, gridcolor: isDark ? '#404040' : '#e0e0e0' },
+                    yaxis: { title: 'Y', color: textColor, gridcolor: isDark ? '#404040' : '#e0e0e0' },
+                    zaxis: { title: 'Z', color: textColor, gridcolor: isDark ? '#404040' : '#e0e0e0' },
+                    bgcolor: bgColor,
+                },
+            }, { displayModeBar: false, responsive: true });
+
+            position3DInitialized = true;
+        }
+
+        function update3DPosition() {
+            if (!position3DInitialized) {
+                initialize3DPosition();
+            }
+
+            if (state.position3DHistory.length === 0) return;
+
+            const lastPoint = state.position3DHistory[state.position3DHistory.length - 1];
+
+            try {
+                Plotly.extendTraces('position3D', {
+                    x: [[lastPoint.x]],
+                    y: [[lastPoint.y]],
+                    z: [[lastPoint.z]],
+                    'marker.color': [[state.position3DHistory.length - 1]]
+                }, [0], 200);  // Keep last 200 points
+            } catch (err) {
+                console.error('3D position update error:', err);
+                // Fallback: re-initialize if extend fails
+                position3DInitialized = false;
+                initialize3DPosition();
+            }
+        }
+
+        function updateAllCharts() {
+            // Re-initialize all charts (used for theme changes or reset)
+            chartsInitialized = false;
+            position3DInitialized = false;
+
+            initializeTimelineCharts();
+            if (state.position3DHistory.length > 0) {
+                initialize3DPosition();
+            }
+            updateConfusionMatrix();
+            updateComponentConfusionMatrices();
+        }
+
+        function updateFPS() {
+            state.fpsCounter.count++;
+            const now = Date.now();
+            const elapsed = (now - state.fpsCounter.lastTime) / 1000;
+
+            if (elapsed >= 1.0) {
+                const fps = state.fpsCounter.count / elapsed;
+                document.getElementById('fps').textContent = fps.toFixed(1);
+                state.fpsCounter.count = 0;
+                state.fpsCounter.lastTime = now;
+            }
+        }
+
+        // Helper functions
+        function showLoading(message) {
+            console.log('Loading:', message);
+        }
+
+        function hideLoading() {
+            console.log('Loading complete');
+        }
+
+        function showError(message) {
+            const errorBox = document.getElementById('errorBox');
+            errorBox.textContent = '❌ ' + message;
+            errorBox.classList.add('active');
+            setTimeout(() => errorBox.classList.remove('active'), 5000);
+        }
+
+        function showSuccess(message) {
+            console.log('Success:', message);
+        }
+
+        // ===== NEW ADVANCED FEATURES =====
+
+        // Settings control
+        function setupSettings() {
+            const controls = {
+                enableAutoregressive: document.getElementById('enableAutoregressive'),
+                useBeamSearch: document.getElementById('useBeamSearch'),
+                maxTokens: document.getElementById('maxTokens'),
+                beamSize: document.getElementById('beamSize'),
+                temperature: document.getElementById('temperature'),
+                topP: document.getElementById('topP'),
+            };
+
+            // Update value displays
+            controls.maxTokens.oninput = (e) => {
+                document.getElementById('maxTokensValue').textContent = e.target.value;
+                updateSettings();
+            };
+            controls.beamSize.oninput = (e) => {
+                document.getElementById('beamSizeValue').textContent = e.target.value;
+                updateSettings();
+            };
+            controls.temperature.oninput = (e) => {
+                document.getElementById('temperatureValue').textContent = parseFloat(e.target.value).toFixed(1);
+                updateSettings();
+            };
+            controls.topP.oninput = (e) => {
+                document.getElementById('topPValue').textContent = parseFloat(e.target.value).toFixed(2);
+                updateSettings();
+            };
+
+            controls.enableAutoregressive.onchange = updateSettings;
+            controls.useBeamSearch.onchange = updateSettings;
+        }
+
+        async function updateSettings() {
+            const settings = {
+                enable_autoregressive: document.getElementById('enableAutoregressive').checked,
+                use_beam_search: document.getElementById('useBeamSearch').checked,
+                max_tokens: parseInt(document.getElementById('maxTokens').value),
+                beam_size: parseInt(document.getElementById('beamSize').value),
+                temperature: parseFloat(document.getElementById('temperature').value),
+                top_p: parseFloat(document.getElementById('topP').value),
+            };
+
+            try {
+                await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(settings)
+                });
+            } catch (error) {
+                console.error('Failed to update settings:', error);
+            }
+        }
+
+        async function updateGenerationHistory() {
+            try {
+                const response = await fetch('/api/generation_history');
+                const data = await response.json();
+
+                const tbody = document.getElementById('historyBody');
+                if (!data.history || data.history.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No history yet...</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.history.slice(-10).reverse().map((entry, idx) => {
+                    const editDist = entry.ground_truth && entry.predicted
+                        ? levenshteinDistance(entry.predicted, entry.ground_truth)
+                        : '---';
+
+                    return `
+                        <tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 0.75rem;">${10 - idx}</td>
+                            <td style="padding: 0.75rem; font-family: monospace; color: var(--accent-color);">${entry.predicted || '---'}</td>
+                            <td style="padding: 0.75rem; font-family: monospace; color: var(--text-secondary);">${entry.ground_truth || '---'}</td>
+                            <td style="padding: 0.75rem; text-align: center;">
+                                ${entry.ground_truth ? (entry.predicted === entry.ground_truth ? '✅' : '❌') : '---'}
+                            </td>
+                            <td style="padding: 0.75rem; text-align: center;">${editDist}</td>
+                            <td style="padding: 0.75rem; text-align: center;">${(entry.confidence * 100).toFixed(1)}%</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Failed to update generation history:', error);
+            }
+        }
+
+        function levenshteinDistance(s1, s2) {
+            const len1 = s1.length;
+            const len2 = s2.length;
+            const matrix = Array(len2 + 1).fill(null).map(() => Array(len1 + 1).fill(0));
+
+            for (let i = 0; i <= len1; i++) matrix[0][i] = i;
+            for (let j = 0; j <= len2; j++) matrix[j][0] = j;
+
+            for (let j = 1; j <= len2; j++) {
+                for (let i = 1; i <= len1; i++) {
+                    const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+                    matrix[j][i] = Math.min(
+                        matrix[j][i - 1] + 1,
+                        matrix[j - 1][i] + 1,
+                        matrix[j - 1][i - 1] + cost
+                    );
+                }
+            }
+
+            return matrix[len2][len1];
+        }
+
+        async function updateCommandTypesChart() {
+            try {
+                const response = await fetch('/api/command_types');
+                const data = await response.json();
+
+                if (!data.types || Object.keys(data.types).length === 0) return;
+
+                const isDark = body.getAttribute('data-theme') === 'dark';
+                const bgColor = isDark ? '#242424' : '#ffffff';
+                const textColor = isDark ? '#e0e0e0' : '#333333';
+
+                const trace = {
+                    labels: Object.keys(data.types),
+                    values: Object.values(data.types),
+                    type: 'pie',
+                    marker: {
+                        colors: ['#2196F3', '#4CAF50', '#FF9800', '#f44336', '#9C27B0', '#00BCD4']
+                    }
+                };
+
+                Plotly.newPlot('commandTypesChart', [trace], {
+                    margin: { t: 20, r: 20, b: 20, l: 20 },
+                    paper_bgcolor: bgColor,
+                    plot_bgcolor: bgColor,
+                    font: { color: textColor },
+                }, { displayModeBar: false, responsive: true });
+            } catch (error) {
+                console.error('Failed to update command types chart:', error);
+            }
+        }
+
+        function updateTokenConfidenceChart(tokenBreakdown) {
+            if (!tokenBreakdown || tokenBreakdown.length === 0) {
+                // Clear chart if no data
+                const chartDiv = document.getElementById('tokenConfidenceChart');
+                if (chartDiv) {
+                    chartDiv.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-secondary);">No token data yet...</div>';
+                }
+                return;
+            }
+
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            const trace = {
+                x: tokenBreakdown.map(t => t.token),
+                y: tokenBreakdown.map(t => t.confidence * 100),
+                type: 'bar',
+                marker: {
+                    color: tokenBreakdown.map(t => t.confidence > 0.5 ? '#4CAF50' : '#FF9800')
+                }
+            };
+
+            Plotly.newPlot('tokenConfidenceChart', [trace], {
+                xaxis: { title: 'Token', color: textColor },
+                yaxis: { title: 'Confidence (%)', color: textColor },
+                margin: { t: 20, r: 20, b: 60, l: 60 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor },
+            }, { displayModeBar: false, responsive: true });
+        }
+
+        async function updateTSNE() {
+            try {
+                const response = await fetch('/api/tsne');
+                const data = await response.json();
+
+                const badge = document.getElementById('tsneBadge');
+                if (!data.success) {
+                    badge.textContent = data.error || 'Not enough data';
+                    badge.className = 'badge badge-warning';
+                    const chartDiv = document.getElementById('tsneChart');
+                    if (chartDiv) {
+                        chartDiv.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--text-secondary);">Need at least 10 samples for t-SNE visualization</div>';
+                    }
+                    return;
+                }
+
+                badge.textContent = `${data.n_samples} samples`;
+                badge.className = 'badge badge-success';
+
+                const isDark = body.getAttribute('data-theme') === 'dark';
+                const bgColor = isDark ? '#242424' : '#ffffff';
+                const textColor = isDark ? '#e0e0e0' : '#333333';
+
+                const trace = {
+                    x: data.embeddings.map(e => e[0]),
+                    y: data.embeddings.map(e => e[1]),
+                    mode: 'markers+text',
+                    type: 'scatter',
+                    text: data.labels,
+                    textposition: 'top center',
+                    textfont: { size: 8 },
+                    marker: {
+                        size: 10,
+                        color: data.embeddings.map((_, i) => i),
+                        colorscale: 'Viridis',
+                        showscale: true,
+                        colorbar: {
+                            title: 'Sample Index',
+                            titlefont: { color: textColor }
+                        }
+                    }
+                };
+
+                Plotly.newPlot('tsneChart', [trace], {
+                    xaxis: { title: 't-SNE Dimension 1', color: textColor, gridcolor: isDark ? '#444' : '#ddd' },
+                    yaxis: { title: 't-SNE Dimension 2', color: textColor, gridcolor: isDark ? '#444' : '#ddd' },
+                    margin: { t: 20, r: 20, b: 60, l: 60 },
+                    paper_bgcolor: bgColor,
+                    plot_bgcolor: bgColor,
+                    font: { color: textColor },
+                    hovermode: 'closest'
+                }, { displayModeBar: false, responsive: true });
+            } catch (error) {
+                console.error('Failed to update t-SNE chart:', error);
+            }
+        }
+
+        async function exportGcode() {
+            try {
+                window.location.href = '/api/export_gcode';
+            } catch (error) {
+                console.error('Failed to export G-code:', error);
+                showError('Failed to export G-code');
+            }
+        }
+
+        // ===================================================================
+        // Hyperparameter Sweep Analytics Functions
+        // ===================================================================
+
+        async function loadHyperparameterSweep() {
+            try {
+                const response = await fetch('/api/analytics/hyperparameter_sweep');
+                const result = await response.json();
+
+                if (!result.success) {
+                    console.warn('Sweep data not available:', result.error);
+                    return;
+                }
+
+                const data = result.data;
+
+                // Render top models table
+                renderTopModelsTable(data.top_runs);
+
+                // Render parallel coordinates plot
+                renderParallelCoordinates(data);
+
+            } catch (error) {
+                console.error('Failed to load hyperparameter sweep:', error);
+            }
+        }
+
+        function renderTopModelsTable(topRuns) {
+            const container = document.getElementById('topModelsTable');
+            if (!topRuns || topRuns.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary);">No top runs available</p>';
+                return;
+            }
+
+            let html = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                                <th style="padding: 0.75rem; text-align: left;">Rank</th>
+                                <th style="padding: 0.75rem; text-align: left;">Run ID</th>
+                                <th style="padding: 0.75rem; text-align: right;">Val Acc</th>
+                                <th style="padding: 0.75rem; text-align: right;">Val Loss</th>
+                                <th style="padding: 0.75rem; text-align: right;">Hidden Dim</th>
+                                <th style="padding: 0.75rem; text-align: right;">Heads</th>
+                                <th style="padding: 0.75rem; text-align: right;">Layers</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            topRuns.forEach((run, idx) => {
+                const accPercent = (run['val/param_type_acc'] * 100).toFixed(2);
+                const loss = run['val/loss'].toFixed(4);
+                html += `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.75rem;">${idx + 1}</td>
+                        <td style="padding: 0.75rem; font-family: monospace;">${run.run_id}</td>
+                        <td style="padding: 0.75rem; text-align: right; font-weight: 600; color: var(--success-color);">${accPercent}%</td>
+                        <td style="padding: 0.75rem; text-align: right;">${loss}</td>
+                        <td style="padding: 0.75rem; text-align: right;">${run.hidden_dim || '-'}</td>
+                        <td style="padding: 0.75rem; text-align: right;">${run.num_heads || '-'}</td>
+                        <td style="padding: 0.75rem; text-align: right;">${run.num_layers || '-'}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function renderParallelCoordinates(data) {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            // Prepare dimensions for parallel coordinates
+            const dimensions = [];
+
+            // Add parameter dimensions
+            const params = Object.keys(data.parameters);
+            params.forEach(param => {
+                dimensions.push({
+                    label: param.replace('_', ' '),
+                    values: data.parameters[param]
+                });
+            });
+
+            // Add metric dimensions
+            if (data.metrics['val/param_type_acc']) {
+                dimensions.push({
+                    label: 'Val Accuracy',
+                    values: data.metrics['val/param_type_acc'].map(v => v * 100)  // Convert to percentage
+                });
+            }
+            if (data.metrics['val/loss']) {
+                dimensions.push({
+                    label: 'Val Loss',
+                    values: data.metrics['val/loss']
+                });
+            }
+
+            const trace = {
+                type: 'parcoords',
+                line: {
+                    color: data.metrics['val/param_type_acc'] ? data.metrics['val/param_type_acc'].map(v => v * 100) : undefined,
+                    colorscale: 'Viridis',
+                    showscale: true,
+                    cmin: 0,
+                    cmax: 100
+                },
+                dimensions: dimensions
+            };
+
+            Plotly.newPlot('parallelCoordinatesChart', [trace], {
+                margin: { t: 50, r: 50, b: 50, l: 100 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor, size: 11 },
+            }, { displayModeBar: false, responsive: true });
+        }
+
+        async function loadParameterImportance() {
+            try {
+                const response = await fetch('/api/analytics/parameter_importance');
+                const result = await response.json();
+
+                if (!result.success) {
+                    console.warn('Parameter importance data not available:', result.error);
+                    return;
+                }
+
+                const isDark = body.getAttribute('data-theme') === 'dark';
+                const bgColor = isDark ? '#242424' : '#ffffff';
+                const textColor = isDark ? '#e0e0e0' : '#333333';
+
+                const trace = {
+                    x: result.importance,
+                    y: result.parameters,
+                    type: 'bar',
+                    orientation: 'h',
+                    marker: {
+                        color: result.importance,
+                        colorscale: 'Blues',
+                        showscale: false
+                    }
+                };
+
+                Plotly.newPlot('parameterImportanceChart', [trace], {
+                    margin: { t: 20, r: 20, b: 40, l: 120 },
+                    paper_bgcolor: bgColor,
+                    plot_bgcolor: bgColor,
+                    font: { color: textColor },
+                    xaxis: { title: 'Importance', color: textColor, gridcolor: isDark ? '#404040' : '#e0e0e0' },
+                    yaxis: { color: textColor }
+                }, { displayModeBar: false, responsive: true });
+
+            } catch (error) {
+                console.error('Failed to load parameter importance:', error);
+            }
+        }
+
+        // ===================================================================
+        // Error Analysis Functions
+        // ===================================================================
+
+        async function loadErrorAnalysis() {
+            try {
+                const response = await fetch('/api/analytics/error_analysis');
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert(`Error analysis failed: ${result.error}`);
+                    return;
+                }
+
+                const data = result.data;
+
+                // Show results container
+                document.getElementById('errorAnalysisResults').style.display = 'block';
+
+                // Render component error cards
+                renderComponentErrorCards(data.component_errors);
+
+                // Render component error chart
+                renderComponentErrorChart(data.component_errors);
+
+                // Render temporal error pattern
+                renderTemporalErrorChart(data.temporal_errors);
+
+                // Render top misclassifications
+                renderTopMisclassifications(data.top_misclassifications);
+
+            } catch (error) {
+                console.error('Failed to load error analysis:', error);
+                alert('Failed to load error analysis');
+            }
+        }
+
+        function renderComponentErrorCards(componentErrors) {
+            const container = document.getElementById('componentErrorCards');
+            let html = '';
+
+            for (const [component, stats] of Object.entries(componentErrors)) {
+                const errorPercent = (stats.error_rate * 100).toFixed(2);
+                const accuracyPercent = (stats.accuracy * 100).toFixed(2);
+
+                html += `
+                    <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 4px; border-left: 4px solid ${stats.error_rate < 0.1 ? 'var(--success-color)' : 'var(--error-color)'};">
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 0.5rem;">${component}</div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--success-color);">${accuracyPercent}%</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">${stats.total_errors} / ${stats.total_predictions} errors</div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderComponentErrorChart(componentErrors) {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            const components = Object.keys(componentErrors);
+            const errorRates = components.map(c => componentErrors[c].error_rate * 100);
+            const accuracies = components.map(c => componentErrors[c].accuracy * 100);
+
+            const trace1 = {
+                x: components,
+                y: accuracies,
+                name: 'Accuracy',
+                type: 'bar',
+                marker: { color: '#4CAF50' }
+            };
+
+            const trace2 = {
+                x: components,
+                y: errorRates,
+                name: 'Error Rate',
+                type: 'bar',
+                marker: { color: '#f44336' }
+            };
+
+            Plotly.newPlot('componentErrorChart', [trace1, trace2], {
+                margin: { t: 20, r: 20, b: 60, l: 50 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor },
+                xaxis: { title: 'Component', color: textColor },
+                yaxis: { title: 'Percentage (%)', color: textColor, gridcolor: isDark ? '#404040' : '#e0e0e0' },
+                barmode: 'group'
+            }, { displayModeBar: false, responsive: true });
+        }
+
+        function renderTemporalErrorChart(temporalErrors) {
+            if (!temporalErrors || temporalErrors.length === 0) {
+                document.getElementById('temporalErrorChart').innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No temporal data available</p>';
+                return;
+            }
+
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            const indices = temporalErrors.map(t => t.index);
+            const errors = temporalErrors.map(t => t.has_error ? 1 : 0);
+            const confidences = temporalErrors.map(t => t.confidence * 100);
+
+            const trace1 = {
+                x: indices,
+                y: errors,
+                name: 'Error (1=error, 0=correct)',
+                type: 'scatter',
+                mode: 'markers',
+                marker: {
+                    color: errors.map(e => e === 1 ? '#f44336' : '#4CAF50'),
+                    size: 8
+                },
+                yaxis: 'y1'
+            };
+
+            const trace2 = {
+                x: indices,
+                y: confidences,
+                name: 'Confidence %',
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: '#2196F3' },
+                yaxis: 'y2'
+            };
+
+            Plotly.newPlot('temporalErrorChart', [trace1, trace2], {
+                margin: { t: 20, r: 60, b: 40, l: 50 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor },
+                xaxis: { title: 'Prediction Index', color: textColor },
+                yaxis: {
+                    title: 'Error',
+                    color: textColor,
+                    gridcolor: isDark ? '#404040' : '#e0e0e0',
+                    range: [-0.1, 1.1]
+                },
+                yaxis2: {
+                    title: 'Confidence %',
+                    color: '#2196F3',
+                    overlaying: 'y',
+                    side: 'right'
+                },
+                showlegend: true,
+                legend: { x: 0.01, y: 0.99 }
+            }, { displayModeBar: false, responsive: true });
+        }
+
+        function renderTopMisclassifications(misclassifications) {
+            const container = document.getElementById('topMisclassificationsTable');
+
+            if (!misclassifications || misclassifications.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No misclassifications found</p>';
+                return;
+            }
+
+            let html = `
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">
+                                <th style="padding: 0.75rem; text-align: left;">Rank</th>
+                                <th style="padding: 0.75rem; text-align: left;">True Label</th>
+                                <th style="padding: 0.75rem; text-align: left;">Predicted As</th>
+                                <th style="padding: 0.75rem; text-align: right;">Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            misclassifications.forEach((item, idx) => {
+                html += `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.75rem;">${idx + 1}</td>
+                        <td style="padding: 0.75rem; font-family: monospace; color: var(--success-color);">${item.true}</td>
+                        <td style="padding: 0.75rem; font-family: monospace; color: var(--error-color);">${item.predicted}</td>
+                        <td style="padding: 0.75rem; text-align: right; font-weight: 600;">${item.count}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        // ===================================================================
+        // Sequence Alignment Functions
+        // ===================================================================
+
+        async function loadSequenceAlignment() {
+            try {
+                const response = await fetch('/api/analytics/sequence_alignment');
+                const result = await response.json();
+
+                if (!result.success) {
+                    console.warn('Sequence alignment failed:', result.error);
+                    return;
+                }
+
+                renderSequenceAlignments(result.alignments);
+
+            } catch (error) {
+                console.error('Failed to load sequence alignment:', error);
+            }
+        }
+
+        function renderSequenceAlignments(alignments) {
+            const container = document.getElementById('sequenceAlignmentContainer');
+
+            if (!alignments || alignments.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No alignment data available - run batch evaluation first</p>';
+                return;
+            }
+
+            let html = '';
+
+            alignments.forEach((alignment, idx) => {
+                const isMatch = alignment.match;
+                const borderColor = isMatch ? 'var(--success-color)' : 'var(--error-color)';
+                const confidence = (alignment.confidence * 100).toFixed(1);
+
+                html += `
+                    <div style="margin-bottom: 1.5rem; padding: 1rem; border-left: 4px solid ${borderColor}; background: var(--bg-secondary); border-radius: 4px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <span style="font-weight: 600; color: var(--text-secondary);">Prediction #${idx + 1}</span>
+                            <span style="font-size: 0.875rem;">
+                                Confidence: <strong>${confidence}%</strong>
+                                ${alignment.edit_distance > 0 ? `| Edit Distance: <strong>${alignment.edit_distance}</strong>` : ''}
+                            </span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; font-family: monospace; font-size: 0.9rem;">
+                            <div style="color: var(--text-secondary); font-weight: 600;">Ground Truth:</div>
+                            <div style="color: var(--success-color);">${escapeHtml(alignment.ground_truth)}</div>
+
+                            <div style="color: var(--text-secondary); font-weight: 600;">Predicted:</div>
+                            <div style="color: ${isMatch ? 'var(--success-color)' : 'var(--error-color)'};">${escapeHtml(alignment.predicted)}</div>
+                        </div>
+
+                        ${!isMatch ? `
+                            <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-primary); border-radius: 4px;">
+                                <span style="font-size: 0.875rem; color: var(--error-color);">❌ Mismatch</span>
+                            </div>
+                        ` : `
+                            <div style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-primary); border-radius: 4px;">
+                                <span style="font-size: 0.875rem; color: var(--success-color);">✓ Perfect Match</span>
+                            </div>
+                        `}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Initialize
+        loadModels();
+        loadCSVFiles();
+        updateStatus();
+        setupSettings();
+
+        // Load analytics visualizations
+        loadHyperparameterSweep();
+        loadParameterImportance();
+
+        // Request initial status via WebSocket
+        socket.on('connect', () => {
+            socket.emit('request_status');
+        });
+
+        // Add periodic updates for new features
+        setInterval(updateGenerationHistory, 2000);
+        setInterval(updateCommandTypesChart, 3000);
+        setInterval(updateTSNE, 5000);  // Update t-SNE every 5 seconds
+        setInterval(updateConfusionMatrix, 3000);  // Update confusion matrix every 3 seconds
+        setInterval(updateComponentConfusionMatrices, 3000);  // Update component confusion matrices every 3 seconds
+
+        // ===================================================================
+        // Checkpoint Manager Functions
+        // ===================================================================
+
+        let selectedCheckpoints = new Set();
+
+        async function loadCheckpoints() {
+            const container = document.getElementById('checkpointsList');
+            container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">Loading checkpoints...</p>';
+
+            try {
+                const response = await fetch('/api/checkpoints');
+                const data = await response.json();
+
+                if (data.success) {
+                    if (data.checkpoints.length === 0) {
+                        container.innerHTML = '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No checkpoints found in outputs/ directory</p>';
+                        return;
+                    }
+
+                    displayCheckpoints(data.checkpoints);
+                } else {
+                    container.innerHTML = `<p style="color: var(--error-color); text-align: center; padding: 2rem;">Error: ${data.error}</p>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<p style="color: var(--error-color); text-align: center; padding: 2rem;">Failed to load checkpoints: ${error}</p>`;
+            }
+        }
+
+        function toggleCheckpointSelection(checkpointPath, checkbox) {
+            if (checkbox.checked) {
+                selectedCheckpoints.add(checkpointPath);
+            } else {
+                selectedCheckpoints.delete(checkpointPath);
+            }
+
+            // Update compare button visibility
+            const compareBtn = document.getElementById('compareBtn');
+            if (selectedCheckpoints.size >= 2) {
+                compareBtn.style.display = 'block';
+                compareBtn.textContent = `Compare Selected (${selectedCheckpoints.size})`;
+            } else {
+                compareBtn.style.display = 'none';
+            }
+        }
+
+        function displayCheckpoints(checkpoints) {
+            const container = document.getElementById('checkpointsList');
+
+            let html = '<div style="margin-bottom: 1rem;"><label style="color: var(--text-secondary); font-size: 0.875rem;"><input type="checkbox" onchange="toggleAll(this)" style="margin-right: 0.5rem;"> Select/Deselect All</label></div>';
+            html += '<div style="display: grid; gap: 1rem;">';
+
+            checkpoints.forEach((checkpoint, index) => {
+                const valAccDisplay = checkpoint.val_acc !== null ?
+                    `${(checkpoint.val_acc * 100).toFixed(2)}%` : 'N/A';
+
+                const trainLossDisplay = checkpoint.train_loss !== null ?
+                    checkpoint.train_loss.toFixed(4) : 'N/A';
+
+                const configSummary = [];
+                for (const [key, value] of Object.entries(checkpoint.config)) {
+                    if (!key.startsWith('_')) {
+                        configSummary.push(`${key}=${value}`);
+                    }
+                }
+
+                const date = new Date(checkpoint.modified * 1000);
+                const dateStr = date.toLocaleString();
+
+                const escapedPath = checkpoint.path.replace(/'/g, "\\'");
+
+                html += `
+                    <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; background: var(--bg-card);">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.75rem;">
+                            <div style="display: flex; gap: 0.75rem; align-items: start;">
+                                <input type="checkbox" class="checkpoint-select" data-path="${escapedPath}" onchange="toggleCheckpointSelection('${escapedPath}', this)" style="margin-top: 0.25rem;">
+                                <div>
+                                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem;">${checkpoint.name}</h3>
+                                    <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">${checkpoint.directory}</p>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                ${index === 0 ? '<span class="badge badge-success" title="Most recent">Latest</span>' : ''}
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Epoch</div>
+                                <div style="font-weight: 600;">${checkpoint.epoch}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Val Accuracy</div>
+                                <div style="font-weight: 600; color: ${checkpoint.val_acc > 0.7 ? 'var(--success-color)' : 'var(--text-primary)'};">${valAccDisplay}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Train Loss</div>
+                                <div style="font-weight: 600;">${trainLossDisplay}</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Size</div>
+                                <div style="font-weight: 600;">${checkpoint.size_mb.toFixed(1)} MB</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 0.75rem; padding: 0.5rem; background: var(--bg-secondary); border-radius: 4px; font-size: 0.75rem; font-family: monospace; max-height: 60px; overflow-y: auto;">
+                            ${configSummary.slice(0, 5).join(', ')}
+                            ${configSummary.length > 5 ? '...' : ''}
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-secondary);">
+                            <span>Modified: ${dateStr}</span>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"
+                                        onclick="viewCheckpointDetails('${checkpoint.path.replace(/\\/g, '\\\\')}')">Details</button>
+                                <button class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.75rem;"
+                                        onclick="useCheckpoint('${checkpoint.path.replace(/\\/g, '\\\\')}')">Use</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function viewCheckpointDetails(checkpointPath) {
+            try {
+                const response = await fetch(`/api/checkpoint/${encodeURIComponent(checkpointPath)}/info`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const checkpoint = data.checkpoint;
+                    let details = `
+Checkpoint Details:
+==================
+Path: ${checkpoint.path}
+Epoch: ${checkpoint.epoch}
+Val Accuracy: ${checkpoint.val_acc ? (checkpoint.val_acc * 100).toFixed(2) + '%' : 'N/A'}
+Train Loss: ${checkpoint.train_loss ? checkpoint.train_loss.toFixed(4) : 'N/A'}
+Val Loss: ${checkpoint.val_loss ? checkpoint.val_loss.toFixed(4) : 'N/A'}
+Size: ${checkpoint.size_mb.toFixed(2)} MB
+
+Model Parameters:
+${checkpoint.backbone_params ? `Backbone: ${checkpoint.backbone_params.toLocaleString()} params` : ''}
+${checkpoint.multihead_params ? `Multihead LM: ${checkpoint.multihead_params.toLocaleString()} params` : ''}
+
+Configuration:
+${JSON.stringify(checkpoint.config, null, 2)}
+                    `;
+
+                    alert(details);
+                } else {
+                    showError('Failed to load checkpoint details: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error loading checkpoint details: ' + error);
+            }
+        }
+
+        async function useCheckpoint(checkpointPath) {
+            if (!confirm(`Load checkpoint:\n${checkpointPath}\n\nThis will replace the currently loaded model.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/checkpoint/load', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ checkpoint_path: checkpointPath })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showError(`✓ ${data.message} (Epoch: ${data.epoch}, Val Acc: ${data.val_acc})`, 'success');
+                } else {
+                    showError('Failed to load checkpoint: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error loading checkpoint: ' + error);
+            }
+        }
+
+        function toggleAll(checkbox) {
+            const checkboxes = document.querySelectorAll('.checkpoint-select');
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+                const path = cb.getAttribute('data-path');
+                if (checkbox.checked) {
+                    selectedCheckpoints.add(path);
+                } else {
+                    selectedCheckpoints.delete(path);
+                }
+            });
+
+            // Update compare button
+            const compareBtn = document.getElementById('compareBtn');
+            if (selectedCheckpoints.size >= 2) {
+                compareBtn.style.display = 'block';
+                compareBtn.textContent = `Compare Selected (${selectedCheckpoints.size})`;
+            } else {
+                compareBtn.style.display = 'none';
+            }
+        }
+
+        async function compareSelectedCheckpoints() {
+            if (selectedCheckpoints.size < 2) {
+                showError('Please select at least 2 checkpoints to compare');
+                return;
+            }
+
+            if (selectedCheckpoints.size > 5) {
+                showError('Maximum 5 checkpoints can be compared at once');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/checkpoints/compare', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ checkpoints: Array.from(selectedCheckpoints) })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayComparisonResults(data.checkpoints);
+                } else {
+                    showError('Comparison failed: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error comparing checkpoints: ' + error);
+            }
+        }
+
+        function displayComparisonResults(checkpoints) {
+            const container = document.getElementById('comparisonTable');
+            const resultsDiv = document.getElementById('comparisonResults');
+
+            let html = '<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">';
+
+            // Header row
+            html += '<thead><tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border-color);">';
+            html += '<th style="padding: 0.75rem; text-align: left;">Metric</th>';
+            checkpoints.forEach((checkpoint, index) => {
+                html += `<th style="padding: 0.75rem; text-align: right;">#${index + 1} ${index === 0 ? '🏆' : ''}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            // Name row
+            html += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 0.75rem; font-weight: 600;">Name</td>';
+            checkpoints.forEach(cp => {
+                html += `<td style="padding: 0.75rem; text-align: right; font-family: monospace; font-size: 0.75rem;">${cp.name}</td>`;
+            });
+            html += '</tr>';
+
+            // Directory row
+            html += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 0.75rem; font-weight: 600;">Directory</td>';
+            checkpoints.forEach(cp => {
+                html += `<td style="padding: 0.75rem; text-align: right; font-size: 0.75rem;">${cp.directory}</td>`;
+            });
+            html += '</tr>';
+
+            // Epoch row
+            html += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 0.75rem; font-weight: 600;">Epoch</td>';
+            checkpoints.forEach(cp => {
+                html += `<td style="padding: 0.75rem; text-align: right;">${cp.epoch}</td>`;
+            });
+            html += '</tr>';
+
+            // Val Acc row
+            html += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 0.75rem; font-weight: 600;">Val Accuracy</td>';
+            checkpoints.forEach(cp => {
+                const valAcc = cp.val_acc !== null ? (cp.val_acc * 100).toFixed(2) + '%' : 'N/A';
+                const color = cp.val_acc > 0.7 ? 'var(--success-color)' : 'var(--text-primary)';
+                html += `<td style="padding: 0.75rem; text-align: right; color: ${color}; font-weight: 600;">${valAcc}</td>`;
+            });
+            html += '</tr>';
+
+            // Train Loss row
+            html += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 0.75rem; font-weight: 600;">Train Loss</td>';
+            checkpoints.forEach(cp => {
+                const loss = cp.train_loss !== null ? cp.train_loss.toFixed(4) : 'N/A';
+                html += `<td style="padding: 0.75rem; text-align: right;">${loss}</td>`;
+            });
+            html += '</tr>';
+
+            // Val Loss row
+            html += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 0.75rem; font-weight: 600;">Val Loss</td>';
+            checkpoints.forEach(cp => {
+                const loss = cp.val_loss !== null ? cp.val_loss.toFixed(4) : 'N/A';
+                html += `<td style="padding: 0.75rem; text-align: right;">${loss}</td>`;
+            });
+            html += '</tr>';
+
+            // Model size row
+            html += '<tr style="border-bottom: 1px solid var(--border-color);"><td style="padding: 0.75rem; font-weight: 600;">File Size</td>';
+            checkpoints.forEach(cp => {
+                html += `<td style="padding: 0.75rem; text-align: right;">${cp.size_mb.toFixed(1)} MB</td>`;
+            });
+            html += '</tr>';
+
+            html += '</tbody></table></div>';
+
+            container.innerHTML = html;
+            resultsDiv.style.display = 'block';
+
+            // Scroll to results
+            resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function closeComparison() {
+            document.getElementById('comparisonResults').style.display = 'none';
+        }
+
+        // Load checkpoints on page load
+        window.addEventListener('load', () => {
+            loadCheckpoints();
+        });
+
+        // ===================================================================
+        // W&B Sweep Integration Functions
+        // ===================================================================
+
+        async function configureWandb() {
+            const entity = document.getElementById('wandbEntity').value;
+            const project = document.getElementById('wandbProject').value;
+
+            if (!entity || !project) {
+                showError('Please enter both entity and project');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/wandb/configure', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ entity, project })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('wandbStatus').textContent = 'Connected';
+                    document.getElementById('wandbStatus').className = 'badge badge-success';
+                    showError('✓ Connected to W&B: ' + entity + '/' + project, 'success');
+
+                    // Load sweeps
+                    await loadSweeps();
+                } else {
+                    showError('Failed to connect: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error configuring W&B: ' + error);
+            }
+        }
+
+        async function loadSweeps() {
+            try {
+                const response = await fetch('/api/wandb/sweeps');
+                const data = await response.json();
+
+                if (data.success) {
+                    const select = document.getElementById('sweepSelect');
+                    select.innerHTML = '<option value="">Select a sweep...</option>';
+
+                    data.sweeps.forEach(sweep => {
+                        const option = document.createElement('option');
+                        option.value = sweep.id;
+                        option.textContent = `${sweep.name} (${sweep.run_count} runs) - ${sweep.state}`;
+                        select.appendChild(option);
+                    });
+                } else {
+                    showError('Failed to load sweeps: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error loading sweeps: ' + error);
+            }
+        }
+
+        async function refreshSweeps() {
+            const status = document.getElementById('wandbStatus').textContent;
+            if (status === 'Connected') {
+                await loadSweeps();
+
+                // If a sweep is selected, reload its details
+                const sweepId = document.getElementById('sweepSelect').value;
+                if (sweepId) {
+                    await loadSweepDetails();
+                }
+            } else {
+                showError('Please configure W&B first');
+            }
+        }
+
+        async function loadSweepDetails() {
+            const sweepId = document.getElementById('sweepSelect').value;
+
+            if (!sweepId) {
+                document.getElementById('sweepDetails').style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/wandb/sweep/${sweepId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update sweep info
+                    document.getElementById('sweepState').textContent = data.state;
+                    document.getElementById('sweepRunCount').textContent = data.run_count;
+                    document.getElementById('sweepGoal').textContent = data.goal;
+
+                    // Find best metric value
+                    if (data.runs.length > 0 && data.metric_name) {
+                        const bestRun = data.runs[0];
+                        const bestMetric = bestRun.summary[data.metric_name];
+                        if (bestMetric !== undefined) {
+                            document.getElementById('sweepBestMetric').textContent =
+                                `${bestMetric.toFixed(4)} (${data.metric_name})`;
+                        }
+                    }
+
+                    // Load best runs
+                    await loadBestRuns(sweepId, data.metric_name);
+
+                    // Display config ranges
+                    displayConfigRanges(data.config);
+
+                    // Show details
+                    document.getElementById('sweepDetails').style.display = 'block';
+                } else {
+                    showError('Failed to load sweep details: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error loading sweep details: ' + error);
+            }
+        }
+
+        async function loadBestRuns(sweepId, metricName) {
+            try {
+                const response = await fetch(`/api/wandb/sweep/${sweepId}/best`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const tbody = document.getElementById('sweepRunsBody');
+                    tbody.innerHTML = '';
+
+                    if (data.top_runs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No runs with metrics yet...</td></tr>';
+                        return;
+                    }
+
+                    data.top_runs.forEach((run, index) => {
+                        const row = document.createElement('tr');
+                        row.style.borderBottom = '1px solid var(--border-color)';
+
+                        // Rank
+                        const rankCell = document.createElement('td');
+                        rankCell.style.padding = '0.75rem';
+                        rankCell.textContent = index + 1;
+                        if (index === 0) {
+                            rankCell.innerHTML = '🏆 1';
+                            rankCell.style.fontWeight = 'bold';
+                        }
+                        row.appendChild(rankCell);
+
+                        // Run name
+                        const nameCell = document.createElement('td');
+                        nameCell.style.padding = '0.75rem';
+                        nameCell.textContent = run.name;
+                        row.appendChild(nameCell);
+
+                        // State
+                        const stateCell = document.createElement('td');
+                        stateCell.style.padding = '0.75rem';
+                        const stateBadge = document.createElement('span');
+                        stateBadge.className = `badge badge-${run.state === 'finished' ? 'success' : run.state === 'running' ? 'info' : 'secondary'}`;
+                        stateBadge.textContent = run.state;
+                        stateCell.appendChild(stateBadge);
+                        row.appendChild(stateCell);
+
+                        // Metric value
+                        const metricCell = document.createElement('td');
+                        metricCell.style.padding = '0.75rem';
+                        metricCell.style.textAlign = 'right';
+                        metricCell.textContent = run.metric_value.toFixed(4);
+                        if (index === 0) {
+                            metricCell.style.fontWeight = 'bold';
+                            metricCell.style.color = 'var(--success-color)';
+                        }
+                        row.appendChild(metricCell);
+
+                        // Config
+                        const configCell = document.createElement('td');
+                        configCell.style.padding = '0.75rem';
+                        configCell.style.fontSize = '0.875rem';
+                        const configSummary = [];
+                        for (const [key, value] of Object.entries(run.config)) {
+                            if (!key.startsWith('_') && key !== 'data-dir' && key !== 'vocab-path') {
+                                configSummary.push(`${key}=${value}`);
+                            }
+                        }
+                        configCell.textContent = configSummary.slice(0, 3).join(', ');
+                        configCell.title = configSummary.join('\n');
+                        row.appendChild(configCell);
+
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    const tbody = document.getElementById('sweepRunsBody');
+                    tbody.innerHTML = '<tr><td colspan="5" style="padding: 2rem; text-align: center; color: var(--error-color);">Failed to load runs</td></tr>';
+                }
+            } catch (error) {
+                showError('Error loading best runs: ' + error);
+            }
+        }
+
+        function displayConfigRanges(config) {
+            const container = document.getElementById('sweepConfigRanges');
+
+            if (!config || !config.parameters) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No configuration parameters found</p>';
+                return;
+            }
+
+            let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem;">';
+
+            for (const [param, paramConfig] of Object.entries(config.parameters)) {
+                if (paramConfig.value !== undefined) {
+                    // Fixed value
+                    html += `
+                        <div style="padding: 0.75rem; background: var(--bg-card); border-radius: 4px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">${param}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">Fixed: ${paramConfig.value}</div>
+                        </div>
+                    `;
+                } else if (paramConfig.values) {
+                    // Categorical values
+                    html += `
+                        <div style="padding: 0.75rem; background: var(--bg-card); border-radius: 4px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">${param}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">Values: ${paramConfig.values.join(', ')}</div>
+                        </div>
+                    `;
+                } else if (paramConfig.min !== undefined && paramConfig.max !== undefined) {
+                    // Range
+                    html += `
+                        <div style="padding: 0.75rem; background: var(--bg-card); border-radius: 4px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">${param}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">${paramConfig.distribution || 'uniform'}</div>
+                            <div style="color: var(--text-secondary); font-size: 0.875rem;">Range: [${paramConfig.min}, ${paramConfig.max}]</div>
+                        </div>
+                    `;
+                }
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // ===================================================================
+        // Phase 2: Error Analysis Functions
+        // ===================================================================
+
+        async function loadErrorAnalysis() {
+            try {
+                const response = await fetch('/api/error_analysis');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update summary cards
+                    document.getElementById('totalPredictions').textContent = data.total_predictions;
+                    document.getElementById('totalErrors').textContent = data.total_errors;
+                    document.getElementById('errorRate').textContent = (data.error_rate * 100).toFixed(2) + '%';
+
+                    // Display error type distribution
+                    displayErrorTypeChart(data.error_types, data.total_errors);
+
+                    // Display top errors table
+                    displayErrorTable(data.top_errors);
+
+                    // Show results
+                    document.getElementById('errorAnalysisResults').style.display = 'block';
+                } else {
+                    showError('Failed to load error analysis: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error loading error analysis: ' + error);
+            }
+        }
+
+        function displayErrorTypeChart(errorTypes, totalErrors) {
+            const container = document.getElementById('errorTypeChart');
+
+            const types = {
+                'over_prediction': { label: 'Over-prediction', color: '#ef4444' },
+                'under_prediction': { label: 'Under-prediction', color: '#f59e0b' },
+                'substitution': { label: 'Substitution', color: '#3b82f6' }
+            };
+
+            let html = '<div style="display: flex; flex-direction: column; gap: 0.75rem;">';
+
+            for (const [type, config] of Object.entries(types)) {
+                const count = errorTypes[type] || 0;
+                const percentage = totalErrors > 0 ? (count / totalErrors * 100).toFixed(1) : 0;
+
+                html += `
+                    <div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                            <span style="font-weight: 600;">${config.label}</span>
+                            <span style="color: var(--text-secondary);">${count} (${percentage}%)</span>
+                        </div>
+                        <div style="width: 100%; height: 20px; background: var(--bg-card); border-radius: 4px; overflow: hidden;">
+                            <div style="width: ${percentage}%; height: 100%; background: ${config.color};"></div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function displayErrorTable(errors) {
+            const tbody = document.getElementById('errorTableBody');
+
+            if (!errors || errors.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No errors found</td></tr>';
+                return;
+            }
+
+            const typeLabels = {
+                'over_prediction': 'Over-pred',
+                'under_prediction': 'Under-pred',
+                'substitution': 'Substitution'
+            };
+
+            let html = '';
+            errors.forEach(error => {
+                html += `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.75rem;">${error.index}</td>
+                        <td style="padding: 0.75rem;">
+                            <span style="padding: 0.25rem 0.5rem; background: var(--bg-secondary); border-radius: 4px; font-size: 0.75rem;">
+                                ${typeLabels[error.error_type] || error.error_type}
+                            </span>
+                        </td>
+                        <td style="padding: 0.75rem; font-family: monospace; font-size: 0.875rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${error.predicted}</td>
+                        <td style="padding: 0.75rem; font-family: monospace; font-size: 0.875rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis;">${error.ground_truth}</td>
+                        <td style="padding: 0.75rem; text-align: center;">${error.edit_distance}</td>
+                        <td style="padding: 0.75rem; text-align: center;">${error.confidence.toFixed(4)}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // ===================================================================
+        // Phase 2: Live G-code Editor Functions
+        // ===================================================================
+
+        async function testGcode() {
+            const gcodeInput = document.getElementById('gcodeInput').value;
+
+            if (!gcodeInput.trim()) {
+                showError('Please enter some G-code to test');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/test_gcode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gcode: gcodeInput })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const resultsDiv = document.getElementById('gcodeTestResults');
+                    const contentDiv = document.getElementById('gcodeTestContent');
+
+                    let html = `
+                        <div style="margin-bottom: 1rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem;">Input:</div>
+                            <pre style="background: var(--bg-card); padding: 0.75rem; border-radius: 4px; overflow-x: auto; font-size: 0.875rem;">${data.input}</pre>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem;">Tokens (${data.tokens.length}):</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    `;
+
+                    data.tokens.forEach(token => {
+                        html += `<span style="padding: 0.25rem 0.5rem; background: var(--accent-color); color: white; border-radius: 4px; font-family: monospace; font-size: 0.875rem;">${token}</span>`;
+                    });
+
+                    html += `
+                            </div>
+                        </div>
+                        <div style="padding: 0.75rem; background: #10b981; color: white; border-radius: 4px;">
+                            ✓ ${data.message}
+                        </div>
+                    `;
+
+                    contentDiv.innerHTML = html;
+                    resultsDiv.style.display = 'block';
+                } else {
+                    showError('Failed to test G-code: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error testing G-code: ' + error);
+            }
+        }
+
+        // ===================================================================
+        // Phase 3: Data Explorer Functions
+        // ===================================================================
+
+        async function loadDataStats() {
+            try {
+                const response = await fetch('/api/data_stats');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update sample counts
+                    document.getElementById('trainSamples').textContent = data.train_samples.toLocaleString();
+                    document.getElementById('valSamples').textContent = data.val_samples.toLocaleString();
+                    document.getElementById('testSamples').textContent = data.test_samples.toLocaleString();
+                    document.getElementById('vocabSize').textContent = data.vocab_size.toLocaleString();
+
+                    // Display feature dimensions
+                    const featureDimsDiv = document.getElementById('featureDims');
+                    let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">';
+
+                    html += `
+                        <div style="padding: 0.75rem; background: var(--bg-card); border-radius: 4px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Continuous Features</div>
+                            <div style="font-size: 1.25rem; color: var(--accent-color);">${data.continuous_dim}</div>
+                        </div>
+                        <div style="padding: 0.75rem; background: var(--bg-card); border-radius: 4px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Categorical Features</div>
+                            <div style="font-size: 1.25rem; color: var(--accent-color);">${data.categorical_dim}</div>
+                        </div>
+                        <div style="padding: 0.75rem; background: var(--bg-card); border-radius: 4px; border: 1px solid var(--border-color);">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem;">Max Sequence Length</div>
+                            <div style="font-size: 1.25rem; color: var(--accent-color);">${data.max_seq_length}</div>
+                        </div>
+                    `;
+
+                    html += '</div>';
+                    featureDimsDiv.innerHTML = html;
+
+                    // Show results
+                    document.getElementById('dataStatsResults').style.display = 'block';
+                } else {
+                    showError('Failed to load data stats: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error loading data stats: ' + error);
+            }
+        }
+
+        // ===================================================================
+        // Phase 3: Report Generator Functions
+        // ===================================================================
+
+        async function generateReport() {
+            const title = document.getElementById('reportTitle').value;
+            const format = document.getElementById('reportFormat').value;
+            const includeMetrics = document.getElementById('includeMetrics').checked;
+            const includeConfig = document.getElementById('includeConfig').checked;
+            const includeHistory = document.getElementById('includeHistory').checked;
+
+            try {
+                const response = await fetch('/api/generate_report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        format,
+                        include_metrics: includeMetrics,
+                        include_config: includeConfig,
+                        include_history: includeHistory
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const resultsDiv = document.getElementById('reportResults');
+                    const contentDiv = document.getElementById('reportContent');
+
+                    let html = `
+                        <div style="margin-bottom: 1rem;">
+                            <div style="padding: 0.75rem; background: #10b981; color: white; border-radius: 4px; margin-bottom: 1rem;">
+                                ✓ Report generated successfully!
+                            </div>
+                            <div style="font-weight: 600; margin-bottom: 0.5rem;">File Path:</div>
+                            <div style="padding: 0.75rem; background: var(--bg-card); border-radius: 4px; font-family: monospace; font-size: 0.875rem;">
+                                ${data.file_path}
+                            </div>
+                        </div>
+                    `;
+
+                    if (format === 'markdown' || format === 'html') {
+                        html += `
+                            <div style="margin-top: 1rem;">
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Preview:</div>
+                                <div style="max-height: 400px; overflow-y: auto; padding: 1rem; background: var(--bg-card); border-radius: 4px; border: 1px solid var(--border-color);">
+                                    <pre style="white-space: pre-wrap; font-size: 0.875rem;">${data.preview || 'No preview available'}</pre>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    contentDiv.innerHTML = html;
+                    resultsDiv.style.display = 'block';
+                } else {
+                    showError('Failed to generate report: ' + data.error);
+                }
+            } catch (error) {
+                showError('Error generating report: ' + error);
+            }
+        }
+
+        // ===================================================================
+        // Attention Visualization Functions
+        // ===================================================================
+
+        let attentionRefreshInterval = null;
+
+        async function loadAttentionWeights() {
+            try {
+                const response = await fetch('/api/attention');
+                const data = await response.json();
+
+                if (data.success && data.available) {
+                    const attentionData = data.attention.avg_attention[0];  // Get first batch
+                    drawAttentionHeatmap(attentionData);
+
+                    // Update timestamp
+                    const timestamp = new Date(data.attention.timestamp).toLocaleString();
+                    document.getElementById('attentionTimestamp').textContent = `Updated: ${timestamp}`;
+
+                    // Update stats
+                    updateAttentionStats(attentionData, data.attention.shape);
+
+                    showSuccess('Attention weights loaded!');
+                } else if (!data.available) {
+                    showError('Attention visualization not available for this model type');
+                } else {
+                    showError('No attention data available: ' + (data.error || 'Run inference first'));
+                }
+            } catch (error) {
+                showError('Error loading attention weights: ' + error);
+            }
+        }
+
+        function drawAttentionHeatmap(attentionMatrix) {
+            const canvas = document.getElementById('attentionHeatmap');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 400;
+
+            const width = canvas.width;
+            const height = canvas.height;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Get dimensions
+            const targetLen = attentionMatrix.length;
+            const memoryLen = attentionMatrix[0].length;
+
+            // Calculate cell sizes
+            const cellWidth = width / memoryLen;
+            const cellHeight = height / targetLen;
+
+            // Find min/max for normalization
+            let minVal = Infinity, maxVal = -Infinity;
+            for (let i = 0; i < targetLen; i++) {
+                for (let j = 0; j < memoryLen; j++) {
+                    minVal = Math.min(minVal, attentionMatrix[i][j]);
+                    maxVal = Math.max(maxVal, attentionMatrix[i][j]);
+                }
+            }
+
+            // Draw heatmap
+            for (let i = 0; i < targetLen; i++) {
+                for (let j = 0; j < memoryLen; j++) {
+                    const value = attentionMatrix[i][j];
+                    const normalized = (value - minVal) / (maxVal - minVal);
+
+                    // Color mapping: blue gradient (dark mode friendly)
+                    const baseColor = [120, 200, 255];  // Light blue
+                    const r = Math.floor(baseColor[0] * normalized + 20 * (1 - normalized));
+                    const g = Math.floor(baseColor[1] * normalized + 30 * (1 - normalized));
+                    const b = Math.floor(baseColor[2] * normalized + 50 * (1 - normalized));
+                    const alpha = 0.3 + 0.7 * normalized;
+
+                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha})`;
+                    ctx.fillRect(j * cellWidth, i * cellHeight, cellWidth, cellHeight);
+
+                    // Draw grid
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.lineWidth = 0.5;
+                    ctx.strokeRect(j * cellWidth, i * cellHeight, cellWidth, cellHeight);
+                }
+            }
+
+            // Add axis labels
+            ctx.fillStyle = 'var(--text-color)';
+            ctx.font = '12px sans-serif';
+            ctx.fillText(`Memory Timesteps (${memoryLen})`, width / 2 - 60, height - 5);
+            ctx.save();
+            ctx.translate(10, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText(`Target Tokens (${targetLen})`, 0, 0);
+            ctx.restore();
+        }
+
+        function updateAttentionStats(attentionMatrix, shape) {
+            // Calculate statistics
+            let sum = 0, maxVal = -Infinity, maxIdx = -1;
+            let count = 0;
+
+            for (let i = 0; i < attentionMatrix.length; i++) {
+                for (let j = 0; j < attentionMatrix[i].length; j++) {
+                    const val = attentionMatrix[i][j];
+                    sum += val;
+                    count++;
+                    if (val > maxVal) {
+                        maxVal = val;
+                        maxIdx = j;
+                    }
+                }
+            }
+
+            const meanVal = sum / count;
+
+            // Update display
+            document.getElementById('maxAttention').textContent = maxVal.toFixed(4);
+            document.getElementById('meanAttention').textContent = meanVal.toFixed(4);
+            document.getElementById('peakTimestep').textContent = maxIdx;
+            document.getElementById('attentionShape').textContent = `${shape.target_len} × ${shape.memory_len}`;
+
+            // Show stats
+            document.getElementById('attentionStats').style.display = 'block';
+        }
+
+        function toggleAttentionRefresh() {
+            const btn = document.getElementById('autoRefreshBtn');
+
+            if (attentionRefreshInterval) {
+                // Stop auto-refresh
+                clearInterval(attentionRefreshInterval);
+                attentionRefreshInterval = null;
+                btn.textContent = 'Auto-Refresh: OFF';
+                btn.style.background = 'var(--bg-secondary)';
+            } else {
+                // Start auto-refresh (every 2 seconds)
+                attentionRefreshInterval = setInterval(loadAttentionWeights, 2000);
+                btn.textContent = 'Auto-Refresh: ON';
+                btn.style.background = 'var(--accent-color)';
+                btn.style.color = 'white';
+                showSuccess('Auto-refresh enabled');
+            }
+        }
+
+        // Check if attention is available when model loads
+        socket.on('model_loaded', (data) => {
+            if (data.model_type === 'multihead') {
+                document.getElementById('attentionAvailable').style.display = 'block';
+                document.getElementById('attentionUnavailable').style.display = 'none';
+            } else {
+                document.getElementById('attentionAvailable').style.display = 'none';
+                document.getElementById('attentionUnavailable').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

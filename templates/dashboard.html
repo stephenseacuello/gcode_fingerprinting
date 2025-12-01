@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>G-Code Fingerprinting - Real-time Monitor</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .controls {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        select, button {
+            padding: 0.6rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select {
+            background: white;
+            min-width: 200px;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-bottom: 1rem;
+            color: #667eea;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-indicator.active {
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        .status-indicator.inactive {
+            background: #ef4444;
+        }
+
+        #sensorPlot, #confidencePlot, #fingerprintPlot, #anomalyPlot {
+            width: 100%;
+            height: 300px;
+        }
+
+        .large-card {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 768px) {
+            .large-card {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🤖 G-Code Fingerprinting - Real-time Monitor</h1>
+        <p>Monitor CNC machine operation with ML-powered prediction and anomaly detection</p>
+    </div>
+
+    <div class="container">
+        <!-- Controls -->
+        <div class="controls">
+            <div class="control-row">
+                <select id="modelSelect">
+                    <option value="">Select Model...</option>
+                </select>
+                <select id="csvSelect">
+                    <option value="">Select CSV File...</option>
+                </select>
+            </div>
+            <div class="control-row">
+                <button id="startBtn" onclick="togglePlayback()">▶️ Start</button>
+                <button id="pauseBtn" onclick="pausePlayback()" style="display:none">⏸️ Pause</button>
+                <button onclick="resetPlayback()">🔄 Reset</button>
+                <span style="margin-left: 1rem; color: #666;">
+                    <span class="status-indicator inactive" id="statusIndicator"></span>
+                    <span id="statusText">Stopped</span>
+                </span>
+            </div>
+            <div class="control-row">
+                <div class="metric">
+                    <span class="metric-label">Progress</span>
+                    <span class="metric-value" id="progress">0 / 0</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Buffer</span>
+                    <span class="metric-value" id="bufferSize">0 / 64</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid">
+            <!-- Sensor Data -->
+            <div class="card large-card">
+                <h3>📊 Live Sensor Data</h3>
+                <div id="sensorPlot"></div>
+            </div>
+
+            <!-- Current Prediction -->
+            <div class="card">
+                <h3>🎯 Current Prediction</h3>
+                <div class="metric">
+                    <span class="metric-label">G-code</span>
+                    <span class="metric-value" id="gcode">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Confidence</span>
+                    <span class="metric-value" id="confidence">--</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Anomaly Score</span>
+                    <span class="metric-value" id="anomaly">--</span>
+                </div>
+            </div>
+
+            <!-- Confidence History -->
+            <div class="card">
+                <h3>📈 Confidence History</h3>
+                <div id="confidencePlot"></div>
+            </div>
+
+            <!-- Fingerprint -->
+            <div class="card">
+                <h3>🔍 Fingerprint (16 dims)</h3>
+                <div id="fingerprintPlot"></div>
+            </div>
+
+            <!-- Anomaly History -->
+            <div class="card">
+                <h3>⚠️ Anomaly Detection</h3>
+                <div id="anomalyPlot"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let intervalId = null;
+        let isRunning = false;
+
+        // Load models and CSV files on page load
+        async function loadOptions() {
+            // Load models
+            const modelsResp = await fetch('/api/models');
+            const models = await modelsResp.json();
+            const modelSelect = document.getElementById('modelSelect');
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.path;
+                option.textContent = `${model.name} (${model.type})`;
+                modelSelect.appendChild(option);
+            });
+
+            // Load CSV files
+            const csvResp = await fetch('/api/csv_files');
+            const csvFiles = await csvResp.json();
+            const csvSelect = document.getElementById('csvSelect');
+            csvFiles.forEach(csv => {
+                const option = document.createElement('option');
+                option.value = csv.path;
+                option.textContent = csv.name;
+                csvSelect.appendChild(option);
+            });
+        }
+
+        // Load model when selected
+        document.getElementById('modelSelect').addEventListener('change', async (e) => {
+            if (e.target.value) {
+                const resp = await fetch('/api/load_model', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({path: e.target.value})
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    console.log('Model loaded:', result.config);
+                } else {
+                    alert('Error loading model: ' + result.error);
+                }
+            }
+        });
+
+        // Load CSV when selected
+        document.getElementById('csvSelect').addEventListener('change', async (e) => {
+            if (e.target.value) {
+                const resp = await fetch('/api/load_csv', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({path: e.target.value})
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    console.log('CSV loaded:', result.total_rows, 'rows');
+                    updateStatus();
+                } else {
+                    alert('Error loading CSV: ' + result.error);
+                }
+            }
+        });
+
+        async function togglePlayback() {
+            isRunning = !isRunning;
+            await fetch('/api/control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: isRunning ? 'start' : 'pause'})
+            });
+
+            if (isRunning) {
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('pauseBtn').style.display = 'inline-block';
+                document.getElementById('statusIndicator').classList.add('active');
+                document.getElementById('statusIndicator').classList.remove('inactive');
+                document.getElementById('statusText').textContent = 'Running';
+                startStreaming();
+            } else {
+                pausePlayback();
+            }
+        }
+
+        function pausePlayback() {
+            isRunning = false;
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('pauseBtn').style.display = 'none';
+            document.getElementById('statusIndicator').classList.remove('active');
+            document.getElementById('statusIndicator').classList.add('inactive');
+            document.getElementById('statusText').textContent = 'Paused';
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        }
+
+        async function resetPlayback() {
+            pausePlayback();
+            await fetch('/api/control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'reset'})
+            });
+            updateStatus();
+        }
+
+        async function updateStatus() {
+            const resp = await fetch('/api/status');
+            const status = await resp.json();
+            document.getElementById('progress').textContent = `${status.current_idx} / ${status.total_rows}`;
+            document.getElementById('bufferSize').textContent = `${status.buffer_size} / 64`;
+        }
+
+        function startStreaming() {
+            intervalId = setInterval(async () => {
+                if (!isRunning) return;
+
+                const resp = await fetch('/api/step');
+                const data = await resp.json();
+
+                if (!data.success) {
+                    pausePlayback();
+                    console.log('Streaming stopped:', data.error);
+                    return;
+                }
+
+                // Update predictions
+                if (data.predictions) {
+                    document.getElementById('gcode').textContent = data.predictions.gcode_text;
+                    document.getElementById('confidence').textContent =
+                        (data.predictions.gcode_confidence * 100).toFixed(1) + '%';
+                    document.getElementById('anomaly').textContent =
+                        data.predictions.anomaly_score.toFixed(4);
+                }
+
+                // Update sensor plot
+                if (data.sensor_data) {
+                    const traces = Object.entries(data.sensor_data).map(([name, values]) => ({
+                        y: values,
+                        name: name,
+                        type: 'scatter',
+                        mode: 'lines'
+                    }));
+                    Plotly.newPlot('sensorPlot', traces, {
+                        margin: {t: 10, b: 30, l: 40, r: 10},
+                        xaxis: {title: 'Timestep'},
+                        yaxis: {title: 'Value'}
+                    });
+                }
+
+                // Update confidence plot
+                if (data.history && data.history.length > 0) {
+                    const confidences = data.history.map(h => h.gcode_confidence * 100);
+                    Plotly.newPlot('confidencePlot', [{
+                        y: confidences,
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        line: {color: '#667eea'}
+                    }], {
+                        margin: {t: 10, b: 30, l: 40, r: 10},
+                        yaxis: {range: [0, 100], title: 'Confidence (%)'}
+                    });
+
+                    // Update anomaly plot
+                    const anomalies = data.history.map(h => h.anomaly_score);
+                    const mean = anomalies.reduce((a, b) => a + b, 0) / anomalies.length;
+                    const std = Math.sqrt(anomalies.reduce((sq, n) => sq + Math.pow(n - mean, 2), 0) / anomalies.length);
+                    const threshold = mean + 2 * std;
+
+                    Plotly.newPlot('anomalyPlot', [{
+                        y: anomalies,
+                        type: 'scatter',
+                        mode: 'lines',
+                        fill: 'tozeroy',
+                        fillcolor: 'rgba(239, 68, 68, 0.2)',
+                        line: {color: '#ef4444'}
+                    }], {
+                        margin: {t: 10, b: 30, l: 40, r: 10},
+                        yaxis: {title: 'Anomaly Score'},
+                        shapes: [{
+                            type: 'line',
+                            x0: 0,
+                            x1: anomalies.length,
+                            y0: threshold,
+                            y1: threshold,
+                            line: {color: 'red', dash: 'dash'}
+                        }]
+                    });
+                }
+
+                // Update fingerprint
+                if (data.predictions && data.predictions.fingerprint) {
+                    const fp = data.predictions.fingerprint.slice(0, 16);
+                    Plotly.newPlot('fingerprintPlot', [{
+                        y: fp,
+                        type: 'bar',
+                        marker: {color: '#764ba2'}
+                    }], {
+                        margin: {t: 10, b: 30, l: 40, r: 10},
+                        yaxis: {title: 'Value'}
+                    });
+                }
+
+                updateStatus();
+            }, 50);  // 50ms = 20 fps
+        }
+
+        // Initialize on page load
+        loadOptions();
+        updateStatus();
+    </script>
+</body>
+</html>

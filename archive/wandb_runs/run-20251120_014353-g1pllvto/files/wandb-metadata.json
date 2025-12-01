@@ -1,0 +1,27 @@
+{
+  "os": "macOS-15.6.1-arm64-arm-64bit-Mach-O",
+  "python": "CPython 3.14.0",
+  "startedAt": "2025-11-20T06:43:53.061235Z",
+  "args": [
+    "--batch_size=4",
+    "--command_weight=1",
+    "--hidden_dim=128",
+    "--learning_rate=1.0016299889952192",
+    "--max-epochs=50",
+    "--num_heads=6",
+    "--num_layers=3",
+    "--oversample_factor=3",
+    "--wandb-project=gcode-fingerprinting",
+    "--weight_decay=0.08781974338885089",
+    "--use-augmentation",
+    "--use-wandb"
+  ],
+  "program": "/Users/stepheneacuello/Documents/Documents - Manbir's MacBook Air/ELE 588 Applied Machine Learning/final_project/gcode_fingerprinting/train_multihead.py",
+  "codePath": "train_multihead.py",
+  "codePathLocal": "train_multihead.py",
+  "email": "seacuello@uri.edu",
+  "root": "/Users/stepheneacuello/Documents/Documents - Manbir's MacBook Air/ELE 588 Applied Machine Learning/final_project/gcode_fingerprinting",
+  "host": "Manbirs-MacBook-Air.local",
+  "executable": "/Users/stepheneacuello/Documents/Documents - Manbir's MacBook Air/ELE 588 Applied Machine Learning/final_project/gcode_fingerprinting/.venv/bin/python",
+  "writerId": "91pj9wj57tvrydernxk0hyd1b40ap6r9"
+}

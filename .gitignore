@@ -1,0 +1,279 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.env.local
+.venv
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Machine Learning / Data Science
+# ----------------------------------
+
+# Weights & Biases
+wandb/
+*.wandb
+
+# Outputs and results
+outputs/
+results/
+logs/
+checkpoints/
+runs/
+
+# Model files
+*.pt
+*.pth
+*.ckpt
+*.h5
+*.pb
+*.onnx
+
+# Data files (large)
+data/*.csv
+data/aligned/*.csv
+data/test_*.csv
+data/*_aligned.csv
+data/*_with_gcode_timestamps.csv
+*.npz
+*.npy
+*.pkl
+*.pickle
+
+# Keep certain data files if needed (uncomment if you want to track some data)
+# !data/vocabulary.json
+# !data/example.csv
+
+# Visualization outputs
+*.png
+*.jpg
+*.jpeg
+*.pdf
+figures/
+visualizations/
+
+# Temporary processing files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# IDE and Editor files
+# ---------------------
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.*.sw?
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Claude Code
+.claude/
+
+# macOS
+# ------
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+# --------
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+# ------
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Project-specific
+# -----------------
+
+# Preprocessed data (can be regenerated)
+outputs/processed_data/
+outputs/processed_data_clean/
+outputs/preprocessing/
+
+# Training outputs (can be regenerated)
+outputs/training/
+outputs/training_clean/
+outputs/final_model/
+
+# Analysis outputs
+analysis_results/
+outputs/visualizations/
+outputs/figures/
+
+# Dashboard data
+dashboard_data/
+
+# Keep important config files (uncomment to exclude from gitignore)
+# !config/*.yaml
+# !sweeps/*.yaml
+
+# Temporary download/upload directories
+downloads/
+uploads/

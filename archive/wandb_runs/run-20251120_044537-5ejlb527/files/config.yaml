@@ -1,0 +1,76 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            ldowt1w84942dqcznfkjpzd7zhsk7lgd:
+                args:
+                    - --batch_size=8
+                    - --command_weight=1
+                    - --hidden_dim=128
+                    - --learning_rate=1.0003175470431054
+                    - --max-epochs=50
+                    - --num_heads=6
+                    - --num_layers=3
+                    - --oversample_factor=3
+                    - --wandb-project=gcode-fingerprinting
+                    - --weight_decay=0.04093256865080001
+                    - --use-augmentation
+                    - --use-wandb
+                codePath: train_multihead.py
+                codePathLocal: train_multihead.py
+                email: seacuello@uri.edu
+                executable: /Users/stepheneacuello/Documents/Documents - Manbir's MacBook Air/ELE 588 Applied Machine Learning/final_project/gcode_fingerprinting/.venv/bin/python
+                host: Manbirs-MacBook-Air.local
+                os: macOS-15.6.1-arm64-arm-64bit-Mach-O
+                program: /Users/stepheneacuello/Documents/Documents - Manbir's MacBook Air/ELE 588 Applied Machine Learning/final_project/gcode_fingerprinting/train_multihead.py
+                python: CPython 3.14.0
+                root: /Users/stepheneacuello/Documents/Documents - Manbir's MacBook Air/ELE 588 Applied Machine Learning/final_project/gcode_fingerprinting
+                startedAt: "2025-11-20T09:45:37.699437Z"
+                writerId: ldowt1w84942dqcznfkjpzd7zhsk7lgd
+        m: []
+        python_version: 3.14.0
+        t:
+            "1":
+                - 1
+            "2":
+                - 1
+            "3":
+                - 13
+                - 14
+                - 16
+            "4": 3.14.0
+            "5": 0.23.0
+            "12": 0.23.0
+            "13": darwin-arm64
+batch_size:
+    value: 8
+command_weight:
+    value: 1
+grad_clip:
+    value: 1
+hidden_dim:
+    value: 128
+label_smoothing:
+    value: 0
+learning_rate:
+    value: 1.0003175470431054
+max-epochs:
+    value: 50
+multi_head:
+    value: true
+num_heads:
+    value: 6
+num_layers:
+    value: 3
+optimizer:
+    value: adamw
+oversample_factor:
+    value: 3
+use_augmentation:
+    value: true
+vocab_size:
+    value: 170
+wandb-project:
+    value: gcode-fingerprinting
+weight_decay:
+    value: 0.04093256865080001

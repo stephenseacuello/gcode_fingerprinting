@@ -1,0 +1,141 @@
+# W&B Sweep for 4-digit vocabulary - 2024-11-30
+# Using corrected bucket_digits=4 vocabulary
+
+project: gcode-fingerprinting-4
+entity: seacuello-university-of-rhode-island
+name: 4digit-vocab-sweep-20251130
+
+program: scripts/train_multihead.py
+method: bayes
+metric:
+  name: val/operation_acc
+  goal: maximize
+
+run_cap: 50
+
+command:
+  - ${env}
+  - PYTHONPATH=src
+  - PYTORCH_ENABLE_MPS_FALLBACK=1
+  - .venv/bin/python
+  - ${program}
+  - --use-wandb
+  - --track-metric
+  - operation_acc
+  - ${args}
+
+early_terminate:
+  type: hyperband
+  min_iter: 20
+  s: 2
+
+parameters:
+  # Fixed paths for 4-digit vocabulary
+  data-dir:
+    value: outputs/processed_4digit_hybrid
+
+  vocab-path:
+    value: data/vocabulary_4digit_hybrid.json
+
+  class-weights-path:
+    value: outputs/class_weights_4digit.json
+
+  output-dir:
+    value: outputs/sweep_4digit_20251130
+
+  # Training duration
+  max-epochs:
+    value: 80
+
+  patience:
+    value: 15
+
+  # Architecture
+  hidden_dim:
+    values: [192, 256, 320, 384]
+
+  num_heads:
+    values: [4, 8]
+
+  num_layers:
+    values: [4, 5, 6, 7]
+
+  dropout:
+    distribution: uniform
+    min: 0.15
+    max: 0.35
+
+  # Training
+  batch_size:
+    values: [32, 48, 64]
+
+  learning_rate:
+    distribution: log_uniform_values
+    min: 1e-5
+    max: 1e-4
+
+  weight_decay:
+    distribution: log_uniform_values
+    min: 0.01
+    max: 0.1
+
+  grad-clip:
+    values: [0.5, 1.0]
+
+  # Loss weights (operation-focused)
+  command_weight:
+    value: 0.0
+
+  operation_weight:
+    values: [5.0, 10.0, 15.0]
+
+  param_type_weight:
+    values: [1.0, 2.0]
+
+  param_value_weight:
+    values: [3.0, 5.0]
+
+  grammar_weight:
+    value: 0.1
+
+  # Focal loss
+  use-focal-loss:
+    value: true
+
+  focal-gamma:
+    distribution: uniform
+    min: 1.5
+    max: 3.0
+
+  # LR scheduler
+  lr-scheduler:
+    values: ['plateau', 'cosine']
+
+  warmup-epochs:
+    values: [3, 5]
+
+  plateau-patience:
+    value: 5
+
+  plateau-factor:
+    value: 0.5
+
+  # Optimizer
+  beta1:
+    distribution: uniform
+    min: 0.9
+    max: 0.95
+
+  beta2:
+    values: [0.99, 0.998, 0.999]
+
+  # Augmentation
+  augmentation:
+    values: [true, false]
+
+  oversample-factor:
+    values: [1, 2]
+
+  # Gradient accumulation
+  accumulation-steps:
+    values: [1, 2]

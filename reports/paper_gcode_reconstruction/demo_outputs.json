@@ -1,0 +1,162 @@
+[
+  {
+    "sample_id": 0,
+    "predicted_tokens": "V-0.032 Y Y-0.126 Z Z-0.056 V-0.018",
+    "simple_reconstruction": "-0.032 Y-0.126 Z-0.056 -0.018",
+    "reconstructed_gcode": "X-0.126",
+    "actual_gcode": "X-0.1254",
+    "match": false
+  },
+  {
+    "sample_id": 1,
+    "predicted_tokens": "V-0.032 Y Y-0.126 Z Z-0.058 V-0.019",
+    "simple_reconstruction": "-0.032 Y-0.126 Z-0.058 -0.019",
+    "reconstructed_gcode": "X-0.126",
+    "actual_gcode": "X-0.1254",
+    "match": false
+  },
+  {
+    "sample_id": 2,
+    "predicted_tokens": "X X0.006 V-0.037 V-0.017 V0.068 V0.069",
+    "simple_reconstruction": "X0.006 -0.037 -0.017 0.068 0.069",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 3,
+    "predicted_tokens": "X X0.006 V-0.037 V-0.021 V0.055 V0.060",
+    "simple_reconstruction": "X0.006 -0.037 -0.021 0.055 0.060",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 4,
+    "predicted_tokens": "X X0.006 V-0.034 V-0.014 V0.060 V0.062",
+    "simple_reconstruction": "X0.006 -0.034 -0.014 0.060 0.062",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 5,
+    "predicted_tokens": "X X0.005 V-0.032 V-0.019 V0.053 V0.056",
+    "simple_reconstruction": "X0.005 -0.032 -0.019 0.053 0.056",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X-0.1254",
+    "match": false
+  },
+  {
+    "sample_id": 6,
+    "predicted_tokens": "X X0.005 V-0.032 V-0.017 V0.056 V0.058",
+    "simple_reconstruction": "X0.005 -0.032 -0.017 0.056 0.058",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X-0.1254",
+    "match": false
+  },
+  {
+    "sample_id": 7,
+    "predicted_tokens": "X X0.005 V-0.033 V-0.013 V0.060 V0.063",
+    "simple_reconstruction": "X0.005 -0.033 -0.013 0.060 0.063",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 8,
+    "predicted_tokens": "X X0.005 V-0.034 V-0.017 V0.059 V0.062",
+    "simple_reconstruction": "X0.005 -0.034 -0.017 0.059 0.062",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 9,
+    "predicted_tokens": "X X0.004 V-0.034 V-0.018 V0.049 V0.054",
+    "simple_reconstruction": "X0.004 -0.034 -0.018 0.049 0.054",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 10,
+    "predicted_tokens": "X X0.005 V-0.034 V-0.025 V0.044 V0.049",
+    "simple_reconstruction": "X0.005 -0.034 -0.025 0.044 0.049",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X-0.1254",
+    "match": false
+  },
+  {
+    "sample_id": 11,
+    "predicted_tokens": "X X0.002 Y Y-0.020 V0.045 V0.048",
+    "simple_reconstruction": "X0.002 Y-0.020 0.045 0.048",
+    "reconstructed_gcode": "X-0.020",
+    "actual_gcode": "G1 X-0.1254",
+    "match": false
+  },
+  {
+    "sample_id": 12,
+    "predicted_tokens": "X X0.005 V-0.033 V-0.014 V0.059 V0.061",
+    "simple_reconstruction": "X0.005 -0.033 -0.014 0.059 0.061",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 13,
+    "predicted_tokens": "X X0.004 V-0.033 V-0.016 V0.056 V0.057",
+    "simple_reconstruction": "X0.004 -0.033 -0.016 0.056 0.057",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 14,
+    "predicted_tokens": "X X0.005 Y Y-0.027 V0.036 V0.041",
+    "simple_reconstruction": "X0.005 Y-0.027 0.036 0.041",
+    "reconstructed_gcode": "X-0.027",
+    "actual_gcode": "G1 X-0.1254",
+    "match": false
+  },
+  {
+    "sample_id": 15,
+    "predicted_tokens": "X X0.002 Y Y-0.027 V0.040 V0.043",
+    "simple_reconstruction": "X0.002 Y-0.027 0.040 0.043",
+    "reconstructed_gcode": "X-0.027",
+    "actual_gcode": "G1 X-0.1254",
+    "match": false
+  },
+  {
+    "sample_id": 16,
+    "predicted_tokens": "X X0.004 Y X X0.044 V0.047",
+    "simple_reconstruction": "X0.004 Y X0.044 0.047",
+    "reconstructed_gcode": "X0.044",
+    "actual_gcode": "G1 X-0.1254",
+    "match": false
+  },
+  {
+    "sample_id": 17,
+    "predicted_tokens": "X X0.004 V-0.034 V-0.017 V0.054 V0.056",
+    "simple_reconstruction": "X0.004 -0.034 -0.017 0.054 0.056",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 18,
+    "predicted_tokens": "X X0.002 V-0.035 V-0.021 V0.047 V0.051",
+    "simple_reconstruction": "X0.002 -0.035 -0.021 0.047 0.051",
+    "reconstructed_gcode": "[empty]",
+    "actual_gcode": "G1 X3.275",
+    "match": false
+  },
+  {
+    "sample_id": 19,
+    "predicted_tokens": "X X0.002 Y X X0.028 V0.034",
+    "simple_reconstruction": "X0.002 Y X0.028 0.034",
+    "reconstructed_gcode": "X0.028",
+    "actual_gcode": "G1 X-0.1254",
+    "match": false
+  }
+]

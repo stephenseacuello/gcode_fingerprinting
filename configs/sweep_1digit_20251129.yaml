@@ -1,0 +1,230 @@
+# W&B Overnight Comprehensive Sweep - 2024-11-29
+# Based on lessons learned from extensive experimentation:
+# - operation_acc is the key metric (9-class: Face/Pocket/Adaptive x Air/Engaged/Damaged)
+# - command_weight=0.0 since G0 dominates (79%)
+# - Focal loss with gamma ~2.0 helps class imbalance
+# - Cosine scheduler with warmup improves convergence
+# - operation_weight=5.0 and param_value_weight=3-5 work well
+
+project: gcode-fingerprinting-3
+entity: seacuello-university-of-rhode-island
+name: gcode-fingerprinting-20251129
+
+program: scripts/train_multihead.py
+method: bayes
+metric:
+  name: val/operation_acc  # Key metric: 9-class operation type accuracy
+  goal: maximize
+
+# Run budget: Comprehensive overnight run
+run_cap: 100
+
+# Environment setup
+command:
+  - ${env}
+  - PYTHONPATH=src
+  - PYTORCH_ENABLE_MPS_FALLBACK=1
+  - .venv/bin/python
+  - ${program}
+  - --use-wandb
+  - --track-metric
+  - operation_acc
+  - ${args}
+
+# Early termination: Allow runs to train enough epochs
+early_terminate:
+  type: hyperband
+  min_iter: 30  # Allow at least 30 epochs before termination
+  s: 2
+
+parameters:
+  # ============================================================================
+  # DATA & CONFIGURATION (Fixed - using operation-aware class weights)
+  # ============================================================================
+
+  data-dir:
+    value: outputs/processed_hybrid
+
+  vocab-path:
+    value: data/vocabulary_1digit_hybrid.json
+
+  class-weights-path:
+    value: outputs/class_weights_with_operation.json
+
+  output-dir:
+    value: outputs/sweep_overnight_20251129
+
+  # ============================================================================
+  # TRAINING DURATION & EARLY STOPPING
+  # ============================================================================
+
+  max-epochs:
+    value: 120  # Long enough for overnight runs
+
+  patience:
+    value: 20  # Generous patience
+
+  # ============================================================================
+  # MODEL ARCHITECTURE
+  # Based on best performers: hidden_dim:256, num_heads:8, num_layers:5
+  # ============================================================================
+
+  hidden_dim:
+    values: [192, 256, 320, 384]
+
+  num_heads:
+    values: [4, 8]  # Must divide hidden_dim evenly
+
+  num_layers:
+    values: [4, 5, 6]
+
+  dropout:
+    distribution: uniform
+    min: 0.15
+    max: 0.30
+
+  # ============================================================================
+  # OPTIMIZER & LEARNING RATE
+  # Best found: lr=5.415e-05, weight_decay=0.05
+  # ============================================================================
+
+  learning_rate:
+    distribution: log_uniform_values
+    min: 0.00003   # 3e-05
+    max: 0.0001    # 1e-04
+
+  batch_size:
+    values: [24, 32, 48]
+
+  weight_decay:
+    distribution: log_uniform_values
+    min: 0.03
+    max: 0.1
+
+  grad-clip:
+    values: [0.5, 1.0, 2.0]
+
+  # ============================================================================
+  # LOSS WEIGHTS - OPERATION FOCUSED
+  # Key insight: command_weight=0 since G0 dominates
+  # ============================================================================
+
+  # Disable command head (79% G0, not discriminative)
+  command_weight:
+    value: 0.0
+
+  # CRITICAL: Operation type is the main task
+  operation_weight:
+    values: [3.0, 5.0, 7.0, 10.0]
+
+  # Param type and value contribute to learning
+  param_type_weight:
+    values: [1.0, 2.0, 3.0]
+
+  param_value_weight:
+    values: [2.0, 3.0, 5.0]
+
+  # Grammar constraints (light regularization)
+  grammar_weight:
+    values: [0.0, 0.1, 0.2]
+
+  # Label smoothing: Disabled to work with class weights
+  label_smoothing:
+    value: 0.0
+
+  # ============================================================================
+  # FOCAL LOSS - For class imbalance
+  # ============================================================================
+
+  use-focal-loss:
+    value: true
+
+  focal-gamma:
+    values: [1.5, 2.25, 3.0]
+
+  # ============================================================================
+  # LEARNING RATE SCHEDULER
+  # Cosine with warmup works well
+  # ============================================================================
+
+  lr-scheduler:
+    values: ['cosine', 'plateau']
+
+  warmup-epochs:
+    values: [2, 5]
+
+  # Plateau scheduler settings (used if lr-scheduler='plateau')
+  plateau-patience:
+    value: 5
+
+  plateau-factor:
+    value: 0.5
+
+  # ============================================================================
+  # OPTIMIZER TUNING
+  # ============================================================================
+
+  beta1:
+    distribution: uniform
+    min: 0.88
+    max: 0.95
+
+  beta2:
+    distribution: uniform
+    min: 0.995
+    max: 0.9999
+
+  # ============================================================================
+  # DATA AUGMENTATION
+  # ============================================================================
+
+  augmentation:
+    values: [true, false]
+
+  oversample-factor:
+    values: [1, 2, 3]
+
+  # ============================================================================
+  # STOCHASTIC WEIGHT AVERAGING (SWA)
+  # ============================================================================
+
+  use-swa:
+    values: [true, false]
+
+  swa-start-epoch:
+    value: 60
+
+  # ============================================================================
+  # GRADIENT ACCUMULATION
+  # ============================================================================
+
+  accumulation-steps:
+    values: [1, 2]
+
+# ============================================================================
+# SWEEP STRATEGY NOTES
+# ============================================================================
+# This sweep is designed for overnight runs with the following focus:
+#
+# 1. METRIC: val/operation_acc (9-class classification)
+#    - Classes: Face/Pocket/Adaptive x Air/Engaged/Damaged
+#    - Current best: 77.2%
+#
+# 2. KEY INSIGHTS FROM EXPERIMENTS:
+#    - command_weight=0 (G0 dominates at 79%, not discriminative)
+#    - operation_weight=5.0 works well (sweep 3-10)
+#    - Focal loss gamma=2.0 helps class imbalance
+#    - Cosine scheduler + warmup improves convergence
+#    - param_value_weight=3-5 helps numeric prediction
+#
+# 3. ARCHITECTURE:
+#    - hidden_dim=256, num_heads=8, num_layers=5 is proven baseline
+#    - Exploring small variations around this
+#
+# 4. DATA:
+#    - Using class_weights_with_operation.json (9-class balanced)
+#    - Augmentation with oversample_factor 1-3
+#
+# Expected search space: ~50K configurations
+# Bayesian optimization will focus on promising regions
+# ============================================================================
