@@ -1,0 +1,15 @@
+{
+  "hidden_dim": 384,
+  "num_layers": 3,
+  "num_heads": 6,
+  "batch_size": 32,
+  "learning_rate": 0.0003,
+  "weight_decay": 0.01,
+  "class_weight_alpha": 2.0,
+  "use_focal_loss": true,
+  "focal_gamma": 3.0,
+  "label_smoothing": 0.0,
+  "optimizer": "adamw",
+  "scheduler": "cosine",
+  "_comment": "Using focal loss (gamma=3.0) to focus on hard examples"
+}

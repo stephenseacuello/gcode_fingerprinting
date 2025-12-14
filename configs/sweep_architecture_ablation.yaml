@@ -1,0 +1,88 @@
+# W&B Architecture Ablation Sweep (CORRECTED)
+# Purpose: Explore decoder architecture hyperparameters for paper ablation study
+# Date: 2024-12-11
+# NOTE: Uses stratified_splits_v2 and mm_dtae_lstm_v2 to match 90.23% model
+
+project: gcode-sensor-multihead
+entity: seacuello-university-of-rhode-island
+name: architecture-ablation-sweep-v2
+
+program: scripts/train_sensor_multihead.py
+method: bayes
+metric:
+  name: val/token_acc
+  goal: maximize
+
+run_cap: 30
+
+command:
+  - ${env}
+  - PYTHONPATH=src
+  - PYTORCH_ENABLE_MPS_FALLBACK=1
+  - .venv/bin/python
+  - ${program}
+  - --split-dir
+  - outputs/stratified_splits_v2
+  - --vocab-path
+  - data/vocabulary_4digit_hybrid.json
+  - --encoder-path
+  - outputs/mm_dtae_lstm_v2/best_model.pt
+  - --output-dir
+  - outputs/ablation_architecture_v2
+  - --use-wandb
+  - --wandb-project
+  - gcode-sensor-multihead
+  - --curriculum
+  - --use-focal-loss
+  - --use-class-weights
+  - --scheduled-sampling
+  - ${args}
+
+early_terminate:
+  type: hyperband
+  min_iter: 15
+  s: 2
+
+parameters:
+  # Architecture parameters to ablate
+  d-model:
+    values: [128, 192, 256, 384]
+
+  n-heads:
+    values: [4, 8]
+
+  n-layers:
+    values: [2, 4, 6]
+
+  dropout:
+    values: [0.2, 0.3, 0.4]
+
+  # Fixed training params (best from previous runs)
+  learning-rate:
+    distribution: log_uniform_values
+    min: 1e-4
+    max: 3e-4
+
+  max-epochs:
+    value: 100
+
+  patience:
+    value: 20
+
+  batch-size:
+    value: 32
+
+  weight-decay:
+    value: 0.05
+
+  focal-gamma:
+    value: 3.0
+
+  label-smoothing:
+    value: 0.1
+
+  warmup-epochs:
+    value: 10
+
+  lr-scheduler:
+    value: cosine

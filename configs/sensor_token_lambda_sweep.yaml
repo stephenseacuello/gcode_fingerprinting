@@ -1,0 +1,170 @@
+# WandB Sweep Configuration for Sensor Token Generator
+# Target: Push past 53% test accuracy (v9w baseline: 49.93%)
+# Comprehensive exploration of ALL hyperparameters for Lambda overnight run
+#
+# Uses sweep_sensor_token_runner.py to properly handle boolean flags
+# Total combinations: ~huge (Bayesian will intelligently sample)
+# Estimated runs: 100-200 for thorough exploration
+
+# Project name (must be at top level for sweeps)
+project: gcode-fingerprinting
+entity: seacuello-university-of-rhode-island
+
+program: scripts/sweep_sensor_token_runner.py
+method: bayes
+metric:
+  name: val/accuracy
+  goal: maximize
+
+# Early terminate poorly performing runs
+early_terminate:
+  type: hyperband
+  min_iter: 20
+  eta: 3
+  s: 2
+
+parameters:
+  # ============================================================================
+  # FIXED PARAMETERS (paths and infrastructure)
+  # ============================================================================
+  split-dir:
+    value: outputs/grouped_splits_4digit
+  vocab-path:
+    value: data/vocabulary_4digit_hybrid.json
+  encoder-path:
+    value: outputs/mm_dtae_lstm/best_model.pt
+  output-dir:
+    value: outputs/sweeps/sensor_token
+  use-wandb:
+    value: "true"
+  wandb-project:
+    value: gcode-fingerprinting
+
+  # Fixed training settings (high enough for convergence)
+  epochs:
+    value: 150
+  patience:
+    value: 25
+
+  # ============================================================================
+  # ARCHITECTURE PARAMETERS (wide exploration)
+  # ============================================================================
+  d-model:
+    values: [128, 192, 256, 320, 384, 512]
+
+  n-heads:
+    values: [4, 8, 12, 16]
+
+  n-layers:
+    values: [2, 3, 4, 5, 6, 8]
+
+  dropout:
+    distribution: uniform
+    min: 0.05
+    max: 0.35
+
+  embed-dropout:
+    distribution: uniform
+    min: 0.0
+    max: 0.30
+
+  max-seq-len:
+    values: [24, 32, 48]
+
+  # ============================================================================
+  # TRAINING PARAMETERS (core hyperparameters)
+  # ============================================================================
+  batch-size:
+    values: [16, 24, 32, 48, 64]
+
+  learning-rate:
+    distribution: log_uniform_values
+    min: 1e-5
+    max: 5e-4
+
+  weight-decay:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.1
+
+  grad-clip:
+    values: [0.5, 1.0, 2.0, 5.0]
+
+  label-smoothing:
+    distribution: uniform
+    min: 0.0
+    max: 0.20
+
+  warmup-epochs:
+    values: [0, 3, 5, 10, 15, 20]
+
+  # ============================================================================
+  # CLASS WEIGHTING (handle token imbalance)
+  # ============================================================================
+  use-class-weights:
+    value: "true"  # Always use - helps with rare token classes
+
+  class-weight-power:
+    distribution: uniform
+    min: 0.1
+    max: 1.0
+
+  # ============================================================================
+  # FOCAL LOSS (focus on hard examples)
+  # ============================================================================
+  use-focal-loss:
+    values: ["true", "false"]
+
+  focal-gamma:
+    distribution: uniform
+    min: 0.5
+    max: 5.0
+
+  # ============================================================================
+  # STOCHASTIC WEIGHT AVERAGING (checkpoint smoothing)
+  # ============================================================================
+  use-swa:
+    values: ["true", "false"]
+
+  swa-start-epoch:
+    values: [30, 50, 70, 100]
+
+  swa-lr:
+    distribution: log_uniform_values
+    min: 1e-7
+    max: 1e-4
+
+  # ============================================================================
+  # SCHEDULED SAMPLING (teacher forcing decay)
+  # ============================================================================
+  scheduled-sampling:
+    values: ["true", "false"]
+
+  tf-start:
+    value: 1.0  # Always start with full teacher forcing
+
+  tf-end:
+    distribution: uniform
+    min: 0.3
+    max: 0.9
+
+  # ============================================================================
+  # CURRICULUM LEARNING (sequence length)
+  # ============================================================================
+  curriculum-seq-len:
+    values: ["true", "false"]
+
+  curriculum-start-len:
+    values: [8, 12, 16, 20]
+
+  curriculum-warmup:
+    values: [10, 15, 20, 30, 40]
+
+# ============================================================================
+# COMMAND TEMPLATE
+# ============================================================================
+command:
+  - ${env}
+  - python
+  - ${program}
+  - ${args}

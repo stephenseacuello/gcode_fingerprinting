@@ -1,0 +1,103 @@
+{
+    "_description": "Configuration for Sensor Multi-Head Decoder training",
+    "_date": "2025-12-09",
+
+    "model": {
+        "d_model": 192,
+        "n_heads": 8,
+        "n_layers": 4,
+        "dropout": 0.3,
+        "embed_dropout": 0.1,
+        "sensor_dim": 128,
+        "n_operations": 9,
+        "n_types": 4,
+        "n_commands": 6,
+        "n_param_types": 10,
+        "max_seq_len": 32
+    },
+
+    "training": {
+        "batch_size": 32,
+        "max_epochs": 150,
+        "patience": 30,
+        "track_metric": "token",
+        "accumulation_steps": 1
+    },
+
+    "optimizer": {
+        "type": "adamw",
+        "learning_rate": 0.0002,
+        "weight_decay": 0.05,
+        "beta1": 0.9,
+        "beta2": 0.999
+    },
+
+    "scheduler": {
+        "type": "cosine",
+        "warmup_epochs": 10,
+        "cosine_t_max": null,
+        "plateau_patience": 5,
+        "plateau_factor": 0.5
+    },
+
+    "regularization": {
+        "grad_clip": 1.0,
+        "label_smoothing": 0.1
+    },
+
+    "loss": {
+        "use_focal_loss": true,
+        "focal_gamma": 3.0,
+        "type_weight": 1.0,
+        "command_weight": 2.5,
+        "param_type_weight": 1.5,
+        "digit_weight": 1.0,
+        "legacy_weight": 1.0,
+        "aux_regression_weight": 0.1
+    },
+
+    "class_balancing": {
+        "use_class_weights": true,
+        "sampler_power": 0.5
+    },
+
+    "curriculum": {
+        "enabled": true,
+        "n_phases": 3,
+        "epochs_per_phase": 30,
+        "phase_schedule": [
+            "Structure Only: type + command + param_type (digit_weight=0)",
+            "Coarse Digits: add sign + first 2 digits (digit_weight=0.5)",
+            "Full Precision: all 6 digits + aux regression (digit_weight=1.0)"
+        ]
+    },
+
+    "scheduled_sampling": {
+        "enabled": true,
+        "start_ratio": 1.0,
+        "end_ratio": 0.5,
+        "decay_type": "cosine"
+    },
+
+    "swa": {
+        "enabled": false,
+        "start_epoch": 75,
+        "lr": 5e-5
+    },
+
+    "initialization": {
+        "strategy": "xavier_uniform",
+        "gain": 1.0
+    },
+
+    "paths": {
+        "split_dir": "outputs/sample_stratified_splits",
+        "vocab_path": "data/vocabulary_4digit_hybrid.json",
+        "encoder_path": "outputs/mm_dtae_lstm/best_model.pt"
+    },
+
+    "wandb": {
+        "project": "gcode-sensor-multihead",
+        "enabled": true
+    }
+}

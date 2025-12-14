@@ -1,0 +1,65 @@
+# Fast Validation Sweep for Class Imbalance Fix
+#
+# Purpose: Validate class weighting approach with quick 15-epoch runs
+# Expected Duration: ~3-5 hours (12 runs × 15min each)
+# Success Criteria:
+#   - G0 predictions < 50% (down from 100%)
+#   - Command diversity entropy > 1.5 (up from 0)
+#   - Non-G0 accuracy > 20%
+#   - Operation type accuracy > 60%
+
+program: scripts/run_train_multihead.py
+method: grid
+metric:
+  name: val/command_acc
+  goal: maximize
+
+parameters:
+  # Critical parameters for class imbalance
+  command_weight:
+    values: [10.0, 15.0]
+
+  label_smoothing:
+    values: [0.0, 0.1]
+
+  # Model capacity exploration
+  hidden_dim:
+    values: [128, 256]
+
+  learning_rate:
+    values: [0.001, 0.002]
+
+  # Fixed parameters (mixed naming conventions from argparse)
+  data-dir:
+    value: "outputs/processed_with_ops"
+
+  vocab-path:
+    value: "data/vocabulary.json"
+
+  class-weights-path:
+    value: "outputs/class_weights.json"
+
+  max-epochs:
+    value: 15
+
+  batch_size:
+    value: 16
+
+  num_layers:
+    value: 2
+
+  num_heads:
+    value: 4
+
+  operation_weight:
+    value: 2.0
+
+  wandb-project:
+    value: "gcode-fingerprinting"
+
+  output-dir:
+    value: "outputs/sweep_fast_validation"
+
+# Total runs: 2 × 2 × 2 × 2 = 16 configurations
+# Estimated time per run: ~15 minutes
+# Total sweep time: ~4 hours
