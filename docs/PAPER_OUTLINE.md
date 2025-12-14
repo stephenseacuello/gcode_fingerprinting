@@ -15,6 +15,7 @@
 4. **Key Contribution:** Novel hierarchical multi-task architecture with 4-digit hybrid tokenization
 5. **Results:** 100% operation classification, 90.23% token accuracy
 6. **Impact:** Production-ready system with <10ms inference, open-source implementation
+7. **Code Availability:** Code, pretrained models, and dataset: https://github.com/seacuello/gcode_fingerprinting
 
 **Keywords:** G-code inference, multi-task learning, hierarchical prediction, sensor data, 3D printing, CNC machines
 
@@ -40,8 +41,8 @@
 1. **Hierarchical Token Decomposition:** Novel 4-component factorization of G-code tokens
 2. **Multi-Modal Architecture:** Two-stage pipeline (sensor encoder + multi-head decoder)
 3. **Production System:** Complete MLOps pipeline with ONNX export, quantization, and REST API
-4. **Systematic Evaluation:** Comprehensive error analysis and hyperparameter optimization
-5. **Open Source:** 14K+ lines of code, 88 unit tests, complete documentation
+4. **Systematic Evaluation:** Comprehensive ablation studies and baseline comparisons
+5. **Open-Source Release:** Code, pretrained checkpoints, and the 2,368-sample processed dataset released at https://github.com/seacuello/gcode_fingerprinting
 
 ### 1.4 Paper Organization
 - Section 2: Related work
@@ -280,22 +281,20 @@ $$\text{Acc}_{\text{all}} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\hat{t}_i = t_
 ### 4.3 Implementation Details
 
 **Framework:** PyTorch 2.0+
-- GPU: NVIDIA GPU with CUDA 11.8 (or CPU/Apple M1)
-- Training time: ~30 min per epoch (on GPU)
+- Hardware: Apple M1/M2 (MPS) or NVIDIA GPU with CUDA 11.8
+- Training time: ~2 hours total (encoder + decoder)
 
-**Hyperparameters (Baseline):**
-- $d_{\text{model}} = 128$
-- Transformer layers: 2
-- Attention heads: 4
-- Dropout: 0.1
-- Max epochs: 50
+**Final Model Configuration:**
+- Encoder: $d_{\text{hidden}} = 128$, 2 BiLSTM layers
+- Decoder: $d_{\text{model}} = 192$, 4 Transformer layers, 8 attention heads
+- Dropout: 0.3
+- Focal loss: $\gamma = 3.0$, label smoothing: 0.1
 
-**Reproducibility:**
-- Random seed: 42
-- Code available: [GitHub link]
-- Checkpoints available: [W&B link]
+### 4.4 Reproducibility
 
-### 4.4 Hyperparameter Optimization
+Implementation in PyTorch 2.0; full source code, preprocessing scripts, and trained checkpoints are available at https://github.com/seacuello/gcode_fingerprinting. The processed dataset (2,368 sequences) and vocabulary files are included. Jupyter notebooks provide step-by-step replication guides.
+
+### 4.5 Hyperparameter Optimization
 
 **Method:** Bayesian optimization with Hyperband early stopping
 - Platform: Weights & Biases
@@ -513,6 +512,8 @@ Sensors → Preprocessing → ONNX Runtime → REST API → Applications
 - 90.23% token accuracy (90.68% with optimal γ=2)
 - 600x improvement over random baseline
 - <10ms inference latency (production-ready)
+
+**Code Availability:** https://github.com/seacuello/gcode_fingerprinting
 
 ### 7.2 Limitations
 
