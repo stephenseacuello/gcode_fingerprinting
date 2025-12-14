@@ -92,7 +92,7 @@ This creates a `wandb/` directory and `.wandb` settings file.
 Create [configs/sweep_config.yaml](../configs/sweep_config.yaml):
 
 ```yaml
-# Hyperparameter Sweep Configuration for G-Code Fingerprinting
+# Hyperparameter Sweep Configuration for G-code Fingerprinting
 # Uses Bayesian optimization to find optimal model parameters
 
 program: scripts/train_multihead.py

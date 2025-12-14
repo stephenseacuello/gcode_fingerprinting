@@ -30,6 +30,9 @@ def extract_raw_values_from_gcode(gcode_text: str, tokenizer: GCodeTokenizer) ->
     2. Map it to the token position
 
     Returns dict mapping token position to raw numeric value.
+
+    IMPORTANT: This now handles UNK tokens! If a parameter letter (X, Y, Z, etc.)
+    is followed by an UNK token, we still extract the raw value for that position.
     """
     raw_values_dict = {}
 
@@ -51,18 +54,37 @@ def extract_raw_values_from_gcode(gcode_text: str, tokenizer: GCodeTokenizer) ->
         value = float(match.group(2))  # e.g., 34.7
         raw_values[param_type] = value
 
-    # Match tokens with raw values
-    for i, token in enumerate(tokens):
-        if isinstance(token, str) and token.startswith('NUM_'):
-            # Parse token format: NUM_X_3 or NUM_X_34 (depending on bucketing)
-            parts = token.split('_')
-            if len(parts) >= 2:
-                param_type = parts[1]  # 'X'
+    # Parameter letters that should have numeric values following them
+    PARAM_LETTERS = {'X', 'Y', 'Z', 'F', 'R', 'S', 'I', 'J', 'K'}
 
-                # Get the raw value for this parameter
-                if param_type in raw_values:
-                    raw_value = raw_values[param_type]
+    # Match tokens with raw values
+    # Track which parameter we're expecting a value for
+    last_param_type = None
+
+    for i, token in enumerate(tokens):
+        if isinstance(token, str):
+            # Check if this is a parameter letter
+            if token in PARAM_LETTERS:
+                last_param_type = token
+            elif token.startswith('NUM_'):
+                # Parse token format: NUM_X_3 or NUM_X_34 (depending on bucketing)
+                parts = token.split('_')
+                if len(parts) >= 2:
+                    param_type = parts[1]  # 'X'
+                    # Get the raw value for this parameter
+                    if param_type in raw_values:
+                        raw_value = raw_values[param_type]
+                        raw_values_dict[i] = float(raw_value)
+                last_param_type = None  # Clear after processing numeric token
+            elif token == '<UNK>' or token == 'UNK':
+                # UNK token after a parameter letter - extract raw value!
+                if last_param_type is not None and last_param_type in raw_values:
+                    raw_value = raw_values[last_param_type]
                     raw_values_dict[i] = float(raw_value)
+                last_param_type = None  # Clear after processing
+            else:
+                # Other token (command, etc.) - reset
+                last_param_type = None
 
     return raw_values_dict
 

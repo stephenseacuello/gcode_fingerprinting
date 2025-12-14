@@ -705,6 +705,33 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Inference Latency -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Inference Latency</h2>
+                    <span class="badge badge-info" id="latencyBadge">0 ms</span>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-label">Current</div>
+                        <div class="stat-value" id="latencyCurrent">0 ms</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Mean</div>
+                        <div class="stat-value" id="latencyMean">0 ms</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">P95</div>
+                        <div class="stat-value" id="latencyP95">0 ms</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">P99</div>
+                        <div class="stat-value" id="latencyP99">0 ms</div>
+                    </div>
+                </div>
+                <div class="chart-container" id="latencyChart" style="min-height: 200px;"></div>
+            </div>
         </div>
 
         <!-- Full Command Generation -->
@@ -792,8 +819,21 @@
         <!-- Generation History -->
         <div class="card full-width" style="margin-top: 1.5rem;">
             <div class="card-header">
-                <h2 class="card-title">Generation History (Last 10)</h2>
-                <button class="btn btn-secondary" onclick="exportGcode()">Export G-Code</button>
+                <h2 class="card-title">Generation History</h2>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <input type="text" id="historySearchInput" placeholder="Search predictions..."
+                           style="padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); min-width: 200px;"
+                           oninput="filterPredictionHistory()">
+                    <select id="historyFilterSelect" onchange="filterPredictionHistory()"
+                            style="padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                        <option value="all">All</option>
+                        <option value="matched">Matched Only</option>
+                        <option value="mismatched">Mismatched Only</option>
+                        <option value="high_confidence">High Confidence (>80%)</option>
+                        <option value="low_confidence">Low Confidence (<50%)</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="exportGcode()">Export G-Code</button>
+                </div>
             </div>
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse;" id="historyTable">
@@ -891,6 +931,21 @@
                 <!-- Overall Metrics Summary -->
                 <div id="cmMetricsSummary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;"></div>
 
+                <!-- Per-Class Accuracy Cards -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-primary);">Per-Class Metrics</h3>
+                        <select id="perClassHeadSelect" onchange="renderPerClassMetricsCards()"
+                                style="padding: 0.5rem; border-radius: 4px; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);">
+                            <option value="command">Command Head</option>
+                            <option value="param_type">Parameter Type Head</option>
+                            <option value="param_value">Parameter Value Head</option>
+                            <option value="type">Token Type Head</option>
+                        </select>
+                    </div>
+                    <div id="perClassMetricsCards"></div>
+                </div>
+
                 <!-- Row 1: Operation Type and Command Type -->
                 <div class="grid grid-2" style="margin-bottom: 1.5rem;">
                     <div>
@@ -959,6 +1014,206 @@
                     <span class="badge badge-success">Trajectory</span>
                 </div>
                 <div class="position-3d-container" id="position3D"></div>
+            </div>
+
+            <!-- Attention Visualization -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🔍 Attention Visualization</h2>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span class="badge badge-info" id="attentionBadge">Multi-Head Model Only</span>
+                        <select id="layerSelect" onchange="loadAttentionWeights()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                            <option value="avg">All Layers (Avg)</option>
+                            <option value="0">Layer 1</option>
+                            <option value="1">Layer 2</option>
+                        </select>
+                        <button onclick="loadAttentionWeights()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                            ↻ Refresh
+                        </button>
+                        <button onclick="toggleAttentionRefresh()" id="autoRefreshBtn" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                            Auto-Refresh: OFF
+                        </button>
+                    </div>
+                </div>
+
+                <div id="attentionAvailable" style="display: none;">
+                    <div class="chart-container" style="min-height: 400px;">
+                        <canvas id="attentionHeatmap" style="width: 100%; height: 400px; border-radius: 8px; background: var(--bg-secondary);"></canvas>
+                    </div>
+
+                    <div style="margin-top: 1rem; padding: 0 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                                <strong>Legend:</strong>
+                                <span style="display: inline-block; width: 15px; height: 15px; background: linear-gradient(to right, rgba(120, 200, 255, 0.2), rgba(120, 200, 255, 1)); border-radius: 2px; vertical-align: middle; margin-left: 0.5rem;"></span>
+                                Low → High Attention
+                            </div>
+                            <div id="attentionTimestamp" style="font-size: 0.85rem; color: var(--text-secondary);"></div>
+                        </div>
+
+                        <div style="padding: 0.75rem; background: linear-gradient(135deg, rgba(120, 200, 255, 0.1), rgba(200, 150, 255, 0.1)); border-radius: 6px; border-left: 3px solid var(--accent-color);">
+                            <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                                Shows which sensor timesteps the model attended to when making predictions. Brighter colors indicate higher attention weights.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Attention Stats -->
+                    <div id="attentionStats" style="display: none; margin: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 6px;">
+                        <h3 style="margin-top: 0; font-size: 1rem; font-weight: 600;">Attention Statistics</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem;">
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Max Attention</div>
+                                <div id="maxAttention" style="font-size: 1.1rem; font-weight: 600; color: var(--accent-color);">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Mean Attention</div>
+                                <div id="meanAttention" style="font-size: 1.1rem; font-weight: 600;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Peak Timestep</div>
+                                <div id="peakTimestep" style="font-size: 1.1rem; font-weight: 600;">-</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Shape</div>
+                                <div id="attentionShape" style="font-size: 1.1rem; font-weight: 600;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="attentionUnavailable" style="display: block; padding: 2rem; text-align: center; color: var(--text-secondary);">
+                    <p>Attention visualization is only available for multi-head models.</p>
+                    <p style="font-size: 0.9rem;">Load a multi-head checkpoint to enable this feature.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attention Head Comparison (2x2 Grid) -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <div class="card-header">
+                <h2 class="card-title">🔬 Attention Head Comparison</h2>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="badge badge-info" id="perHeadBadge">Multi-Head Model Only</span>
+                    <button onclick="loadPerHeadAttention()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                        ↻ Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="perHeadAvailable" style="display: none;">
+                <div class="chart-container" style="min-height: 600px;">
+                    <div id="perHeadAttentionGrid" style="width: 100%; height: 600px;"></div>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 0 1rem;">
+                    <div style="padding: 0.75rem; background: linear-gradient(135deg, rgba(120, 200, 255, 0.1), rgba(200, 150, 255, 0.1)); border-radius: 6px; border-left: 3px solid var(--accent-color);">
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                            <strong>Multi-Head Attention:</strong> Each head specializes in attending to different patterns. Compare the 4 attention heads to understand how the model distributes its focus across sensor timesteps.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="perHeadUnavailable" style="display: block; padding: 2rem; text-align: center; color: var(--text-secondary);">
+                <p>Per-head attention visualization is only available for multi-head models.</p>
+                <p style="font-size: 0.9rem;">Load a multi-head checkpoint to enable this feature.</p>
+            </div>
+        </div>
+
+        <!-- Sensor Feature Importance -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <div class="card-header">
+                <h2 class="card-title">📊 Sensor Feature Importance</h2>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="badge badge-info" id="featureImportanceBadge">Computed Automatically</span>
+                    <button onclick="loadFeatureImportance()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                        ↻ Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="featureImportanceAvailable" style="display: none;">
+                <div class="chart-container" style="min-height: 500px;">
+                    <div id="featureImportanceHeatmap" style="width: 100%; height: 500px;"></div>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 0 1rem;">
+                    <div style="padding: 0.75rem; background: linear-gradient(135deg, rgba(120, 200, 255, 0.1), rgba(200, 150, 255, 0.1)); border-radius: 6px; border-left: 3px solid var(--accent-color);">
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                            <strong>Gradient-Based Feature Importance:</strong> Shows which sensor features and timesteps contribute most to model predictions. Darker colors indicate higher importance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="featureImportanceUnavailable" style="display: block; padding: 2rem; text-align: center; color: var(--text-secondary);">
+                <p>Feature importance will be computed automatically after processing samples.</p>
+                <p style="font-size: 0.9rem;">Run inference on sensor data to generate this visualization.</p>
+            </div>
+        </div>
+
+        <!-- Per-Head Confidence -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🎯 Prediction Head Confidence</h2>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="badge badge-info" id="headConfidenceBadge">Multi-Head Model Only</span>
+                    <button onclick="loadHeadConfidence()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                        ↻ Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="headConfidenceAvailable" style="display: none;">
+                <div class="chart-container" style="min-height: 350px;">
+                    <div id="headConfidenceChart" style="width: 100%; height: 350px;"></div>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 0 1rem;">
+                    <div style="padding: 0.75rem; background: linear-gradient(135deg, rgba(120, 200, 255, 0.1), rgba(200, 150, 255, 0.1)); border-radius: 6px; border-left: 3px solid var(--accent-color);">
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                            <strong>Head Confidence:</strong> Shows prediction confidence (max softmax probability) for each of the 5 prediction heads. Higher values indicate more confident predictions.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="headConfidenceUnavailable" style="display: block; padding: 2rem; text-align: center; color: var(--text-secondary);">
+                <p>Head confidence visualization is only available for multi-head models.</p>
+                <p style="font-size: 0.9rem;">Load a multi-head checkpoint and run inference to enable this feature.</p>
+            </div>
+        </div>
+
+        <!-- Token-to-Token Self-Attention -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🔗 Token-to-Token Self-Attention</h2>
+                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="badge badge-info" id="selfAttentionBadge">Multi-Head Model Only</span>
+                    <button onclick="loadSelfAttention()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.875rem;">
+                        ↻ Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div id="selfAttentionAvailable" style="display: none;">
+                <div class="chart-container" style="min-height: 450px;">
+                    <div id="selfAttentionHeatmap" style="width: 100%; height: 450px;"></div>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 0 1rem;">
+                    <div style="padding: 0.75rem; background: linear-gradient(135deg, rgba(120, 200, 255, 0.1), rgba(200, 150, 255, 0.1)); border-radius: 6px; border-left: 3px solid var(--accent-color);">
+                        <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
+                            <strong>Causal Self-Attention:</strong> Shows how generated G-code tokens attend to previously generated tokens. The lower triangle shows causal masking (future tokens cannot attend to past).
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="selfAttentionUnavailable" style="display: block; padding: 2rem; text-align: center; color: var(--text-secondary);">
+                <p>Self-attention visualization is only available for multi-head models.</p>
+                <p style="font-size: 0.9rem;">Load a multi-head checkpoint and run inference to enable this feature.</p>
             </div>
         </div>
 
@@ -1333,79 +1588,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- Attention Visualization -->
-        <div style="margin-top: 2rem;">
-            <div style="background: var(--bg-card); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                    <span style="font-size: 1.5rem;">🔍</span>
-                    <h2 style="margin: 0; font-size: 1.3rem; font-weight: 600; color: var(--text-color);">
-                        Attention Visualization
-                    </h2>
-                </div>
-
-                <div style="margin-bottom: 1rem; padding: 0.75rem; background: linear-gradient(135deg, rgba(120, 200, 255, 0.1), rgba(200, 150, 255, 0.1)); border-radius: 6px; border-left: 3px solid var(--accent-color);">
-                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-secondary);">
-                        Visualizes which sensor timesteps the model attended to when making predictions.
-                        Brighter colors indicate higher attention weights.
-                    </p>
-                </div>
-
-                <div id="attentionAvailable" style="display: none;">
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                        <button onclick="loadAttentionWeights()" style="padding: 0.5rem 1.5rem; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
-                            Load Attention Map
-                        </button>
-                        <button onclick="toggleAttentionRefresh()" id="autoRefreshBtn" style="padding: 0.5rem 1.5rem; background: var(--bg-secondary); color: var(--text-color); border: 1px solid var(--border-color); border-radius: 4px; cursor: pointer;">
-                            Auto-Refresh: OFF
-                        </button>
-                    </div>
-
-                    <div id="attentionContainer" style="min-height: 400px;">
-                        <canvas id="attentionHeatmap" style="width: 100%; height: 400px; border-radius: 8px; background: var(--bg-secondary);"></canvas>
-                    </div>
-
-                    <div style="margin-top: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div style="font-size: 0.85rem; color: var(--text-secondary);">
-                                <strong>Legend:</strong>
-                                <span style="display: inline-block; width: 15px; height: 15px; background: linear-gradient(to right, rgba(120, 200, 255, 0.2), rgba(120, 200, 255, 1)); border-radius: 2px; vertical-align: middle; margin-left: 0.5rem;"></span>
-                                Low → High Attention
-                            </div>
-                            <div id="attentionTimestamp" style="font-size: 0.85rem; color: var(--text-secondary);"></div>
-                        </div>
-                    </div>
-
-                    <!-- Attention Stats -->
-                    <div id="attentionStats" style="display: none; margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: 6px;">
-                        <h3 style="margin-top: 0; font-size: 1rem; font-weight: 600;">Attention Statistics</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem;">
-                            <div>
-                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Max Attention</div>
-                                <div id="maxAttention" style="font-size: 1.1rem; font-weight: 600; color: var(--accent-color);">-</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Mean Attention</div>
-                                <div id="meanAttention" style="font-size: 1.1rem; font-weight: 600;">-</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Peak Timestep</div>
-                                <div id="peakTimestep" style="font-size: 1.1rem; font-weight: 600;">-</div>
-                            </div>
-                            <div>
-                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">Shape</div>
-                                <div id="attentionShape" style="font-size: 1.1rem; font-weight: 600;">-</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="attentionUnavailable" style="display: block; padding: 2rem; text-align: center; color: var(--text-secondary);">
-                    <p>Attention visualization is only available for multi-head models.</p>
-                    <p style="font-size: 0.9rem;">Load a multi-head checkpoint to enable this feature.</p>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -1427,11 +1609,51 @@
             connected: false,
         };
 
+        // Check model status on page load
+        async function checkInitialStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                // Check if multihead model is loaded
+                if (data.model_type === 'multihead' && data.model_loaded) {
+                    document.getElementById('attentionAvailable').style.display = 'block';
+                    document.getElementById('attentionUnavailable').style.display = 'none';
+                    document.getElementById('attentionBadge').textContent = 'Ready';
+                    document.getElementById('attentionBadge').className = 'badge badge-success';
+
+                    // Also enable per-head attention visualization
+                    document.getElementById('perHeadAvailable').style.display = 'block';
+                    document.getElementById('perHeadUnavailable').style.display = 'none';
+                    document.getElementById('perHeadBadge').textContent = 'Ready';
+                    document.getElementById('perHeadBadge').className = 'badge badge-success';
+
+                    // Also enable head confidence visualization
+                    document.getElementById('headConfidenceAvailable').style.display = 'block';
+                    document.getElementById('headConfidenceUnavailable').style.display = 'none';
+                    document.getElementById('headConfidenceBadge').textContent = 'Ready';
+                    document.getElementById('headConfidenceBadge').className = 'badge badge-success';
+
+                    // Also enable self-attention visualization
+                    document.getElementById('selfAttentionAvailable').style.display = 'block';
+                    document.getElementById('selfAttentionUnavailable').style.display = 'none';
+                    document.getElementById('selfAttentionBadge').textContent = 'Ready';
+                    document.getElementById('selfAttentionBadge').className = 'badge badge-success';
+
+                    console.log('Multi-head model detected - all visualizations enabled');
+                }
+            } catch (error) {
+                console.log('Error checking initial status:', error);
+            }
+        }
+
         // WebSocket Event Handlers
         socket.on('connect', () => {
             console.log('WebSocket connected');
             state.connected = true;
             showSuccess('Connected to server');
+            // Check status when connected
+            checkInitialStatus();
         });
 
         socket.on('disconnect', () => {
@@ -1467,6 +1689,11 @@
                 updatePredictions(data.predictions);
                 updateTopK(data.predictions.top_k || []);
                 updateStats(data.predictions.running_stats || {});
+
+                // Update latency metrics
+                if (data.predictions.inference_latency !== undefined) {
+                    updateLatencyMetrics(data.predictions.inference_latency);
+                }
 
                 // Update sensor heatmaps
                 if (data.predictions.sensor_data) {
@@ -1575,6 +1802,59 @@
                 const result = await response.json();
                 if (result.success) {
                     showSuccess('Model loaded successfully!');
+
+                    // Update attention visualization availability based on model type
+                    if (result.model_type === 'multihead') {
+                        document.getElementById('attentionAvailable').style.display = 'block';
+                        document.getElementById('attentionUnavailable').style.display = 'none';
+                        document.getElementById('attentionBadge').textContent = 'Ready';
+                        document.getElementById('attentionBadge').className = 'badge badge-success';
+
+                        // Also enable per-head attention visualization
+                        document.getElementById('perHeadAvailable').style.display = 'block';
+                        document.getElementById('perHeadUnavailable').style.display = 'none';
+                        document.getElementById('perHeadBadge').textContent = 'Ready';
+                        document.getElementById('perHeadBadge').className = 'badge badge-success';
+
+                        // Also enable head confidence visualization
+                        document.getElementById('headConfidenceAvailable').style.display = 'block';
+                        document.getElementById('headConfidenceUnavailable').style.display = 'none';
+                        document.getElementById('headConfidenceBadge').textContent = 'Ready';
+                        document.getElementById('headConfidenceBadge').className = 'badge badge-success';
+
+                        // Also enable self-attention visualization
+                        document.getElementById('selfAttentionAvailable').style.display = 'block';
+                        document.getElementById('selfAttentionUnavailable').style.display = 'none';
+                        document.getElementById('selfAttentionBadge').textContent = 'Ready';
+                        document.getElementById('selfAttentionBadge').className = 'badge badge-success';
+
+                        console.log('Multi-head model detected - all visualizations enabled');
+                    } else {
+                        document.getElementById('attentionAvailable').style.display = 'none';
+                        document.getElementById('attentionUnavailable').style.display = 'block';
+                        document.getElementById('attentionBadge').textContent = 'Multi-Head Model Only';
+                        document.getElementById('attentionBadge').className = 'badge badge-info';
+
+                        // Also disable per-head attention visualization
+                        document.getElementById('perHeadAvailable').style.display = 'none';
+                        document.getElementById('perHeadUnavailable').style.display = 'block';
+                        document.getElementById('perHeadBadge').textContent = 'Multi-Head Model Only';
+                        document.getElementById('perHeadBadge').className = 'badge badge-info';
+
+                        // Also disable head confidence visualization
+                        document.getElementById('headConfidenceAvailable').style.display = 'none';
+                        document.getElementById('headConfidenceUnavailable').style.display = 'block';
+                        document.getElementById('headConfidenceBadge').textContent = 'Multi-Head Model Only';
+                        document.getElementById('headConfidenceBadge').className = 'badge badge-info';
+
+                        // Also disable self-attention visualization
+                        document.getElementById('selfAttentionAvailable').style.display = 'none';
+                        document.getElementById('selfAttentionUnavailable').style.display = 'block';
+                        document.getElementById('selfAttentionBadge').textContent = 'Multi-Head Model Only';
+                        document.getElementById('selfAttentionBadge').className = 'badge badge-info';
+
+                        console.log('Baseline model detected - multihead visualizations disabled');
+                    }
                 } else {
                     showError(result.error);
                 }
@@ -1775,6 +2055,56 @@
                 `Mean: ${stats.anomaly_mean?.toFixed(3) || '0.000'}`;
             document.getElementById('confidenceBadge').textContent =
                 `Mean: ${(stats.confidence_mean * 100)?.toFixed(1) || '0'}%`;
+        }
+
+        // Latency metrics update
+        async function updateLatencyMetrics(currentLatency) {
+            // Update current display
+            document.getElementById('latencyCurrent').textContent = `${currentLatency.toFixed(1)} ms`;
+            document.getElementById('latencyBadge').textContent = `${currentLatency.toFixed(1)} ms`;
+
+            // Fetch full metrics for statistics
+            try {
+                const response = await fetch('/api/metrics/latency');
+                const metrics = await response.json();
+
+                if (!metrics.empty) {
+                    document.getElementById('latencyMean').textContent = `${metrics.mean.toFixed(1)} ms`;
+                    document.getElementById('latencyP95').textContent = `${metrics.p95.toFixed(1)} ms`;
+                    document.getElementById('latencyP99').textContent = `${metrics.p99.toFixed(1)} ms`;
+
+                    // Update latency timeline chart
+                    updateLatencyChart(metrics.history);
+                }
+            } catch (error) {
+                console.error('Failed to update latency metrics:', error);
+            }
+        }
+
+        function updateLatencyChart(history) {
+            const isDark = body.getAttribute('data-theme') === 'dark';
+            const bgColor = isDark ? '#242424' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            const trace = {
+                type: 'scatter',
+                mode: 'lines',
+                x: history.map((_, i) => i),
+                y: history,
+                line: { color: '#2196F3', width: 2 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(33, 150, 243, 0.2)',
+                name: 'Latency (ms)'
+            };
+
+            Plotly.newPlot('latencyChart', [trace], {
+                xaxis: { title: 'Sample', color: textColor, gridcolor: isDark ? '#444' : '#ddd' },
+                yaxis: { title: 'Latency (ms)', color: textColor, gridcolor: isDark ? '#444' : '#ddd' },
+                margin: { t: 20, r: 20, b: 60, l: 60 },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { color: textColor }
+            }, { displayModeBar: false, responsive: true });
         }
 
         // Initialize timeline charts once
@@ -2026,6 +2356,80 @@
                 renderConfusionMatrix('/api/confusion_matrix/param_type', 'confusionMatrixParamType', 'Reds', 'param_type'),
                 renderConfusionMatrix('/api/confusion_matrix/param_value', 'confusionMatrixParamValue', 'YlOrRd', 'param_value'),
             ]);
+
+            // Update per-class metrics cards
+            await renderPerClassMetricsCards();
+        }
+
+        // Render per-class accuracy cards
+        async function renderPerClassMetricsCards() {
+            try {
+                const selectedHead = document.getElementById('perClassHeadSelect').value;
+                const response = await fetch(`/api/confusion_matrix/${selectedHead}/normalized?mode=none`);
+                const data = await response.json();
+
+                if (data.empty || !data.per_class_metrics) {
+                    document.getElementById('perClassMetricsCards').innerHTML =
+                        '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">No metrics available yet</p>';
+                    return;
+                }
+
+                // Sort by F1 score descending
+                const metrics = data.per_class_metrics.sort((a, b) => b.f1 - a.f1);
+
+                // Create grid of cards
+                const cardsHtml = metrics.map(m => `
+                    <div style="background: var(--bg-secondary); border-radius: 6px; padding: 1rem; border-left: 4px solid ${getColorForF1(m.f1)};">
+                        <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; font-family: monospace;">
+                            ${m.label}
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; font-size: 0.875rem;">
+                            <div>
+                                <div style="color: var(--text-secondary);">Precision</div>
+                                <div style="font-weight: 600; color: ${getColorForScore(m.precision)};">
+                                    ${(m.precision * 100).toFixed(1)}%
+                                </div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-secondary);">Recall</div>
+                                <div style="font-weight: 600; color: ${getColorForScore(m.recall)};">
+                                    ${(m.recall * 100).toFixed(1)}%
+                                </div>
+                            </div>
+                            <div>
+                                <div style="color: var(--text-secondary);">F1</div>
+                                <div style="font-weight: 600; color: ${getColorForScore(m.f1)};">
+                                    ${(m.f1 * 100).toFixed(1)}%
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-secondary);">
+                            Support: ${m.support} samples
+                        </div>
+                    </div>
+                `).join('');
+
+                document.getElementById('perClassMetricsCards').innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                        ${cardsHtml}
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Failed to render per-class metrics:', error);
+            }
+        }
+
+        function getColorForScore(score) {
+            if (score >= 0.9) return '#4CAF50';  // Green
+            if (score >= 0.7) return '#FF9800';  // Orange
+            return '#f44336';  // Red
+        }
+
+        function getColorForF1(f1) {
+            if (f1 >= 0.9) return '#4CAF50';
+            if (f1 >= 0.7) return '#2196F3';
+            return '#FF9800';
         }
 
         // Rolling buffer for sensor time series (last 50 readings)
@@ -2364,38 +2768,109 @@
             }
         }
 
+        let fullHistoryData = [];  // Store unfiltered data
+
         async function updateGenerationHistory() {
             try {
                 const response = await fetch('/api/generation_history');
                 const data = await response.json();
 
-                const tbody = document.getElementById('historyBody');
                 if (!data.history || data.history.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No history yet...</td></tr>';
+                    document.getElementById('historyBody').innerHTML = '<tr><td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No history yet...</td></tr>';
+                    fullHistoryData = [];
                     return;
                 }
 
-                tbody.innerHTML = data.history.slice(-10).reverse().map((entry, idx) => {
-                    const editDist = entry.ground_truth && entry.predicted
-                        ? levenshteinDistance(entry.predicted, entry.ground_truth)
-                        : '---';
+                // Store full data for filtering
+                fullHistoryData = data.history;
 
-                    return `
-                        <tr style="border-bottom: 1px solid var(--border-color);">
-                            <td style="padding: 0.75rem;">${10 - idx}</td>
-                            <td style="padding: 0.75rem; font-family: monospace; color: var(--accent-color);">${entry.predicted || '---'}</td>
-                            <td style="padding: 0.75rem; font-family: monospace; color: var(--text-secondary);">${entry.ground_truth || '---'}</td>
-                            <td style="padding: 0.75rem; text-align: center;">
-                                ${entry.ground_truth ? (entry.predicted === entry.ground_truth ? '✅' : '❌') : '---'}
-                            </td>
-                            <td style="padding: 0.75rem; text-align: center;">${editDist}</td>
-                            <td style="padding: 0.75rem; text-align: center;">${(entry.confidence * 100).toFixed(1)}%</td>
-                        </tr>
-                    `;
-                }).join('');
+                // Apply current filter
+                filterPredictionHistory();
+
             } catch (error) {
                 console.error('Failed to update generation history:', error);
             }
+        }
+
+        function filterPredictionHistory() {
+            const searchText = document.getElementById('historySearchInput').value.toLowerCase();
+            const filterMode = document.getElementById('historyFilterSelect').value;
+
+            if (fullHistoryData.length === 0) {
+                return;
+            }
+
+            // Apply filters
+            let filtered = fullHistoryData;
+
+            // Text search filter
+            if (searchText) {
+                filtered = filtered.filter(entry => {
+                    const predicted = (entry.predicted || '').toLowerCase();
+                    const groundTruth = (entry.ground_truth || '').toLowerCase();
+                    return predicted.includes(searchText) || groundTruth.includes(searchText);
+                });
+            }
+
+            // Category filter
+            if (filterMode === 'matched') {
+                filtered = filtered.filter(entry =>
+                    entry.ground_truth && entry.predicted === entry.ground_truth
+                );
+            } else if (filterMode === 'mismatched') {
+                filtered = filtered.filter(entry =>
+                    entry.ground_truth && entry.predicted !== entry.ground_truth
+                );
+            } else if (filterMode === 'high_confidence') {
+                filtered = filtered.filter(entry => entry.confidence >= 0.8);
+            } else if (filterMode === 'low_confidence') {
+                filtered = filtered.filter(entry => entry.confidence < 0.5);
+            }
+
+            // Render filtered results
+            renderHistoryTable(filtered);
+        }
+
+        function renderHistoryTable(entries) {
+            const tbody = document.getElementById('historyBody');
+
+            if (entries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-secondary);">No matching results</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = entries.slice(-10).reverse().map((entry, idx) => {
+                const editDist = entry.ground_truth && entry.predicted
+                    ? levenshteinDistance(entry.predicted, entry.ground_truth)
+                    : '---';
+
+                const matchIcon = entry.ground_truth
+                    ? (entry.predicted === entry.ground_truth ? '✅' : '❌')
+                    : '---';
+
+                return `
+                    <tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 0.75rem;">${entries.length - idx}</td>
+                        <td style="padding: 0.75rem; font-family: monospace; color: var(--accent-color);">
+                            ${highlightSearchTerm(entry.predicted || '---')}
+                        </td>
+                        <td style="padding: 0.75rem; font-family: monospace; color: var(--text-secondary);">
+                            ${highlightSearchTerm(entry.ground_truth || '---')}
+                        </td>
+                        <td style="padding: 0.75rem; text-align: center;">${matchIcon}</td>
+                        <td style="padding: 0.75rem; text-align: center;">${editDist}</td>
+                        <td style="padding: 0.75rem; text-align: center;">${(entry.confidence * 100).toFixed(1)}%</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function highlightSearchTerm(text) {
+            const searchText = document.getElementById('historySearchInput').value;
+            if (!searchText) return text;
+
+            const regex = new RegExp(`(${searchText})`, 'gi');
+            return text.replace(regex, '<mark style="background: #FFEB3B; color: #000;">$1</mark>');
         }
 
         function levenshteinDistance(s1, s2) {
@@ -3837,25 +4312,52 @@ ${JSON.stringify(checkpoint.config, null, 2)}
 
         async function loadAttentionWeights() {
             try {
-                const response = await fetch('/api/attention');
-                const data = await response.json();
+                const layerSelect = document.getElementById('layerSelect').value;
+                let attentionData;
 
-                if (data.success && data.available) {
-                    const attentionData = data.attention.avg_attention[0];  // Get first batch
-                    drawAttentionHeatmap(attentionData);
+                if (layerSelect === 'avg') {
+                    // Load averaged attention across all layers
+                    const response = await fetch('/api/attention');
+                    const data = await response.json();
 
-                    // Update timestamp
-                    const timestamp = new Date(data.attention.timestamp).toLocaleString();
-                    document.getElementById('attentionTimestamp').textContent = `Updated: ${timestamp}`;
+                    if (data.success && data.available) {
+                        attentionData = data.attention.avg_attention[0];  // Get first batch
 
-                    // Update stats
-                    updateAttentionStats(attentionData, data.attention.shape);
+                        // Update timestamp
+                        const timestamp = new Date(data.attention.timestamp).toLocaleString();
+                        document.getElementById('attentionTimestamp').textContent = `Updated: ${timestamp}`;
 
-                    showSuccess('Attention weights loaded!');
-                } else if (!data.available) {
-                    showError('Attention visualization not available for this model type');
+                        // Draw and update stats
+                        drawAttentionHeatmap(attentionData);
+                        updateAttentionStats(attentionData, data.attention.shape);
+                        showSuccess('Attention weights loaded (averaged)!');
+                    } else if (!data.available) {
+                        showError('Attention visualization not available for this model type');
+                    } else {
+                        showError('No attention data available: ' + (data.error || 'Run inference first'));
+                    }
                 } else {
-                    showError('No attention data available: ' + (data.error || 'Run inference first'));
+                    // Load specific layer attention
+                    const layerIdx = parseInt(layerSelect);
+                    const response = await fetch('/api/attention/layers');
+                    const data = await response.json();
+
+                    if (data.success && data.available) {
+                        attentionData = data.layer_attentions[layerIdx][0];  // Get first batch for this layer
+
+                        // Update timestamp
+                        const timestamp = new Date(data.timestamp).toLocaleString();
+                        document.getElementById('attentionTimestamp').textContent = `Updated: ${timestamp} (Layer ${layerIdx + 1})`;
+
+                        // Draw and update stats
+                        drawAttentionHeatmap(attentionData);
+                        updateAttentionStats(attentionData, data.shape);
+                        showSuccess(`Layer ${layerIdx + 1} attention loaded!`);
+                    } else if (!data.available) {
+                        showError('Layer-wise attention not available for this model type');
+                    } else {
+                        showError('No layer attention data available: ' + (data.error || 'Run inference first'));
+                    }
                 }
             } catch (error) {
                 showError('Error loading attention weights: ' + error);
@@ -3975,14 +4477,445 @@ ${JSON.stringify(checkpoint.config, null, 2)}
             }
         }
 
+        // ============================================================================
+        // Per-Head Attention Visualization (2x2 Grid)
+        // ============================================================================
+
+        async function loadPerHeadAttention() {
+            try {
+                const response = await fetch('/api/attention/per_head');
+                const data = await response.json();
+
+                if (data.success && data.available) {
+                    // Extract per-head attention: [B, num_heads, Tg, Tm]
+                    const perHeadAttention = data.per_head_attention[0];  // Get first batch: [num_heads, Tg, Tm]
+                    renderPerHeadAttentionGrid(perHeadAttention, data.shape);
+
+                    // Update badge
+                    document.getElementById('perHeadBadge').textContent = 'Ready';
+                    document.getElementById('perHeadBadge').className = 'badge badge-success';
+
+                    showSuccess('Per-head attention loaded!');
+                } else if (!data.available) {
+                    showError('Per-head attention visualization not available for this model type');
+                } else {
+                    showError('No per-head attention data available: ' + (data.error || 'Run inference first'));
+                }
+            } catch (error) {
+                showError('Error loading per-head attention: ' + error);
+            }
+        }
+
+        function renderPerHeadAttentionGrid(perHeadAttention, shape) {
+            // perHeadAttention shape: [num_heads, Tg, Tm]
+            const numHeads = perHeadAttention.length;
+
+            // Create subplot data for 2x2 grid
+            const traces = [];
+            const annotations = [];
+
+            for (let headIdx = 0; headIdx < numHeads; headIdx++) {
+                const headAttention = perHeadAttention[headIdx];  // [Tg, Tm]
+
+                // Determine subplot position (2x2 grid)
+                const row = Math.floor(headIdx / 2);
+                const col = headIdx % 2;
+
+                const trace = {
+                    z: headAttention,
+                    type: 'heatmap',
+                    colorscale: [
+                        [0, 'rgba(20, 30, 50, 0.9)'],
+                        [0.5, 'rgba(80, 150, 255, 0.8)'],
+                        [1, 'rgba(120, 200, 255, 1)']
+                    ],
+                    showscale: headIdx === 0,  // Only show colorbar for first subplot
+                    xaxis: `x${headIdx + 1}`,
+                    yaxis: `y${headIdx + 1}`,
+                    hovertemplate: 'Target: %{y}<br>Memory: %{x}<br>Attention: %{z:.4f}<extra></extra>'
+                };
+
+                traces.push(trace);
+
+                // Add title annotation for each subplot
+                annotations.push({
+                    text: `<b>Head ${headIdx + 1}</b>`,
+                    xref: `x${headIdx + 1} domain`,
+                    yref: `y${headIdx + 1} domain`,
+                    x: 0.5,
+                    y: 1.05,
+                    showarrow: false,
+                    font: { size: 14, color: 'var(--text-color)' },
+                    xanchor: 'center',
+                    yanchor: 'bottom'
+                });
+            }
+
+            // Layout for 2x2 grid
+            const layout = {
+                title: {
+                    text: `Attention Head Comparison (${numHeads} Heads)`,
+                    font: { size: 16, color: 'var(--text-color)' }
+                },
+                grid: { rows: 2, columns: 2, pattern: 'independent', roworder: 'top to bottom' },
+                annotations: annotations,
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0)',
+                font: { color: 'var(--text-color)' },
+                margin: { t: 50, l: 60, r: 60, b: 60 },
+                showlegend: false
+            };
+
+            // Set axis properties for each subplot
+            for (let i = 0; i < numHeads; i++) {
+                layout[`xaxis${i + 1}`] = {
+                    title: 'Memory Timesteps',
+                    color: 'var(--text-secondary)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)'
+                };
+                layout[`yaxis${i + 1}`] = {
+                    title: 'Target Tokens',
+                    color: 'var(--text-secondary)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    autorange: 'reversed'
+                };
+            }
+
+            Plotly.newPlot('perHeadAttentionGrid', traces, layout, {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+                displaylogo: false
+            });
+        }
+
+        // ============================================================================
+        // Sensor Feature Importance Visualization
+        // ============================================================================
+
+        async function loadFeatureImportance() {
+            try {
+                const response = await fetch('/api/feature_importance');
+                const data = await response.json();
+
+                if (data.success && data.available) {
+                    renderFeatureImportanceHeatmap(data.feature_importance);
+
+                    // Update badge
+                    document.getElementById('featureImportanceBadge').textContent = 'Ready';
+                    document.getElementById('featureImportanceBadge').className = 'badge badge-success';
+
+                    // Show available section
+                    document.getElementById('featureImportanceAvailable').style.display = 'block';
+                    document.getElementById('featureImportanceUnavailable').style.display = 'none';
+
+                    showSuccess('Feature importance loaded!');
+                } else if (!data.available) {
+                    showError('Feature importance not yet available');
+                } else {
+                    showError('No feature importance data: ' + (data.error || 'Process samples first'));
+                }
+            } catch (error) {
+                showError('Error loading feature importance: ' + error);
+            }
+        }
+
+        function renderFeatureImportanceHeatmap(importanceData) {
+            // importanceData.continuous: [num_features, num_timesteps]
+            const importanceMatrix = importanceData.continuous;
+            const numFeatures = importanceData.shape.num_features;
+            const numTimesteps = importanceData.shape.num_timesteps;
+
+            // Create feature labels (F0, F1, F2, ...)
+            const featureLabels = Array.from({length: numFeatures}, (_, i) => `F${i}`);
+            const timestepLabels = Array.from({length: numTimesteps}, (_, i) => `T${i}`);
+
+            const trace = {
+                z: importanceMatrix,
+                x: timestepLabels,
+                y: featureLabels,
+                type: 'heatmap',
+                colorscale: [
+                    [0, 'rgba(20, 30, 50, 0.9)'],
+                    [0.5, 'rgba(255, 150, 50, 0.8)'],
+                    [1, 'rgba(255, 220, 100, 1)']
+                ],
+                showscale: true,
+                colorbar: {
+                    title: 'Importance',
+                    titleside: 'right',
+                    tickmode: 'linear',
+                    tick0: 0,
+                    dtick: 0.2,
+                    thickness: 15,
+                    len: 0.7
+                },
+                hovertemplate: 'Feature: %{y}<br>Timestep: %{x}<br>Importance: %{z:.4f}<extra></extra>'
+            };
+
+            const layout = {
+                title: {
+                    text: `Sensor Feature Importance (${numFeatures} features × ${numTimesteps} timesteps)`,
+                    font: { size: 16, color: 'var(--text-color)' }
+                },
+                xaxis: {
+                    title: 'Timestep',
+                    color: 'var(--text-secondary)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    tickmode: 'linear',
+                    tick0: 0,
+                    dtick: 5
+                },
+                yaxis: {
+                    title: 'Sensor Feature',
+                    color: 'var(--text-secondary)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    autorange: 'reversed'
+                },
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0)',
+                font: { color: 'var(--text-color)' },
+                margin: { t: 60, l: 80, r: 100, b: 60 }
+            };
+
+            Plotly.newPlot('featureImportanceHeatmap', [trace], layout, {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+                displaylogo: false
+            });
+        }
+
+        // ============================================================================
+        // Per-Head Confidence Visualization
+        // ============================================================================
+
+        async function loadHeadConfidence() {
+            try {
+                const response = await fetch('/api/head_confidence');
+                const data = await response.json();
+
+                if (data.success && data.available) {
+                    renderHeadConfidenceChart(data.head_confidences);
+
+                    // Update badge
+                    document.getElementById('headConfidenceBadge').textContent = 'Ready';
+                    document.getElementById('headConfidenceBadge').className = 'badge badge-success';
+
+                    // Show available section
+                    document.getElementById('headConfidenceAvailable').style.display = 'block';
+                    document.getElementById('headConfidenceUnavailable').style.display = 'none';
+
+                    showSuccess('Head confidence loaded!');
+                } else if (!data.available) {
+                    showError('Head confidence not yet available');
+                } else {
+                    showError('No head confidence data: ' + (data.error || 'Run inference first'));
+                }
+            } catch (error) {
+                showError('Error loading head confidence: ' + error);
+            }
+        }
+
+        function renderHeadConfidenceChart(confidenceData) {
+            const heads = confidenceData.prediction_heads;
+            const confidences = heads.map(head => confidenceData.confidences[head]);
+
+            // Create nice labels
+            const headLabels = {
+                'type': 'Token Type',
+                'command': 'Command',
+                'param_type': 'Param Type',
+                'param_value': 'Param Value',
+                'operation': 'Operation'
+            };
+
+            const labels = heads.map(head => headLabels[head] || head);
+
+            // Color by confidence: green (high) -> yellow (medium) -> red (low)
+            const colors = confidences.map(conf => {
+                if (conf >= 0.8) return 'rgba(100, 200, 100, 0.8)';  // Green
+                if (conf >= 0.6) return 'rgba(200, 200, 100, 0.8)';  // Yellow
+                if (conf >= 0.4) return 'rgba(255, 150, 100, 0.8)';  // Orange
+                return 'rgba(255, 100, 100, 0.8)';  // Red
+            });
+
+            const trace = {
+                x: labels,
+                y: confidences,
+                type: 'bar',
+                marker: {
+                    color: colors,
+                    line: {
+                        color: 'rgba(255, 255, 255, 0.3)',
+                        width: 2
+                    }
+                },
+                text: confidences.map(c => c.toFixed(3)),
+                textposition: 'outside',
+                hovertemplate: 'Head: %{x}<br>Confidence: %{y:.4f}<extra></extra>'
+            };
+
+            const layout = {
+                title: {
+                    text: 'Prediction Head Confidence (Max Softmax Probability)',
+                    font: { size: 16, color: 'var(--text-color)' }
+                },
+                xaxis: {
+                    title: 'Prediction Head',
+                    color: 'var(--text-secondary)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)'
+                },
+                yaxis: {
+                    title: 'Confidence',
+                    color: 'var(--text-secondary)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    range: [0, 1.0]
+                },
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0)',
+                font: { color: 'var(--text-color)' },
+                margin: { t: 60, l: 60, r: 40, b: 80 }
+            };
+
+            Plotly.newPlot('headConfidenceChart', [trace], layout, {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d', 'zoom2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d'],
+                displaylogo: false
+            });
+        }
+
+        // ============================================================================
+        // Token-to-Token Self-Attention Visualization
+        // ============================================================================
+
+        async function loadSelfAttention() {
+            try {
+                const response = await fetch('/api/attention/self');
+                const data = await response.json();
+
+                if (data.success && data.available) {
+                    renderSelfAttentionHeatmap(data.self_attention);
+
+                    // Update badge
+                    document.getElementById('selfAttentionBadge').textContent = 'Ready';
+                    document.getElementById('selfAttentionBadge').className = 'badge badge-success';
+
+                    // Show available section
+                    document.getElementById('selfAttentionAvailable').style.display = 'block';
+                    document.getElementById('selfAttentionUnavailable').style.display = 'none';
+
+                    showSuccess('Self-attention loaded!');
+                } else if (!data.available) {
+                    showError('Self-attention not yet available');
+                } else {
+                    showError('No self-attention data: ' + (data.error || 'Run inference first'));
+                }
+            } catch (error) {
+                showError('Error loading self-attention: ' + error);
+            }
+        }
+
+        function renderSelfAttentionHeatmap(selfAttentionData) {
+            // selfAttentionData.avg_attention: [B, Tg, Tg] - token-to-token attention
+            const attentionMatrix = selfAttentionData.avg_attention[0];  // Get first batch
+            const targetLen = selfAttentionData.shape.target_len;
+
+            // Create token labels (T0, T1, T2, ...)
+            const tokenLabels = Array.from({length: targetLen}, (_, i) => `T${i}`);
+
+            const trace = {
+                z: attentionMatrix,
+                x: tokenLabels,
+                y: tokenLabels,
+                type: 'heatmap',
+                colorscale: [
+                    [0, 'rgba(20, 30, 50, 0.9)'],
+                    [0.5, 'rgba(80, 150, 255, 0.8)'],
+                    [1, 'rgba(120, 200, 255, 1)']
+                ],
+                showscale: true,
+                colorbar: {
+                    title: 'Attention',
+                    titleside: 'right',
+                    thickness: 15,
+                    len: 0.7
+                },
+                hovertemplate: 'From Token: %{y}<br>To Token: %{x}<br>Attention: %{z:.4f}<extra></extra>'
+            };
+
+            const layout = {
+                title: {
+                    text: `Token-to-Token Self-Attention (${targetLen}×${targetLen})`,
+                    font: { size: 16, color: 'var(--text-color)' }
+                },
+                xaxis: {
+                    title: 'Attends To (Target Token)',
+                    color: 'var(--text-secondary)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    side: 'bottom'
+                },
+                yaxis: {
+                    title: 'Attends From (Query Token)',
+                    color: 'var(--text-secondary)',
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    autorange: 'reversed'
+                },
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0)',
+                font: { color: 'var(--text-color)' },
+                margin: { t: 60, l: 80, r: 100, b: 80 }
+            };
+
+            Plotly.newPlot('selfAttentionHeatmap', [trace], layout, {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'],
+                displaylogo: false
+            });
+        }
+
         // Check if attention is available when model loads
         socket.on('model_loaded', (data) => {
             if (data.model_type === 'multihead') {
                 document.getElementById('attentionAvailable').style.display = 'block';
                 document.getElementById('attentionUnavailable').style.display = 'none';
+                document.getElementById('attentionBadge').textContent = 'Ready';
+                document.getElementById('attentionBadge').className = 'badge badge-success';
+
+                // Also enable per-head attention visualization
+                document.getElementById('perHeadAvailable').style.display = 'block';
+                document.getElementById('perHeadUnavailable').style.display = 'none';
+                document.getElementById('perHeadBadge').textContent = 'Ready';
+                document.getElementById('perHeadBadge').className = 'badge badge-success';
+
+                // Also enable head confidence visualization
+                document.getElementById('headConfidenceAvailable').style.display = 'block';
+                document.getElementById('headConfidenceUnavailable').style.display = 'none';
+                document.getElementById('headConfidenceBadge').textContent = 'Ready';
+                document.getElementById('headConfidenceBadge').className = 'badge badge-success';
+
+                // Also enable self-attention visualization
+                document.getElementById('selfAttentionAvailable').style.display = 'block';
+                document.getElementById('selfAttentionUnavailable').style.display = 'none';
+                document.getElementById('selfAttentionBadge').textContent = 'Ready';
+                document.getElementById('selfAttentionBadge').className = 'badge badge-success';
             } else {
                 document.getElementById('attentionAvailable').style.display = 'none';
                 document.getElementById('attentionUnavailable').style.display = 'block';
+
+                // Also disable per-head attention visualization
+                document.getElementById('perHeadAvailable').style.display = 'none';
+                document.getElementById('perHeadUnavailable').style.display = 'block';
+
+                // Also disable head confidence visualization
+                document.getElementById('headConfidenceAvailable').style.display = 'none';
+                document.getElementById('headConfidenceUnavailable').style.display = 'block';
+
+                // Also disable self-attention visualization
+                document.getElementById('selfAttentionAvailable').style.display = 'none';
+                document.getElementById('selfAttentionUnavailable').style.display = 'block';
             }
         });
     </script>

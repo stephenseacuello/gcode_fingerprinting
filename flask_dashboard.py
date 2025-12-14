@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 import json
 import logging
+import time
 from pathlib import Path
 from collections import deque, defaultdict
 from datetime import datetime
@@ -53,6 +54,19 @@ from miracle.model.multihead_lm import MultiHeadGCodeLM
 from miracle.dataset.target_utils import TokenDecomposer
 from miracle.utilities.gcode_tokenizer import GCodeTokenizer
 from miracle.training.grammar_constraints import GCodeGrammarConstraints
+from miracle.visualization.model_interpreter import ModelInterpreter
+
+
+def convert_numpy_to_list(obj):
+    """Recursively convert numpy arrays to lists for JSON serialization."""
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: convert_numpy_to_list(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_to_list(item) for item in obj]
+    else:
+        return obj
 
 
 # Operation type mapping (matches preprocessing.py)
@@ -119,11 +133,16 @@ state = {
     'command_types': defaultdict(int),  # Track command type distribution
     'current_modal_command': None,  # Track current modal G-code command (e.g., 'G1', 'G0')
     'accuracy_over_time': [],  # Track accuracy metrics
-    'attention_weights': None,  # Latest attention weights for visualization
+    'attention_weights': None,  # Latest cross-attention weights for visualization
     'attention_history': deque(maxlen=10),  # Last 10 attention maps
+    'self_attention_weights': None,  # Latest self-attention weights (token-to-token)
+    'feature_importance': None,  # Cached gradient-based feature importance
+    'head_confidences': None,  # Per-head prediction confidence
+    'last_memory': None,  # Cached memory tensor for on-demand attention extraction
+    'last_bos_tokens': None,  # Cached tokens for on-demand attention extraction
     # Generation settings
     'gen_settings': {
-        'enable_autoregressive': True,
+        'enable_autoregressive': False,  # Disabled by default for performance (saves ~1.5s per sample)
         'max_tokens': 15,
         'temperature': 1.0,
         'top_p': 1.0,
@@ -136,6 +155,9 @@ state = {
     'active_sweeps': [],
     'sweep_cache': {},
     'sweep_cache_timestamp': {},
+    # Latency tracking
+    'latency_history': deque(maxlen=100),
+    'current_latency': 0.0,
 }
 
 
@@ -962,24 +984,10 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
                 try:
                     multihead_outputs = state['model'](memory, bos_tokens)  # Dict with type_logits, command_logits, etc.
 
-                    # Extract attention weights for visualization (if available)
-                    try:
-                        if hasattr(state['model'], 'extract_attention_weights'):
-                            attention_data = state['model'].extract_attention_weights(memory, bos_tokens)
-                            # Store attention weights
-                            state['attention_weights'] = {
-                                'avg_attention': attention_data['attention'].tolist(),  # [B, Tg, Tm]
-                                'timestamp': datetime.utcnow().isoformat(),
-                                'shape': {
-                                    'batch': memory.shape[0],
-                                    'target_len': bos_tokens.shape[1],
-                                    'memory_len': memory.shape[1],
-                                }
-                            }
-                            state['attention_history'].append(state['attention_weights'])
-                    except Exception as attn_err:
-                        logger.debug(f"Could not extract attention weights: {attn_err}")
-                        # Non-critical, continue without attention visualization
+                    # Store memory and tokens for on-demand attention extraction
+                    # API endpoints will extract attention when user clicks "Refresh"
+                    state['last_memory'] = memory.detach().cpu()
+                    state['last_bos_tokens'] = bos_tokens.detach().cpu()
 
                 except RuntimeError as e:
                     logger.error(f"❌ G-code generation error: {e}")
@@ -1046,6 +1054,23 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
                     'command_id': command_id,
                     'param_type_id': param_type_id,
                     'param_value_id': param_value_id
+                }
+
+                # Compute per-head confidence (max softmax probability)
+                from scipy.special import softmax
+                head_confidences = {
+                    'type': float(np.max(softmax(type_logits))),
+                    'command': float(np.max(softmax(command_logits))),
+                    'param_type': float(np.max(softmax(param_type_logits))),
+                    'param_value': float(np.max(softmax(param_value_logits))) if 'param_value_logits' in multihead_outputs else 0.0,
+                    'operation': float(np.max(softmax(operation_logits))) if operation_logits is not None else 0.0
+                }
+
+                # Store head confidences in state for visualization
+                state['head_confidences'] = {
+                    'confidences': head_confidences,
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'prediction_heads': ['type', 'command', 'param_type', 'param_value', 'operation']
                 }
 
                 # DEBUG: Log multihead prediction details
@@ -1748,6 +1773,39 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
         'reconstruction_score_std': float(np.std(state['statistics']['reconstruction_score'][-100:])),
     }
 
+    # Compute feature importance periodically (every 50 samples)
+    if len(state['predictions_history']) % 50 == 0:
+        try:
+            # Use attention weights as a proxy for feature importance
+            # Higher attention = more important timestep
+            if state['attention_weights'] is not None and 'avg_attention' in state['attention_weights']:
+                # Get attention: [B, Tg, Tm] - we care about Tm (memory/sensor timesteps)
+                attn = np.array(state['attention_weights']['avg_attention'])
+                # Average over target tokens: [B, Tm] -> [Tm]
+                importance_over_time = attn[0].mean(axis=0)  # [Tm=64]
+
+                # Create feature importance matrix: [num_features, num_timesteps]
+                # Use attention-weighted sensor magnitudes
+                num_features = cont_tensor.shape[-1]  # Number of sensor features
+                num_timesteps = cont_tensor.shape[1]  # 64 timesteps
+
+                # Simple heuristic: multiply sensor values by attention weights
+                sensor_importance = np.abs(cont_tensor[0].cpu().numpy()) * importance_over_time[:, None]
+                # Shape: [64, num_features] -> transpose to [num_features, 64]
+                sensor_importance = sensor_importance.T
+
+                state['feature_importance'] = {
+                    'continuous': sensor_importance.tolist(),  # [num_features, 64]
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'shape': {
+                        'num_features': num_features,
+                        'num_timesteps': num_timesteps
+                    }
+                }
+                logger.debug(f"Updated feature importance: {num_features} features × {num_timesteps} timesteps")
+        except Exception as e:
+            logger.debug(f"Could not compute feature importance: {e}")
+
     return predictions
 
 
@@ -2336,6 +2394,27 @@ def status():
         'current_idx': state['current_idx'],
         'total_rows': len(state['csv_data']) if state['csv_data'] is not None else 0,
         'buffer_size': len(state['buffer']),
+        'model_type': state['model_type'],
+        'model_loaded': state['model'] is not None,
+    })
+
+
+@app.route('/api/metrics/latency')
+def get_latency_metrics():
+    """Get inference latency statistics."""
+    if not state['latency_history']:
+        return jsonify({'empty': True})
+
+    latencies = list(state['latency_history'])
+    return jsonify({
+        'current': state['current_latency'],
+        'mean': float(np.mean(latencies)),
+        'median': float(np.median(latencies)),
+        'min': float(np.min(latencies)),
+        'max': float(np.max(latencies)),
+        'p95': float(np.percentile(latencies, 95)),
+        'p99': float(np.percentile(latencies, 99)),
+        'history': latencies[-50:]  # Last 50 for chart
     })
 
 
@@ -2378,8 +2457,19 @@ def step():
     # Ground truth (if available)
     ground_truth = row.get('gcode_string', None)
 
-    # Process
+    # Process with timing
+    start_time = time.time()
     predictions = process_sample(continuous, categorical, ground_truth)
+    end_time = time.time()
+
+    # Calculate and store latency
+    latency_ms = (end_time - start_time) * 1000
+    state['current_latency'] = latency_ms
+    state['latency_history'].append(latency_ms)
+
+    # Add latency to predictions
+    if predictions:
+        predictions['inference_latency'] = latency_ms
 
     # Update operation type confusion matrix if predictions include operation type
     if predictions and 'operation_type_id' in predictions and predictions['operation_type_id'] >= 0:
@@ -3890,23 +3980,271 @@ def get_attention_weights():
 
     Returns attention map showing which sensor timesteps the model
     focused on when making predictions.
+
+    NOTE: This endpoint extracts attention on-demand to avoid performance overhead.
     """
     try:
-        if state['attention_weights'] is None:
+        # Check if we have cached tensors from last inference
+        if state['last_memory'] is None or state['last_bos_tokens'] is None:
             return jsonify({
                 'success': False,
                 'error': 'No attention weights available. Run inference first.'
             })
 
+        if state['model_type'] != 'multihead':
+            return jsonify({
+                'success': False,
+                'error': 'Attention visualization is only available for multi-head models.',
+                'available': False
+            })
+
+        # Extract attention on-demand (only when user clicks "Refresh")
+        device = next(state['model'].parameters()).device
+        memory = state['last_memory'].to(device)
+        bos_tokens = state['last_bos_tokens'].to(device)
+
+        # Extract averaged attention weights
+        attention_data = state['model'].extract_attention_weights(
+            memory, bos_tokens, average_heads=True
+        )
+
+        # Convert numpy arrays to lists for JSON serialization
+        attention_data = convert_numpy_to_list(attention_data)
+
         return jsonify({
             'success': True,
-            'attention': state['attention_weights'],
+            'attention': attention_data,
             'model_type': state['model_type'],
-            'available': state['model_type'] == 'multihead'
+            'available': True
         })
 
     except Exception as e:
         logger.error(f"Failed to get attention weights: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/attention/per_head')
+def get_per_head_attention():
+    """
+    Get per-head attention weights for multi-head attention visualization.
+
+    Returns attention weights for each of the 4 attention heads separately,
+    allowing visualization of head specialization and comparison.
+
+    NOTE: This endpoint extracts attention on-demand to avoid performance overhead.
+    """
+    try:
+        # Check if we have cached tensors from last inference
+        if state['last_memory'] is None or state['last_bos_tokens'] is None:
+            return jsonify({
+                'success': False,
+                'error': 'No attention weights available. Run inference first.'
+            })
+
+        if state['model_type'] != 'multihead':
+            return jsonify({
+                'success': False,
+                'error': 'Per-head attention is only available for multi-head models.'
+            })
+
+        # Extract per-head attention on-demand (only when user clicks "Refresh")
+        device = next(state['model'].parameters()).device
+        memory = state['last_memory'].to(device)
+        bos_tokens = state['last_bos_tokens'].to(device)
+
+        # Extract per-head attention weights: shape [B, num_heads, Tg, Tm]
+        attention_data = state['model'].extract_attention_weights(
+            memory, bos_tokens, average_heads=False
+        )
+
+        # Convert numpy arrays to lists for JSON serialization
+        attention_data = convert_numpy_to_list(attention_data)
+
+        return jsonify({
+            'success': True,
+            'per_head_attention': attention_data.get('per_head_attention'),  # [B, num_heads, Tg, Tm]
+            'num_heads': attention_data.get('num_heads', 4),
+            'shape': attention_data['shape'],
+            'timestamp': attention_data['timestamp'],
+            'available': True
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get per-head attention weights: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/attention/layers')
+def get_layer_attentions():
+    """
+    Get layer-wise attention weights for visualization.
+
+    Returns attention weights for each decoder layer separately,
+    allowing visualization of how attention evolves through the network.
+
+    NOTE: This endpoint extracts attention on-demand to avoid performance overhead.
+    """
+    try:
+        # Check if we have cached tensors from last inference
+        if state['last_memory'] is None or state['last_bos_tokens'] is None:
+            return jsonify({
+                'success': False,
+                'error': 'No attention weights available. Run inference first.'
+            })
+
+        if state['model_type'] != 'multihead':
+            return jsonify({
+                'success': False,
+                'error': 'Layer-wise attention is only available for multi-head models.'
+            })
+
+        # Extract layer-wise attention on-demand (only when user clicks "Refresh")
+        device = next(state['model'].parameters()).device
+        memory = state['last_memory'].to(device)
+        bos_tokens = state['last_bos_tokens'].to(device)
+
+        # Extract per-head attention (contains both per-head and layer info)
+        attention_data = state['model'].extract_attention_weights(
+            memory, bos_tokens, average_heads=False
+        )
+
+        # Compute averaged layer attentions from per-head data
+        import numpy as np
+        layer_attentions_per_head = attention_data.get('layer_attentions_per_head', [])
+        layer_attentions_avg = [
+            np.mean(layer_attn, axis=1).tolist() if layer_attn.ndim == 4 else layer_attn.tolist()
+            for layer_attn in layer_attentions_per_head
+        ] if layer_attentions_per_head else []
+
+        # Convert per-head to lists for JSON serialization
+        layer_attentions_per_head_list = [
+            attn.tolist() if isinstance(attn, np.ndarray) else attn
+            for attn in layer_attentions_per_head
+        ]
+
+        return jsonify({
+            'success': True,
+            'layer_attentions': layer_attentions_avg,  # List of [B, Tg, Tm] (averaged heads)
+            'layer_attentions_per_head': layer_attentions_per_head_list,  # List of [B, num_heads, Tg, Tm]
+            'num_layers': attention_data.get('num_layers', 2),
+            'num_heads': attention_data.get('num_heads', 4),
+            'shape': attention_data['shape'],
+            'timestamp': attention_data['timestamp'],
+            'available': True
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get layer-wise attention weights: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/feature_importance')
+def get_feature_importance():
+    """
+    Get gradient-based feature importance for sensor features.
+
+    Returns a heatmap showing which sensor features and timesteps
+    contribute most to model predictions.
+    """
+    try:
+        if state['feature_importance'] is None:
+            return jsonify({
+                'success': False,
+                'error': 'Feature importance not yet computed. This is computed automatically when processing samples.',
+                'available': False
+            })
+
+        return jsonify({
+            'success': True,
+            'feature_importance': state['feature_importance'],
+            'available': True
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get feature importance: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/head_confidence')
+def get_head_confidence():
+    """
+    Get per-head prediction confidence for multi-head models.
+
+    Returns confidence (max softmax probability) for each of the 5 prediction heads:
+    type, command, param_type, param_value, operation
+    """
+    try:
+        if state['head_confidences'] is None:
+            return jsonify({
+                'success': False,
+                'error': 'Head confidence not yet computed. Run inference first.',
+                'available': False
+            })
+
+        if state['model_type'] != 'multihead':
+            return jsonify({
+                'success': False,
+                'error': 'Head confidence is only available for multi-head models.',
+                'available': False
+            })
+
+        return jsonify({
+            'success': True,
+            'head_confidences': state['head_confidences'],
+            'available': True
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get head confidence: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/attention/self')
+def get_self_attention():
+    """
+    Get token-to-token self-attention weights.
+
+    Returns self-attention showing how generated tokens attend to other
+    generated tokens (causal self-attention).
+
+    NOTE: This endpoint extracts attention on-demand to avoid performance overhead.
+    """
+    try:
+        # Check if we have cached tokens from last inference
+        if state['last_bos_tokens'] is None:
+            return jsonify({
+                'success': False,
+                'error': 'Self-attention not yet computed. Run inference first.',
+                'available': False
+            })
+
+        if state['model_type'] != 'multihead':
+            return jsonify({
+                'success': False,
+                'error': 'Self-attention is only available for multi-head models.',
+                'available': False
+            })
+
+        # Extract self-attention on-demand (only when user clicks "Refresh")
+        device = next(state['model'].parameters()).device
+        bos_tokens = state['last_bos_tokens'].to(device)
+
+        # Extract self-attention weights
+        self_attention_data = state['model'].extract_self_attention_weights(
+            bos_tokens, average_heads=True
+        )
+
+        # Convert numpy arrays to lists for JSON serialization
+        self_attention_data = convert_numpy_to_list(self_attention_data)
+
+        return jsonify({
+            'success': True,
+            'self_attention': self_attention_data,
+            'available': True
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get self-attention weights: {e}")
         return jsonify({'success': False, 'error': str(e)})
 
 
@@ -4001,9 +4339,20 @@ def handle_start_inference(data=None):
                 # Ground truth (if available)
                 ground_truth = row.get('gcode_string', None)
 
-                # Process sample
+                # Process sample with timing
                 try:
+                    start_time = time.time()
                     predictions = process_sample(continuous, categorical, ground_truth)
+                    end_time = time.time()
+
+                    # Calculate and store latency
+                    latency_ms = (end_time - start_time) * 1000
+                    state['current_latency'] = latency_ms
+                    state['latency_history'].append(latency_ms)
+
+                    # Add latency to predictions
+                    if predictions:
+                        predictions['inference_latency'] = latency_ms
                 except Exception as e:
                     logger.error(f"Processing error at row {state['current_idx']}: {e}", exc_info=True)
                     error_count += 1

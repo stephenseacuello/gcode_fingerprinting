@@ -1,2 +1,0 @@
-checkpoint,command_acc,param_type_acc,param_value_acc,overall_acc,num_samples
-outputs/focal_loss_model/checkpoint_best.pt,1.0000,0.3417,0.8341,0.1759,615

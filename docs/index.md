@@ -1,15 +1,15 @@
-# G-Code Fingerprinting Documentation
+# G-code Fingerprinting Documentation
 
-Welcome to the documentation for the **G-Code Fingerprinting** project - a machine learning system that infers G-code commands from 3D printer sensor data.
+Welcome to the documentation for the **G-code Fingerprinting** project - a machine learning system that infers G-code commands from 3D printer sensor data.
 
 ---
 
 ## Overview
 
-This project uses a **multi-head transformer model** to reconstruct G-code sequences from continuous sensor measurements during 3D printing. The system achieves:
+This project uses a **two-stage architecture** (frozen MM-DTAE-LSTM encoder + SensorMultiHeadDecoder) to reconstruct G-code sequences from continuous sensor measurements during 3D printing. The system achieves:
 
-- **100% command accuracy** (G0, M104, etc.)
-- **58.5% overall accuracy** with hierarchical token decomposition
+- **100% operation classification** (9 operation types)
+- **90.23% token accuracy** with hierarchical multi-head prediction
 - **Real-time inference** (<10ms latency)
 - **Machine fingerprinting** for identifying unique printer characteristics
 
@@ -138,15 +138,15 @@ See [Architecture Documentation](architecture/system_overview.md) for detailed d
 
 ## Performance
 
-### Current Results (Phase 1)
+### Current Results (v16 Final Model)
 
 | Metric | Accuracy |
 |--------|----------|
-| **Command** | 100.0% ✓ |
-| **Type Gate** | 99.8% |
-| **Parameter Type** | 84.3% |
-| **Parameter Value** | 56.2% |
-| **Overall** | 58.5% |
+| **Operation** | 100.0% |
+| **Type** | 99.8% |
+| **Command** | 99.9% |
+| **Param Type** | 96.2% |
+| **Token (Overall)** | **90.23%** |
 
 ### Inference Performance
 
@@ -161,47 +161,34 @@ See [Architecture Documentation](architecture/system_overview.md) for detailed d
 ## Documentation Structure
 
 ### 📘 Getting Started
-Learn the basics:
-- [Installation Guide](getting_started/installation.md)
-- [Quick Start Tutorial](getting_started/quickstart.md)
-- [Data Preparation](getting_started/data_preparation.md)
+- [Quick Start Guide](QUICKSTART.md) - Get up and running in 3 steps
+- [Pipeline Overview](PIPELINE.md) - End-to-end data processing workflow
 
 ### 🏗️ Architecture
-Understand the system:
 - [System Overview](architecture/system_overview.md) - Visual diagrams
-- [Model Architecture](architecture/model_architecture.md) - Detailed design
-- [Data Pipeline](architecture/data_pipeline.md) - Processing workflow
+- [Architecture Guide](ARCHITECTURE.md) - Detailed model design
 
 ### 📖 User Guide
-Use the system:
-- [Training Models](user_guide/training.md)
-- [Hyperparameter Tuning](HYPERPARAMETER_TUNING.md)
-- [Production Deployment](PRODUCTION_DEPLOYMENT.md)
+- [Training Guide](TRAINING.md) - Complete training documentation
+- [Hyperparameter Tuning](HYPERPARAMETER_TUNING.md) - Optimization strategies
+- [Sweeps Guide](SWEEPS_GUIDE.md) - W&B hyperparameter sweeps
+- [Sweep Quickstart](SWEEP_QUICKSTART.md) - Quick sweep setup
 
-### 🔧 API Reference
-Integration:
-- [REST API](api/rest_api.md) - FastAPI endpoints
-- [Python Client](api/python_client.md) - Client library
-- [Model Inference](api/inference.md) - Advanced options
+### 🚀 Deployment
+- [Production Deployment](PRODUCTION_DEPLOYMENT.md) - Deploy to production
+- [API Reference](API.md) - FastAPI endpoints and client usage
+
+### 📊 Visualization & Analysis
+- [Visualization Guide](VISUALIZATION.md) - Generate publication-quality figures
 
 ### 👨‍💻 Development
-Contribute:
 - [Testing Guide](TESTING.md) - 88 unit tests
-- [Code Style](development/code_style.md)
-- [CI/CD](development/cicd.md)
-
-### 🎓 Tutorials
-Step-by-step guides:
-- [Basic Training](tutorials/01_basic_training.md)
-- [Custom Dataset](tutorials/02_custom_dataset.md)
-- [Model Export](tutorials/04_model_export.md)
-- [Deployment](tutorials/05_deployment.md)
 
 ---
 
 ## Use Cases
 
-### 🔍 G-Code Reconstruction
+### 🔍 G-code Reconstruction
 Infer executed commands from sensor data for:
 - Process monitoring
 - Quality control
@@ -235,25 +222,23 @@ Analyze printing behavior:
 
 ## Project Status
 
-### ✅ Completed
+### Completed
 - [x] Data preprocessing pipeline
-- [x] Multi-head transformer model
-- [x] Training infrastructure
-- [x] 88 comprehensive unit tests
+- [x] Two-stage architecture (encoder + decoder)
+- [x] 100% operation classification
+- [x] 90.23% token accuracy
+- [x] Comprehensive ablation studies
 - [x] FastAPI production API
 - [x] Docker deployment
 - [x] ONNX export with quantization
-- [x] Hyperparameter sweep configurations
-- [x] Advanced sampling strategies
+- [x] Jupyter notebook tutorials (01-09)
 
-### 🔄 In Progress
-- [ ] Execute hyperparameter sweeps (300+ runs)
-- [ ] Train final production models
+### In Progress
 - [ ] Academic paper draft
+- [ ] Final presentation
 
-### 📋 Planned
-- [ ] Multi-model ensemble
-- [ ] Online learning updates
+### Planned
+- [ ] Transfer learning to other printer types
 - [ ] Mobile deployment (TFLite)
 
 ---
@@ -264,7 +249,7 @@ If you use this project in your research, please cite:
 
 ```bibtex
 @misc{gcode_fingerprinting_2025,
-  title={G-Code Fingerprinting: Inferring 3D Printer Commands from Sensor Data},
+  title={G-code Fingerprinting: Inferring 3D Printer Commands from Sensor Data},
   author={ELE 588 Team},
   year={2025},
   publisher={GitHub},
@@ -276,7 +261,7 @@ If you use this project in your research, please cite:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](about/license.md) file for details.
+This project is licensed under the MIT License.
 
 ---
 
@@ -296,6 +281,6 @@ This project is licensed under the MIT License - see the [LICENSE](about/license
 
 ---
 
-**Last Updated:** November 19, 2025
-**Version:** 1.0.0
+**Last Updated:** December 14, 2025
+**Version:** 2.0.0 (v16)
 **Status:** Production-ready

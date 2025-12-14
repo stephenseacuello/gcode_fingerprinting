@@ -78,6 +78,32 @@ def load_checkpoint(checkpoint_path: Path, decomposer: TokenDecomposer, device):
 
     vocab_size = checkpoint_vocab_size
 
+    # Infer digit-by-digit head usage and operation count from checkpoint
+    use_digit_value_head = any(k.startswith('digit_value_head') for k in multihead_state.keys())
+    # Default operations; prefer checkpoint shape if available
+    n_operation_types = 6
+    if 'operation_head.4.weight' in multihead_state:
+        n_operation_types = multihead_state['operation_head.4.weight'].shape[0]
+    # Digit head settings (fallback to defaults if not found)
+    max_int_digits = config_dict.get('max_int_digits', 2)
+    n_decimal_digits = config_dict.get('n_decimal_digits', 4)
+    if use_digit_value_head:
+        # Try to infer number of digit positions from checkpoint
+        digit_positions = []
+        for k in multihead_state.keys():
+            if k.startswith('digit_value_head.digit_heads'):
+                try:
+                    digit_positions.append(int(k.split('.')[2]))
+                except Exception:
+                    continue
+        if digit_positions:
+            n_positions = max(digit_positions) + 1
+            # Assume first two are integer digits if not specified in config
+            if 'max_int_digits' not in config_dict:
+                max_int_digits = 2
+            if 'n_decimal_digits' not in config_dict:
+                n_decimal_digits = max(0, n_positions - max_int_digits)
+
     # Create backbone config (for MM-DTAE-LSTM)
     backbone_config = ModelConfig(
         sensor_dims=[n_continuous, n_categorical],
@@ -90,7 +116,7 @@ def load_checkpoint(checkpoint_path: Path, decomposer: TokenDecomposer, device):
     # Create backbone
     backbone = MM_DTAE_LSTM(backbone_config).to(device)
 
-    # Create multi-head LM
+    # Create multi-head LM (digit-aware + correct op count)
     multihead_lm = MultiHeadGCodeLM(
         d_model=config_dict.get('hidden_dim', 128),
         n_commands=decomposer.n_commands,
@@ -100,6 +126,10 @@ def load_checkpoint(checkpoint_path: Path, decomposer: TokenDecomposer, device):
         num_layers=config_dict.get('num_layers', 2),
         dropout=config_dict.get('dropout', 0.1),
         vocab_size=vocab_size,
+        n_operation_types=n_operation_types,
+        use_digit_value_head=use_digit_value_head,
+        max_int_digits=max_int_digits,
+        n_decimal_digits=n_decimal_digits,
     ).to(device)
 
     # Load weights

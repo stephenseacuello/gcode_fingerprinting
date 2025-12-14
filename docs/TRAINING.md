@@ -28,27 +28,30 @@ The system uses a **two-stage hierarchical architecture**:
    - LSTM-based sequence encoder
    - Outputs contextualized representations
 
-2. **Multi-Head Language Model (MultiHeadGCodeLM)**: 4-head decoder
-   - **Head 1**: Token Type (Command vs Parameter vs Special)
-   - **Head 2**: G-code Command (G0, G1, M104, etc.)
-   - **Head 3**: Parameter Type (X, Y, Z, E, F, etc.)
-   - **Head 4**: Parameter Value (bucketed numeric values)
+2. **Multi-Head Transformer Decoder (MultiHeadGCodeLM)**: 5-head decoder
+   - **Head 1**: Token Type (Command vs Parameter vs Special vs Pad)
+   - **Head 2**: G-code Command (G0, G1, M104, etc.) — 15 classes
+   - **Head 3**: Parameter Type (X, Y, Z, E, F, R, etc.) — 10 classes
+   - **Head 4**: Parameter Value (regression on scaled 4-digit buckets)
+   - **Head 5**: Operation Type (context class) — 10 classes
 
 ### Hierarchical Token Decomposition
 
-Each G-code token is decomposed into 4 semantic components:
+Each G-code token is decomposed into 5 semantic components:
 
 **Example**: `X120.5` →
 - Type: `PARAM` (index 2)
 - Command: `<PAD>` (index 0)
 - Param Type: `X` (index for 'X')
-- Param Value: `120` (bucketed to 2 digits)
+- Param Value: `120.5` (regressed from 4-digit bucketed scaling)
+- Operation: inferred operation class (e.g., face/adaptive/pocket)
 
 **Example**: `G1` →
 - Type: `CMD` (index 1)
 - Command: `G1` (index for 'G1')
 - Param Type: `<PAD>` (index 0)
 - Param Value: `<PAD>` (index 0)
+- Operation: operation class
 
 ### Model Parameters
 

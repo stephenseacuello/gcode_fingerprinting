@@ -252,6 +252,10 @@ $RECYCLE.BIN/
 # Project-specific
 # -----------------
 
+# Archived scripts and docs (old/obsolete files)
+scripts/archived/
+docs/archived/
+
 # Preprocessed data (can be regenerated)
 outputs/processed_data/
 outputs/processed_data_clean/

@@ -148,7 +148,7 @@ def plot_confusion_matrix(y_true, y_pred, labels, output_path: str):
     axes[0].tick_params(axis='x', rotation=45)
     axes[0].tick_params(axis='y', rotation=0)
 
-    # Normalized (percentages)
+    # Normalized (proportions - actual values, not fixed 0-1)
     sns.heatmap(
         cm_normalized,
         annot=True,
@@ -156,9 +156,7 @@ def plot_confusion_matrix(y_true, y_pred, labels, output_path: str):
         cmap='Blues',
         xticklabels=labels,
         yticklabels=labels,
-        ax=axes[1],
-        vmin=0,
-        vmax=1
+        ax=axes[1]
     )
     axes[1].set_title('Confusion Matrix (Normalized)', fontsize=14)
     axes[1].set_xlabel('Predicted', fontsize=12)

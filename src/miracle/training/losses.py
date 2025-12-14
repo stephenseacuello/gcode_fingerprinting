@@ -6,6 +6,7 @@ Includes:
 - Reconstruction loss for sensor data
 - Contrastive loss for fingerprinting
 - Combined multi-task losses
+- Digit-by-digit loss for numeric value prediction
 """
 import torch
 import torch.nn as nn
@@ -21,6 +22,7 @@ __all__ = [
     "MultiHeadGCodeLoss",
     "MultiHeadFocalLoss",
     "FocalLoss",
+    "DigitLoss",
 ]
 
 
@@ -415,6 +417,172 @@ class FocalLoss(nn.Module):
         return loss
 
 
+class PerDigitFocalLoss(nn.Module):
+    """Focal loss for single digit position (10 classes)."""
+
+    def __init__(self, gamma: float = 5.0, ignore_index: int = -1):
+        super().__init__()
+        self.gamma = gamma
+        self.ignore_index = ignore_index
+
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            logits: [N, 10] unnormalized scores
+            targets: [N] digit class (0-9)
+        """
+        valid_mask = targets != self.ignore_index
+        if not valid_mask.any():
+            return torch.tensor(0.0, device=logits.device, requires_grad=True)
+
+        logits = logits[valid_mask]
+        targets = targets[valid_mask]
+
+        # Compute probabilities
+        probs = F.softmax(logits, dim=-1)
+        pt = probs.gather(1, targets.unsqueeze(1)).squeeze(1)
+
+        # High gamma focal weight - focuses strongly on hard examples
+        focal_weight = (1 - pt) ** self.gamma
+
+        # Cross-entropy loss
+        ce_loss = F.cross_entropy(logits, targets, reduction='none')
+
+        # Focal loss
+        loss = focal_weight * ce_loss
+        return loss.mean()
+
+
+class DigitLoss(nn.Module):
+    """
+    Loss for digit-by-digit numeric value prediction.
+
+    Combines:
+    1. Cross-entropy for sign prediction (3 classes: +, -, zero)
+    2. Per-digit focal loss for each digit position (10 classes: 0-9)
+    3. Optional auxiliary MSE loss for numerical guidance
+    """
+
+    def __init__(
+        self,
+        n_digit_positions: int = 6,
+        aux_loss_weight: float = 0.1,
+        label_smoothing: float = 0.0,
+        use_focal_loss: bool = True,
+        focal_gamma: float = 5.0,
+    ):
+        """
+        Args:
+            n_digit_positions: Number of digit positions (int + decimal)
+            aux_loss_weight: Weight for auxiliary regression loss
+            label_smoothing: Label smoothing for digit CE loss (ignored if focal)
+            use_focal_loss: Use per-digit focal loss (recommended for class imbalance)
+            focal_gamma: Gamma for focal loss (higher = more focus on hard examples)
+        """
+        super().__init__()
+        self.n_digit_positions = n_digit_positions
+        self.aux_loss_weight = aux_loss_weight
+        self.use_focal_loss = use_focal_loss
+
+        self.sign_loss_fn = nn.CrossEntropyLoss(ignore_index=-1)
+
+        if use_focal_loss:
+            # Per-digit focal loss with high gamma to combat class imbalance
+            self.digit_loss_fns = nn.ModuleList([
+                PerDigitFocalLoss(gamma=focal_gamma, ignore_index=-1)
+                for _ in range(n_digit_positions)
+            ])
+        else:
+            self.digit_loss_fn = nn.CrossEntropyLoss(
+                ignore_index=-1,
+                label_smoothing=label_smoothing,
+            )
+        self.aux_loss_fn = nn.HuberLoss(delta=1.0)
+
+    def forward(
+        self,
+        logits: Dict[str, torch.Tensor],
+        targets: Dict[str, torch.Tensor],
+        numeric_mask: torch.Tensor,
+    ) -> Tuple[torch.Tensor, Dict[str, float]]:
+        """
+        Compute digit-by-digit loss.
+
+        Args:
+            logits: Dict with:
+                - 'digit_sign_logits': [B, T, 3]
+                - 'digit_logits': [B, T, n_positions, 10]
+                - 'digit_aux_value': [B, T, 1]
+            targets: Dict with:
+                - 'sign_targets': [B, T] (0=+, 1=-, 2=zero)
+                - 'digit_targets': [B, T, n_positions] (0-9)
+                - 'param_value_raw': [B, T] raw numeric values
+            numeric_mask: [B, T] True for NUMERIC token positions
+
+        Returns:
+            total_loss: Combined digit loss
+            loss_dict: Individual loss components
+        """
+        device = logits['digit_sign_logits'].device
+        loss_dict = {}
+
+        if not numeric_mask.any():
+            zero = torch.tensor(0.0, device=device)
+            return zero, {'sign_loss': 0.0, 'digit_loss': 0.0, 'aux_loss': 0.0, 'total': 0.0}
+
+        # 1. Sign loss
+        sign_logits = logits['digit_sign_logits']  # [B, T, 3]
+        sign_targets = targets.get('sign_targets', torch.zeros_like(numeric_mask, dtype=torch.long))
+
+        sign_logits_flat = sign_logits[numeric_mask]  # [N, 3]
+        sign_targets_flat = sign_targets[numeric_mask]  # [N]
+        sign_loss = self.sign_loss_fn(sign_logits_flat, sign_targets_flat)
+        loss_dict['sign_loss'] = sign_loss.item()
+
+        # 2. Digit losses (per-position focal loss or standard CE)
+        digit_logits = logits['digit_logits']  # [B, T, n_positions, 10]
+        digit_targets = targets.get('digit_targets',
+                                     torch.zeros((*numeric_mask.shape, self.n_digit_positions),
+                                                dtype=torch.long, device=device))
+
+        digit_loss = torch.tensor(0.0, device=device)
+        n_positions = digit_logits.size(2)
+
+        for pos in range(n_positions):
+            pos_logits = digit_logits[:, :, pos, :][numeric_mask]  # [N, 10]
+            pos_targets = digit_targets[:, :, pos][numeric_mask]  # [N]
+
+            if self.use_focal_loss:
+                pos_loss = self.digit_loss_fns[pos](pos_logits, pos_targets)
+            else:
+                pos_loss = self.digit_loss_fn(pos_logits, pos_targets)
+
+            digit_loss = digit_loss + pos_loss
+            loss_dict[f'digit_{pos}_loss'] = pos_loss.item()
+
+        digit_loss = digit_loss / n_positions
+        loss_dict['digit_loss'] = digit_loss.item()
+
+        # 3. Auxiliary regression loss
+        if 'digit_aux_value' in logits and 'param_value_raw' in targets:
+            aux_value = logits['digit_aux_value'].squeeze(-1)  # [B, T]
+            value_targets = targets['param_value_raw']  # [B, T]
+
+            aux_value_flat = aux_value[numeric_mask]  # [N]
+            value_targets_flat = value_targets[numeric_mask]  # [N]
+            aux_loss = self.aux_loss_fn(aux_value_flat, value_targets_flat)
+        else:
+            aux_loss = torch.tensor(0.0, device=device)
+
+        loss_dict['aux_loss'] = aux_loss.item()
+
+        # Total loss
+        total_loss = sign_loss + digit_loss + self.aux_loss_weight * aux_loss
+        loss_dict['total'] = total_loss.item()
+
+        return total_loss, loss_dict
+
+
 class MultiHeadFocalLoss(nn.Module):
     """Focal loss for multi-head classification with per-class alpha weights."""
 
@@ -478,7 +646,9 @@ class MultiHeadGCodeLoss(nn.Module):
     1. Token type (SPECIAL/COMMAND/PARAMETER/NUMERIC)
     2. Command ID (for commands)
     3. Parameter type ID (for parameters and numeric values)
-    4. Parameter value ID (for numeric values)
+    4. Parameter value - supports two modes:
+       a. Direct regression (legacy)
+       b. Digit-by-digit prediction (recommended)
 
     Loss is weighted combination of all heads, with masking to only
     compute losses for relevant heads based on token type.
@@ -496,8 +666,12 @@ class MultiHeadGCodeLoss(nn.Module):
         command_class_weights: Optional[torch.Tensor] = None,  # Per-class weights for commands
         param_type_class_weights: Optional[torch.Tensor] = None,
         param_value_class_weights: Optional[torch.Tensor] = None,
-        use_focal_loss: bool = False,  # NEW: Enable focal loss
-        focal_gamma: float = 2.0,  # NEW: Focal loss gamma parameter
+        operation_class_weights: Optional[torch.Tensor] = None,  # Per-class weights for operation type
+        use_focal_loss: bool = False,  # Enable focal loss
+        focal_gamma: float = 2.0,  # Focal loss gamma parameter
+        use_digit_loss: bool = False,  # Use digit-by-digit loss instead of regression
+        n_digit_positions: int = 6,  # Number of digit positions
+        digit_aux_weight: float = 0.1,  # Weight for auxiliary regression in digit loss
     ):
         """
         Args:
@@ -511,8 +685,12 @@ class MultiHeadGCodeLoss(nn.Module):
             command_class_weights: Per-class weights for command head (e.g., inverse frequency)
             param_type_class_weights: Per-class weights for parameter type head
             param_value_class_weights: Per-class weights for parameter value head
+            operation_class_weights: Per-class weights for operation type head (prevents mode collapse)
             use_focal_loss: If True, use focal loss instead of cross-entropy
             focal_gamma: Gamma parameter for focal loss (higher = more focus on hard examples)
+            use_digit_loss: If True, use digit-by-digit loss for numeric values
+            n_digit_positions: Number of digit positions (for digit loss)
+            digit_aux_weight: Weight for auxiliary regression in digit loss
         """
         super().__init__()
         self.pad_token_id = pad_token_id
@@ -522,6 +700,19 @@ class MultiHeadGCodeLoss(nn.Module):
         self.param_value_weight = param_value_weight
         self.operation_weight = operation_weight
         self.use_focal_loss = use_focal_loss
+        self.use_digit_loss = use_digit_loss
+
+        # Digit loss (for digit-by-digit prediction)
+        if use_digit_loss:
+            self.digit_loss_fn = DigitLoss(
+                n_digit_positions=n_digit_positions,
+                aux_loss_weight=digit_aux_weight,
+                label_smoothing=label_smoothing,
+                use_focal_loss=use_focal_loss,
+                focal_gamma=focal_gamma,
+            )
+        else:
+            self.digit_loss_fn = None
 
         # Loss functions for each head
         if use_focal_loss:
@@ -539,7 +730,7 @@ class MultiHeadGCodeLoss(nn.Module):
                 gamma=focal_gamma, alpha=param_value_class_weights, ignore_index=-1
             )
             self.operation_loss_fn = MultiHeadFocalLoss(
-                gamma=focal_gamma, alpha=None, ignore_index=-1
+                gamma=focal_gamma, alpha=operation_class_weights, ignore_index=-1
             )
         elif label_smoothing > 0:
             self.type_loss_fn = LabelSmoothingCrossEntropy(
@@ -555,7 +746,8 @@ class MultiHeadGCodeLoss(nn.Module):
                 smoothing=label_smoothing, ignore_index=-1
             )
             # Operation loss doesn't use label smoothing (small number of classes)
-            self.operation_loss_fn = nn.CrossEntropyLoss(ignore_index=-1)
+            # Use per-class weights to prevent mode collapse on minority classes
+            self.operation_loss_fn = nn.CrossEntropyLoss(weight=operation_class_weights, ignore_index=-1)
         else:
             self.type_loss_fn = nn.CrossEntropyLoss(ignore_index=-1)
             self.command_loss_fn = nn.CrossEntropyLoss(
@@ -567,7 +759,8 @@ class MultiHeadGCodeLoss(nn.Module):
             self.param_value_loss_fn = nn.CrossEntropyLoss(
                 weight=param_value_class_weights, ignore_index=-1
             )
-            self.operation_loss_fn = nn.CrossEntropyLoss(ignore_index=-1)
+            # Use per-class weights to prevent mode collapse on minority classes
+            self.operation_loss_fn = nn.CrossEntropyLoss(weight=operation_class_weights, ignore_index=-1)
 
     def forward(
         self,
@@ -630,11 +823,18 @@ class MultiHeadGCodeLoss(nn.Module):
             param_type_loss = torch.tensor(0.0, device=type_loss.device)
 
         # 4. Parameter value loss (only for NUMERIC tokens, type=3)
-        # DIRECT REGRESSION: Predict continuous numeric values
         param_value_mask = (targets['type'] == 3) & (~pad_mask)  # [B, T]
 
-        # Check if using direct regression (new architecture) or bucketing (legacy)
-        if 'param_value_regression' in logits:
+        # Initialize digit loss dict
+        digit_loss_dict = {}
+
+        # Check for digit-by-digit prediction first (recommended mode)
+        if self.use_digit_loss and 'digit_sign_logits' in logits and 'digit_logits' in logits:
+            # DIGIT MODE: Predict each digit separately (eliminates mode collapse)
+            digit_loss, digit_loss_dict = self.digit_loss_fn(logits, targets, param_value_mask)
+            param_value_loss = digit_loss
+
+        elif 'param_value_regression' in logits:
             # REGRESSION MODE: Direct continuous value prediction
             param_value_regression_pred = logits['param_value_regression'].squeeze(-1)  # [B, T]
 
@@ -702,5 +902,10 @@ class MultiHeadGCodeLoss(nn.Module):
             'operation': operation_loss.item(),
             'total': total_loss.item(),
         }
+
+        # Add digit-specific losses if using digit mode
+        if digit_loss_dict:
+            for key, value in digit_loss_dict.items():
+                loss_dict[f'digit_{key}'] = value
 
         return total_loss, loss_dict

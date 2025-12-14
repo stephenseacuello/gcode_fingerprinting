@@ -5,30 +5,113 @@ Separates token prediction into hierarchical heads to reduce gradient competitio
 1. Token type gate (command vs parameter vs numeric)
 2. Command head (G0, G1, M3, etc.)
 3. Parameter type head (X, Y, Z, F, R, S)
-4. Parameter value regression head (direct continuous value prediction)
+4. Parameter value head - supports two modes:
+   a. Direct regression (legacy)
+   b. Digit-by-digit prediction (recommended for better accuracy)
 5. Operation type head (face, adaptive, pocket, damageface, adaptive150025, unknown)
 
 This architecture eliminates the 130:1 class imbalance problem by:
 - Predicting token structure separately from token content
 - Allowing different loss weights for different prediction heads
 - Enabling the model to focus on command structure without interference from numeric values
-- Using direct regression for numeric values to learn smooth numeric relationships
+- Digit-by-digit prediction eliminates mode collapse for numeric values
 - Classifying operation type at sequence level for manufacturing context
 """
 from typing import Dict, Optional, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 try:
     from .model import SinePositionalEncoding
+    from .digit_value_head import DigitByDigitValueHead, ParameterAwareDigitHead
 except ImportError:
     # When running as __main__, use absolute import
     from miracle.model.model import SinePositionalEncoding
+    from miracle.model.digit_value_head import DigitByDigitValueHead, ParameterAwareDigitHead
 
 __all__ = [
     "MultiHeadGCodeLM",
+    "SensorOnlyClassifier",
 ]
+
+
+class SensorOnlyClassifier(nn.Module):
+    """
+    Classify operation type using ONLY sensor/continuous features.
+
+    This classifier bypasses the token path entirely, forcing it to learn
+    from the actual sensor data (accelerometers, gyroscopes, pressure, etc.)
+    rather than relying on G-code token patterns.
+
+    Architecture:
+    - Input: [B, seq_len, feature_dim] continuous features
+    - Global average pooling over sequence dimension
+    - 3-layer MLP with LayerNorm and dropout
+    - Output: [B, n_classes] logits
+    """
+
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dim: int,
+        n_classes: int,
+        dropout: float = 0.3,
+    ):
+        """
+        Args:
+            input_dim: Dimension of continuous features (e.g., 155)
+            hidden_dim: Hidden layer dimension
+            n_classes: Number of output classes
+            dropout: Dropout probability
+        """
+        super().__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.n_classes = n_classes
+
+        self.net = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.LayerNorm(hidden_dim // 2),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim // 2, n_classes),
+        )
+
+        # Initialize weights
+        self._init_weights()
+
+    def _init_weights(self):
+        """Initialize weights with Xavier uniform."""
+        for p in self.parameters():
+            if p.dim() > 1:
+                nn.init.xavier_uniform_(p)
+
+    def forward(self, continuous_features: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass for sensor-based classification.
+
+        Args:
+            continuous_features: [B, seq_len, feature_dim] or [B, feature_dim]
+                Continuous sensor features from the dataset
+
+        Returns:
+            logits: [B, n_classes] operation type logits
+        """
+        # Handle both 2D and 3D inputs
+        if continuous_features.dim() == 3:
+            # [B, seq_len, feature_dim] -> [B, feature_dim] via mean pooling
+            x = continuous_features.mean(dim=1)
+        else:
+            # Already [B, feature_dim]
+            x = continuous_features
+
+        return self.net(x)
 
 
 class MultiHeadGCodeLM(nn.Module):
@@ -66,8 +149,18 @@ class MultiHeadGCodeLM(nn.Module):
         nhead: int = 4,
         num_layers: int = 2,
         dropout: float = 0.1,
+        embed_dropout: float = 0.0,  # Embedding layer dropout (separate from transformer dropout)
+        token_drop_prob: float = 0.0,  # Token drop probability (input noise regularization)
         vocab_size: int = 170,  # For embedding table
         n_operation_types: int = 6,  # Number of operation types (face, adaptive, pocket, etc.)
+        # Sensor classifier parameters
+        use_sensor_classifier: bool = False,
+        sensor_input_dim: int = 155,  # Dimension of continuous features
+        sensor_weight: float = 0.7,  # Weight for sensor-based classification (vs token-based)
+        # Digit-by-digit value prediction
+        use_digit_value_head: bool = False,  # Use digit-by-digit instead of regression
+        max_int_digits: int = 2,  # Max integer digits (for values up to 99.xxxx)
+        n_decimal_digits: int = 4,  # Number of decimal places
     ):
         """
         Args:
@@ -80,6 +173,12 @@ class MultiHeadGCodeLM(nn.Module):
             dropout: Dropout probability
             vocab_size: Full vocabulary size (for token embedding)
             n_operation_types: Number of operation types (face, adaptive, pocket, damageface, adaptive150025, unknown)
+            use_sensor_classifier: Whether to use sensor-only classifier for operation type
+            sensor_input_dim: Dimension of continuous features (default: 155)
+            sensor_weight: Weight for sensor-based logits (0.0 = token-only, 1.0 = sensor-only)
+            use_digit_value_head: If True, use digit-by-digit prediction instead of regression
+            max_int_digits: Maximum integer digits for digit prediction
+            n_decimal_digits: Number of decimal digits for digit prediction
         """
         super().__init__()
         self.d_model = d_model
@@ -87,10 +186,22 @@ class MultiHeadGCodeLM(nn.Module):
         self.n_param_types = n_param_types
         self.n_param_values = n_param_values
         self.n_operation_types = n_operation_types
+        self.nhead = nhead  # Store for attention extraction
+        self.num_layers = num_layers  # Store for attention extraction
+        self.use_sensor_classifier = use_sensor_classifier
+        self.sensor_weight = sensor_weight
+        self.use_digit_value_head = use_digit_value_head
+        self.max_int_digits = max_int_digits
+        self.n_decimal_digits = n_decimal_digits
+        self.embed_dropout_prob = embed_dropout
+        self.token_drop_prob = token_drop_prob
 
         # Token embedding (shared across all heads)
         self.embed = nn.Embedding(vocab_size, d_model)
         self.pos = SinePositionalEncoding(d_model)
+
+        # Embedding dropout (applied after embedding + positional encoding)
+        self.embed_dropout = nn.Dropout(embed_dropout) if embed_dropout > 0 else nn.Identity()
 
         # Causal transformer decoder
         dec_layer = nn.TransformerDecoderLayer(
@@ -117,20 +228,43 @@ class MultiHeadGCodeLM(nn.Module):
             nn.Linear(d_model, n_param_types),
         )
 
-        # Direct regression for parameter values
-        # Predicts continuous numeric values without bucketing
-        # This approach learns smooth numeric relationships and generalizes better
-        self.param_value_regression_head = nn.Sequential(
-            nn.Linear(d_model, d_model // 2),
-            nn.LayerNorm(d_model // 2),
-            nn.GELU(),
-            nn.Dropout(0.2),
-            nn.Linear(d_model // 2, d_model // 4),
-            nn.LayerNorm(d_model // 4),
-            nn.GELU(),
-            nn.Dropout(0.2),
-            nn.Linear(d_model // 4, 1),  # Direct continuous value prediction
-        )
+        # Parameter value prediction - two options:
+        # 1. Direct regression (legacy) - simple but prone to mode collapse
+        # 2. Digit-by-digit prediction (recommended) - eliminates mode collapse
+        if use_digit_value_head:
+            # Digit-by-digit prediction with operation conditioning
+            self.digit_value_head = DigitByDigitValueHead(
+                d_model=d_model,
+                n_operations=n_operation_types,
+                n_param_types=n_param_types,
+                max_int_digits=max_int_digits,
+                n_decimal_digits=n_decimal_digits,
+                dropout=dropout,
+            )
+            # Keep regression head for backward compatibility (optional auxiliary loss)
+            self.param_value_regression_head = nn.Sequential(
+                nn.Linear(d_model, d_model // 2),
+                nn.LayerNorm(d_model // 2),
+                nn.GELU(),
+                nn.Dropout(0.2),
+                nn.Linear(d_model // 2, 1),
+            )
+        else:
+            self.digit_value_head = None
+            # Direct regression for parameter values
+            # Predicts continuous numeric values without bucketing
+            # This approach learns smooth numeric relationships and generalizes better
+            self.param_value_regression_head = nn.Sequential(
+                nn.Linear(d_model, d_model // 2),
+                nn.LayerNorm(d_model // 2),
+                nn.GELU(),
+                nn.Dropout(0.2),
+                nn.Linear(d_model // 2, d_model // 4),
+                nn.LayerNorm(d_model // 4),
+                nn.GELU(),
+                nn.Dropout(0.2),
+                nn.Linear(d_model // 4, 1),  # Direct continuous value prediction
+            )
 
         # Operation type head (predicts once per sequence, not per token)
         # Uses global average pooling over sequence dimension
@@ -141,6 +275,17 @@ class MultiHeadGCodeLM(nn.Module):
             nn.Dropout(dropout),
             nn.Linear(d_model, n_operation_types),
         )
+
+        # Sensor-only classifier (optional, for bypassing token shortcuts)
+        if use_sensor_classifier:
+            self.sensor_classifier = SensorOnlyClassifier(
+                input_dim=sensor_input_dim,
+                hidden_dim=d_model,
+                n_classes=n_operation_types,
+                dropout=dropout,
+            )
+        else:
+            self.sensor_classifier = None
 
         # Initialize weights
         self._init_weights()
@@ -161,6 +306,9 @@ class MultiHeadGCodeLM(nn.Module):
         memory: torch.Tensor,
         tgt_tokens: torch.Tensor,
         return_attention: bool = False,
+        continuous_features: Optional[torch.Tensor] = None,
+        operation_type: Optional[torch.Tensor] = None,
+        param_type_targets: Optional[torch.Tensor] = None,
     ) -> Dict[str, torch.Tensor]:
         """
         Forward pass with teacher forcing.
@@ -169,6 +317,10 @@ class MultiHeadGCodeLM(nn.Module):
             memory: [B, Tm, D] encoder outputs (e.g., LSTM outputs)
             tgt_tokens: [B, Tg] target token IDs
             return_attention: If True, also return attention weights
+            continuous_features: [B, seq_len, feature_dim] optional sensor features
+                                 for sensor-based classification
+            operation_type: [B] operation type indices for digit conditioning
+            param_type_targets: [B, Tg] parameter type indices for digit conditioning
 
         Returns:
             Dictionary with:
@@ -177,10 +329,28 @@ class MultiHeadGCodeLM(nn.Module):
             - 'param_type_logits': [B, Tg, n_param_types] parameter type predictions
             - 'param_value_regression': [B, Tg, 1] continuous numeric value predictions
             - 'operation_logits': [B, n_operation_types] operation type predictions (per-sequence)
+            - 'sensor_operation_logits': (optional) [B, n_operation_types] sensor-only predictions
             - 'attention_weights': (optional) List of [B, num_heads, Tg, Tm] cross-attention weights per layer
+            - 'digit_sign_logits': (optional) [B, Tg, 3] sign predictions (if digit head enabled)
+            - 'digit_logits': (optional) [B, Tg, n_positions, 10] digit predictions (if digit head enabled)
+            - 'digit_aux_value': (optional) [B, Tg, 1] auxiliary value predictions (if digit head enabled)
         """
+        # Apply token dropout during training (input noise regularization)
+        # Randomly replace tokens with padding token to simulate imperfect history
+        if self.training and self.token_drop_prob > 0:
+            drop_mask = torch.rand_like(tgt_tokens.float()) < self.token_drop_prob
+            # Don't drop the first token (BOS/start token)
+            drop_mask[:, 0] = False
+            # Replace dropped tokens with 0 (padding token)
+            tgt_tokens = tgt_tokens.clone()
+            tgt_tokens[drop_mask] = 0
+
         # Embed and decode
         x = self.pos(self.embed(tgt_tokens))  # [B, Tg, D]
+
+        # Apply embedding dropout
+        x = self.embed_dropout(x)
+
         mask = self.causal_mask(x.size(1), x.device)  # [Tg, Tg]
 
         if return_attention:
@@ -221,7 +391,21 @@ class MultiHeadGCodeLM(nn.Module):
         # Operation type prediction (per-sequence, not per-token)
         # Use global average pooling over sequence dimension
         dec_pooled = dec.mean(dim=1)  # [B, D]
-        operation_logits = self.operation_head(dec_pooled)  # [B, n_operation_types]
+        token_operation_logits = self.operation_head(dec_pooled)  # [B, n_operation_types]
+
+        # Sensor-based classification (if enabled)
+        sensor_operation_logits = None
+        if self.sensor_classifier is not None and continuous_features is not None:
+            sensor_operation_logits = self.sensor_classifier(continuous_features)  # [B, n_classes]
+
+            # Combine token and sensor logits with weighted average
+            operation_logits = (
+                (1 - self.sensor_weight) * token_operation_logits +
+                self.sensor_weight * sensor_operation_logits
+            )
+        else:
+            # Token-only classification
+            operation_logits = token_operation_logits
 
         result = {
             'type_logits': type_logits,
@@ -230,6 +414,32 @@ class MultiHeadGCodeLM(nn.Module):
             'param_value_regression': param_value_regression,
             'operation_logits': operation_logits,
         }
+
+        # Add digit-by-digit predictions if enabled
+        if self.digit_value_head is not None:
+            # Use predicted operation type if not provided
+            if operation_type is None:
+                operation_type = torch.argmax(operation_logits, dim=-1)  # [B]
+
+            # Use predicted param types if not provided
+            if param_type_targets is None:
+                param_type_targets = torch.argmax(param_type_logits, dim=-1)  # [B, Tg]
+
+            # Get digit predictions
+            digit_output = self.digit_value_head(
+                hidden=dec,
+                operation_type=operation_type,
+                param_type=param_type_targets,
+            )
+
+            result['digit_sign_logits'] = digit_output['sign_logits']  # [B, Tg, 3]
+            result['digit_logits'] = digit_output['digit_logits']  # [B, Tg, n_pos, 10]
+            result['digit_aux_value'] = digit_output['aux_value']  # [B, Tg, 1]
+
+        # Include separate logits for analysis/debugging
+        if sensor_operation_logits is not None:
+            result['sensor_operation_logits'] = sensor_operation_logits
+            result['token_operation_logits'] = token_operation_logits
 
         if return_attention:
             result['attention_weights'] = attention_weights
@@ -274,19 +484,119 @@ class MultiHeadGCodeLM(nn.Module):
             # Continue forward pass through this layer
             x = layer(x, memory, tgt_mask=mask)
 
-        # Average attention across all layers (if heads are averaged, shape is [B, Tg, Tm])
-        # If not averaged, shape is [B, num_heads, Tg, Tm]
-        if average_heads:
-            avg_attention = torch.stack(attention_maps).mean(dim=0)  # [B, Tg, Tm]
-        else:
-            avg_attention = torch.stack(attention_maps).mean(dim=0)  # [B, num_heads, Tg, Tm]
+        # Compute layer-averaged attention
+        # attention_maps is a list where each element is:
+        #   - [B, Tg, Tm] if average_heads=True
+        #   - [B, num_heads, Tg, Tm] if average_heads=False
+        stacked = torch.stack(attention_maps)  # [num_layers, B, ...]
+        layer_avg_attention = stacked.mean(dim=0)  # Average across layers
 
-        return {
-            'attention': avg_attention.numpy(),  # Convert to numpy for JSON serialization
-            'layer_attentions': [a.numpy() for a in attention_maps],
+        # Build return dictionary with all expected keys
+        result = {
+            'attention': layer_avg_attention.numpy(),  # [B, Tg, Tm] or [B, num_heads, Tg, Tm]
+            'layer_attentions': [a.numpy() for a in attention_maps],  # List of per-layer
             'average_heads': average_heads,
             'num_layers': len(attention_maps),
+            'num_heads': self.nhead,
+            'shape': list(layer_avg_attention.shape),
+            'timestamp': __import__('datetime').datetime.now().isoformat(),
         }
+
+        # Add per-head specific keys when not averaging heads
+        if not average_heads:
+            result['per_head_attention'] = layer_avg_attention.numpy()  # [B, num_heads, Tg, Tm]
+            result['layer_attentions_per_head'] = [a.numpy() for a in attention_maps]  # Per-layer per-head
+
+        return result
+
+    def extract_self_attention_weights(
+        self,
+        tgt_tokens: torch.Tensor,
+        average_heads: bool = True,
+    ) -> Dict[str, torch.Tensor]:
+        """
+        Extract self-attention weights for visualization.
+
+        Shows how generated tokens attend to other generated tokens (causal self-attention).
+
+        Args:
+            tgt_tokens: [B, Tg] target token IDs
+            average_heads: If True, average across attention heads
+
+        Returns:
+            Dictionary with self-attention weights [B, Tg, Tg] (or [B, num_heads, Tg, Tg])
+        """
+        x = self.pos(self.embed(tgt_tokens))  # [B, Tg, D]
+        mask = self.causal_mask(x.size(1), x.device)
+
+        # Convert boolean mask to float format for MultiheadAttention
+        # PyTorch expects: 0.0 for allowed positions, -inf for masked positions
+        # causal_mask returns: False for allowed, True for masked
+        mask = torch.zeros_like(mask, dtype=torch.float32).masked_fill_(mask, float('-inf'))
+
+        # Manually forward through decoder layers to extract self-attention
+        self_attention_maps = []
+
+        for layer in self.decoder.layers:
+            # Get self-attention from this layer
+            # TransformerDecoderLayer has self_attn for self-attention
+            try:
+                attn_output, attn_weights = layer.self_attn(
+                    query=x,
+                    key=x,
+                    value=x,
+                    attn_mask=mask,
+                    need_weights=True,
+                    average_attn_weights=average_heads,
+                )
+                self_attention_maps.append(attn_weights.detach().cpu())
+
+                # Continue forward pass through this layer (just self-attn part)
+                x = x + layer.dropout1(attn_output)
+                x = layer.norm1(x)
+            except Exception as e:
+                # If extraction fails, log and continue
+                import logging
+                logging.warning(f"Could not extract self-attention from layer: {e}")
+                continue
+
+        if not self_attention_maps:
+            # No self-attention extracted - return zeros with all expected keys
+            zero_shape = (tgt_tokens.shape[0], tgt_tokens.shape[1], tgt_tokens.shape[1])
+            return {
+                'attention': np.zeros(zero_shape),
+                'layer_attentions': [],
+                'average_heads': average_heads,
+                'num_layers': 0,
+                'num_heads': self.nhead,
+                'shape': list(zero_shape),
+                'timestamp': __import__('datetime').datetime.now().isoformat(),
+            }
+
+        # Compute layer-averaged self-attention
+        # self_attention_maps is a list where each element is:
+        #   - [B, Tg, Tg] if average_heads=True
+        #   - [B, num_heads, Tg, Tg] if average_heads=False
+        stacked = torch.stack(self_attention_maps)  # [num_layers, B, ...]
+        layer_avg_attention = stacked.mean(dim=0)  # Average across layers
+
+        # Build return dictionary with all expected keys
+        result = {
+            'attention': layer_avg_attention.numpy(),
+            'layer_attentions': [a.numpy() for a in self_attention_maps],
+            'average_heads': average_heads,
+            'num_layers': len(self_attention_maps),
+            'num_heads': self.nhead,
+            'shape': list(layer_avg_attention.shape),
+            'timestamp': __import__('datetime').datetime.now().isoformat(),
+        }
+
+        # Add per-head specific keys when not averaging heads
+        if not average_heads:
+            result['per_head_attention'] = layer_avg_attention.numpy()
+            result['layer_attentions_per_head'] = [a.numpy() for a in self_attention_maps]
+
+        return result
 
     @torch.no_grad()
     def generate(

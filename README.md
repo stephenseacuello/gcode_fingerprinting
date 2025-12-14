@@ -1,6 +1,6 @@
 # G-code Fingerprinting with Machine Learning
 
-**Machine learning system for predicting G-code commands from 3D printer sensor data using hierarchical multi-head transformers.**
+**Two-stage deep learning system for predicting G-code commands from 3D printer sensor data using a frozen encoder and hierarchical multi-head decoder.**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
@@ -8,28 +8,37 @@
 
 ---
 
-## 🎯 Overview
+## Overview
 
-This project implements a **hierarchical multi-head transformer** that learns to predict G-code commands from sensor data (motor currents, temperatures). The system achieves:
+This project implements a **two-stage architecture** for G-code prediction from multi-modal sensor data:
 
-- **99.8%** token type classification accuracy
-- **100%** G-code command accuracy
-- **84%** parameter type accuracy
-- **56-60%** parameter value accuracy
-- **170-token vocabulary** with 2-digit numeric bucketing
+1. **Stage 1: MM-DTAE-LSTM Encoder** (frozen) - Encodes sensor sequences with 100% operation classification
+2. **Stage 2: SensorMultiHeadDecoder** (trainable) - Generates G-code tokens with hierarchical multi-head prediction
+
+### Performance (v16 Final Model)
+
+| Metric | Accuracy |
+|--------|----------|
+| **Operation Classification** | **100.0%** |
+| **Token Accuracy** | **90.23%** |
+| Type Classification | 99.8% |
+| Command Prediction | 99.9% |
+| Parameter Type | 96.2% |
+
+**600x improvement** over random baseline (0.15%)
 
 ### Key Features
 
-- **Multi-Head Architecture**: 4 prediction heads (Type, Command, Param Type, Param Value)
-- **Hierarchical Token Decomposition**: Structured G-code representation
-- **Data Augmentation**: 6 techniques including class-aware oversampling
-- **Hyperparameter Optimization**: Bayesian W&B sweeps
-- **FastAPI Inference**: Production-ready REST API
-- **Advanced Visualizations**: 14 publication-quality figures with bootstrap CIs
+- **Two-Stage Architecture**: Frozen encoder + trainable decoder for optimal performance
+- **4-Digit Hybrid Tokenization**: 668-token vocabulary with precise numeric encoding
+- **Multi-Head Decoder**: Separate heads for type, command, param type, and digit values
+- **Focal Loss**: Handles class imbalance with γ=3.0
+- **Comprehensive Ablation Studies**: Sensor modality importance analysis
+- **Production-Ready**: FastAPI server, ONNX export, <10ms inference
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
@@ -46,299 +55,219 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Train a Model
+### Training
 
 ```bash
-# 1. Build vocabulary
-PYTHONPATH=src .venv/bin/python -m miracle.utilities.gcode_tokenizer build-vocab \
-    --data-dir data/ \
-    --output data/gcode_vocab_v2.json \
-    --bucket-digits 2
+# 1. Create stratified splits
+PYTHONPATH=src .venv/bin/python scripts/create_multilabel_stratified_splits.py \
+    --input-dir outputs/processed_v2 \
+    --output-dir outputs/stratified_splits_v2
 
-# 2. Preprocess data
-PYTHONPATH=src .venv/bin/python -m miracle.dataset.preprocessing \
-    --data-dir data/ \
-    --output-dir outputs/processed_v2/ \
-    --vocab-path data/gcode_vocab_v2.json \
-    --window-size 64 \
-    --stride 16
+# 2. Train encoder (MM-DTAE-LSTM)
+PYTHONPATH=src .venv/bin/python scripts/train_mm_dtae_lstm.py \
+    --data-dir outputs/stratified_splits_v2 \
+    --output-dir outputs/mm_dtae_lstm_v2 \
+    --epochs 50
 
-# 3. Train model
-PYTORCH_ENABLE_MPS_FALLBACK=1 PYTHONPATH=src .venv/bin/python scripts/train_multihead.py \
-    --data-dir outputs/processed_v2 \
-    --vocab-path data/gcode_vocab_v2.json \
-    --output-dir outputs/training \
-    --max-epochs 50 \
-    --use-wandb
+# 3. Train decoder (with frozen encoder)
+PYTHONPATH=src .venv/bin/python scripts/train_sensor_multihead.py \
+    --data-dir outputs/stratified_splits_v2 \
+    --encoder-path outputs/mm_dtae_lstm_v2/best_model.pt \
+    --output-dir outputs/sensor_multihead_v3 \
+    --epochs 50
 ```
 
-### Generate Visualizations
+### Inference
 
-```bash
-# Generate all 14 figures
-.venv/bin/python scripts/generate_visualizations.py --all --output outputs/figures/
+```python
+import torch
+import numpy as np
+from miracle.model.sensor_multihead_decoder import SensorMultiHeadDecoder
+from miracle.model.mm_dtae_lstm import MMDTAELSTM
 
-# With real results
-.venv/bin/python scripts/generate_visualizations.py \
-    --all \
-    --use-real-data \
-    --checkpoint-path outputs/training/checkpoint_best.pt \
-    --test-data outputs/processed_v2/test_sequences.npz \
-    --output outputs/figures/real_results/
+# Load models
+device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+
+encoder = MMDTAELSTM(continuous_dim=155, categorical_dims=[3,3,3,3], hidden_dim=128, n_operations=9)
+encoder.load_state_dict(torch.load('outputs/mm_dtae_lstm_v2/best_model.pt', weights_only=False)['model_state_dict'])
+encoder.eval().to(device)
+
+decoder = SensorMultiHeadDecoder(sensor_dim=128, d_model=192, n_heads=8, n_layers=4,
+                                  n_operations=9, n_types=4, n_commands=6, n_param_types=10)
+decoder.load_state_dict(torch.load('outputs/sensor_multihead_v3/best_model.pt', weights_only=False)['model_state_dict'])
+decoder.eval().to(device)
+
+# Run inference
+data = np.load('outputs/stratified_splits_v2/test_sequences.npz', allow_pickle=True)
+continuous = torch.tensor(data['continuous'][0:1], dtype=torch.float32).to(device)
+categorical = torch.tensor(data['categorical'][0:1], dtype=torch.long).to(device)
+
+with torch.no_grad():
+    memory, op_logits = encoder(continuous, categorical)
+    operation = op_logits.argmax(dim=-1)
+    # Decode tokens (see notebooks/04_inference_prediction.ipynb for full example)
 ```
 
 ---
 
-## 📁 Project Structure
+## Architecture
+
+### Two-Stage Pipeline
+
+```
+Stage 1: MM-DTAE-LSTM Encoder (FROZEN)
+┌─────────────────────────────────────────────────────────┐
+│  Continuous [B, 64, 155] ──→ Linear ──→ LayerNorm      │
+│  Categorical [B, 64, 4]  ──→ Embed ──→ Linear          │
+│                              ↓                          │
+│                         Fusion (add)                    │
+│                              ↓                          │
+│                    BiLSTM (2 layers)                    │
+│                              ↓                          │
+│              Memory [B, 64, 128] + Operation [B, 9]     │
+└─────────────────────────────────────────────────────────┘
+                    Operation: 100% accuracy
+
+Stage 2: SensorMultiHeadDecoder (TRAINABLE)
+┌─────────────────────────────────────────────────────────┐
+│  Memory [B, 64, 128] + Tokens [B, 7]                   │
+│                              ↓                          │
+│         Token Embedding (668) + Positional Encoding     │
+│                              ↓                          │
+│         Transformer Decoder (4 layers, 8 heads)         │
+│                              ↓                          │
+│  ┌──────────┬──────────┬────────────┬────────────────┐ │
+│  │ Type [4] │ Cmd [6]  │ PType [10] │ Digits [4×10]  │ │
+│  └──────────┴──────────┴────────────┴────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+                    Token: 90.23% accuracy
+```
+
+### Model Configuration
+
+| Parameter | Value |
+|-----------|-------|
+| Encoder hidden_dim | 128 |
+| Decoder d_model | 192 |
+| Decoder n_heads | 8 |
+| Decoder n_layers | 4 |
+| Vocabulary size | 668 |
+| Max sequence length | 32 |
+| Dropout | 0.3 |
+
+---
+
+## Project Structure
 
 ```
 gcode_fingerprinting/
 ├── src/miracle/              # Source code
-│   ├── dataset/             # Data loading, preprocessing, augmentation
+│   ├── dataset/             # Data loading, preprocessing
 │   ├── model/               # Model architectures
-│   ├── training/            # Training loops, losses, metrics
-│   └── utilities/           # Tokenization, helpers
-├── scripts/                  # Executable scripts
-│   ├── train_*.py           # Training scripts
-│   ├── generate_*.py        # Visualization generators
-│   ├── api_server.py        # FastAPI inference server
-│   └── utils/               # Shell utilities
-├── configs/                  # Configuration files
+│   │   ├── mm_dtae_lstm.py        # Encoder
+│   │   └── sensor_multihead_decoder.py  # Decoder
+│   └── training/            # Losses, metrics
+├── scripts/                  # Essential scripts (9 files)
+│   ├── train_multihead.py
+│   ├── train_sensor_multihead.py
+│   ├── train_mm_dtae_lstm.py
+│   ├── create_multilabel_stratified_splits.py
+│   ├── evaluate_checkpoint.py
+│   └── archived/            # Old scripts (142 files)
+├── notebooks/               # Jupyter tutorials (01-19)
+├── configs/                 # Configuration files
 ├── docs/                    # Documentation
-│   ├── QUICKSTART.md        # Getting started guide
-│   ├── PIPELINE.md          # Complete pipeline walkthrough
-│   ├── TRAINING.md          # Training guide & hyperparameters
-│   ├── VISUALIZATION.md     # Visualization guide
-│   └── API.md               # API reference
-├── data/                    # Raw data & vocabulary
-├── outputs/                 # Training outputs & figures
+│   └── archived/            # Old troubleshooting docs
+├── data/                    # Vocabulary files
+│   └── vocabulary_4digit_hybrid.json
+├── outputs/                 # Training outputs
+│   ├── mm_dtae_lstm_v2/     # Encoder checkpoint
+│   ├── sensor_multihead_v3/ # Decoder checkpoint + ablations
+│   └── stratified_splits_v2/  # Data splits (NPZ)
 └── tests/                   # Unit tests
 ```
 
 ---
 
-## 📖 Documentation
+## Ablation Studies
+
+### Sensor Modality Importance
+
+| Modality Removed | Token Accuracy | Impact |
+|-----------------|----------------|--------|
+| Full Model | 90.23% | Baseline |
+| − Proximity | 83.53% | **-6.70%** |
+| − Pressure | 84.98% | **-5.25%** |
+| − Accelerometer X | 87.54% | -2.69% |
+| − Motor Current | 90.23% | 0.00% (Redundant) |
+
+**Key Finding**: Proximity and pressure sensors are most critical for token prediction.
+
+### Training Technique Ablation
+
+| Configuration | Token Accuracy |
+|--------------|----------------|
+| Cross-Entropy Only | 90.49% |
+| + Label Smoothing | 90.45% |
+| + Focal (γ=2) | **90.68%** |
+| + Focal (γ=3) | 90.26% |
+
+---
+
+## Notebooks
+
+| Notebook | Description |
+|----------|-------------|
+| [01_getting_started](notebooks/01_getting_started.ipynb) | Project overview and setup |
+| [02_data_preprocessing](notebooks/02_data_preprocessing.ipynb) | Data pipeline and splits |
+| [03_training_models](notebooks/03_training_models.ipynb) | Training encoder and decoder |
+| [04_inference_prediction](notebooks/04_inference_prediction.ipynb) | Running inference |
+| [08_model_evaluation](notebooks/08_model_evaluation.ipynb) | Comprehensive evaluation |
+| [09_ablation_studies](notebooks/09_ablation_studies.ipynb) | Ablation analysis |
+
+---
+
+## Documentation
 
 | Document | Description |
 |----------|-------------|
-| [QUICKSTART.md](docs/QUICKSTART.md) | Get started in 3 steps |
-| [PIPELINE.md](docs/PIPELINE.md) | Complete pipeline guide (data → deployment) |
-| [TRAINING.md](docs/TRAINING.md) | Training guide, sweeps, best practices |
-| [VISUALIZATION.md](docs/VISUALIZATION.md) | 14 visualization types with examples |
-| [API.md](docs/API.md) | REST API reference & deployment |
-| [CHANGELOG.md](CHANGELOG.md) | Version history & updates |
+| [QUICKSTART.md](docs/QUICKSTART.md) | Get started quickly |
+| [TRAINING.md](docs/TRAINING.md) | Training guide |
+| [TRAINING_RESULTS_SUMMARY.md](docs/TRAINING_RESULTS_SUMMARY.md) | Final results (v16) |
+| [PAPER_OUTLINE.md](docs/PAPER_OUTLINE.md) | Academic paper outline |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Architecture details |
+| [API.md](docs/API.md) | REST API reference |
 
 ---
 
-## 🏗️ Architecture
+## Data Format
 
-> **📐 See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for comprehensive architecture diagrams and visualizations**
+### Input (NPZ Files)
 
-### System Overview
-
-```mermaid
-graph LR
-    A[Raw CSV Data<br/>8 sensors] --> B[Preprocessing<br/>Windowing]
-    B --> C[Dataset<br/>3160 sequences]
-    C --> D[MM_DTAE_LSTM<br/>Backbone]
-    D --> E[MultiHeadLM<br/>5 Heads]
-    E --> F[Predictions<br/>G-code]
-
-    style D fill:#4A90E2
-    style E fill:#E24A4A
+```python
+data = np.load('train_sequences.npz', allow_pickle=True)
+continuous = data['continuous']      # [N, 64, 155] float32
+categorical = data['categorical']    # [N, 64, 4] int64
+tokens = data['tokens']              # [N, 7] int64
+operation_type = data['operation_type']  # [N] int64
 ```
 
-### Hierarchical Multi-Head Design
+### Vocabulary
 
-```mermaid
-graph TB
-    I[Sensor Data<br/>B×T×8] --> B[MM_DTAE_LSTM Backbone<br/>Multimodal Fusion + DTAE + LSTM]
-    B --> M[Contextualized Memory<br/>B×T×d_model]
-    M --> L[Transformer Decoder<br/>Causal attention]
-    L --> H{5 Prediction Heads}
-
-    H -->|Head 1| H1[Token Type<br/>4 classes<br/>99.8% acc]
-    H -->|Head 2| H2[Command<br/>15 classes<br/>100% acc]
-    H -->|Head 3| H3[Param Type<br/>10 classes<br/>84.3% acc]
-    H -->|Head 4| H4[Param Value<br/>Regression<br/>56.2% acc]
-    H -->|Head 5| H5[Operation<br/>10 classes<br/>92% acc]
-
-    H1 & H2 & H3 & H4 & H5 --> R[Token Reconstruction]
-
-    style B fill:#4A90E2
-    style L fill:#E24A4A
-    style H1 fill:#7ED321
-    style H2 fill:#7ED321
-    style H3 fill:#7ED321
-    style H4 fill:#F5A623
-    style H5 fill:#7ED321
-```
-
-### Token Decomposition Example
-
-**Input Token**: `X120.5` →
-- Type: `PARAM` (class 2/4)
-- Command: `<PAD>` (not applicable)
-- Param Type: `X` (class 0/10)
-- Param Value: `120.5` (regression)
-- Operation: `adaptive` (sequence-level)
-
-**Input Token**: `G1` →
-- Type: `CMD` (class 1/4)
-- Command: `G1` (class 1/15)
-- Param Type: `<PAD>` (not applicable)
-- Param Value: `<PAD>` (not applicable)
-- Operation: `face` (sequence-level)
-
-### Generate Architecture Diagrams
-
-```bash
-# Generate publication-quality diagrams (PNG, SVG, PDF)
-.venv/bin/python scripts/generate_architecture_diagram.py --diagrams all
-
-# Generate specific diagrams
-.venv/bin/python scripts/generate_architecture_diagram.py --diagrams model pipeline
-```
+- **File**: `data/vocabulary_4digit_hybrid.json`
+- **Size**: 668 tokens
+- **Commands**: G0, G1, G3, G53, M30, NONE
+- **Parameters**: F, R, X, Y, Z with 4-digit precision (0000-9999)
+- **Special**: PAD, UNK, SOS, EOS
 
 ---
 
-## 🎨 Visualizations
-
-The system generates **14 publication-quality figures** at 300 DPI:
-
-1. **Confusion Matrices** (4): Per-head classification performance
-2. **Performance Metrics**: Bar chart comparing head accuracies
-3. **Training Curves**: Loss convergence over time
-4. **Unique Token Coverage**: Rare token learning progress
-5. **Per-Head Accuracy**: Training dynamics across heads
-6. **Token Frequency**: Vocabulary distribution analysis
-7. **Error Heatmap**: Per-token error analysis
-8. **Confidence Intervals** ⭐: Bootstrap CI (n=1000)
-9. **Accuracy Distribution** ⭐: Violin plots showing variance
-10. **Embedding Space** ⭐: t-SNE visualization of learned embeddings
-11. **Attention Heatmap** ⭐: Cross-attention & self-attention patterns
-
-⭐ = Advanced visualizations (newly implemented)
-
-**See [VISUALIZATION.md](docs/VISUALIZATION.md) for details.**
-
----
-
-## 🔬 Performance Benchmarks
-
-### Model Accuracy (Vocab v2, 50 epochs)
-
-| Metric | Accuracy | Target |
-|--------|----------|--------|
-| Token Type | 99.8% | >99% |
-| G-code Command | 100% | 100% |
-| Parameter Type | 84.3% | >80% |
-| Parameter Value | 56-60% | >50% |
-| Unique Tokens | 120-140/170 | >100 |
-
-### Training Time
-
-| Hardware | Batch Size | Time (50 epochs) |
-|----------|------------|------------------|
-| Mac M1 (8GB) | 16 | 1.7 hours |
-| Mac M2 (16GB) | 32 | 1.25 hours |
-| RTX 3090 | 64 | 38 minutes |
-
-### Inference Latency
-
-| Device | Latency (single sample) | Throughput |
-|--------|-------------------------|------------|
-| Mac M1 | 15 ms | 67 req/s |
-| RTX 3090 | 8 ms | 125 req/s |
-
----
-
-## 🛠️ Advanced Features
-
-### Data Augmentation
-
-6 augmentation techniques for robustness:
-1. Gaussian noise (σ=0.01)
-2. Time warping (±5%)
-3. Magnitude scaling (0.95-1.05×)
-4. Time masking (10% window)
-5. Feature dropout (10%)
-6. Class-aware oversampling (3× for rare tokens)
-
-### Hyperparameter Sweeps
-
-Bayesian optimization with W&B:
-```bash
-# Create sweep
-.venv/bin/wandb sweep configs/sweep_config.yaml
-
-# Run agents
-.venv/bin/wandb agent YOUR_SWEEP_ID
-```
-
-**See [TRAINING.md](docs/TRAINING.md) for sweep configuration.**
-
-### REST API
-
-FastAPI server for production inference:
-```bash
-# Start server
-PYTHONPATH=src .venv/bin/python scripts/api_server.py \
-    --checkpoint outputs/training/checkpoint_best.pt \
-    --vocab-path data/gcode_vocab_v2.json
-
-# Test endpoint
-curl -X POST http://localhost:8000/predict \
-  -H "Content-Type: application/json" \
-  -d @payload.json
-```
-
-**See [API.md](docs/API.md) for complete API reference.**
-
----
-
-## 📊 Example Results
-
-### Confusion Matrix (Token Type)
-
-```
-              Predicted
-           CMD  PARAM  SPECIAL
-Actual CMD   100%   0%     0%
-      PARAM   0%   99.8%  0.2%
-    SPECIAL   0%   0.5%  99.5%
-```
-
-### Bootstrap Confidence Intervals
-
-```
-Token Type:    99.8% ± 0.1%  [99.7%, 99.9%]
-Command:      100.0% ± 0.0%  [100.0%, 100.0%]
-Param Type:    84.3% ± 1.2%  [82.1%, 86.5%]
-Param Value:   56.2% ± 2.8%  [50.6%, 61.8%]
-```
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📝 Citation
-
-If you use this code in your research, please cite:
+## Citation
 
 ```bibtex
 @misc{gcode_fingerprinting_2025,
-  title={G-code Fingerprinting with Hierarchical Multi-Head Transformers},
-  author={Your Name},
+  title={G-code Fingerprinting: Inferring 3D Printer Commands from Multi-Modal Sensor Data},
+  author={ELE 588 Team},
   year={2025},
   publisher={GitHub},
   howpublished={\url{https://github.com/YOUR_USERNAME/gcode_fingerprinting}}
@@ -347,27 +276,18 @@ If you use this code in your research, please cite:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- PyTorch team for the deep learning framework
-- W&B for experiment tracking and hyperparameter sweeps
-- FastAPI for the web framework
-- The open-source ML community
-
----
-
-## 📧 Contact
-
-**Questions?** Check the [documentation](docs/) or open an issue.
-
-**For academic collaboration**: [your.email@example.com](mailto:your.email@example.com)
+- **Course**: ELE 588 Applied Machine Learning
+- **Frameworks**: PyTorch, Weights & Biases, FastAPI
+- **Dataset**: Custom 3D printer sensor recordings
 
 ---
 
-**Last Updated**: 2025-11-20
+**Last Updated**: December 14, 2025 | **Version**: 2.0.0 (v16) | **Status**: Production-ready

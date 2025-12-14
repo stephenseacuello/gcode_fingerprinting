@@ -5,17 +5,210 @@ Decomposes tokens into hierarchical targets:
 1. Token type (command vs parameter)
 2. Command ID (G0, G1, M3, etc.) OR Parameter type (X, Y, Z, F, R, S)
 3. Parameter value (00-99 for numeric buckets) OR Hybrid (coarse 0-9 + residual 0.0-9.9)
+4. Digit-by-digit decomposition for precise numeric value prediction
 
-Supports two modes:
+Supports multiple modes:
 - Standard: param_value_id (single bucket)
 - Hybrid: param_value_coarse_id (tens digit) + param_value_residual (continuous)
+- Digit: sign + individual digit predictions for precise numeric values
 
 This enables separate prediction heads to reduce gradient competition and improve generalization.
 """
-from typing import Dict, Tuple, List, Optional
+from typing import Dict, Tuple, List, Optional, Union
 import torch
 import json
 from pathlib import Path
+import math
+
+
+# Constants for digit-by-digit prediction
+SIGN_POSITIVE = 0
+SIGN_NEGATIVE = 1
+SIGN_PAD = 2
+DIGIT_PAD = 10  # For padding digit positions
+
+
+def decompose_value_to_digits(
+    value: float,
+    max_int_digits: int = 2,
+    n_decimal_digits: int = 4
+) -> Tuple[int, List[int]]:
+    """
+    Decompose a numeric value into sign and individual digits.
+
+    Format: ±XX.XXXX (sign + 2 integer digits + 4 decimal digits)
+    Example: +1.5750 → sign=0, digits=[0, 1, 5, 7, 5, 0]
+    Example: -12.3456 → sign=1, digits=[1, 2, 3, 4, 5, 6]
+
+    Args:
+        value: The numeric value to decompose
+        max_int_digits: Number of integer digit positions (default 2 for 0-99)
+        n_decimal_digits: Number of decimal digit positions (default 4)
+
+    Returns:
+        (sign, digits) where:
+        - sign: 0=positive, 1=negative, 2=pad
+        - digits: List of digit values (0-9), length = max_int_digits + n_decimal_digits
+    """
+    # Handle NaN or inf
+    if math.isnan(value) or math.isinf(value):
+        return (SIGN_PAD, [DIGIT_PAD] * (max_int_digits + n_decimal_digits))
+
+    # Determine sign
+    sign = SIGN_NEGATIVE if value < 0 else SIGN_POSITIVE
+    abs_value = abs(value)
+
+    # Clamp to maximum representable value
+    max_value = (10 ** max_int_digits) - (10 ** -n_decimal_digits)
+    abs_value = min(abs_value, max_value)
+
+    # Split into integer and decimal parts
+    int_part = int(abs_value)
+    dec_part = abs_value - int_part
+
+    # Extract integer digits (right-padded with leading zeros)
+    int_digits = []
+    remaining = int_part
+    for _ in range(max_int_digits):
+        int_digits.append(remaining % 10)
+        remaining //= 10
+    int_digits.reverse()  # Most significant first
+
+    # Extract decimal digits
+    dec_digits = []
+    for _ in range(n_decimal_digits):
+        dec_part *= 10
+        digit = int(dec_part)
+        dec_digits.append(min(digit, 9))  # Clamp to 0-9
+        dec_part -= digit
+
+    return (sign, int_digits + dec_digits)
+
+
+def compose_digits_to_value(
+    sign: int,
+    digits: List[int],
+    max_int_digits: int = 2,
+    n_decimal_digits: int = 4
+) -> float:
+    """
+    Compose individual digits back into a numeric value.
+
+    Args:
+        sign: 0=positive, 1=negative, 2=pad (returns 0.0)
+        digits: List of digit values (0-9), length = max_int_digits + n_decimal_digits
+        max_int_digits: Number of integer digit positions
+        n_decimal_digits: Number of decimal digit positions
+
+    Returns:
+        The reconstructed float value
+    """
+    if sign == SIGN_PAD:
+        return 0.0
+
+    # Validate and clamp digits
+    total_digits = max_int_digits + n_decimal_digits
+    if len(digits) < total_digits:
+        digits = digits + [0] * (total_digits - len(digits))
+
+    # Clamp any invalid digit values
+    digits = [min(max(0, d if d != DIGIT_PAD else 0), 9) for d in digits]
+
+    # Reconstruct integer part
+    int_value = 0
+    for i in range(max_int_digits):
+        int_value = int_value * 10 + digits[i]
+
+    # Reconstruct decimal part
+    dec_value = 0.0
+    for i in range(n_decimal_digits):
+        dec_value = dec_value * 10 + digits[max_int_digits + i]
+    dec_value /= (10 ** n_decimal_digits)
+
+    # Combine
+    value = int_value + dec_value
+
+    # Apply sign
+    if sign == SIGN_NEGATIVE:
+        value = -value
+
+    return value
+
+
+def decompose_values_to_digits_batch(
+    values: torch.Tensor,
+    max_int_digits: int = 2,
+    n_decimal_digits: int = 4
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Decompose a batch of numeric values into signs and digits.
+
+    Args:
+        values: [B, T] or [N] tensor of numeric values
+        max_int_digits: Number of integer digit positions
+        n_decimal_digits: Number of decimal digit positions
+
+    Returns:
+        (signs, digits) where:
+        - signs: Same shape as values, values 0/1/2
+        - digits: Shape [..., n_digits] where n_digits = max_int_digits + n_decimal_digits
+    """
+    original_shape = values.shape
+    flat_values = values.flatten()
+    n_values = flat_values.numel()
+    n_digits = max_int_digits + n_decimal_digits
+
+    signs = torch.zeros(n_values, dtype=torch.long, device=values.device)
+    digits = torch.zeros(n_values, n_digits, dtype=torch.long, device=values.device)
+
+    for i in range(n_values):
+        v = flat_values[i].item()
+        sign, digit_list = decompose_value_to_digits(v, max_int_digits, n_decimal_digits)
+        signs[i] = sign
+        for j, d in enumerate(digit_list):
+            digits[i, j] = d
+
+    # Reshape back
+    signs = signs.view(*original_shape)
+    digits = digits.view(*original_shape, n_digits)
+
+    return signs, digits
+
+
+def compose_digits_to_values_batch(
+    signs: torch.Tensor,
+    digits: torch.Tensor,
+    max_int_digits: int = 2,
+    n_decimal_digits: int = 4
+) -> torch.Tensor:
+    """
+    Compose batched digit predictions back into numeric values.
+
+    Args:
+        signs: [B, T] or [N] tensor of sign predictions (0/1/2)
+        digits: [..., n_digits] tensor of digit predictions (0-9)
+        max_int_digits: Number of integer digit positions
+        n_decimal_digits: Number of decimal digit positions
+
+    Returns:
+        Tensor of reconstructed float values with same shape as signs
+    """
+    original_shape = signs.shape
+    flat_signs = signs.flatten()
+    n_values = flat_signs.numel()
+
+    # Flatten digits to [N, n_digits]
+    n_digits = max_int_digits + n_decimal_digits
+    flat_digits = digits.view(n_values, n_digits)
+
+    values = torch.zeros(n_values, dtype=torch.float32, device=signs.device)
+
+    for i in range(n_values):
+        sign = int(flat_signs[i].item())
+        digit_list = [int(flat_digits[i, j].item()) for j in range(n_digits)]
+        values[i] = compose_digits_to_value(sign, digit_list, max_int_digits, n_decimal_digits)
+
+    return values.view(*original_shape)
 
 
 class TokenDecomposer:
@@ -144,8 +337,8 @@ class TokenDecomposer:
                 # Parse numeric value
                 try:
                     param_value = int(param_value_str)
-                    # Clip to 000-999 range for 3-digit bucketing
-                    param_value_id = max(0, min(999, abs(param_value)))
+                    # Clip to valid range based on bucket_digits from vocab config
+                    param_value_id = max(0, min(self.n_param_values - 1, abs(param_value)))
                 except ValueError:
                     param_value_id = 0
 
@@ -261,6 +454,100 @@ class TokenDecomposer:
             'param_value_coarse_id': param_value_coarse_ids,
         }
 
+    def decompose_batch_with_digits(
+        self,
+        token_ids: torch.Tensor,
+        raw_values: Optional[torch.Tensor] = None,
+        max_int_digits: int = 2,
+        n_decimal_digits: int = 4
+    ) -> Dict[str, torch.Tensor]:
+        """
+        Decompose a batch of token IDs with digit-by-digit value targets.
+
+        Args:
+            token_ids: [B, T] token IDs
+            raw_values: [B, T] raw numeric values (optional - if not provided, uses bucket centers)
+            max_int_digits: Number of integer digit positions
+            n_decimal_digits: Number of decimal digit positions
+
+        Returns:
+            Dictionary with:
+            - 'type': [B, T] token type (0-3)
+            - 'command_id': [B, T] command ID
+            - 'param_type_id': [B, T] parameter type ID
+            - 'param_value_id': [B, T] parameter value ID (bucket)
+            - 'sign_targets': [B, T] sign targets (0=+, 1=-, 2=pad)
+            - 'digit_targets': [B, T, n_digits] digit targets (0-9, 10=pad)
+        """
+        B, T = token_ids.shape
+        device = token_ids.device
+        n_digits = max_int_digits + n_decimal_digits
+
+        # First get standard decomposition
+        decomposed = self.decompose_batch(token_ids)
+
+        # Initialize digit targets
+        sign_targets = torch.full((B, T), SIGN_PAD, dtype=torch.long, device=device)
+        digit_targets = torch.full((B, T, n_digits), DIGIT_PAD, dtype=torch.long, device=device)
+
+        # If raw values provided, use them directly
+        if raw_values is not None:
+            # Only decompose for NUMERIC tokens
+            numeric_mask = decomposed['type'] == self.TYPE_NUMERIC
+
+            for b in range(B):
+                for t in range(T):
+                    if numeric_mask[b, t]:
+                        value = raw_values[b, t].item()
+                        sign, digits = decompose_value_to_digits(value, max_int_digits, n_decimal_digits)
+                        sign_targets[b, t] = sign
+                        for d, digit in enumerate(digits):
+                            digit_targets[b, t, d] = digit
+
+        decomposed['sign_targets'] = sign_targets
+        decomposed['digit_targets'] = digit_targets
+
+        return decomposed
+
+    def extract_raw_value_from_token(self, token: str) -> Optional[float]:
+        """
+        Extract the raw numeric value from a token like NUM_X_1234.
+
+        For 4-digit bucketing with value_range=[-100, 100]:
+        - NUM_X_0000 → -100.0
+        - NUM_X_5000 → 0.0
+        - NUM_X_9999 → ~100.0
+
+        Args:
+            token: Token string (e.g., "NUM_X_1234")
+
+        Returns:
+            Estimated raw value, or None if not a numeric token
+        """
+        if not token.startswith('NUM_'):
+            return None
+
+        parts = token.split('_')
+        if len(parts) < 3:
+            return None
+
+        try:
+            bucket_id = int(parts[2])
+        except ValueError:
+            return None
+
+        # Get value range from vocab config
+        config = self.vocab_data.get('config', {})
+        value_range = config.get('value_range', [-100, 100])
+        bucket_digits = config.get('bucket_digits', 4)
+        n_buckets = 10 ** bucket_digits
+
+        # Convert bucket to value
+        min_val, max_val = value_range
+        value = min_val + (bucket_id / n_buckets) * (max_val - min_val)
+
+        return value
+
     def compose_token(self, type_id: int, command_id: int, param_type_id: int, param_value_id: int) -> int:
         """
         Compose hierarchical targets back into a token ID.
@@ -340,43 +627,86 @@ class TokenDecomposer:
 if __name__ == '__main__':
     from pathlib import Path
 
+    # Test digit decomposition functions
+    print("=" * 60)
+    print("Testing digit decomposition functions")
+    print("=" * 60)
+
+    test_values = [1.5750, -12.3456, 0.0, 99.9999, -0.0001, 42.0]
+    print("\nValue → Digits → Value roundtrip:")
+    for val in test_values:
+        sign, digits = decompose_value_to_digits(val)
+        reconstructed = compose_digits_to_value(sign, digits)
+        sign_str = '+' if sign == SIGN_POSITIVE else '-' if sign == SIGN_NEGATIVE else 'P'
+        digits_str = ''.join(str(d) for d in digits[:2]) + '.' + ''.join(str(d) for d in digits[2:])
+        print(f"  {val:10.4f} → {sign_str}{digits_str} → {reconstructed:10.4f}  (diff: {abs(val - reconstructed):.6f})")
+
+    # Test batch operations
+    print("\nBatch digit decomposition:")
+    values_tensor = torch.tensor(test_values)
+    signs, digits = decompose_values_to_digits_batch(values_tensor)
+    reconstructed_values = compose_digits_to_values_batch(signs, digits)
+    print(f"  Original: {values_tensor.tolist()}")
+    print(f"  Signs: {signs.tolist()}")
+    print(f"  Digits shape: {digits.shape}")
+    print(f"  Reconstructed: {reconstructed_values.tolist()}")
+
     # Test decomposer
+    print("\n" + "=" * 60)
+    print("Testing TokenDecomposer")
+    print("=" * 60)
+
     vocab_path = Path('data/gcode_vocab_v2.json')
-    decomposer = TokenDecomposer(str(vocab_path))
+    if vocab_path.exists():
+        decomposer = TokenDecomposer(str(vocab_path))
 
-    # Test token decomposition
-    print("\nExample decompositions:")
-    test_tokens = ['<PAD>', 'G0', 'G1', 'X', 'Y', 'NUM_X_15', 'NUM_Y_23', 'M3']
+        # Test token decomposition
+        print("\nExample decompositions:")
+        test_tokens = ['<PAD>', 'G0', 'G1', 'X', 'Y', 'NUM_X_15', 'NUM_Y_23', 'M3']
 
-    for token in test_tokens:
-        if token in decomposer.vocab:
-            token_id = decomposer.vocab[token]
-            type_id, cmd_id, param_type_id, param_value_id = decomposer.decompose_token(token_id)
+        for token in test_tokens:
+            if token in decomposer.vocab:
+                token_id = decomposer.vocab[token]
+                type_id, cmd_id, param_type_id, param_value_id = decomposer.decompose_token(token_id)
 
-            type_names = ['SPECIAL', 'COMMAND', 'PARAMETER', 'NUMERIC']
-            print(f"  {token:12s} -> type={type_names[type_id]:9s}, cmd={cmd_id:2d}, param_type={param_type_id:2d}, param_value={param_value_id:2d}")
+                type_names = ['SPECIAL', 'COMMAND', 'PARAMETER', 'NUMERIC']
+                print(f"  {token:12s} -> type={type_names[type_id]:9s}, cmd={cmd_id:2d}, param_type={param_type_id:2d}, param_value={param_value_id:2d}")
 
-            # Test composition
-            reconstructed_id = decomposer.compose_token(type_id, cmd_id, param_type_id, param_value_id)
-            reconstructed_token = decomposer.id2token.get(reconstructed_id, '<UNK>')
-            if reconstructed_token != token:
-                print(f"    WARNING: Reconstruction mismatch! {token} -> {reconstructed_token}")
+                # Test composition
+                reconstructed_id = decomposer.compose_token(type_id, cmd_id, param_type_id, param_value_id)
+                reconstructed_token = decomposer.id2token.get(reconstructed_id, '<UNK>')
+                if reconstructed_token != token:
+                    print(f"    WARNING: Reconstruction mismatch! {token} -> {reconstructed_token}")
 
-    # Test batch decomposition
-    print("\nBatch decomposition test:")
-    test_batch = torch.tensor([
-        [decomposer.vocab.get('G0', 0), decomposer.vocab.get('X', 0), decomposer.vocab.get('NUM_X_15', 0)],
-        [decomposer.vocab.get('G1', 0), decomposer.vocab.get('Y', 0), decomposer.vocab.get('NUM_Y_23', 0)],
-    ])
+        # Test batch decomposition
+        print("\nBatch decomposition test:")
+        test_batch = torch.tensor([
+            [decomposer.vocab.get('G0', 0), decomposer.vocab.get('X', 0), decomposer.vocab.get('NUM_X_15', 0)],
+            [decomposer.vocab.get('G1', 0), decomposer.vocab.get('Y', 0), decomposer.vocab.get('NUM_Y_23', 0)],
+        ])
 
-    decomposed = decomposer.decompose_batch(test_batch)
-    print(f"  Input shape: {test_batch.shape}")
-    print(f"  Types: {decomposed['type']}")
-    print(f"  Command IDs: {decomposed['command_id']}")
-    print(f"  Param type IDs: {decomposed['param_type_id']}")
-    print(f"  Param value IDs: {decomposed['param_value_id']}")
+        decomposed = decomposer.decompose_batch(test_batch)
+        print(f"  Input shape: {test_batch.shape}")
+        print(f"  Types: {decomposed['type']}")
+        print(f"  Command IDs: {decomposed['command_id']}")
+        print(f"  Param type IDs: {decomposed['param_type_id']}")
+        print(f"  Param value IDs: {decomposed['param_value_id']}")
 
-    # Test composition
-    reconstructed = decomposer.compose_batch(decomposed)
-    print(f"  Reconstructed: {reconstructed}")
-    print(f"  Match: {torch.equal(test_batch, reconstructed)}")
+        # Test composition
+        reconstructed = decomposer.compose_batch(decomposed)
+        print(f"  Reconstructed: {reconstructed}")
+        print(f"  Match: {torch.equal(test_batch, reconstructed)}")
+
+        # Test digit decomposition with raw values
+        print("\nDigit decomposition with raw values:")
+        raw_values = torch.tensor([
+            [0.0, 0.0, 15.5],
+            [0.0, 0.0, 23.75],
+        ], dtype=torch.float32)
+        decomposed_with_digits = decomposer.decompose_batch_with_digits(test_batch, raw_values)
+        print(f"  Sign targets: {decomposed_with_digits['sign_targets']}")
+        print(f"  Digit targets shape: {decomposed_with_digits['digit_targets'].shape}")
+        print(f"  Digit targets [0,2]: {decomposed_with_digits['digit_targets'][0, 2].tolist()}")
+        print(f"  Digit targets [1,2]: {decomposed_with_digits['digit_targets'][1, 2].tolist()}")
+    else:
+        print(f"\nVocab file not found at {vocab_path}, skipping TokenDecomposer tests")

@@ -757,18 +757,19 @@ class GCodeGrammarConstraints:
 
                 # Modal mode: Allow PARAMETER tokens if we have a modal command context
                 if self.allow_modal_commands and modal_command is not None:
-                    # Allow both COMMAND and PARAMETER types
-                    type_logits[:, :, 0] -= 100.0  # Suppress TYPE_SPECIAL (PAD, BOS, EOS)
-                    type_logits[:, :, 3] -= 100.0  # Suppress TYPE_NUMERIC (must start with param letter)
+                    # Allow both COMMAND and PARAMETER types - HARD MASK with -inf
+                    type_logits[:, :, 0] = float('-inf')  # Suppress TYPE_SPECIAL (PAD, BOS, EOS)
+                    type_logits[:, :, 3] = float('-inf')  # Suppress TYPE_NUMERIC (must start with param letter)
                     # Boost TYPE_COMMAND and TYPE_PARAMETER equally
                     type_logits[:, :, 1] += 5.0   # TYPE_COMMAND
                     type_logits[:, :, 2] += 5.0   # TYPE_PARAMETER
                 else:
                     # Standard mode: First token MUST be a command (type_id=1)
                     # G-code sequences always start with a command (G0, G1, M3, etc.)
-                    type_logits[:, :, 0] -= 100.0  # Suppress TYPE_SPECIAL (PAD, BOS, EOS)
-                    type_logits[:, :, 2] -= 100.0  # Suppress TYPE_PARAMETER (X, Y, Z)
-                    type_logits[:, :, 3] -= 100.0  # Suppress TYPE_NUMERIC (NUM_X_2)
+                    # HARD MASK: Use -inf to completely prevent invalid types
+                    type_logits[:, :, 0] = float('-inf')  # Suppress TYPE_SPECIAL (PAD, BOS, EOS)
+                    type_logits[:, :, 2] = float('-inf')  # Suppress TYPE_PARAMETER (X, Y, Z)
+                    type_logits[:, :, 3] = float('-inf')  # Suppress TYPE_NUMERIC (NUM_X_2)
                     # Boost TYPE_COMMAND (G0, G1, M3, etc.)
                     type_logits[:, :, 1] += 10.0
 
@@ -791,23 +792,24 @@ class GCodeGrammarConstraints:
                 last_type, _, _, _ = self.decomposer.decompose_token(last_token_id)
 
                 # Rule 1: After COMMAND (type=1) → must be PARAMETER (type=2) or SPECIAL (type=0 for EOS)
+                # HARD MASK: Use -inf for impossible transitions
                 if last_type == 1:  # TYPE_COMMAND
-                    type_logits[b, :, 1] -= 100.0  # Suppress COMMAND
-                    type_logits[b, :, 3] -= 100.0  # Suppress NUMERIC
+                    type_logits[b, :, 1] = float('-inf')  # Suppress COMMAND - can't have two commands
+                    type_logits[b, :, 3] = float('-inf')  # Suppress NUMERIC - need param letter first
                     type_logits[b, :, 2] += 10.0   # Boost PARAMETER
 
                 # Rule 2: After PARAMETER (type=2) → must be NUMERIC (type=3)
-                # CRITICAL: Parameters MUST have values! Suppress EOS after parameter letter
+                # CRITICAL: Parameters MUST have values! This is the most important constraint.
                 elif last_type == 2:  # TYPE_PARAMETER
-                    type_logits[b, :, 0] -= 1000.0  # VERY strong suppression of SPECIAL (no stopping mid-parameter!)
-                    type_logits[b, :, 1] -= 1000.0  # Suppress COMMAND
-                    type_logits[b, :, 2] -= 1000.0  # Suppress PARAMETER
-                    type_logits[b, :, 3] += 50.0    # Very strong boost for NUMERIC
+                    type_logits[b, :, 0] = float('-inf')  # HARD: No stopping mid-parameter!
+                    type_logits[b, :, 1] = float('-inf')  # HARD: No command after param letter
+                    type_logits[b, :, 2] = float('-inf')  # HARD: No param after param letter
+                    type_logits[b, :, 3] += 50.0    # Boost NUMERIC (only valid option)
 
                 # Rule 3: After NUMERIC (type=3) → can be PARAMETER (more params) or SPECIAL (EOS)
                 elif last_type == 3:  # TYPE_NUMERIC
-                    type_logits[b, :, 1] -= 100.0  # Suppress COMMAND (no multi-command lines)
-                    type_logits[b, :, 3] -= 100.0  # Suppress NUMERIC (need PARAMETER first)
+                    type_logits[b, :, 1] = float('-inf')  # HARD: No command mid-line
+                    type_logits[b, :, 3] = float('-inf')  # HARD: No numeric after numeric
                     type_logits[b, :, 2] += 5.0    # Boost PARAMETER
                     type_logits[b, :, 0] += 2.0    # Allow SPECIAL (EOS)
 
@@ -829,15 +831,15 @@ class GCodeGrammarConstraints:
 
                 constrained_logits['param_type_logits'] = param_type_logits
 
-        # 2. If last token was G0, suppress F parameter
+        # 2. If last token was G0, suppress F parameter (G0 = rapid, no feed rate)
         if 'param_type_logits' in constrained_logits:
             is_rapid = (last_token == self.rapid_command_id)
 
             if is_rapid.any():
                 param_type_logits = constrained_logits['param_type_logits']
                 if self.f_id >= 0 and self.f_id < param_type_logits.size(-1):
-                    # Add large negative bias to F parameter (effectively mask it)
-                    param_type_logits[is_rapid, :, self.f_id] -= 100.0
+                    # HARD MASK: F is forbidden after G0 (rapid has no feed rate)
+                    param_type_logits[is_rapid, :, self.f_id] = float('-inf')
 
                 constrained_logits['param_type_logits'] = param_type_logits
 
@@ -861,10 +863,10 @@ class GCodeGrammarConstraints:
                     if token_type == 2:  # TYPE_PARAMETER
                         used_params.add(param_type_id)
 
-                # Suppress all used parameters
+                # HARD MASK: Suppress all used parameters (single letter rule)
                 for param_id in used_params:
                     if param_id < param_type_logits.size(-1):
-                        param_type_logits[b, :, param_id] -= 100.0  # Strongly suppress
+                        param_type_logits[b, :, param_id] = float('-inf')  # Completely forbidden
 
             constrained_logits['param_type_logits'] = param_type_logits
 

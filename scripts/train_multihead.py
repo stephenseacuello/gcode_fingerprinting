@@ -19,7 +19,7 @@ if platform.system() == 'Darwin':
 
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 from tqdm import tqdm
 import numpy as np
 
@@ -42,6 +42,229 @@ from miracle.training.grammar_constraints import GCodeGrammarConstraints
 from miracle.utilities.device import get_device, print_device_info
 from collections import defaultdict
 import psutil  # For memory monitoring
+import math
+
+
+class CurriculumScheduler:
+    """
+    Curriculum learning scheduler for digit-by-digit prediction.
+
+    Phases:
+    1. Structure only (type, command, param_type) - ignore value digits
+    2. Coarse digits (sign + first 2 digits) - basic value structure
+    3. Full precision (all digits) - complete value prediction
+    """
+
+    def __init__(self, n_phases: int = 3, epochs_per_phase: int = 10, n_digit_positions: int = 6):
+        self.n_phases = n_phases
+        self.epochs_per_phase = epochs_per_phase
+        self.n_digit_positions = n_digit_positions
+
+    def get_phase(self, epoch: int) -> int:
+        """Get current curriculum phase (0-indexed)."""
+        return min(epoch // self.epochs_per_phase, self.n_phases - 1)
+
+    def get_digit_mask(self, epoch: int) -> list:
+        """
+        Get mask for which digit positions to train on.
+        Returns list of True/False for each digit position.
+        """
+        phase = self.get_phase(epoch)
+
+        if phase == 0:
+            # Phase 1: Structure only - no digit training
+            return [False] * self.n_digit_positions
+        elif phase == 1:
+            # Phase 2: Coarse - train sign + first 2 digits (integer part)
+            mask = [False] * self.n_digit_positions
+            mask[0] = True  # First integer digit
+            mask[1] = True  # Second integer digit
+            return mask
+        else:
+            # Phase 3: Full precision - all digits
+            return [True] * self.n_digit_positions
+
+    def get_loss_weights(self, epoch: int) -> dict:
+        """
+        Get loss weight multipliers for curriculum phase.
+        Returns dict with weights for structure vs digit losses.
+        """
+        phase = self.get_phase(epoch)
+
+        if phase == 0:
+            # Phase 1: Focus on structure (type, command, param_type)
+            return {
+                'structure_weight': 1.0,
+                'digit_weight': 0.0,
+                'value_weight': 0.0,
+            }
+        elif phase == 1:
+            # Phase 2: Add coarse digit learning
+            return {
+                'structure_weight': 1.0,
+                'digit_weight': 0.5,
+                'value_weight': 0.0,
+            }
+        else:
+            # Phase 3: Full learning
+            return {
+                'structure_weight': 1.0,
+                'digit_weight': 1.0,
+                'value_weight': 0.5,  # Keep some regression signal
+            }
+
+    def get_phase_info(self, epoch: int) -> str:
+        """Get human-readable phase information."""
+        phase = self.get_phase(epoch)
+        phase_names = ['Structure Only', 'Coarse Digits', 'Full Precision']
+        return f"Curriculum Phase {phase + 1}/{self.n_phases}: {phase_names[phase]}"
+
+
+class ScheduledSampling:
+    """
+    Scheduled sampling for teacher forcing decay.
+
+    Gradually reduces teacher forcing ratio over training to improve
+    model robustness to its own predictions during inference.
+    """
+
+    def __init__(
+        self,
+        start_ratio: float = 1.0,
+        end_ratio: float = 0.5,
+        total_epochs: int = 50,
+        decay_type: str = 'linear'
+    ):
+        self.start_ratio = start_ratio
+        self.end_ratio = end_ratio
+        self.total_epochs = total_epochs
+        self.decay_type = decay_type
+
+    def get_teacher_forcing_ratio(self, epoch: int) -> float:
+        """Get teacher forcing ratio for current epoch."""
+        progress = min(epoch / max(self.total_epochs - 1, 1), 1.0)
+
+        if self.decay_type == 'linear':
+            ratio = self.start_ratio - progress * (self.start_ratio - self.end_ratio)
+        elif self.decay_type == 'exponential':
+            decay_rate = math.log(self.end_ratio / self.start_ratio) / max(self.total_epochs - 1, 1)
+            ratio = self.start_ratio * math.exp(decay_rate * epoch)
+        elif self.decay_type == 'cosine':
+            ratio = self.end_ratio + (self.start_ratio - self.end_ratio) * (1 + math.cos(math.pi * progress)) / 2
+        else:
+            ratio = self.start_ratio
+
+        return max(self.end_ratio, min(self.start_ratio, ratio))
+
+    def should_use_teacher_forcing(self, epoch: int) -> bool:
+        """Stochastically decide whether to use teacher forcing for a batch."""
+        ratio = self.get_teacher_forcing_ratio(epoch)
+        return np.random.random() < ratio
+
+
+def create_class_balanced_sampler(dataset, n_classes=9, power=0.5, use_token_rarity=True):
+    """
+    Create a WeightedRandomSampler that balances based on operation type, command, and param types.
+    This prevents mode collapse by ensuring minority classes are seen equally often.
+
+    Args:
+        dataset: GCodeDataset with operation_type labels and tokens
+        n_classes: Number of operation type classes (default 9)
+        power: Power for inverse frequency weighting (0.5-0.7 recommended)
+        use_token_rarity: Also upweight samples with rare commands/param types (G1/2/3, R/F)
+
+    Returns:
+        WeightedRandomSampler for the DataLoader
+    """
+    labels = []
+    token_rarity_scores = []
+
+    # Rare tokens from vocabulary_4digit_hybrid.json:
+    # - G1: 147 (linear moves, less frequent than G0)
+    # - G2: 516 (CW arc, rare)
+    # - G3: 123 (CCW arc, rare)
+    # - R: 8 (radius parameter, only with arcs)
+    # - F: 174 (feed rate parameter)
+    RARE_COMMAND_IDS = {123, 147, 516}  # G3, G1, G2
+    RARE_PARAM_IDS = {8, 174}  # R, F
+    RARE_COMMAND_BOOST = 1.5
+    RARE_PARAM_BOOST = 1.3
+
+    for i in range(len(dataset)):
+        sample = dataset[i]
+        op_type = sample.get('operation_type', 0)
+        if hasattr(op_type, 'item'):
+            op_type = op_type.item()
+        labels.append(op_type)
+
+        # Compute token rarity score for this sample
+        rarity_score = 1.0
+        if use_token_rarity and 'tokens' in sample:
+            tokens = sample['tokens']
+            if hasattr(tokens, 'numpy'):
+                tokens = tokens.numpy()
+            # Check for rare patterns (G1, G2, G3 arcs, R/F parameters)
+            token_set = set(tokens.flatten())
+            # Boost for arc/linear commands (G1, G2, G3)
+            if token_set & RARE_COMMAND_IDS:
+                rarity_score *= RARE_COMMAND_BOOST
+            # Boost for R/F parameters (radius for arcs, feed rate)
+            if token_set & RARE_PARAM_IDS:
+                rarity_score *= RARE_PARAM_BOOST
+        token_rarity_scores.append(rarity_score)
+
+    labels = np.array(labels)
+    token_rarity_scores = np.array(token_rarity_scores)
+    class_counts = np.bincount(labels, minlength=n_classes)
+
+    # Inverse frequency weighting with power - give higher weight to rare classes
+    # power < 1.0 softens the weighting (0.5-0.7 is typical)
+    weights = 1.0 / ((class_counts + 1e-6) ** power)
+    sample_weights = weights[labels]
+
+    # Apply token rarity boost
+    if use_token_rarity:
+        sample_weights = sample_weights * token_rarity_scores
+
+    sampler = WeightedRandomSampler(
+        weights=sample_weights,
+        num_samples=len(dataset),
+        replacement=True
+    )
+
+    print(f"✅ Class-balanced sampler created (power={power}, token_rarity={use_token_rarity}):")
+    class_names = ['face', 'damageface', 'face150025', 'pocket', 'damagepocket',
+                   'pocket150025', 'adaptive', 'damageadaptive', 'adaptive150025']
+    for c in range(n_classes):
+        if class_counts[c] > 0:
+            print(f"   {class_names[c]}: {class_counts[c]} samples, weight={weights[c]:.4f}")
+
+    return sampler
+
+
+def compute_per_class_accuracy(preds, targets, n_classes=9):
+    """
+    Compute accuracy for each class separately.
+    Used for detecting mode collapse during training.
+
+    Args:
+        preds: Array of predictions
+        targets: Array of ground truth labels
+        n_classes: Number of classes
+
+    Returns:
+        Dictionary mapping class index to accuracy
+    """
+    preds = np.array(preds)
+    targets = np.array(targets)
+    per_class_acc = {}
+    for c in range(n_classes):
+        mask = targets == c
+        if mask.sum() > 0:
+            per_class_acc[c] = (preds[mask] == targets[mask]).mean()
+        else:
+            per_class_acc[c] = 0.0
+    return per_class_acc
 
 
 def compute_per_class_stats(pred: torch.Tensor, target: torch.Tensor, mask: torch.Tensor,
@@ -129,7 +352,7 @@ def generate_example_prediction(model, backbone, decomposer, val_loader, device,
         memory = backbone_out['memory']
 
         # Get predictions using teacher forcing (same as training)
-        logits = model(memory, tgt_in)
+        logits = model(memory, tgt_in, continuous_features=continuous)
 
         # Get predicted tokens for each head
         type_pred = torch.argmax(logits['type_logits'], dim=-1)
@@ -267,6 +490,78 @@ def generate_example_prediction(model, backbone, decomposer, val_loader, device,
 
             if total > 0:
                 print(f"    Type Accuracy: {correct}/{total} = {100*correct/total:.1f}%")
+
+            # Calculate parameter value accuracy for this sample
+            param_value_correct = 0
+            param_value_total = 0
+            for t in range(min(valid_len, 20)):
+                gt_type = tgt_decomposed['type'][b, t].item()
+                # Only check numeric tokens (type == 3)
+                if gt_type == 3:
+                    pred_val = param_value_pred[b, t].item()
+                    gt_val = tgt_decomposed['param_value_id'][b, t].item()
+                    if pred_val == gt_val:
+                        param_value_correct += 1
+                    param_value_total += 1
+
+            if param_value_total > 0:
+                print(f"    Param Value Accuracy: {param_value_correct}/{param_value_total} = {100*param_value_correct/param_value_total:.1f}%")
+
+            # Calculate command accuracy for this sample
+            command_correct = 0
+            command_total = 0
+            for t in range(min(valid_len, 20)):
+                gt_type = tgt_decomposed['type'][b, t].item()
+                # Only check command tokens (type == 1)
+                if gt_type == 1:
+                    pred_cmd = command_pred[b, t].item()
+                    gt_cmd = tgt_decomposed['command_id'][b, t].item()
+                    if pred_cmd == gt_cmd:
+                        command_correct += 1
+                    command_total += 1
+
+            if command_total > 0:
+                print(f"    Command Accuracy: {command_correct}/{command_total} = {100*command_correct/command_total:.1f}%")
+
+            # Calculate parameter type accuracy for this sample
+            param_type_correct = 0
+            param_type_total = 0
+            for t in range(min(valid_len, 20)):
+                gt_type = tgt_decomposed['type'][b, t].item()
+                # Check parameter and numeric tokens (type == 2 or type == 3)
+                if gt_type == 2 or gt_type == 3:
+                    pred_param = param_type_pred[b, t].item()
+                    gt_param = tgt_decomposed['param_type_id'][b, t].item()
+                    if pred_param == gt_param:
+                        param_type_correct += 1
+                    param_type_total += 1
+
+            if param_type_total > 0:
+                print(f"    Param Type Accuracy: {param_type_correct}/{param_type_total} = {100*param_type_correct/param_type_total:.1f}%")
+
+            # Calculate overall token accuracy (all heads must be correct)
+            overall_correct = 0
+            overall_total = 0
+            for t in range(min(valid_len, 20)):
+                gt_type = tgt_decomposed['type'][b, t].item()
+                pred_type_val = type_pred[b, t].item()
+
+                # Skip PAD tokens
+                if gt_type == 0:
+                    continue
+
+                # All predictions must match for the token to be correct
+                type_match = (pred_type_val == gt_type)
+                cmd_match = (command_pred[b, t].item() == tgt_decomposed['command_id'][b, t].item())
+                param_match = (param_type_pred[b, t].item() == tgt_decomposed['param_type_id'][b, t].item())
+                value_match = (param_value_pred[b, t].item() == tgt_decomposed['param_value_id'][b, t].item())
+
+                if type_match and cmd_match and param_match and value_match:
+                    overall_correct += 1
+                overall_total += 1
+
+            if overall_total > 0:
+                print(f"    Overall Token Accuracy: {overall_correct}/{overall_total} = {100*overall_correct/overall_total:.1f}%")
 
 
 def print_enhanced_epoch_stats(train_metrics: dict, val_metrics: dict,
@@ -493,8 +788,8 @@ def train_epoch_multihead(model, backbone, decomposer, dataloader, optimizer, lo
         memory = backbone_out['memory']
         tgt_out = tokens[:, 1:]
 
-        # Forward through multi-head LM
-        logits = model(memory, tgt_in)
+        # Forward through multi-head LM (pass continuous features for sensor classifier)
+        logits = model(memory, tgt_in, continuous_features=continuous)
 
         # Decompose targets
         if 'param_value_coarse_logits' in logits:
@@ -965,6 +1260,16 @@ def main():
                         help='Output directory for checkpoints')
     parser.add_argument('--class-weights-path', type=str, default=None,
                         help='Path to class weights JSON file')
+    parser.add_argument('--split-dir', type=str, default=None,
+                        help='Override data directory for train/val/test splits (for grouped splits)')
+
+    # Sensor classifier (Fix 2: Force sensor data usage)
+    parser.add_argument('--use-sensor-classifier', action='store_true',
+                        help='Enable sensor-only classifier for operation type (bypasses token shortcut)')
+    parser.add_argument('--sensor-weight', type=float, default=0.7,
+                        help='Weight for sensor-based logits vs token-based (0.0=token only, 1.0=sensor only)')
+    parser.add_argument('--sensor-input-dim', type=int, default=155,
+                        help='Dimension of continuous/sensor features (default: 155)')
 
     # Training control
     parser.add_argument('--max-epochs', type=int, default=50,
@@ -986,6 +1291,12 @@ def main():
                         help='Number of attention heads (overrides config)')
     parser.add_argument('--dropout', type=float, default=None,
                         help='Dropout probability (default: 0.1)')
+    parser.add_argument('--embed-dropout', type=float, default=0.0, dest='embed_dropout',
+                        help='Embedding dropout probability (default: 0.0, recommended: 0.05-0.1)')
+    parser.add_argument('--token-drop-prob', type=float, default=0.0, dest='token_drop_prob',
+                        help='Token drop probability for input noise regularization (default: 0.0, recommended: 0.02-0.05)')
+    parser.add_argument('--sampler-power', type=float, default=0.5, dest='sampler_power',
+                        help='Power for inverse frequency weighting in sampler (default: 0.5, recommended: 0.4-0.7)')
 
     # Training hyperparameters
     parser.add_argument('--learning-rate', type=float, default=None, dest='learning_rate',
@@ -1026,6 +1337,16 @@ def main():
                         help='Mixup alpha parameter (default: 0.0, disabled)')
     parser.add_argument('--cutmix-prob', type=float, default=0.0,
                         help='CutMix probability (default: 0.0, disabled)')
+
+    # Numeric value augmentation (for digit training)
+    parser.add_argument('--augment-values', type=str2bool, nargs='?', const=True, default=False,
+                        help='Apply random augmentation to numeric values during training (default: False)')
+    parser.add_argument('--augment-noise-std', type=float, default=0.01,
+                        help='Std dev of Gaussian noise added to numeric values (default: 0.01)')
+    parser.add_argument('--augment-scale-min', type=float, default=0.95,
+                        help='Min scale factor for numeric value augmentation (default: 0.95)')
+    parser.add_argument('--augment-scale-max', type=float, default=1.05,
+                        help='Max scale factor for numeric value augmentation (default: 1.05)')
 
     # Learning rate scheduler
     parser.add_argument('--lr-scheduler', type=str, default='none',
@@ -1080,6 +1401,35 @@ def main():
                         help='Mode collapse detection threshold')
     parser.add_argument('--diversity-penalty', type=float, default=0.0,
                         help='Diversity penalty weight')
+
+    # Digit-by-digit numeric prediction (NEW)
+    parser.add_argument('--use-digit-value-head', type=str2bool, nargs='?', const=True, default=False,
+                        help='Use digit-by-digit prediction for numeric values instead of regression')
+    parser.add_argument('--max-int-digits', type=int, default=2,
+                        help='Number of integer digit positions for digit prediction (default: 2)')
+    parser.add_argument('--n-decimal-digits', type=int, default=4,
+                        help='Number of decimal digit positions for digit prediction (default: 4)')
+    parser.add_argument('--digit-loss-weight', type=float, default=1.0,
+                        help='Weight for digit-by-digit loss (default: 1.0)')
+
+    # Curriculum learning (NEW)
+    parser.add_argument('--curriculum', type=str2bool, nargs='?', const=True, default=False,
+                        help='Enable curriculum learning for digit prediction')
+    parser.add_argument('--curriculum-phases', type=int, default=3,
+                        help='Number of curriculum phases (default: 3)')
+    parser.add_argument('--curriculum-epochs-per-phase', type=int, default=10,
+                        help='Epochs per curriculum phase (default: 10)')
+
+    # Scheduled sampling (NEW)
+    parser.add_argument('--scheduled-sampling', type=str2bool, nargs='?', const=True, default=False,
+                        help='Enable scheduled sampling (teacher forcing decay)')
+    parser.add_argument('--teacher-forcing-start', type=float, default=1.0,
+                        help='Initial teacher forcing ratio (default: 1.0)')
+    parser.add_argument('--teacher-forcing-end', type=float, default=0.5,
+                        help='Final teacher forcing ratio (default: 0.5)')
+    parser.add_argument('--teacher-forcing-decay', type=str, default='linear',
+                        choices=['linear', 'exponential', 'cosine'],
+                        help='Teacher forcing decay schedule (default: linear)')
 
     # Model initialization
     parser.add_argument('--init-strategy', type=str, default='xavier_uniform',
@@ -1384,12 +1734,41 @@ def main():
         )
         print("✅ W&B initialized")
 
-    # Load datasets
-    data_dir = Path(args.data_dir)
-    print(f"\nLoading datasets from: {data_dir}")
+    # Digit value head parameters (need to define early for dataset loading)
+    use_digit_value_head = getattr(args, 'use_digit_value_head', False)
+    max_int_digits = getattr(args, 'max_int_digits', 2)
+    n_decimal_digits = getattr(args, 'n_decimal_digits', 4)
 
-    train_base = GCodeDataset(data_dir / 'train_sequences.npz')
-    val_base = GCodeDataset(data_dir / 'val_sequences.npz')
+    # Load datasets
+    # Use split_dir if specified, otherwise use data_dir
+    split_dir = Path(args.split_dir) if args.split_dir else Path(args.data_dir)
+    print(f"\nLoading datasets from: {split_dir}")
+    if args.split_dir:
+        print(f"  (Using custom split directory, original data from: {args.data_dir})")
+
+    # Load with digit targets if using digit value head
+    # prepend_bos=True ensures proper teacher forcing: input=[BOS,t1,...,tn], target=[t1,...,tn,...]
+    # Without BOS, the first token (often a command like G1) would never be a prediction target
+    train_base = GCodeDataset(
+        split_dir / 'train_sequences.npz',
+        use_digit_targets=use_digit_value_head,
+        max_int_digits=max_int_digits,
+        n_decimal_digits=n_decimal_digits,
+        augment_values=args.augment_values,
+        augment_noise_std=args.augment_noise_std,
+        augment_scale_range=(args.augment_scale_min, args.augment_scale_max),
+        prepend_bos=True,
+    )
+    val_base = GCodeDataset(
+        split_dir / 'val_sequences.npz',
+        use_digit_targets=use_digit_value_head,
+        max_int_digits=max_int_digits,
+        n_decimal_digits=n_decimal_digits,
+        augment_values=False,  # Never augment validation data
+        augment_noise_std=0.0,
+        augment_scale_range=(1.0, 1.0),
+        prepend_bos=True,
+    )
 
     if args.augmentation:
         rare_token_ids = get_rare_token_ids(args.vocab_path)
@@ -1420,13 +1799,33 @@ def main():
     print(f"   Categorical features: {n_categorical}")
 
     # Create dataloaders
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=config['batch_size'],
-        shuffle=True,
-        collate_fn=collate_fn,
-        num_workers=0,
-    )
+    # Use class-balanced sampling to prevent mode collapse on minority classes
+    use_balanced_sampling = getattr(args, 'use_balanced_sampling', True)  # Default to True for mode collapse fix
+    sampler_power = getattr(args, 'sampler_power', 0.5)  # Power for inverse frequency weighting
+    train_sampler = None
+    if use_balanced_sampling:
+        print(f"\n📊 Creating class-balanced sampler for operation types (power={sampler_power})...")
+        train_sampler = create_class_balanced_sampler(
+            train_base,
+            n_classes=9,
+            power=sampler_power,
+            use_token_rarity=True
+        )
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=config['batch_size'],
+            sampler=train_sampler,  # Use sampler instead of shuffle
+            collate_fn=collate_fn,
+            num_workers=0,
+        )
+    else:
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=config['batch_size'],
+            shuffle=True,
+            collate_fn=collate_fn,
+            num_workers=0,
+        )
 
     val_loader = DataLoader(
         val_dataset,
@@ -1451,15 +1850,38 @@ def main():
 
     # Create multi-head LM
     print("Creating multi-head language model...")
+    use_sensor_classifier = getattr(args, 'use_sensor_classifier', False)
+    sensor_weight = getattr(args, 'sensor_weight', 0.7)
+    sensor_input_dim = getattr(args, 'sensor_input_dim', 155)
+
+    # Note: use_digit_value_head, max_int_digits, n_decimal_digits defined earlier for dataset loading
+
     multihead_lm = MultiHeadGCodeLM(
         d_model=config['hidden_dim'],
         n_commands=decomposer.n_commands,
         n_param_types=decomposer.n_param_types,
         n_param_values=decomposer.n_param_values,
+        n_operation_types=9,  # 9 operation types: face, damageface, face150025, pocket, damagepocket, pocket150025, adaptive, damageadaptive, adaptive150025
         nhead=config['num_heads'],
         num_layers=config['num_layers'],
+        dropout=config.get('dropout', 0.1),
+        embed_dropout=getattr(args, 'embed_dropout', 0.0),  # NEW: embedding dropout
+        token_drop_prob=getattr(args, 'token_drop_prob', 0.0),  # NEW: token drop regularization
         vocab_size=vocab_size,
+        # Sensor classifier parameters (Fix 2: Force sensor data usage)
+        use_sensor_classifier=use_sensor_classifier,
+        sensor_input_dim=sensor_input_dim,
+        sensor_weight=sensor_weight,
+        # Digit value head parameters (NEW: digit-by-digit prediction)
+        use_digit_value_head=use_digit_value_head,
+        max_int_digits=max_int_digits,
+        n_decimal_digits=n_decimal_digits,
     ).to(device)
+
+    if use_sensor_classifier:
+        print(f"  ✓ Sensor classifier enabled (weight={sensor_weight}, input_dim={sensor_input_dim})")
+    if use_digit_value_head:
+        print(f"  ✓ Digit value head enabled ({max_int_digits} int + {n_decimal_digits} decimal digits)")
 
     # Apply custom initialization if specified
     if args.init_strategy != 'xavier_uniform':
@@ -1484,6 +1906,7 @@ def main():
     # Create loss function (with focal loss for class imbalance)
     use_focal = getattr(args, 'use_focal_loss', False)
     focal_gamma = getattr(args, 'focal_gamma', 2.0)
+    digit_aux_weight = getattr(args, 'digit_loss_weight', 0.1)  # Weight for auxiliary regression in digit loss
 
     if use_focal:
         print(f"✅ Using FOCAL LOSS with gamma={focal_gamma}")
@@ -1499,9 +1922,17 @@ def main():
         command_class_weights=command_class_weights,
         param_type_class_weights=param_type_class_weights,
         param_value_class_weights=param_value_class_weights,
+        operation_class_weights=operation_type_class_weights,  # NEW: Per-class weights for operation type (prevents mode collapse)
         use_focal_loss=use_focal,
         focal_gamma=focal_gamma,
+        # Digit loss parameters (NEW: digit-by-digit prediction)
+        use_digit_loss=use_digit_value_head,
+        n_digit_positions=max_int_digits + n_decimal_digits if use_digit_value_head else 6,
+        digit_aux_weight=digit_aux_weight,
     )
+
+    if use_digit_value_head:
+        print(f"✅ Using DIGIT LOSS with aux_weight={digit_aux_weight}")
 
     # Create optimizer
     all_params = list(backbone.parameters()) + list(multihead_lm.parameters())
@@ -1593,6 +2024,27 @@ def main():
         print(f"✅ SWA enabled, starting at epoch {args.swa_start_epoch}")
         # SWA will be initialized when reaching swa_start_epoch
 
+    # Curriculum learning setup (NEW)
+    curriculum_scheduler = None
+    if getattr(args, 'curriculum', False) and use_digit_value_head:
+        curriculum_scheduler = CurriculumScheduler(
+            n_phases=args.curriculum_phases,
+            epochs_per_phase=args.curriculum_epochs_per_phase,
+            n_digit_positions=max_int_digits + n_decimal_digits
+        )
+        print(f"✅ Curriculum learning enabled: {args.curriculum_phases} phases, {args.curriculum_epochs_per_phase} epochs each")
+
+    # Scheduled sampling setup (NEW)
+    scheduled_sampling = None
+    if getattr(args, 'scheduled_sampling', False):
+        scheduled_sampling = ScheduledSampling(
+            start_ratio=args.teacher_forcing_start,
+            end_ratio=args.teacher_forcing_end,
+            total_epochs=args.max_epochs,
+            decay_type=args.teacher_forcing_decay
+        )
+        print(f"✅ Scheduled sampling enabled: TF {args.teacher_forcing_start} → {args.teacher_forcing_end} ({args.teacher_forcing_decay})")
+
     # Training loop
     print("\n" + "=" * 80)
     print("STARTING ENHANCED TRAINING")
@@ -1634,6 +2086,18 @@ def main():
             for param_group in optimizer.param_groups:
                 param_group['lr'] = config['learning_rate'] * warmup_factor
             print(f"🔥 Warmup: LR = {optimizer.param_groups[0]['lr']:.2e}")
+
+        # Print curriculum phase info (NEW)
+        if curriculum_scheduler is not None:
+            phase_info = curriculum_scheduler.get_phase_info(epoch)
+            weights = curriculum_scheduler.get_loss_weights(epoch)
+            print(f"📚 {phase_info}")
+            print(f"   Loss weights: structure={weights['structure_weight']:.1f}, digit={weights['digit_weight']:.1f}, value={weights['value_weight']:.1f}")
+
+        # Print scheduled sampling info (NEW)
+        if scheduled_sampling is not None:
+            tf_ratio = scheduled_sampling.get_teacher_forcing_ratio(epoch)
+            print(f"🎲 Teacher forcing ratio: {tf_ratio:.2%}")
 
         # Initialize SWA at specified epoch
         if args.use_swa and epoch == args.swa_start_epoch and swa_model is None:
@@ -1763,6 +2227,24 @@ def main():
                     correct = pt_stats['correct_counts'].get(param_id, 0)
                     recall = correct / max(target_count, 1)
                     log_dict['val/recall_F'] = recall
+
+            # Add per-class operation recall for all 9 operation types
+            if 'operation_stats' in val_metrics:
+                op_stats = val_metrics['operation_stats']
+                operation_names = ['face', 'damageface', 'face150025', 'pocket', 'damagepocket', 'pocket150025', 'adaptive', 'damageadaptive', 'adaptive150025']
+                min_recall = 1.0  # Track minimum recall for mode collapse detection
+                for op_id, op_name in enumerate(operation_names):
+                    target_count = op_stats['target_counts'].get(op_id, 0)
+                    correct = op_stats['correct_counts'].get(op_id, 0)
+                    recall = correct / max(target_count, 1)
+                    log_dict[f'val/operation_recall/{op_name}'] = recall
+                    if target_count > 0:
+                        min_recall = min(min_recall, recall)
+                # Log minimum recall across all classes (helps detect mode collapse)
+                log_dict['val/operation_recall_min'] = min_recall
+                # Log number of classes with >0% recall (mode collapse = fewer classes predicted)
+                n_classes_predicted = sum(1 for op_id in range(9) if op_stats['pred_counts'].get(op_id, 0) > 0)
+                log_dict['val/n_classes_predicted'] = n_classes_predicted
 
             wandb.log(log_dict)
 

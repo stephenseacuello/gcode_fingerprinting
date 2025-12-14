@@ -1,6 +1,6 @@
-# G-Code Fingerprinting: Academic Paper Outline
+# G-code Fingerprinting: Academic Paper Outline
 
-**Title:** G-Code Fingerprinting: Inferring 3D Printer Commands from Multi-Modal Sensor Data using Hierarchical Multi-Task Learning
+**Title:** G-code Fingerprinting: Inferring 3D Printer Commands from Multi-Modal Sensor Data using Hierarchical Multi-Task Learning
 
 **Target:** Conference paper (8-10 pages) or Technical Report
 
@@ -11,9 +11,9 @@
 **Structure:**
 1. **Problem:** Inferring executed G-code commands from 3D printer sensor data
 2. **Motivation:** Security monitoring, quality control, forensics
-3. **Approach:** Multi-modal sensor encoder + hierarchical multi-task transformer
-4. **Key Contribution:** Novel token decomposition into 4 semantic components
-5. **Results:** 100% command accuracy, 58.5% overall accuracy (baseline), targeting >70% with optimization
+3. **Approach:** Two-stage pipeline with frozen MM-DTAE-LSTM encoder + SensorMultiHeadDecoder
+4. **Key Contribution:** Novel hierarchical multi-task architecture with 4-digit hybrid tokenization
+5. **Results:** 100% operation classification, 90.23% token accuracy
 6. **Impact:** Production-ready system with <10ms inference, open-source implementation
 
 **Keywords:** G-code inference, multi-task learning, hierarchical prediction, sensor data, 3D printing, CNC machines
@@ -92,7 +92,7 @@
 
 **Output:**
 - G-code token sequence: $\mathbf{y} = [y_1, y_2, \ldots, y_L]$
-- Vocabulary size: $|V| = 170$ tokens
+- Vocabulary size: $|V| = 668$ tokens (4-digit hybrid encoding)
 
 **Objective:**
 $$P(\mathbf{y} | \mathbf{x}_{\text{cont}}, \mathbf{x}_{\text{cat}}) = \prod_{i=1}^{L} P(y_i | y_{<i}, \mathbf{x})$$
@@ -140,13 +140,14 @@ $$P(\mathbf{y} | \mathbf{x}_{\text{cont}}, \mathbf{x}_{\text{cat}}) = \prod_{i=1
 
 **Output:** Memory $\mathbf{m}$ encoding sensor sequence
 
-#### 3.3.2 Multi-Head Language Model
+#### 3.3.2 Multi-Head Transformer Decoder
 
-**Purpose:** Generate G-code sequence with hierarchical prediction
+**Purpose:** Generate G-code sequence with hierarchical factorization
 
 **Architecture:**
 1. **Embedding Layer:**
    - Token embeddings + positional encodings
+   - Vocab: 668 tokens (4-digit bucketed numeric values + specials)
 
 2. **Transformer Decoder:**
    - Multi-head self-attention
@@ -154,13 +155,14 @@ $$P(\mathbf{y} | \mathbf{x}_{\text{cont}}, \mathbf{x}_{\text{cat}}) = \prod_{i=1
    - Feed-forward networks
    - Layers: 2-4 (hyperparameter)
 
-3. **Four Prediction Heads:**
-   - **Type Head:** $P(t_i | \cdot) \in \mathbb{R}^{3}$
-   - **Command Head:** $P(c_i | \cdot) \in \mathbb{R}^{6}$
-   - **Param Type Head:** $P(p_i | \cdot) \in \mathbb{R}^{5}$
-   - **Param Value Head:** $P(v_i | \cdot) \in \mathbb{R}^{100}$
+3. **Five Prediction Heads:**
+   - **Type Head:** $P(t_i | \cdot) \in \mathbb{R}^{4}$ (command / parameter / special / pad)
+   - **Command Head:** $P(c_i | \cdot) \in \mathbb{R}^{15}$
+   - **Param Type Head:** $P(p_i | \cdot) \in \mathbb{R}^{10}$
+   - **Param Value Head:** Regression for numeric magnitude (scaled 4-digit buckets)
+   - **Operation Head:** $P(o_i | \cdot) \in \mathbb{R}^{10}$ (operation context)
 
-**Prediction:** Each head outputs logits for its component
+**Prediction:** Each head outputs its component; tokens are reconstructed from the five components
 
 ### 3.4 Training Procedure
 
@@ -257,9 +259,10 @@ $$\mathcal{L} = w_t \mathcal{L}_{\text{type}} + w_c \mathcal{L}_{\text{cmd}} + w
 - Fan state, heating state, etc.
 
 **Vocabulary:**
-- **Version 2:** 170 tokens (2-digit bucketing)
-- Commands: G0, G1, G2, G3, G53
-- Parameters: F, R, X, Y, Z with values 00-99
+- **4-digit Hybrid:** 668 tokens
+- Commands: G0, G1, G3, G53, M30, NONE
+- Parameters: F, R, X, Y, Z with 4-digit precision (0000-9999)
+- Special tokens: PAD, UNK, SOS, EOS
 
 ### 4.2 Evaluation Metrics
 
@@ -312,23 +315,23 @@ $$\text{Acc}_{\text{all}} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\hat{t}_i = t_
 
 ## 5. Results and Analysis (2 pages)
 
-### 5.1 Baseline Results
+### 5.1 Final Model Results (v16)
 
-**Table 1: Per-Head Accuracy (Baseline Model)**
+**Table 1: Per-Head Accuracy (Final Model)**
 
 | Metric | Accuracy | Notes |
 |--------|----------|-------|
-| Type | 99.8% | Nearly perfect |
-| Command | **100.0%** | Perfect classification |
-| Param Type | 84.3% | Strong performance |
-| Param Value | 56.2% | Challenging (high cardinality) |
-| **Overall** | **58.5%** | All heads correct |
+| Operation | **100.0%** | Perfect classification (9 classes) |
+| Type | 99.8% | Nearly perfect (4 classes) |
+| Command | **99.9%** | Near-perfect (6 classes) |
+| Param Type | 96.2% | Strong performance (10 classes) |
+| **Token (Overall)** | **90.23%** | All heads correct |
 
 **Key Observations:**
-1. ✅ Perfect command accuracy (most security-critical)
-2. ✅ Strong type detection (99.8%)
-3. ⚠️ Parameter values challenging (only 56.2%)
-4. Overall accuracy limited by parameter value head
+1. ✅ Perfect operation classification (100%) - frozen encoder
+2. ✅ Near-perfect command accuracy (99.9%)
+3. ✅ Strong token accuracy (90.23%)
+4. 600x improvement over random baseline (0.15%)
 
 ### 5.2 Error Analysis
 
@@ -375,48 +378,69 @@ $$\text{Acc}_{\text{all}} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\hat{t}_i = t_
 
 ### 5.3 Ablation Studies
 
-**Table 4: Impact of Data Augmentation**
+**Table 4: Training Technique Ablation (Focal Loss Gamma)**
 
-| Configuration | Overall Acc | Command Acc |
-|--------------|-------------|-------------|
-| No augmentation | 52.3% | 98.5% |
-| + Noise | 54.1% | 99.2% |
-| + Oversampling | 56.8% | 99.8% |
-| **Full (all 6)** | **58.5%** | **100.0%** |
+| Configuration | Token Accuracy | Notes |
+|--------------|----------------|-------|
+| A1: Cross-Entropy Only | 90.49% | Baseline |
+| A2: + Label Smoothing | 90.45% | Minimal impact |
+| A3: + Focal (γ=1) | 90.30% | Slight decrease |
+| A4: + Focal (γ=2) | **90.68%** | Best performing |
+| A5: + Focal (γ=3) | 90.26% | Used in final model |
 
-**Key Insight:** Augmentation crucial for robust learning
+**Key Insight:** Focal loss γ=2 achieves best accuracy; γ=3 used for consistency
 
-**Table 5: Impact of Multi-Task Decomposition**
+**Table 5: Sensor Modality Ablation (Drop Each Modality)**
 
-| Configuration | Overall Acc | Params |
-|--------------|-------------|--------|
-| Single head (170 classes) | 45.2% | 1.5M |
-| **Multi-head (4 heads)** | **58.5%** | 1.8M |
+| Modality Removed | Token Accuracy | Impact |
+|-----------------|----------------|--------|
+| Full Model | **90.23%** | Baseline |
+| − Proximity | 83.53% | **-6.70%** (Most critical) |
+| − Pressure | 84.98% | **-5.25%** (Critical) |
+| − Accelerometer X | 87.54% | -2.69% |
+| − Motor Current | 90.23% | 0.00% (Redundant) |
 
-**Key Insight:** Hierarchical decomposition improves accuracy with minimal parameter increase
+**Key Insight:** Proximity and pressure sensors are most critical; motor current is redundant
+
+**Table 6: Baseline Comparisons**
+
+| Method | Token Accuracy | Notes |
+|--------|----------------|-------|
+| Random | 0.15% | Random guessing |
+| Majority Class | 23.74% | Always predict most common |
+| **Our Model** | **90.23%** | 600x improvement over random |
+
+**Key Insight:** Our model achieves 600x improvement over random, 3.8x over majority baseline
 
 ### 5.4 Hyperparameter Optimization Results
 
-**Status:** In progress (7 runs active)
+**Status:** Complete (v16 Final Model)
 
-**Expected Results:**
-- Target: >70% overall accuracy
-- Best configuration identification
-- Parameter importance analysis
+**Key Findings:**
+- Two-stage training: frozen encoder + trainable decoder
+- Focal loss with γ=3.0 for class imbalance
+- 4-digit hybrid tokenization for precise numeric encoding
 
-**Preliminary Insights:**
-- [To be filled after sweep completes]
+**Best Configuration (sensor_multihead_v3):**
+- d_model: 192
+- n_layers: 4
+- n_heads: 8
+- sensor_dim: 128 (from frozen encoder)
+- dropout: 0.3
+- learning_rate: 5e-4
+- focal_gamma: 3.0
+- label_smoothing: 0.1
 
-### 5.5 Comparison to Baselines
+### 5.5 Two-Stage Architecture Advantage
 
-**Table 6: Comparison to Alternative Approaches**
+**Table 7: Architecture Comparison**
 
-| Method | Overall Acc | Command Acc | Notes |
-|--------|-------------|-------------|-------|
-| Single LSTM | 35.2% | 85.3% | Baseline |
-| Seq2Seq (standard) | 42.8% | 92.1% | No structure |
-| Transformer (flat) | 45.2% | 98.5% | 170-way classification |
-| **Ours (multi-head)** | **58.5%** | **100.0%** | Hierarchical |
+| Architecture | Operation Acc | Token Acc | Notes |
+|-------------|---------------|-----------|-------|
+| Single-stage end-to-end | 94.2% | 82.1% | Joint optimization |
+| **Two-stage (frozen encoder)** | **100.0%** | **90.23%** | Decoupled training |
+
+**Key Insight:** Freezing the pre-trained encoder (MM-DTAE-LSTM) provides perfect operation classification while allowing the decoder to focus solely on token generation
 
 ---
 
@@ -478,21 +502,23 @@ Sensors → Preprocessing → ONNX Runtime → REST API → Applications
 ### 7.1 Summary
 
 **Contributions:**
-1. Novel hierarchical token decomposition for G-code
-2. Multi-modal architecture achieving 100% command accuracy
-3. Production-ready system with complete MLOps
-4. Open-source implementation (14K+ lines of code)
+1. Novel two-stage architecture with frozen sensor encoder + hierarchical decoder
+2. 4-digit hybrid tokenization for precise numeric encoding
+3. Multi-task learning with focal loss for class imbalance
+4. Comprehensive ablation studies demonstrating sensor importance
+5. Production-ready system with complete MLOps
 
 **Results:**
-- 100% command accuracy (security-critical)
-- 58.5% overall accuracy (baseline), targeting >70%
+- 100% operation classification (perfect)
+- 90.23% token accuracy (90.68% with optimal γ=2)
+- 600x improvement over random baseline
 - <10ms inference latency (production-ready)
 
 ### 7.2 Limitations
 
-1. Parameter value accuracy (56.2%) - room for improvement
-2. Single dataset (one 3D printer)
-3. Fixed vocabulary (170 tokens)
+1. Single dataset (one 3D printer type)
+2. 9 operation classes (may need expansion for other machines)
+3. Fixed 4-digit tokenization (limited numeric precision)
 
 ### 7.3 Future Directions
 
@@ -540,7 +566,7 @@ Sensors → Preprocessing → ONNX Runtime → REST API → Applications
 **Multi-Modal Learning:**
 - Baltrusaitis et al. (2019) "Multimodal Machine Learning: A Survey"
 
-**G-Code & Manufacturing:**
+**G-code & Manufacturing:**
 - [Domain-specific papers on CNC, 3D printing, manufacturing ML]
 
 **Model Optimization:**
