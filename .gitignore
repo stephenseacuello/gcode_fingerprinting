@@ -278,6 +278,24 @@ dashboard_data/
 # !config/*.yaml
 # !sweeps/*.yaml
 
+# =============================================================================
+# INCLUDE: Essential files for reproducibility
+# =============================================================================
+
+# Model checkpoints (required for inference)
+!outputs/sensor_multihead_v3/best_model.pt
+!outputs/mm_dtae_lstm_v2/best_model.pt
+
+# Model results and config
+!outputs/sensor_multihead_v3/results.json
+
+# Vocabulary file (required for tokenization)
+!data/vocabulary_4digit_hybrid.json
+
+# Test/val splits for evaluation (train split too large for GitHub)
+!outputs/stratified_splits_v2/test_sequences.npz
+!outputs/stratified_splits_v2/val_sequences.npz
+
 # Temporary download/upload directories
 downloads/
 uploads/

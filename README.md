@@ -44,7 +44,7 @@ This project implements a **two-stage architecture** for G-code prediction from 
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/gcode_fingerprinting.git
+git clone https://github.com/stephenseacuello/gcode_fingerprinting.git
 cd gcode_fingerprinting
 
 # Create virtual environment
@@ -262,15 +262,34 @@ operation_type = data['operation_type']  # [N] int64
 
 ---
 
+## Data & Model Availability
+
+This repository includes **pretrained models** and **evaluation data** for immediate use:
+
+| File | Size | Included | Description |
+|------|------|----------|-------------|
+| `outputs/mm_dtae_lstm_v2/best_model.pt` | 45 MB | ✅ Yes | Encoder checkpoint |
+| `outputs/sensor_multihead_v3/best_model.pt` | 32 MB | ✅ Yes | Decoder checkpoint |
+| `outputs/stratified_splits_v2/test_sequences.npz` | 25 MB | ✅ Yes | Test set (630 samples) |
+| `outputs/stratified_splits_v2/val_sequences.npz` | 25 MB | ✅ Yes | Validation set (630 samples) |
+| `outputs/stratified_splits_v2/train_sequences.npz` | 117 MB | ❌ No | Training set (too large for GitHub) |
+| `data/vocabulary_4digit_hybrid.json` | 15 KB | ✅ Yes | Vocabulary file |
+
+**To run evaluation/inference**: Clone and run - all required files are included.
+
+**To retrain from scratch**: Contact the author for the full training dataset, or use your own sensor data following the preprocessing pipeline in `notebooks/02_data_preprocessing.ipynb`.
+
+---
+
 ## Citation
 
 ```bibtex
 @misc{gcode_fingerprinting_2025,
-  title={G-code Fingerprinting: Inferring 3D Printer Commands from Multi-Modal Sensor Data},
-  author={ELE 588 Team},
+  title={G-code Fingerprinting: Deep Learning for Reconstructing CNC Toolpaths from Multi-Modal Sensor Fusion},
+  author={Eacuello, Stephen S.},
   year={2025},
   publisher={GitHub},
-  howpublished={\url{https://github.com/YOUR_USERNAME/gcode_fingerprinting}}
+  howpublished={\url{https://github.com/stephenseacuello/gcode_fingerprinting}}
 }
 ```
 
