@@ -296,6 +296,9 @@ dashboard_data/
 !outputs/stratified_splits_v2/test_sequences.npz
 !outputs/stratified_splits_v2/val_sequences.npz
 
+# Raw sensor data CSV files (for full reproducibility)
+!data/*_aligned.csv
+
 # Temporary download/upload directories
 downloads/
 uploads/
