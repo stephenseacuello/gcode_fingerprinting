@@ -128,7 +128,7 @@ state = {
     'confusion_matrix_param_type': defaultdict(lambda: defaultdict(int)),  # Param type confusion matrix
     'confusion_matrix_param_value': defaultdict(lambda: defaultdict(int)),  # Param value confusion matrix
     'statistics': defaultdict(list),  # Running statistics
-    'fingerprints': [],  # For t-SNE
+    'fingerprints': [],  # For t-SNE: list of (fingerprint_vector, operation_type_id) tuples
     'generation_history': deque(maxlen=50),  # Last 50 generated commands
     'command_types': defaultdict(int),  # Track command type distribution
     'current_modal_command': None,  # Track current modal G-code command (e.g., 'G1', 'G0')
@@ -158,6 +158,30 @@ state = {
     # Latency tracking
     'latency_history': deque(maxlen=100),
     'current_latency': 0.0,
+    # Safety Control Center
+    'safety_settings': {
+        'auto_stop_enabled': True,
+        'trigger_mode': 'both',  # 'operation', 'anomaly', 'both'
+        'damage_confidence_threshold': 0.90,  # Stop when damage detected with >90% confidence
+        'anomaly_score_threshold': 0.5,  # Stop when anomaly score > threshold
+        'consecutive_alerts_required': 2,  # Require N consecutive alerts before stopping
+        'alert_cooldown_seconds': 5.0,  # Minimum time between alerts
+    },
+    'safety_state': {
+        'emergency_stop_active': False,
+        'last_alert_time': 0.0,
+        'consecutive_damage_count': 0,
+        'consecutive_anomaly_count': 0,
+        'total_damage_detections': 0,
+        'total_anomaly_alerts': 0,
+        'alerts_history': deque(maxlen=100),  # Last 100 alerts
+    },
+    # Sensor visualization settings
+    'sensor_view_settings': {
+        'view_mode': 'grouped',  # 'key', 'grouped', 'full'
+        'selected_channels': [],  # For custom selection
+        'update_rate_ms': 100,  # Sensor update rate
+    },
 }
 
 
@@ -1748,9 +1772,10 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
         predictions['full_command'] = '<NO_MODEL>'
         predictions['full_command_confidence'] = 0.0
 
-    # Store fingerprint for t-SNE
+    # Store fingerprint for t-SNE with operation type for shape-based visualization
     if 'fingerprint' in predictions:
-        state['fingerprints'].append(predictions['fingerprint'])
+        operation_type_id = predictions.get('operation_type_id', -1)
+        state['fingerprints'].append((predictions['fingerprint'], operation_type_id))
         # Keep only last 500 for performance
         if len(state['fingerprints']) > 500:
             state['fingerprints'] = state['fingerprints'][-500:]
@@ -2384,6 +2409,216 @@ def control():
         state['predictions_history'].clear()
 
     return jsonify({'success': True})
+
+
+# ============================================================================
+# Safety Control Center API Endpoints
+# ============================================================================
+
+@app.route('/api/safety/settings', methods=['GET', 'POST'])
+def safety_settings():
+    """Get or update safety control settings."""
+    if request.method == 'GET':
+        return jsonify({
+            'success': True,
+            'settings': state['safety_settings']
+        })
+    else:
+        data = request.json
+        for key in ['auto_stop_enabled', 'trigger_mode', 'damage_confidence_threshold',
+                    'anomaly_score_threshold', 'consecutive_alerts_required', 'alert_cooldown_seconds']:
+            if key in data:
+                state['safety_settings'][key] = data[key]
+        logger.info(f"Safety settings updated: {state['safety_settings']}")
+        return jsonify({'success': True, 'settings': state['safety_settings']})
+
+
+@app.route('/api/safety/emergency_stop', methods=['POST'])
+def emergency_stop():
+    """Trigger emergency stop - immediately halts inference."""
+    state['safety_state']['emergency_stop_active'] = True
+    state['running'] = False
+    alert = {
+        'timestamp': datetime.now().isoformat(),
+        'type': 'emergency_stop',
+        'message': 'Emergency stop triggered by user',
+        'severity': 'critical'
+    }
+    state['safety_state']['alerts_history'].append(alert)
+    socketio.emit('emergency_stop_triggered', alert)
+    logger.warning("EMERGENCY STOP TRIGGERED BY USER")
+    return jsonify({'success': True, 'message': 'Emergency stop activated'})
+
+
+@app.route('/api/safety/reset', methods=['POST'])
+def safety_reset():
+    """Reset safety state and clear emergency stop."""
+    state['safety_state']['emergency_stop_active'] = False
+    state['safety_state']['consecutive_damage_count'] = 0
+    state['safety_state']['consecutive_anomaly_count'] = 0
+    logger.info("Safety state reset")
+    socketio.emit('safety_status_update', {
+        'status': 'normal',
+        'message': 'Safety state reset'
+    })
+    return jsonify({'success': True, 'message': 'Safety state reset'})
+
+
+@app.route('/api/safety/status')
+def safety_status():
+    """Get current safety state and statistics."""
+    return jsonify({
+        'success': True,
+        'state': {
+            'emergency_stop_active': state['safety_state']['emergency_stop_active'],
+            'consecutive_damage_count': state['safety_state']['consecutive_damage_count'],
+            'consecutive_anomaly_count': state['safety_state']['consecutive_anomaly_count'],
+            'total_damage_detections': state['safety_state']['total_damage_detections'],
+            'total_anomaly_alerts': state['safety_state']['total_anomaly_alerts'],
+        },
+        'settings': state['safety_settings']
+    })
+
+
+@app.route('/api/safety/alerts')
+def safety_alerts():
+    """Get alert history."""
+    return jsonify({
+        'success': True,
+        'alerts': list(state['safety_state']['alerts_history'])
+    })
+
+
+@app.route('/api/sensors/channels')
+def sensor_channels():
+    """Get available sensor channels with metadata."""
+    if state['csv_data'] is None:
+        return jsonify({'success': False, 'error': 'No CSV loaded'})
+
+    # Get all columns that are sensor data (exclude metadata columns)
+    exclude_cols = {'timestamp', 'gcode', 'gcode_raw', 'operation_type', 'sequence_idx'}
+    all_cols = [c for c in state['csv_data'].columns if c not in exclude_cols]
+
+    # Group sensors by category
+    sensor_groups = {
+        'position': [c for c in all_cols if c.startswith('mpo') or 'pos' in c.lower()],
+        'spindle_accel': [c for c in all_cols if c.startswith('sra')],
+        'workpiece_accel': [c for c in all_cols if c.startswith('wa')],
+        'spindle': [c for c in all_cols if 'spindle' in c.lower() or c == 'spload'],
+        'feed': [c for c in all_cols if 'feed' in c.lower()],
+        'other': []
+    }
+
+    # Categorize remaining sensors
+    categorized = set()
+    for group in sensor_groups.values():
+        categorized.update(group)
+    sensor_groups['other'] = [c for c in all_cols if c not in categorized]
+
+    # Key sensors for quick view
+    key_sensors = ['spload', 'mpox', 'mpoy', 'mpoz', 'srax', 'sray', 'sraz',
+                   'wax1', 'way1', 'waz1', 'wax2', 'way2', 'waz2']
+    key_sensors = [s for s in key_sensors if s in all_cols]
+
+    return jsonify({
+        'success': True,
+        'total_channels': len(all_cols),
+        'all_channels': all_cols,
+        'groups': sensor_groups,
+        'key_sensors': key_sensors
+    })
+
+
+@app.route('/api/sensors/view_settings', methods=['POST'])
+def sensor_view_settings():
+    """Update sensor view preferences."""
+    data = request.json
+    for key in ['view_mode', 'selected_channels', 'update_rate_ms']:
+        if key in data:
+            state['sensor_view_settings'][key] = data[key]
+    return jsonify({'success': True, 'settings': state['sensor_view_settings']})
+
+
+def check_safety_triggers(predictions):
+    """
+    Check if safety conditions are met and trigger auto-stop if needed.
+    Called after each prediction during inference.
+    """
+    settings = state['safety_settings']
+    safety = state['safety_state']
+
+    # Skip if emergency stop already active or auto-stop disabled
+    if safety['emergency_stop_active'] or not settings['auto_stop_enabled']:
+        return
+
+    damage_detected = False
+    anomaly_triggered = False
+    current_time = time.time()
+
+    # Check alert cooldown
+    if current_time - safety['last_alert_time'] < settings['alert_cooldown_seconds']:
+        return
+
+    # Check operation classification trigger
+    if settings['trigger_mode'] in ('operation', 'both'):
+        op_type = predictions.get('operation_type', '')
+        op_conf = predictions.get('operation_confidence', 0)
+        if op_type and op_type.startswith('damage') and op_conf >= settings['damage_confidence_threshold']:
+            damage_detected = True
+            safety['consecutive_damage_count'] += 1
+            safety['total_damage_detections'] += 1
+            logger.warning(f"Damage detected: {op_type} with {op_conf:.2%} confidence")
+
+    # Check anomaly score trigger
+    if settings['trigger_mode'] in ('anomaly', 'both'):
+        anomaly_score = predictions.get('anomaly_score', 0)
+        if anomaly_score >= settings['anomaly_score_threshold']:
+            anomaly_triggered = True
+            safety['consecutive_anomaly_count'] += 1
+            safety['total_anomaly_alerts'] += 1
+            logger.warning(f"Anomaly alert: score {anomaly_score:.3f} >= threshold {settings['anomaly_score_threshold']}")
+
+    # Emit alert via WebSocket if damage or anomaly detected
+    if damage_detected or anomaly_triggered:
+        safety['last_alert_time'] = current_time
+        alert = {
+            'timestamp': datetime.now().isoformat(),
+            'type': 'damage' if damage_detected else 'anomaly',
+            'damage_detected': damage_detected,
+            'anomaly_triggered': anomaly_triggered,
+            'operation_type': predictions.get('operation_type', 'unknown'),
+            'operation_confidence': predictions.get('operation_confidence', 0),
+            'anomaly_score': predictions.get('anomaly_score', 0),
+            'consecutive_damage': safety['consecutive_damage_count'],
+            'consecutive_anomaly': safety['consecutive_anomaly_count'],
+            'severity': 'warning'
+        }
+        safety['alerts_history'].append(alert)
+        socketio.emit('safety_alert', alert)
+
+        # Check if we should auto-stop
+        should_stop = (
+            safety['consecutive_damage_count'] >= settings['consecutive_alerts_required'] or
+            safety['consecutive_anomaly_count'] >= settings['consecutive_alerts_required']
+        )
+
+        if should_stop:
+            safety['emergency_stop_active'] = True
+            state['running'] = False
+            stop_alert = {
+                'timestamp': datetime.now().isoformat(),
+                'type': 'auto_stop',
+                'message': f"Auto-stop triggered: {'Damage' if damage_detected else 'Anomaly'} threshold exceeded",
+                'severity': 'critical',
+                'trigger': 'damage' if damage_detected else 'anomaly'
+            }
+            safety['alerts_history'].append(stop_alert)
+            socketio.emit('emergency_stop_triggered', stop_alert)
+            logger.critical(f"AUTO-STOP TRIGGERED: {stop_alert['message']}")
+    else:
+        # Reset consecutive counters if no alerts
+        safety['consecutive_damage_count'] = 0
+        safety['consecutive_anomaly_count'] = 0
 
 
 @app.route('/api/status')
@@ -3304,13 +3539,32 @@ def export_gcode():
 
 @app.route('/api/tsne')
 def get_tsne():
-    """Get t-SNE projection of fingerprint embeddings with Redis caching."""
+    """Get t-SNE projection of fingerprint embeddings with Redis caching.
+
+    Returns operation types for shape-based visualization:
+    - adaptive/adaptive150025: circle
+    - face/face150025: square
+    - pocket/pocket150025: diamond
+    - damageadaptive/damageface/damagepocket: x
+    """
     try:
         if not state['fingerprints'] or len(state['fingerprints']) < 10:
             return jsonify({'success': False, 'error': 'Not enough data for t-SNE (need at least 10 samples)'})
 
-        # Get fingerprints
-        embeddings = np.array(state['fingerprints'])
+        # Extract fingerprints and operation types from tuples
+        # Handle both old format (just fingerprint) and new format (fingerprint, op_type_id)
+        fingerprints_data = state['fingerprints']
+        embeddings_list = []
+        operation_types = []
+        for item in fingerprints_data:
+            if isinstance(item, tuple):
+                embeddings_list.append(item[0])
+                operation_types.append(item[1])
+            else:
+                embeddings_list.append(item)
+                operation_types.append(-1)  # Unknown
+
+        embeddings = np.array(embeddings_list)
 
         # Create cache key based on fingerprints hash
         cache_key = f"tsne:{hash(embeddings.tobytes())}:{len(embeddings)}"
@@ -3340,10 +3594,20 @@ def get_tsne():
         while len(labels) < len(embeddings):
             labels.insert(0, 'Unknown')
 
+        # Map operation type IDs to names for the frontend
+        operation_type_names = []
+        for op_id in operation_types:
+            if 0 <= op_id < len(OPERATION_TYPE_NAMES):
+                operation_type_names.append(OPERATION_TYPE_NAMES[op_id])
+            else:
+                operation_type_names.append('unknown')
+
         result = {
             'success': True,
             'embeddings': embeddings_2d.tolist(),
             'labels': labels,
+            'operation_types': operation_type_names,  # New: operation type for each point
+            'operation_type_ids': operation_types,  # New: numeric IDs for coloring
             'n_samples': len(embeddings)
         }
 
@@ -4407,6 +4671,9 @@ def handle_start_inference(data=None):
                     predictions['sensor_data'] = sensor_data
                     predictions['position_3d'] = position_3d
 
+                    # Check safety triggers (damage detection, anomaly thresholds)
+                    check_safety_triggers(predictions)
+
                     # Emit real-time update with sensor and position data
                     emit('prediction_update', {
                         'predictions': predictions,
@@ -4515,7 +4782,7 @@ if __name__ == '__main__':
     print("\n💡 Tip: Select '🏆 Multi-Head (100% Command Acc)' from")
     print("         the model dropdown to use the Phase 2 model!")
     print("\nStarting server...")
-    print("Open: http://localhost:5001")
+    print("Open: http://localhost:4999")
     print("="*60 + "\n")
 
-    socketio.run(app, debug=True, port=5001, allow_unsafe_werkzeug=True)
+    socketio.run(app, debug=True, port=4999, allow_unsafe_werkzeug=True)
