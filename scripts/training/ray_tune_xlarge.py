@@ -294,9 +294,9 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         avg_train_loss = train_loss / len(train_loader)
         avg_val_loss = val_loss / len(val_loader)
 
-        # Report to Ray Tune (new API uses metrics dict)
-        from ray import train as ray_train
-        ray_train.report(metrics={
+        # Report to Ray Tune (use session.report for Tune)
+        from ray.air import session
+        session.report({
             'epoch': epoch,
             'train_loss': avg_train_loss,
             'val_loss': avg_val_loss,
