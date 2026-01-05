@@ -338,6 +338,8 @@ def main():
 
     # Scheduler (ASHA for early stopping)
     scheduler = ASHAScheduler(
+        metric='val_token_acc',
+        mode='max',
         max_t=config['fixed'].get('max_epochs', 150),
         grace_period=20,
         reduction_factor=3,
