@@ -318,7 +318,7 @@ def main():
     parser.add_argument('--max-concurrent', type=int, default=4)
     parser.add_argument('--experiment-name', default='gcode-xlarge-sweep')
     parser.add_argument('--resume', action='store_true')
-    parser.add_argument('--local-dir', default='./ray_results')
+    parser.add_argument('--local-dir', default=str(Path(__file__).resolve().parent.parent.parent / 'ray_results'))
     parser.add_argument('--wandb-project', default='gcode-xlarge-sweep')
     parser.add_argument('--no-wandb', action='store_true')
     args = parser.parse_args()
