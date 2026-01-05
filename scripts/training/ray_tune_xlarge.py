@@ -91,19 +91,16 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         vocab_data = json.load(f)
     vocab = vocab_data['vocab']
 
-    # Load datasets
+    # Load datasets (augmentation handled separately if needed)
     train_dataset = DecoderDatasetFromSplits(
         split_dir=data_dir,
         split='train',
         max_token_len=32,
-        augment=config.get('augment', True),
-        augment_prob=config.get('augment_prob', 0.25),
     )
     val_dataset = DecoderDatasetFromSplits(
         split_dir=data_dir,
         split='val',
         max_token_len=32,
-        augment=False,
     )
 
     batch_size = config.get('batch_size', 16)
