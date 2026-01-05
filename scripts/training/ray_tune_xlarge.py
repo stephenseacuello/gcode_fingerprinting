@@ -34,16 +34,9 @@ from ray.tune.search.optuna import OptunaSearch
 from ray.air import RunConfig, CheckpointConfig
 from ray.air.integrations.wandb import WandbLoggerCallback
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
-
-from miracle.dataset.decoder_dataset import (
-    DecoderDatasetFromSplits,
-    decoder_collate_fn,
-)
-from miracle.model.sensor_multihead_decoder import SensorMultiHeadDecoder
-from miracle.model.model import EnhancedEncoder
-from torch.utils.data import DataLoader
+# Project root for runtime env
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+SRC_PATH = str(PROJECT_ROOT / 'src')
 
 
 def load_config(config_path: str) -> dict:
@@ -75,6 +68,15 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
     import torch.nn as nn
     from torch.optim import AdamW
     from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
+    from torch.utils.data import DataLoader
+
+    # Import miracle modules (available via runtime_env)
+    from miracle.dataset.decoder_dataset import (
+        DecoderDatasetFromSplits,
+        decoder_collate_fn,
+    )
+    from miracle.model.sensor_multihead_decoder import SensorMultiHeadDecoder
+    from miracle.model.model import EnhancedEncoder
 
     # Device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -333,8 +335,11 @@ def main():
     for key, value in config.get('fixed', {}).items():
         search_space[key] = value
 
-    # Initialize Ray
-    ray.init(ignore_reinit_error=True)
+    # Initialize Ray with runtime environment including src path
+    ray.init(
+        ignore_reinit_error=True,
+        runtime_env={"py_modules": [SRC_PATH]}
+    )
 
     # Scheduler (ASHA for early stopping)
     scheduler = ASHAScheduler(
