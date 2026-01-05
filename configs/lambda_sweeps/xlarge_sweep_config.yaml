@@ -1,0 +1,131 @@
+# Ray Tune Sweep Configuration for XLarge Models
+# Target: Lambda Labs GPU cluster (A100/H100)
+
+name: gcode-xlarge-sweep
+project: gcode-fingerprinting
+
+# Search space - exploring around xlarge architecture
+search_space:
+  # Model architecture
+  d_model:
+    type: choice
+    values: [768, 1024, 1280]
+
+  n_heads:
+    type: choice
+    values: [16, 24, 32]
+
+  n_layers:
+    type: choice
+    values: [8, 10, 12]
+
+  dropout:
+    type: uniform
+    min: 0.30
+    max: 0.45
+
+  embed_dropout:
+    type: uniform
+    min: 0.15
+    max: 0.28
+
+  drop_path_rate:
+    type: uniform
+    min: 0.10
+    max: 0.22
+
+  # Sensor prior
+  sensor_prior_weight:
+    type: uniform
+    min: 0.45
+    max: 0.65
+
+  # Training hyperparameters
+  learning_rate:
+    type: loguniform
+    min: 5e-5
+    max: 3e-4
+
+  weight_decay:
+    type: uniform
+    min: 0.04
+    max: 0.08
+
+  warmup_epochs:
+    type: choice
+    values: [12, 15, 18, 20]
+
+  restart_period:
+    type: choice
+    values: [20, 25, 30]
+
+  label_smoothing:
+    type: uniform
+    min: 0.08
+    max: 0.15
+
+  # Augmentation
+  augment_prob:
+    type: uniform
+    min: 0.20
+    max: 0.35
+
+  error_boost:
+    type: uniform
+    min: 1.5
+    max: 2.2
+
+  position_weight_scale:
+    type: uniform
+    min: 2.5
+    max: 4.0
+
+# Fixed parameters
+fixed:
+  seed: 123
+  max_epochs: 150
+  patience: 40
+  batch_size: 16  # Adjust based on GPU memory (A100: 24-32, H100: 32-48)
+  optimizer: adamw
+  lr_scheduler: cosine_restarts
+  use_sensor_prior: true
+  use_enhanced_encoder: true
+  use_multihead_pooling: true
+  pooling_n_heads: 8
+  pooling_n_queries: 16
+  augment: true
+  progressive_augmentation: true
+  use_error_sampling: true
+  use_position_weights: true
+  track_metric: token
+
+# Ray Tune settings
+ray_tune:
+  num_samples: 50  # Total trials to run
+  max_concurrent_trials: 4  # Adjust based on available GPUs
+
+  scheduler:
+    type: ASHAScheduler
+    max_t: 150  # max epochs
+    grace_period: 20  # min epochs before early stop
+    reduction_factor: 3
+
+  search_alg:
+    type: OptunaSearch
+    metric: val_token_acc
+    mode: max
+
+# Resources per trial (Lambda A100)
+resources:
+  gpu: 1
+  cpu: 4
+
+# Checkpointing
+checkpoint:
+  frequency: 5  # epochs
+  keep_num: 3
+
+# WandB integration
+wandb:
+  project: gcode-xlarge-sweep
+  group: lambda-ray-sweep

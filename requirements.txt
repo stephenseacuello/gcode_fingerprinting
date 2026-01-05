@@ -63,3 +63,7 @@ onnx>=1.14.0
 onnxruntime>=1.15.0
 onnxconverter-common>=1.13.0
 psutil>=5.9.0
+
+# Hyperparameter Tuning (Ray Tune)
+ray[tune]>=2.9.0
+optuna>=3.4.0
