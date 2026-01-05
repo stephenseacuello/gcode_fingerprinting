@@ -338,7 +338,10 @@ def main():
     # Initialize Ray with runtime environment including src path
     ray.init(
         ignore_reinit_error=True,
-        runtime_env={"py_modules": [SRC_PATH]}
+        runtime_env={
+            "working_dir": str(PROJECT_ROOT),
+            "env_vars": {"PYTHONPATH": SRC_PATH}
+        }
     )
 
     # Scheduler (ASHA for early stopping)
