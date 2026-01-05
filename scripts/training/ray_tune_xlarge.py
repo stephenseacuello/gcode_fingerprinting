@@ -161,8 +161,6 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         max_int_digits=2,
         embed_dropout=config['embed_dropout'],
         drop_path_rate=config['drop_path_rate'],
-        use_sensor_prior=config.get('use_sensor_prior', True),
-        sensor_prior_weight=config['sensor_prior_weight'],
     )
 
     if hasattr(decoder, 'set_vocab'):
