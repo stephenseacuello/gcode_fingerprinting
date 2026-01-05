@@ -212,9 +212,10 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
             input_tokens = batch['input_tokens'].to(device)  # [BOS, t1, t2, ...]
             target_tokens = batch['target_tokens'].to(device)  # [t1, t2, ..., EOS]
 
-            # Encode sensors
+            # Encode sensors - EnhancedEncoder returns dict with 'features' and 'memory'
             with torch.no_grad():
-                sensor_features, _ = encoder(sensor_data, operations)
+                encoder_out = encoder(sensor_data)
+                sensor_features = encoder_out['features']  # [B, latent_dim]
 
             # Forward pass - decoder expects input tokens (with BOS)
             optimizer.zero_grad()
@@ -266,7 +267,8 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
                 input_tokens = batch['input_tokens'].to(device)
                 target_tokens = batch['target_tokens'].to(device)
 
-                sensor_features, _ = encoder(sensor_data, operations)
+                encoder_out = encoder(sensor_data)
+                sensor_features = encoder_out['features']
                 outputs = decoder(
                     sensor_features=sensor_features,
                     operation_ids=operations,
