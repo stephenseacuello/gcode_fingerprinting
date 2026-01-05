@@ -206,27 +206,29 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         train_total = 0
 
         for batch in train_loader:
-            sensors = batch['sensors'].to(device)
-            operations = batch['operations'].to(device)
-            targets = batch['targets'].to(device)
+            # Correct keys from decoder_collate_fn
+            sensor_data = batch['sensor_features'].to(device)
+            operations = batch['operation_type'].to(device)
+            input_tokens = batch['input_tokens'].to(device)  # [BOS, t1, t2, ...]
+            target_tokens = batch['target_tokens'].to(device)  # [t1, t2, ..., EOS]
 
             # Encode sensors
             with torch.no_grad():
-                sensor_features, _ = encoder(sensors, operations)
+                sensor_features, _ = encoder(sensor_data, operations)
 
-            # Forward pass
+            # Forward pass - decoder expects input tokens (with BOS)
             optimizer.zero_grad()
             outputs = decoder(
                 sensor_features=sensor_features,
                 operation_ids=operations,
-                target_tokens=targets[:, :-1],
+                target_tokens=input_tokens,  # [BOS, t1, t2, ...]
             )
 
-            # Loss
+            # Loss - compare against target_tokens directly
             logits = outputs['logits']
             loss = criterion(
                 logits.reshape(-1, logits.size(-1)),
-                targets[:, 1:].reshape(-1)
+                target_tokens.reshape(-1)  # [t1, t2, ..., EOS]
             )
 
             # Backward
@@ -238,8 +240,8 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
 
             # Accuracy
             preds = logits.argmax(dim=-1)
-            mask = targets[:, 1:] != 0
-            train_correct += ((preds == targets[:, 1:]) & mask).sum().item()
+            mask = target_tokens != 0  # Compare against target_tokens
+            train_correct += ((preds == target_tokens) & mask).sum().item()
             train_total += mask.sum().item()
 
         # Warmup
@@ -258,27 +260,29 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
 
         with torch.no_grad():
             for batch in val_loader:
-                sensors = batch['sensors'].to(device)
-                operations = batch['operations'].to(device)
-                targets = batch['targets'].to(device)
+                # Correct keys from decoder_collate_fn
+                sensor_data = batch['sensor_features'].to(device)
+                operations = batch['operation_type'].to(device)
+                input_tokens = batch['input_tokens'].to(device)
+                target_tokens = batch['target_tokens'].to(device)
 
-                sensor_features, _ = encoder(sensors, operations)
+                sensor_features, _ = encoder(sensor_data, operations)
                 outputs = decoder(
                     sensor_features=sensor_features,
                     operation_ids=operations,
-                    target_tokens=targets[:, :-1],
+                    target_tokens=input_tokens,
                 )
 
                 logits = outputs['logits']
                 loss = criterion(
                     logits.reshape(-1, logits.size(-1)),
-                    targets[:, 1:].reshape(-1)
+                    target_tokens.reshape(-1)
                 )
 
                 val_loss += loss.item()
                 preds = logits.argmax(dim=-1)
-                mask = targets[:, 1:] != 0
-                val_correct += ((preds == targets[:, 1:]) & mask).sum().item()
+                mask = target_tokens != 0
+                val_correct += ((preds == target_tokens) & mask).sum().item()
                 val_total += mask.sum().item()
 
         train_acc = train_correct / train_total if train_total > 0 else 0
