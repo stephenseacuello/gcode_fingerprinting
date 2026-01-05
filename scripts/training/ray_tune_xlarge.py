@@ -336,10 +336,25 @@ def main():
         search_space[key] = value
 
     # Initialize Ray with runtime environment including src path
+    # Exclude large directories to stay under 512MB limit
     ray.init(
         ignore_reinit_error=True,
         runtime_env={
             "working_dir": str(PROJECT_ROOT),
+            "excludes": [
+                ".git",
+                "outputs",
+                "wandb",
+                "ray_results",
+                "*.pt",
+                "*.npz",
+                "htmlcov",
+                "figures",
+                "sweeps",
+                "archive",
+                "node_red",
+                "gcode_fingerprinting",  # nested repo
+            ],
             "env_vars": {"PYTHONPATH": SRC_PATH}
         }
     )
