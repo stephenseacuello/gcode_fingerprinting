@@ -59,11 +59,11 @@ def build_search_space(config: dict) -> dict:
         if spec['type'] == 'choice':
             space[param] = tune.choice(spec['values'])
         elif spec['type'] == 'uniform':
-            space[param] = tune.uniform(spec['min'], spec['max'])
+            space[param] = tune.uniform(float(spec['min']), float(spec['max']))
         elif spec['type'] == 'loguniform':
-            space[param] = tune.loguniform(spec['min'], spec['max'])
+            space[param] = tune.loguniform(float(spec['min']), float(spec['max']))
         elif spec['type'] == 'randint':
-            space[param] = tune.randint(spec['min'], spec['max'])
+            space[param] = tune.randint(int(spec['min']), int(spec['max']))
     return space
 
 
