@@ -1030,10 +1030,28 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
 
     mods = [cont_tensor, cat_tensor]
 
-    # Inference with error handling - handle both baseline and multi-head models
+    # Inference with error handling - handle baseline, multi-head, and sensor_decoder models
     try:
         with torch.no_grad():
-            if state['model_type'] == 'multihead':
+            if state['model_type'] == 'sensor_decoder':
+                # SensorMultiHeadDecoder: uses EnhancedEncoder + Transformer decoder
+                # This model has a completely different architecture
+                model_wrapper = state['model']
+
+                # Use the encoder to get sensor memory
+                encoder_out = model_wrapper.encoder(cont_tensor)
+                sensor_memory = encoder_out['memory']  # [B, T_s, latent_dim]
+                sensor_features = encoder_out['features']  # [B, latent_dim]
+
+                # For real-time dashboard, we just show the encoder features
+                # Full G-code generation requires autoregressive decoding
+                outputs = {
+                    'memory': sensor_memory,
+                    'fingerprint': sensor_features,
+                    'anom': torch.zeros(1, 1).to(device),
+                }
+
+            elif state['model_type'] == 'multihead':
                 # Multi-head model: needs LSTM encoder for memory
                 # Get hidden_dim from config (inferred during model loading)
                 hidden_dim = state['config'].hidden_dim if hasattr(state['config'], 'hidden_dim') else 128
