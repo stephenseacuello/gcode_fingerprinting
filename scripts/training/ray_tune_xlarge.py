@@ -215,18 +215,20 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
             # Encode sensors - EnhancedEncoder returns dict with 'features' and 'memory'
             with torch.no_grad():
                 encoder_out = encoder(sensor_data)
-                sensor_features = encoder_out['features']  # [B, latent_dim]
+                # Use memory (sequence) for cross-attention, not features (pooled)
+                sensor_memory = encoder_out['memory']  # [B, T_s, latent_dim]
 
-            # Forward pass - decoder expects input tokens (with BOS)
+            # Forward pass - SensorMultiHeadDecoder.forward() signature:
+            # tokens, sensor_embeddings, operation_type
             optimizer.zero_grad()
             outputs = decoder(
-                sensor_features=sensor_features,
-                operation_ids=operations,
-                target_tokens=input_tokens,  # [BOS, t1, t2, ...]
+                tokens=input_tokens,  # [B, L]
+                sensor_embeddings=sensor_memory,  # [B, T_s, sensor_dim]
+                operation_type=operations,  # [B]
             )
 
-            # Loss - compare against target_tokens directly
-            logits = outputs['logits']
+            # Loss - use legacy_logits for vocab-level prediction
+            logits = outputs['legacy_logits']  # [B, L, vocab_size]
             loss = criterion(
                 logits.reshape(-1, logits.size(-1)),
                 target_tokens.reshape(-1)  # [t1, t2, ..., EOS]
@@ -268,14 +270,14 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
                 target_tokens = batch['target_tokens'].to(device)
 
                 encoder_out = encoder(sensor_data)
-                sensor_features = encoder_out['features']
+                sensor_memory = encoder_out['memory']
                 outputs = decoder(
-                    sensor_features=sensor_features,
-                    operation_ids=operations,
-                    target_tokens=input_tokens,
+                    tokens=input_tokens,
+                    sensor_embeddings=sensor_memory,
+                    operation_type=operations,
                 )
 
-                logits = outputs['logits']
+                logits = outputs['legacy_logits']
                 loss = criterion(
                     logits.reshape(-1, logits.size(-1)),
                     target_tokens.reshape(-1)
