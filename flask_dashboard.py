@@ -317,10 +317,140 @@ def reconstruct_numeric_token(token_str, tokenizer_config):
 # ============================================================================
 
 def load_model(checkpoint_path):
-    """Load model from checkpoint - supports both baseline and multi-head models."""
+    """Load model from checkpoint - supports baseline, multi-head, and SensorMultiHeadDecoder models."""
     device = 'cpu'
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-    config_dict = checkpoint['config']
+
+    # Handle different checkpoint formats
+    # New format uses 'args', old format uses 'config'
+    if 'args' in checkpoint and 'config' not in checkpoint:
+        config_dict = checkpoint['args']
+        logger.info("Detected new checkpoint format (args-based)")
+    elif 'config' in checkpoint:
+        config_dict = checkpoint['config']
+    else:
+        config_dict = {}
+        logger.warning("No config/args found in checkpoint")
+
+    # Detect SensorMultiHeadDecoder (large transformer models)
+    # These have encoder_state_dict and model_state_dict with sensor_projection
+    is_sensor_decoder = (
+        'encoder_state_dict' in checkpoint and
+        'model_state_dict' in checkpoint and
+        any('sensor_projection' in k for k in checkpoint['model_state_dict'].keys())
+    )
+
+    if is_sensor_decoder:
+        logger.info("Loading SensorMultiHeadDecoder model (Large Transformer)")
+        from miracle.model.sensor_multihead_decoder import SensorMultiHeadDecoder
+        from miracle.model.model import EnhancedEncoder
+
+        model_type = 'sensor_decoder'
+        state_dict = checkpoint['model_state_dict']
+
+        # Extract architecture from state dict and args
+        args = config_dict if isinstance(config_dict, dict) else {}
+        d_model = args.get('d_model', 512)
+        n_heads = args.get('n_heads', 8)
+        n_layers = args.get('n_layers', 6)
+
+        # Infer vocab size from embedding
+        vocab_size = state_dict['token_embedding.weight'].shape[0]
+
+        logger.info(f"Detected architecture: d_model={d_model}, n_heads={n_heads}, "
+                   f"n_layers={n_layers}, vocab_size={vocab_size}")
+
+        # Create decoder model
+        decoder = SensorMultiHeadDecoder(
+            sensor_dim=args.get('sensor_dim', 128),
+            d_model=d_model,
+            n_heads=n_heads,
+            n_layers=n_layers,
+            vocab_size=vocab_size,
+            n_operations=args.get('n_operations', 9),
+            n_types=args.get('n_types', 4),
+            n_commands=args.get('n_commands', 6),
+            n_param_types=args.get('n_param_types', 10),
+            dropout=args.get('dropout', 0.3),
+            max_seq_len=args.get('max_seq_len', 32),
+            n_decimal_digits=args.get('n_decimal_digits', 4),
+            max_int_digits=args.get('max_int_digits', 2),
+            embed_dropout=args.get('embed_dropout', 0.1),
+            drop_path_rate=args.get('drop_path_rate', 0.0),
+        ).to(device)
+
+        # Load decoder weights
+        decoder.load_state_dict(state_dict, strict=False)
+        decoder.eval()
+
+        # Create encoder
+        encoder = EnhancedEncoder(
+            input_dim=args.get('sensor_input_dim', 155),
+            hidden_dim=args.get('encoder_hidden_dim', 256),
+            latent_dim=args.get('sensor_dim', 128),
+            n_operations=args.get('n_operations', 9),
+            use_multiscale=args.get('use_enhanced_encoder', True),
+            n_scales=args.get('encoder_n_scales', 4),
+        ).to(device)
+
+        # Load encoder weights
+        if 'encoder_state_dict' in checkpoint:
+            encoder.load_state_dict(checkpoint['encoder_state_dict'], strict=False)
+        encoder.eval()
+
+        # Load vocabulary
+        vocab_path = args.get('vocab_path', 'data/vocabulary_4digit_full.json')
+        try:
+            with open(vocab_path) as f:
+                vocab_data = json.load(f)
+            vocab = vocab_data.get('vocab', vocab_data)
+            if hasattr(decoder, 'set_vocab'):
+                decoder.set_vocab(vocab)
+        except Exception as e:
+            logger.warning(f"Could not load vocab from {vocab_path}: {e}")
+            vocab = None
+
+        # Create a wrapper that combines encoder + decoder for inference
+        class SensorDecoderWrapper:
+            def __init__(self, encoder, decoder, vocab):
+                self.encoder = encoder
+                self.decoder = decoder
+                self.vocab = vocab
+                self.model_type = 'sensor_decoder'
+
+            def __call__(self, *args, **kwargs):
+                return self.decoder(*args, **kwargs)
+
+            def eval(self):
+                self.encoder.eval()
+                self.decoder.eval()
+                return self
+
+            def to(self, device):
+                self.encoder.to(device)
+                self.decoder.to(device)
+                return self
+
+        model = SensorDecoderWrapper(encoder, decoder, vocab)
+
+        # Create a simple tokenizer compatible with the dashboard
+        tokenizer = None
+        decomposer = None
+        grammar_constraints = None
+        vocab_value_map = None
+
+        # Create metadata
+        metadata = {
+            'checkpoint_path': checkpoint_path,
+            'best_metric': checkpoint.get('best_metric', 0),
+            'epoch': checkpoint.get('epoch', 0),
+            'architecture': f'd_model={d_model}, n_heads={n_heads}, n_layers={n_layers}',
+            'vocab_size': vocab_size,
+        }
+
+        logger.info(f"✅ SensorMultiHeadDecoder loaded: {d_model}d, {n_heads}h, {n_layers}L, vocab={vocab_size}")
+
+        return model, tokenizer, config_dict, metadata, model_type, decomposer, grammar_constraints, vocab_value_map
 
     # Detect model type by checking for multihead_state_dict in checkpoint
     # Multihead models have both backbone_state_dict and multihead_state_dict
