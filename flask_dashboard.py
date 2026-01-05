@@ -1998,6 +1998,52 @@ def get_models():
                 'type': 'other'
             })
 
+    # Scan for large_models directory (xlarge, xxlarge, etc.)
+    large_models_dir = outputs_dir / 'large_models'
+    if large_models_dir.exists():
+        for model_path in large_models_dir.glob('*/best_model.pt'):
+            checkpoint_path = str(model_path)
+            if checkpoint_path not in [m['path'] for m in models]:
+                models.append({
+                    'path': checkpoint_path,
+                    'name': '🚀 ' + model_path.parent.name.replace('_', ' ').title(),
+                    'type': 'large_model'
+                })
+        # Also check ablation subdirectory
+        for model_path in large_models_dir.glob('ablation/*/best_model.pt'):
+            checkpoint_path = str(model_path)
+            if checkpoint_path not in [m['path'] for m in models]:
+                models.append({
+                    'path': checkpoint_path,
+                    'name': '🔬 Ablation: ' + model_path.parent.name.replace('_', ' ').title(),
+                    'type': 'ablation'
+                })
+
+    # Scan for production directory
+    production_dir = outputs_dir / 'production'
+    if production_dir.exists():
+        for model_path in production_dir.glob('*/best_model.pt'):
+            checkpoint_path = str(model_path)
+            if checkpoint_path not in [m['path'] for m in models]:
+                models.append({
+                    'path': checkpoint_path,
+                    'name': '⭐ Production: ' + model_path.parent.name.replace('_', ' ').title(),
+                    'type': 'production'
+                })
+
+    # Generic catch-all for best_model.pt anywhere in outputs
+    for checkpoint in outputs_dir.glob('**/best_model.pt'):
+        checkpoint_path = str(checkpoint)
+        if checkpoint_path not in [m['path'] for m in models]:
+            # Create a readable name from the path
+            relative_path = checkpoint.relative_to(outputs_dir)
+            name = str(relative_path.parent).replace('/', ' > ').replace('_', ' ').title()
+            models.append({
+                'path': checkpoint_path,
+                'name': name,
+                'type': 'other'
+            })
+
     return jsonify(models)
 
 
