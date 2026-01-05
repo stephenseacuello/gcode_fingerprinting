@@ -391,12 +391,13 @@ def main():
         max_report_frequency=60,
     )
 
-    # Training function with fixed paths
+    # Training function with fixed ABSOLUTE paths
+    # Ray workers run in temp directories, so paths must be absolute
     train_fn = partial(
         train_model,
-        data_dir=args.data_dir,
-        vocab_path=args.vocab_path,
-        encoder_path=args.encoder_path,
+        data_dir=str(PROJECT_ROOT / args.data_dir),
+        vocab_path=str(PROJECT_ROOT / args.vocab_path),
+        encoder_path=str(PROJECT_ROOT / args.encoder_path),
     )
 
     # Run sweep
