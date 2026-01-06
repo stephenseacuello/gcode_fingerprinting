@@ -515,3 +515,754 @@ class AdaptiveLossWeights(nn.Module):
             total = total + term
             contrib[k] = float(term.detach().cpu())
         return total, contrib
+
+
+# ============================================================================
+# PHASE 1.6: Encoder Improvements
+# ============================================================================
+
+class MultiHeadAttentionPooling(nn.Module):
+    """
+    Multi-head attention pooling with learned query vectors.
+
+    Replaces simple temporal attention with multiple learned queries that
+    attend to different aspects of the sequence, then projects to a fixed
+    output dimension.
+
+    This captures richer sequence-level information than single-query attention.
+    """
+
+    def __init__(
+        self,
+        hidden_dim: int,
+        n_heads: int = 4,
+        n_queries: int = 8,
+        dropout: float = 0.1,
+        output_dim: Optional[int] = None,
+    ):
+        """
+        Args:
+            hidden_dim: Input hidden dimension
+            n_heads: Number of attention heads
+            n_queries: Number of learned query vectors
+            dropout: Dropout rate
+            output_dim: Output dimension (default: hidden_dim)
+        """
+        super().__init__()
+        self.hidden_dim = hidden_dim
+        self.n_queries = n_queries
+        self.n_heads = n_heads
+        self.output_dim = output_dim or hidden_dim
+
+        # Learned query vectors (initialized with small values)
+        self.queries = nn.Parameter(torch.randn(n_queries, hidden_dim) * 0.02)
+
+        # Multi-head attention
+        self.attention = nn.MultiheadAttention(
+            embed_dim=hidden_dim,
+            num_heads=n_heads,
+            dropout=dropout,
+            batch_first=True
+        )
+
+        # Output projection: flatten queries and project to output dim
+        self.out_proj = nn.Linear(hidden_dim * n_queries, self.output_dim)
+        self.layer_norm = nn.LayerNorm(self.output_dim)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        """
+        Pool sequence to fixed-size representation using multi-head attention.
+
+        Args:
+            x: (batch, seq_len, hidden_dim) input sequence
+            mask: (batch, seq_len) padding mask (True = ignore)
+
+        Returns:
+            pooled: (batch, output_dim) pooled representation
+        """
+        batch_size = x.size(0)
+
+        # Expand queries for batch: [n_queries, hidden_dim] -> [batch, n_queries, hidden_dim]
+        queries = self.queries.unsqueeze(0).expand(batch_size, -1, -1)
+
+        # Multi-head attention: queries attend to sequence
+        # queries: [B, n_queries, D], x: [B, seq_len, D]
+        attn_out, attn_weights = self.attention(
+            queries, x, x,
+            key_padding_mask=mask
+        )
+        # attn_out: [B, n_queries, D]
+
+        # Flatten queries and project
+        pooled = attn_out.reshape(batch_size, -1)  # [B, n_queries * D]
+        pooled = self.out_proj(pooled)  # [B, output_dim]
+        pooled = self.layer_norm(pooled)
+        pooled = self.dropout(pooled)
+
+        return pooled
+
+    def forward_with_weights(
+        self,
+        x: torch.Tensor,
+        mask: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Forward pass that also returns attention weights for visualization."""
+        batch_size = x.size(0)
+        queries = self.queries.unsqueeze(0).expand(batch_size, -1, -1)
+
+        attn_out, attn_weights = self.attention(
+            queries, x, x,
+            key_padding_mask=mask,
+            average_attn_weights=False  # Keep per-head weights
+        )
+
+        pooled = attn_out.reshape(batch_size, -1)
+        pooled = self.out_proj(pooled)
+        pooled = self.layer_norm(pooled)
+        pooled = self.dropout(pooled)
+
+        return pooled, attn_weights
+
+
+class MultiScaleTemporalEncoder(nn.Module):
+    """
+    Enhanced encoder with multi-scale temporal convolutions.
+
+    Uses dilated convolutions at multiple scales to capture both fine-grained
+    (high-frequency vibrations) and long-range (operation-level) patterns
+    before feeding into LSTM for sequential modeling.
+
+    Architecture:
+    1. Multi-scale 1D convolutions with different kernel sizes and dilations
+    2. Feature fusion via 1x1 convolution
+    3. Bidirectional LSTM for sequence modeling
+    4. Multi-head attention pooling for fixed-size output
+    """
+
+    def __init__(
+        self,
+        input_dim: int = 155,
+        hidden_dim: int = 256,
+        latent_dim: int = 128,
+        n_scales: int = 4,
+        kernel_sizes: Optional[List[int]] = None,
+        dilations: Optional[List[int]] = None,
+        lstm_layers: int = 2,
+        dropout: float = 0.3,
+        use_multihead_pooling: bool = True,
+        pooling_n_heads: int = 4,
+        pooling_n_queries: int = 8,
+    ):
+        """
+        Args:
+            input_dim: Input feature dimension (e.g., 155 sensor features)
+            hidden_dim: Hidden dimension after convolutions
+            latent_dim: Output latent dimension
+            n_scales: Number of parallel conv branches
+            kernel_sizes: Kernel sizes for each scale (default: [3, 5, 7, 11])
+            dilations: Dilation rates for each scale (default: [1, 2, 4, 8])
+            lstm_layers: Number of LSTM layers
+            dropout: Dropout rate
+            use_multihead_pooling: Use multi-head attention pooling vs simple mean
+            pooling_n_heads: Number of attention heads for pooling
+            pooling_n_queries: Number of learned queries for pooling
+        """
+        super().__init__()
+
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.latent_dim = latent_dim
+        self.n_scales = n_scales
+
+        # Default kernel sizes and dilations if not provided
+        kernel_sizes = kernel_sizes or [3, 5, 7, 11]
+        dilations = dilations or [1, 2, 4, 8]
+
+        # Ensure we have the right number of scales
+        assert len(kernel_sizes) == n_scales, f"Expected {n_scales} kernel sizes"
+        assert len(dilations) == n_scales, f"Expected {n_scales} dilations"
+
+        self.kernel_sizes = kernel_sizes
+        self.dilations = dilations
+
+        # Multi-scale conv branches (each outputs hidden_dim // n_scales channels)
+        branch_dim = hidden_dim // n_scales
+        self.conv_branches = nn.ModuleList()
+        for k, d in zip(kernel_sizes, dilations):
+            # Calculate padding to maintain temporal dimension
+            padding = (k - 1) * d // 2
+            branch = nn.Sequential(
+                nn.Conv1d(input_dim, branch_dim, kernel_size=k, dilation=d, padding=padding),
+                nn.BatchNorm1d(branch_dim),
+                nn.GELU(),
+                nn.Dropout(dropout),
+            )
+            self.conv_branches.append(branch)
+
+        # Fusion: combine multi-scale features
+        self.fusion = nn.Sequential(
+            nn.Conv1d(hidden_dim, hidden_dim, kernel_size=1),
+            nn.BatchNorm1d(hidden_dim),
+            nn.GELU(),
+        )
+
+        # Temporal modeling with bidirectional LSTM
+        self.lstm = nn.LSTM(
+            input_size=hidden_dim,
+            hidden_size=hidden_dim,
+            num_layers=lstm_layers,
+            batch_first=True,
+            bidirectional=True,
+            dropout=dropout if lstm_layers > 1 else 0,
+        )
+
+        # Project LSTM output (bidirectional: 2*hidden_dim) to latent_dim
+        self.proj = nn.Sequential(
+            nn.Linear(hidden_dim * 2, latent_dim),
+            nn.LayerNorm(latent_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+        )
+
+        # Pooling to get fixed-size representation
+        self.use_multihead_pooling = use_multihead_pooling
+        if use_multihead_pooling:
+            self.pooling = MultiHeadAttentionPooling(
+                hidden_dim=latent_dim,
+                n_heads=pooling_n_heads,
+                n_queries=pooling_n_queries,
+                dropout=dropout,
+                output_dim=latent_dim,
+            )
+        else:
+            # Simple attention pooling (single query)
+            self.pooling_query = nn.Parameter(torch.randn(1, 1, latent_dim) * 0.02)
+            self.pooling_attn = nn.MultiheadAttention(
+                latent_dim, num_heads=1, batch_first=True
+            )
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        lengths: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Forward pass through multi-scale temporal encoder.
+
+        Args:
+            x: (batch, seq_len, input_dim) raw sensor features
+            lengths: (batch,) actual sequence lengths for packing
+
+        Returns:
+            features: (batch, latent_dim) pooled representation
+            memory: (batch, seq_len, latent_dim) sequence for cross-attention
+        """
+        B, T, C = x.shape
+
+        # x: [B, T, C] -> [B, C, T] for 1D convolutions
+        x_conv = x.transpose(1, 2)
+
+        # Multi-scale convolutions
+        branch_outs = [branch(x_conv) for branch in self.conv_branches]
+        # Each branch output: [B, hidden_dim // n_scales, T]
+
+        # Concatenate along channel dimension
+        x_multi = torch.cat(branch_outs, dim=1)  # [B, hidden_dim, T]
+
+        # Fuse multi-scale features
+        x_fused = self.fusion(x_multi)  # [B, hidden_dim, T]
+
+        # [B, hidden_dim, T] -> [B, T, hidden_dim] for LSTM
+        x_seq = x_fused.transpose(1, 2)
+
+        # Pack sequences for efficient LSTM processing if lengths provided
+        if lengths is not None:
+            # Clamp lengths to valid range
+            lengths_clamped = lengths.clamp(min=1, max=T).cpu()
+            x_packed = nn.utils.rnn.pack_padded_sequence(
+                x_seq, lengths_clamped, batch_first=True, enforce_sorted=False
+            )
+            lstm_out, _ = self.lstm(x_packed)
+            lstm_out, _ = nn.utils.rnn.pad_packed_sequence(
+                lstm_out, batch_first=True, total_length=T
+            )
+        else:
+            lstm_out, _ = self.lstm(x_seq)
+        # lstm_out: [B, T, hidden_dim * 2] (bidirectional)
+
+        # Project to latent dimension
+        memory = self.proj(lstm_out)  # [B, T, latent_dim]
+
+        # Create padding mask if lengths provided
+        pad_mask = None
+        if lengths is not None:
+            pad_mask = make_pad_mask(lengths, max_len=T)  # True at PAD positions
+
+        # Pool to fixed-size representation
+        if self.use_multihead_pooling:
+            features = self.pooling(memory, mask=pad_mask)  # [B, latent_dim]
+        else:
+            # Simple attention pooling
+            query = self.pooling_query.expand(B, -1, -1)
+            features, _ = self.pooling_attn(query, memory, memory, key_padding_mask=pad_mask)
+            features = features.squeeze(1)  # [B, latent_dim]
+
+        return features, memory
+
+
+class AuxiliarySupervisionHeads(nn.Module):
+    """
+    Auxiliary supervision heads to shape encoder representations.
+
+    These heads predict various properties of the G-code sequence from
+    the encoder's latent representation, encouraging the encoder to learn
+    features that are useful for the downstream task.
+
+    Auxiliary tasks:
+    1. Motion type prediction (rapid, linear, arc_cw, arc_ccw, dwell)
+    2. Sequence length prediction (regression)
+    3. Movement magnitude bins (X/Y/Z movement scale)
+    4. Parameter presence prediction (which params appear: X, Y, Z, R, F)
+    """
+
+    def __init__(
+        self,
+        latent_dim: int = 128,
+        n_motion_types: int = 5,
+        n_magnitude_bins: int = 10,
+        n_param_types: int = 5,
+        hidden_dim: Optional[int] = None,
+        dropout: float = 0.2,
+    ):
+        """
+        Args:
+            latent_dim: Input latent dimension from encoder
+            n_motion_types: Number of motion type classes
+            n_magnitude_bins: Number of magnitude discretization bins
+            n_param_types: Number of parameter types to predict presence
+            hidden_dim: Hidden dimension for heads (default: latent_dim // 2)
+            dropout: Dropout rate
+        """
+        super().__init__()
+
+        self.latent_dim = latent_dim
+        hidden_dim = hidden_dim or latent_dim // 2
+
+        # Motion type prediction (classification)
+        # Predicts: rapid (G0), linear (G1), arc_cw (G2), arc_ccw (G3), dwell (G4)
+        self.motion_head = nn.Sequential(
+            nn.Linear(latent_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, n_motion_types),
+        )
+
+        # Sequence length prediction (regression)
+        # Predicts the number of tokens in the G-code sequence
+        self.length_head = nn.Sequential(
+            nn.Linear(latent_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, 1),
+        )
+
+        # Movement magnitude bins (classification)
+        # Predicts which magnitude bin (small, medium, large movement)
+        self.magnitude_head = nn.Sequential(
+            nn.Linear(latent_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, n_magnitude_bins),
+        )
+
+        # Parameter presence prediction (multi-label binary classification)
+        # Predicts which parameters appear in sequence: [has_X, has_Y, has_Z, has_R, has_F]
+        self.param_presence_head = nn.Sequential(
+            nn.Linear(latent_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, n_param_types),
+        )
+
+    def forward(self, features: torch.Tensor) -> Dict[str, torch.Tensor]:
+        """
+        Compute auxiliary predictions from encoder features.
+
+        Args:
+            features: (batch, latent_dim) encoder output
+
+        Returns:
+            Dict with:
+                - motion_logits: (batch, n_motion_types)
+                - length_pred: (batch,) predicted sequence length
+                - magnitude_logits: (batch, n_magnitude_bins)
+                - param_presence_logits: (batch, n_param_types)
+        """
+        return {
+            'motion_logits': self.motion_head(features),
+            'length_pred': self.length_head(features).squeeze(-1),
+            'magnitude_logits': self.magnitude_head(features),
+            'param_presence_logits': self.param_presence_head(features),
+        }
+
+
+def compute_auxiliary_loss(
+    aux_outputs: Dict[str, torch.Tensor],
+    targets: Dict[str, torch.Tensor],
+    weight: float = 0.3,
+    weights: Optional[Dict[str, float]] = None,
+) -> Tuple[torch.Tensor, Dict[str, float]]:
+    """
+    Compute weighted auxiliary supervision loss.
+
+    Args:
+        aux_outputs: Dict from AuxiliarySupervisionHeads.forward()
+        targets: Dict with optional keys:
+            - motion_type: (batch,) motion type labels
+            - seq_length: (batch,) sequence lengths
+            - magnitude_bin: (batch,) magnitude bin labels
+            - param_presence: (batch, n_params) binary presence labels
+        weight: Overall weight for auxiliary losses
+        weights: Per-task weights dict (e.g., {'motion': 1.0, 'length': 0.5})
+
+    Returns:
+        total_loss: Weighted sum of all auxiliary losses
+        loss_dict: Individual loss values for logging
+    """
+    device = aux_outputs['motion_logits'].device
+    losses = {}
+    loss_values = {}
+
+    # Default per-task weights
+    task_weights = {
+        'motion': 1.0,
+        'length': 0.5,
+        'magnitude': 0.8,
+        'param_presence': 0.7,
+    }
+    if weights is not None:
+        task_weights.update(weights)
+
+    # Motion type loss (classification)
+    if 'motion_type' in targets and targets['motion_type'] is not None:
+        motion_loss = F.cross_entropy(
+            aux_outputs['motion_logits'],
+            targets['motion_type'].to(device)
+        )
+        losses['motion'] = motion_loss * task_weights['motion']
+        loss_values['aux_motion_loss'] = motion_loss.item()
+
+    # Sequence length loss (regression with smooth L1)
+    if 'seq_length' in targets and targets['seq_length'] is not None:
+        length_loss = F.smooth_l1_loss(
+            aux_outputs['length_pred'],
+            targets['seq_length'].float().to(device)
+        )
+        losses['length'] = length_loss * task_weights['length']
+        loss_values['aux_length_loss'] = length_loss.item()
+
+    # Magnitude bin loss (classification)
+    if 'magnitude_bin' in targets and targets['magnitude_bin'] is not None:
+        magnitude_loss = F.cross_entropy(
+            aux_outputs['magnitude_logits'],
+            targets['magnitude_bin'].to(device)
+        )
+        losses['magnitude'] = magnitude_loss * task_weights['magnitude']
+        loss_values['aux_magnitude_loss'] = magnitude_loss.item()
+
+    # Parameter presence loss (binary cross-entropy)
+    if 'param_presence' in targets and targets['param_presence'] is not None:
+        param_loss = F.binary_cross_entropy_with_logits(
+            aux_outputs['param_presence_logits'],
+            targets['param_presence'].float().to(device)
+        )
+        losses['param_presence'] = param_loss * task_weights['param_presence']
+        loss_values['aux_param_presence_loss'] = param_loss.item()
+
+    # Compute total weighted loss
+    if losses:
+        total_loss = sum(losses.values()) * weight
+        loss_values['aux_total_loss'] = total_loss.item()
+    else:
+        # No auxiliary targets available - return zero loss without breaking gradients
+        total_loss = torch.tensor(0.0, device=device, requires_grad=False)
+        loss_values['aux_total_loss'] = 0.0
+
+    return total_loss, loss_values
+
+
+class EnhancedEncoder(nn.Module):
+    """
+    Enhanced encoder combining all Phase 1.6 improvements.
+
+    Features:
+    1. Multi-scale temporal convolutions for capturing patterns at different scales
+    2. Bidirectional LSTM for sequential modeling
+    3. Multi-head attention pooling for rich sequence representation
+    4. Optional auxiliary supervision heads
+    5. Support for partial unfreezing during training
+
+    Can be used as a drop-in replacement for the MM-DTAE-LSTM encoder.
+    """
+
+    def __init__(
+        self,
+        input_dim: int = 155,
+        hidden_dim: int = 256,
+        latent_dim: int = 128,
+        n_operations: int = 9,
+        # Multi-scale conv options
+        use_multiscale: bool = True,
+        n_scales: int = 4,
+        kernel_sizes: Optional[List[int]] = None,
+        dilations: Optional[List[int]] = None,
+        # LSTM options
+        lstm_layers: int = 2,
+        # Pooling options
+        use_multihead_pooling: bool = True,
+        pooling_n_heads: int = 4,
+        pooling_n_queries: int = 8,
+        # Auxiliary heads
+        use_auxiliary_heads: bool = False,
+        # Regularization
+        dropout: float = 0.3,
+    ):
+        """
+        Args:
+            input_dim: Raw sensor feature dimension
+            hidden_dim: Internal hidden dimension
+            latent_dim: Output latent dimension
+            n_operations: Number of operation types for classification
+            use_multiscale: Whether to use multi-scale conv (vs simple projection)
+            n_scales: Number of conv scales
+            kernel_sizes: Kernel sizes per scale
+            dilations: Dilation rates per scale
+            lstm_layers: Number of LSTM layers
+            use_multihead_pooling: Use multi-head attention pooling
+            pooling_n_heads: Number of pooling attention heads
+            pooling_n_queries: Number of learned query vectors
+            use_auxiliary_heads: Add auxiliary supervision heads
+            dropout: Dropout rate
+        """
+        super().__init__()
+
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.latent_dim = latent_dim
+        self.use_multiscale = use_multiscale
+        self.use_auxiliary_heads = use_auxiliary_heads
+
+        if use_multiscale:
+            # Multi-scale temporal encoder
+            self.temporal_encoder = MultiScaleTemporalEncoder(
+                input_dim=input_dim,
+                hidden_dim=hidden_dim,
+                latent_dim=latent_dim,
+                n_scales=n_scales,
+                kernel_sizes=kernel_sizes,
+                dilations=dilations,
+                lstm_layers=lstm_layers,
+                dropout=dropout,
+                use_multihead_pooling=use_multihead_pooling,
+                pooling_n_heads=pooling_n_heads,
+                pooling_n_queries=pooling_n_queries,
+            )
+        else:
+            # Simple encoder (for ablation)
+            self.input_proj = nn.Sequential(
+                nn.Linear(input_dim, hidden_dim),
+                nn.LayerNorm(hidden_dim),
+                nn.GELU(),
+                nn.Dropout(dropout),
+            )
+            self.lstm = nn.LSTM(
+                input_size=hidden_dim,
+                hidden_size=hidden_dim,
+                num_layers=lstm_layers,
+                batch_first=True,
+                bidirectional=True,
+                dropout=dropout if lstm_layers > 1 else 0,
+            )
+            self.proj = nn.Sequential(
+                nn.Linear(hidden_dim * 2, latent_dim),
+                nn.LayerNorm(latent_dim),
+                nn.GELU(),
+            )
+            if use_multihead_pooling:
+                self.pooling = MultiHeadAttentionPooling(
+                    latent_dim, n_heads=pooling_n_heads,
+                    n_queries=pooling_n_queries, dropout=dropout
+                )
+            else:
+                self.pooling = None
+
+        # Operation classification head
+        self.classifier = nn.Sequential(
+            nn.Linear(latent_dim, latent_dim // 2),
+            nn.LayerNorm(latent_dim // 2),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(latent_dim // 2, n_operations),
+        )
+
+        # Auxiliary supervision heads (optional)
+        if use_auxiliary_heads:
+            self.aux_heads = AuxiliarySupervisionHeads(
+                latent_dim=latent_dim,
+                dropout=dropout,
+            )
+        else:
+            self.aux_heads = None
+
+    def encode(
+        self,
+        x: torch.Tensor,
+        lengths: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Encode sensor features to latent representation.
+
+        Args:
+            x: (batch, seq_len, input_dim) raw sensor features
+            lengths: (batch,) actual sequence lengths
+
+        Returns:
+            features: (batch, latent_dim) pooled representation
+            memory: (batch, seq_len, latent_dim) sequence for cross-attention
+        """
+        if self.use_multiscale:
+            return self.temporal_encoder(x, lengths)
+        else:
+            # Simple encoder path
+            B, T, _ = x.shape
+            x = self.input_proj(x)
+
+            if lengths is not None:
+                lengths_clamped = lengths.clamp(min=1, max=T).cpu()
+                x_packed = nn.utils.rnn.pack_padded_sequence(
+                    x, lengths_clamped, batch_first=True, enforce_sorted=False
+                )
+                lstm_out, _ = self.lstm(x_packed)
+                lstm_out, _ = nn.utils.rnn.pad_packed_sequence(
+                    lstm_out, batch_first=True, total_length=T
+                )
+            else:
+                lstm_out, _ = self.lstm(x)
+
+            memory = self.proj(lstm_out)
+
+            # Pool
+            if self.pooling is not None:
+                pad_mask = make_pad_mask(lengths, max_len=T) if lengths is not None else None
+                features = self.pooling(memory, mask=pad_mask)
+            else:
+                # Simple mean pooling
+                if lengths is not None:
+                    pad_mask = make_pad_mask(lengths, max_len=T)
+                    mask = (~pad_mask).unsqueeze(-1).float()
+                    features = (memory * mask).sum(dim=1) / (mask.sum(dim=1) + 1e-8)
+                else:
+                    features = memory.mean(dim=1)
+
+            return features, memory
+
+    def classify(
+        self,
+        features: torch.Tensor,
+    ) -> Tuple[torch.Tensor, Optional[Dict[str, torch.Tensor]]]:
+        """
+        Classify operation type from features.
+
+        Args:
+            features: (batch, latent_dim) encoder output
+
+        Returns:
+            logits: (batch, n_operations) classification logits
+            aux_outputs: Optional auxiliary head outputs
+        """
+        logits = self.classifier(features)
+
+        aux_outputs = None
+        if self.aux_heads is not None:
+            aux_outputs = self.aux_heads(features)
+
+        return logits, aux_outputs
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        lengths: Optional[torch.Tensor] = None,
+    ) -> Dict[str, torch.Tensor]:
+        """
+        Full forward pass.
+
+        Args:
+            x: (batch, seq_len, input_dim) raw sensor features
+            lengths: (batch,) actual sequence lengths
+
+        Returns:
+            Dict with:
+                - features: (batch, latent_dim) pooled representation
+                - memory: (batch, seq_len, latent_dim) sequence
+                - cls_logits: (batch, n_operations) classification logits
+                - aux_outputs: Optional auxiliary predictions
+        """
+        features, memory = self.encode(x, lengths)
+        cls_logits, aux_outputs = self.classify(features)
+
+        return {
+            'features': features,
+            'memory': memory,
+            'cls_logits': cls_logits,
+            'aux_outputs': aux_outputs,
+        }
+
+    def get_unfrozen_params(
+        self,
+        n_layers: int = 0,
+    ) -> List[nn.Parameter]:
+        """
+        Get parameters for partial unfreezing.
+
+        Args:
+            n_layers: Number of layers to unfreeze from the end
+                      0 = all frozen, -1 = all unfrozen
+
+        Returns:
+            List of parameters to optimize
+        """
+        if n_layers == 0:
+            return []
+
+        if n_layers == -1:
+            return list(self.parameters())
+
+        # For multi-scale encoder, unfreeze LSTM and pooling
+        params = []
+
+        if self.use_multiscale:
+            # Unfreeze projection and pooling (closest to output)
+            params.extend(self.temporal_encoder.proj.parameters())
+            if hasattr(self.temporal_encoder, 'pooling'):
+                params.extend(self.temporal_encoder.pooling.parameters())
+
+            # Optionally unfreeze LSTM
+            if n_layers >= 2:
+                params.extend(self.temporal_encoder.lstm.parameters())
+        else:
+            params.extend(self.proj.parameters())
+            if self.pooling is not None:
+                params.extend(self.pooling.parameters())
+            if n_layers >= 2:
+                params.extend(self.lstm.parameters())
+
+        return params

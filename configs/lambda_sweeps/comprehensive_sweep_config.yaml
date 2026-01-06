@@ -1,0 +1,148 @@
+# Comprehensive Ray Tune Sweep Configuration
+# Maximum exploration of hyperparameter space
+# Target: Lambda Labs GPU cluster (8x L40S)
+
+name: gcode-comprehensive-sweep
+project: gcode-fingerprinting
+
+# Search space - comprehensive exploration
+search_space:
+  # ============ MODEL ARCHITECTURE ============
+  d_model:
+    type: choice
+    values: [384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536]
+
+  n_heads:
+    type: choice
+    values: [4, 8, 12, 16, 20, 24, 32]
+
+  n_layers:
+    type: choice
+    values: [4, 6, 8, 10, 12, 14, 16]
+
+  # FFN multiplier (d_ff = d_model * ffn_multiplier)
+  ffn_multiplier:
+    type: choice
+    values: [2, 3, 4, 5, 6]
+
+  # ============ REGULARIZATION ============
+  dropout:
+    type: uniform
+    min: 0.15
+    max: 0.55
+
+  embed_dropout:
+    type: uniform
+    min: 0.05
+    max: 0.40
+
+  drop_path_rate:
+    type: uniform
+    min: 0.0
+    max: 0.30
+
+  # ============ SENSOR PRIOR ============
+  use_sensor_prior:
+    type: choice
+    values: [true, false]
+
+  sensor_prior_weight:
+    type: uniform
+    min: 0.20
+    max: 0.90
+
+  # ============ TRAINING HYPERPARAMETERS ============
+  learning_rate:
+    type: loguniform
+    min: 5e-6
+    max: 1e-3
+
+  weight_decay:
+    type: loguniform
+    min: 0.005
+    max: 0.20
+
+  warmup_epochs:
+    type: choice
+    values: [5, 8, 10, 12, 15, 18, 20, 25, 30]
+
+  restart_period:
+    type: choice
+    values: [10, 15, 20, 25, 30, 35, 40, 50]
+
+  label_smoothing:
+    type: uniform
+    min: 0.02
+    max: 0.25
+
+  # ============ BATCH & OPTIMIZATION ============
+  batch_size:
+    type: choice
+    values: [4, 8, 12, 16, 24, 32, 48]
+
+  grad_clip:
+    type: choice
+    values: [0.25, 0.5, 1.0, 2.0, 5.0]
+
+  # Beta parameters for AdamW
+  beta1:
+    type: uniform
+    min: 0.85
+    max: 0.95
+
+  beta2:
+    type: uniform
+    min: 0.95
+    max: 0.9999
+
+  # ============ ENCODER POOLING ============
+  pooling_n_heads:
+    type: choice
+    values: [2, 4, 8, 16, 32]
+
+  pooling_n_queries:
+    type: choice
+    values: [4, 8, 16, 32, 64]
+
+  # ============ SEQUENCE LENGTH ============
+  max_seq_len:
+    type: choice
+    values: [24, 32, 48, 64]
+
+# Fixed parameters
+fixed:
+  seed: 123
+  max_epochs: 350  # Extended training for convergence
+  patience: 80     # Long patience for slow learners
+  use_enhanced_encoder: true
+
+# Ray Tune settings
+ray_tune:
+  num_samples: 200  # Many trials
+  max_concurrent_trials: 8
+
+  scheduler:
+    type: ASHAScheduler
+    max_t: 350      # Match max_epochs
+    grace_period: 30  # At least 30 epochs before pruning
+    reduction_factor: 3
+
+  search_alg:
+    type: OptunaSearch
+    metric: val_token_acc
+    mode: max
+
+# Resources per trial
+resources:
+  gpu: 1
+  cpu: 4
+
+# Checkpointing
+checkpoint:
+  frequency: 10
+  keep_num: 5
+
+# WandB integration
+wandb:
+  project: gcode-comprehensive-sweep
+  group: lambda-comprehensive-sweep

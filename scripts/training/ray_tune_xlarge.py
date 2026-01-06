@@ -91,16 +91,19 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         vocab_data = json.load(f)
     vocab = vocab_data['vocab']
 
+    # Configurable sequence length
+    max_seq_len = config.get('max_seq_len', 32)
+
     # Load datasets (augmentation handled separately if needed)
     train_dataset = DecoderDatasetFromSplits(
         split_dir=data_dir,
         split='train',
-        max_token_len=32,
+        max_token_len=max_seq_len,
     )
     val_dataset = DecoderDatasetFromSplits(
         split_dir=data_dir,
         split='val',
-        max_token_len=32,
+        max_token_len=max_seq_len,
     )
 
     batch_size = config.get('batch_size', 16)
@@ -113,7 +116,7 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         collate_fn=decoder_collate_fn, num_workers=2, pin_memory=True
     )
 
-    # Create encoder
+    # Create encoder with configurable pooling
     encoder = EnhancedEncoder(
         input_dim=155,
         hidden_dim=256,
@@ -121,6 +124,8 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         n_operations=9,
         use_multiscale=True,
         n_scales=4,
+        pooling_n_heads=config.get('pooling_n_heads', 8),
+        pooling_n_queries=config.get('pooling_n_queries', 16),
     )
 
     # Load pretrained encoder weights
@@ -145,6 +150,10 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
                 n_heads = nh
                 break
 
+    # Calculate FFN dimension from multiplier (default 4x)
+    ffn_multiplier = config.get('ffn_multiplier', 4)
+    d_ff = d_model * ffn_multiplier
+
     decoder = SensorMultiHeadDecoder(
         sensor_dim=128,
         d_model=d_model,
@@ -155,12 +164,15 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         n_types=4,
         n_commands=6,
         n_param_types=10,
+        d_ff=d_ff,
         dropout=config['dropout'],
-        max_seq_len=32,
+        max_seq_len=max_seq_len,
         n_decimal_digits=4,
         max_int_digits=2,
         embed_dropout=config['embed_dropout'],
         drop_path_rate=config['drop_path_rate'],
+        use_sensor_prior=config.get('use_sensor_prior', True),
+        sensor_prior_weight=config.get('sensor_prior_weight', 0.5),
     )
 
     if hasattr(decoder, 'set_vocab'):
@@ -168,11 +180,14 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
 
     decoder.to(device)
 
-    # Optimizer
+    # Optimizer with configurable betas
+    beta1 = config.get('beta1', 0.9)
+    beta2 = config.get('beta2', 0.999)
     optimizer = AdamW(
         decoder.parameters(),
         lr=config['learning_rate'],
         weight_decay=config['weight_decay'],
+        betas=(beta1, beta2),
     )
 
     # Scheduler
@@ -198,7 +213,15 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
     patience_counter = 0
     patience = config.get('patience', 40)
 
+    # Compute model size once
+    n_params = sum(p.numel() for p in decoder.parameters())
+    n_trainable = sum(p.numel() for p in decoder.parameters() if p.requires_grad)
+
+    import time
+
     for epoch in range(max_epochs):
+        epoch_start_time = time.time()
+
         # Training
         decoder.train()
         train_loss = 0.0
@@ -236,7 +259,8 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
 
             # Backward
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(decoder.parameters(), 1.0)
+            grad_clip = config.get('grad_clip', 1.0)
+            torch.nn.utils.clip_grad_norm_(decoder.parameters(), grad_clip)
             optimizer.step()
 
             train_loss += loss.item()
@@ -294,14 +318,69 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         avg_train_loss = train_loss / len(train_loader)
         avg_val_loss = val_loss / len(val_loader)
 
+        # Calculate additional metrics
+        epoch_time = time.time() - epoch_start_time
+        current_lr = optimizer.param_groups[0]['lr']
+        overfitting_gap = train_acc - val_acc  # Positive = overfitting
+        loss_gap = avg_val_loss - avg_train_loss  # Positive = overfitting
+        samples_per_sec = len(train_dataset) / epoch_time if epoch_time > 0 else 0
+
+        # GPU memory (if available)
+        gpu_memory_mb = 0
+        gpu_utilization = 0
+        if torch.cuda.is_available():
+            gpu_memory_mb = torch.cuda.max_memory_allocated() / 1024 / 1024
+            # Reset peak memory stats for next epoch
+            torch.cuda.reset_peak_memory_stats()
+
         # Report to Ray Tune (use session.report for Tune)
         from ray.air import session
         session.report({
+            # Core metrics
             'epoch': epoch,
             'train_loss': avg_train_loss,
             'val_loss': avg_val_loss,
             'train_token_acc': train_acc,
             'val_token_acc': val_acc,
+
+            # Learning dynamics
+            'learning_rate': current_lr,
+            'best_val_acc': best_val_acc,
+            'overfitting_gap': overfitting_gap,
+            'loss_gap': loss_gap,
+
+            # Training progress
+            'patience_counter': patience_counter,
+            'epochs_since_best': patience_counter,
+
+            # Performance metrics
+            'epoch_time_sec': epoch_time,
+            'samples_per_sec': samples_per_sec,
+            'gpu_memory_mb': gpu_memory_mb,
+
+            # Model info (constant per trial)
+            'n_params_millions': n_params / 1e6,
+            'n_trainable_millions': n_trainable / 1e6,
+
+            # Architecture (for filtering in dashboard)
+            'd_model': d_model,
+            'n_heads': n_heads,
+            'n_layers': int(config['n_layers']),
+            'ffn_multiplier': ffn_multiplier,
+            'batch_size': batch_size,
+            'max_seq_len': max_seq_len,
+
+            # Regularization params
+            'dropout': config['dropout'],
+            'embed_dropout': config['embed_dropout'],
+            'drop_path_rate': config['drop_path_rate'],
+            'label_smoothing': label_smoothing,
+            'weight_decay': config['weight_decay'],
+            'grad_clip': config.get('grad_clip', 1.0),
+
+            # Sensor prior
+            'use_sensor_prior': config.get('use_sensor_prior', True),
+            'sensor_prior_weight': config.get('sensor_prior_weight', 0.5),
         })
 
         # Early stopping

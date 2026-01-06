@@ -1,0 +1,130 @@
+# Expanded Ray Tune Sweep Configuration
+# Explores wider hyperparameter space based on initial sweep results
+# Target: Lambda Labs GPU cluster (8x L40S)
+
+name: gcode-expanded-sweep
+project: gcode-fingerprinting
+
+# Search space - expanded exploration
+search_space:
+  # Model architecture - wider range
+  d_model:
+    type: choice
+    values: [512, 768, 1024, 1280, 1536]
+
+  n_heads:
+    type: choice
+    values: [8, 16, 24, 32]
+
+  n_layers:
+    type: choice
+    values: [6, 8, 10, 12, 14]
+
+  # FFN multiplier (d_ff = d_model * ffn_multiplier)
+  ffn_multiplier:
+    type: choice
+    values: [2, 3, 4]
+
+  # Regularization - expanded ranges
+  dropout:
+    type: uniform
+    min: 0.20
+    max: 0.50
+
+  embed_dropout:
+    type: uniform
+    min: 0.10
+    max: 0.35
+
+  drop_path_rate:
+    type: uniform
+    min: 0.05
+    max: 0.25
+
+  # Sensor prior
+  sensor_prior_weight:
+    type: uniform
+    min: 0.30
+    max: 0.80
+
+  # Training hyperparameters
+  learning_rate:
+    type: loguniform
+    min: 1e-5
+    max: 5e-4
+
+  weight_decay:
+    type: loguniform
+    min: 0.01
+    max: 0.15
+
+  warmup_epochs:
+    type: choice
+    values: [8, 12, 15, 18, 22, 25]
+
+  restart_period:
+    type: choice
+    values: [15, 20, 25, 30, 40]
+
+  label_smoothing:
+    type: uniform
+    min: 0.05
+    max: 0.20
+
+  # Batch size
+  batch_size:
+    type: choice
+    values: [8, 16, 24, 32]
+
+  # Gradient clipping
+  grad_clip:
+    type: choice
+    values: [0.5, 1.0, 2.0]
+
+  # Encoder pooling configuration
+  pooling_n_heads:
+    type: choice
+    values: [4, 8, 16]
+
+  pooling_n_queries:
+    type: choice
+    values: [8, 16, 32]
+
+# Fixed parameters
+fixed:
+  seed: 123
+  max_epochs: 150
+  patience: 35
+  use_sensor_prior: true
+  use_enhanced_encoder: true
+
+# Ray Tune settings
+ray_tune:
+  num_samples: 100
+  max_concurrent_trials: 8
+
+  scheduler:
+    type: ASHAScheduler
+    max_t: 150
+    grace_period: 15
+    reduction_factor: 3
+
+  search_alg:
+    type: OptunaSearch
+    metric: val_token_acc
+    mode: max
+
+# Resources per trial
+resources:
+  gpu: 1
+  cpu: 4
+
+# Checkpointing
+checkpoint:
+  frequency: 5
+  keep_num: 3
+
+# WandB integration
+wandb:
+  project: gcode-expanded-sweep
+  group: lambda-expanded-sweep
