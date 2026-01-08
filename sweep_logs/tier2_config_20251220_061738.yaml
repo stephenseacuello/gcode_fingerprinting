@@ -1,0 +1,119 @@
+# Tier 2: Data Augmentation & Training Strategy Sweep
+# Focus: Optimize data augmentation and training techniques using best architecture from Tier 1
+# Duration: ~5 days (500 runs across 8 GPUs)
+#
+# Note: Architecture params (d_model, n_layers, etc.) should be injected from Tier 1 best config
+#       Use envsubst or the launch script to resolve ${TIER1_*} variables
+#
+# Usage:
+#   # After Tier 1 completes, inject best config:
+#   envsubst < configs/sweep_tier2_augmentation.yaml > configs/sweep_tier2_resolved.yaml
+#   wandb sweep configs/sweep_tier2_resolved.yaml
+
+program: scripts/train_sensor_multihead.py
+method: bayes
+metric:
+  name: val/sequence_accuracy
+  goal: maximize
+
+early_terminate:
+  type: hyperband
+  min_iter: 1
+  eta: 3
+  s: 2
+
+command:
+  
+  - .venv/bin/python
+  - ${program}
+  - --use-wandb
+  - --wandb-project=gcode-sweep-tier2
+  - --max-epochs=3
+  - --patience=2
+  - --split-dir=outputs/processed_v3
+  - --vocab-path=data/vocabulary_4digit_full.json
+  - --encoder-path=outputs/mm_dtae_lstm_v2/best_model.pt
+  - --use-enhanced-encoder
+  - --use-multiscale-encoder
+  - --use-multihead-pooling
+  # Architecture from Tier 1 best (defaults - update after Tier 1)
+  - --d-model=256
+  - --n-layers=4
+  - --n-heads=8
+  - --dropout=0.3
+  - --learning-rate=0.0002
+  - --optimizer=adamw
+  - ${args_no_hyphens}
+
+parameters:
+  # === Data Augmentation (PRIMARY FOCUS) ===
+  augment:
+    value: true
+  augment_prob:
+    distribution: uniform
+    min: 0.1
+    max: 0.6
+  noise_level:
+    distribution: uniform
+    min: 0.005
+    max: 0.05
+  shift_range:
+    values: [1, 2, 3]
+  scale_range_min:
+    values: [0.95, 0.97, 0.98]
+  scale_range_max:
+    values: [1.02, 1.03, 1.05]
+  time_warp_sigma:
+    distribution: uniform
+    min: 0.05
+    max: 0.25
+  feature_dropout_prob:
+    distribution: uniform
+    min: 0.0
+    max: 0.15
+  cutout_length:
+    values: [1, 2, 3, 4]
+  jitter_sigma:
+    distribution: uniform
+    min: 0.002
+    max: 0.02
+  oversample_rare:
+    values: [true, false]
+  oversample_factor:
+    values: [2, 3, 5]
+
+  # === Training Strategy ===
+  scheduled_sampling:
+    values: [true, false]
+  teacher_forcing_start:
+    values: [0.9, 1.0]
+  teacher_forcing_end:
+    values: [0.1, 0.2, 0.3, 0.5]
+  teacher_forcing_decay_epochs:
+    values: [30, 50, 70]
+  curriculum:
+    values: [true, false]
+
+  # === Focal Loss Tuning ===
+  use_focal_loss:
+    value: true
+  focal_gamma:
+    values: [1.0, 2.0, 3.0, 4.0]
+  focal_alpha:
+    distribution: uniform
+    min: 0.15
+    max: 0.5
+  digit_focal_gamma:
+    values: [3.0, 5.0, 7.0, 9.0]
+  label_smoothing:
+    distribution: uniform
+    min: 0.0
+    max: 0.15
+
+  # === Grammar Constraints ===
+  use_grammar_constraints:
+    values: [true, false]
+  grammar_weight:
+    distribution: uniform
+    min: 0.0
+    max: 0.3

@@ -1,0 +1,146 @@
+# Lambda GPU Cluster - Focused Hyperparameter Sweep
+#
+# This sweep focuses on the MOST IMPACTFUL parameters discovered from:
+# - Current best: 81.76% token accuracy (d_model=256, n_layers=5, n_heads=8)
+# - Key enablers: type-constraint, sensor-prior, position-weights, error-sampling
+#
+# Smaller search space = faster convergence to optimum
+# Estimated runtime: ~1 day with 200 runs, 100 epochs each on 8x A100
+#
+# Usage:
+#   wandb sweep configs/sweep_lambda_focused.yaml
+#   for i in {0..7}; do CUDA_VISIBLE_DEVICES=$i wandb agent <sweep_id> --count 25 & done
+
+program: scripts/train_sensor_multihead.py
+method: bayes
+metric:
+  name: val/token_accuracy
+  goal: maximize
+
+early_terminate:
+  type: hyperband
+  min_iter: 20
+  eta: 3
+  s: 2
+
+command:
+  - python
+  - ${program}
+  - --use-wandb
+  - --wandb-project=gcode-lambda-focused
+  - --split-dir=outputs/stratified_splits_full_vocab
+  - --vocab-path=data/vocabulary_4digit_full.json
+  - --encoder-path=outputs/mm_dtae_lstm_v2/best_model.pt
+  - --output-dir=outputs/sweep_runs/${env:WANDB_RUN_ID:sweep_run}
+  # PROVEN BENEFICIAL - always enabled
+  - --use-type-constraint
+  - --use-sensor-prior
+  - --use-position-weights
+  - --use-error-sampling
+  - --adaptive-weighting
+  - --optimizer=adamw
+  - --lr-scheduler=cosine
+  - --max-epochs=100
+  - --patience=30
+  - ${args}
+
+parameters:
+  # === TOP PRIORITY: Architecture ===
+  d-model:
+    values: [256, 320, 384]  # 256 was best, explore larger
+  n-layers:
+    values: [5, 6, 7]  # 5 was best, try deeper
+  n-heads:
+    values: [8, 16]
+  dropout:
+    distribution: uniform
+    min: 0.30
+    max: 0.45  # 0.35 was best
+
+  # === HIGH PRIORITY: Learning Rate ===
+  learning-rate:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.0003  # 0.00015 was best
+  weight-decay:
+    distribution: uniform
+    min: 0.04
+    max: 0.08  # 0.05 was best
+  warmup-epochs:
+    values: [8, 10, 12]
+
+  # === HIGH PRIORITY: Feature Weights ===
+  sensor-prior-weight:
+    distribution: uniform
+    min: 0.4
+    max: 0.7  # 0.5 was best
+  position-weight-scale:
+    values: [2.5, 3.0, 3.5, 4.0]  # 3.0 was best
+  error-boost:
+    values: [1.5, 2.0, 2.5]  # 2.0 was best
+
+  # === MEDIUM PRIORITY: Loss Weights ===
+  label-smoothing:
+    distribution: uniform
+    min: 0.08
+    max: 0.15  # 0.1 was best
+  command-weight:
+    distribution: uniform
+    min: 2.0
+    max: 3.0  # 2.5 was best
+
+  # === MEDIUM PRIORITY: Batch & Regularization ===
+  batch-size:
+    values: [24, 32]
+  embed-dropout:
+    distribution: uniform
+    min: 0.10
+    max: 0.20  # 0.15 was best
+  grad-clip:
+    values: [0.8, 1.0, 1.2]
+
+  # === NEW: Encoder Enhancements ===
+  use-enhanced-encoder:
+    values: [true, false]
+  use-multihead-pooling:
+    values: [true, false]
+  use-auxiliary-heads:
+    values: [true, false]
+  auxiliary-loss-weight:
+    distribution: uniform
+    min: 0.2
+    max: 0.4
+
+  # === NEW: Advanced Loss ===
+  use-eos-calibration:
+    values: [true, false]
+  eos-calibration-weight:
+    distribution: uniform
+    min: 0.1
+    max: 0.3
+  digit-focal-gamma:
+    values: [5.0, 6.0, 7.0]
+
+  # === NEW: LR Schedule ===
+  warmup-type:
+    values: [linear, cosine]
+
+  # === NEW: Progressive Augmentation ===
+  progressive-augmentation:
+    values: [true, false]
+  augment-start:
+    value: 0.1
+  augment-end:
+    distribution: uniform
+    min: 0.3
+    max: 0.5
+
+  # === NEW: Regularization ===
+  drop-path-rate:
+    distribution: uniform
+    min: 0.0
+    max: 0.15
+
+  # === Ensemble Diversity ===
+  seed:
+    values: [42, 123, 456, 789, 1337]

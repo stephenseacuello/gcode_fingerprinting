@@ -1,0 +1,40 @@
+{
+  "name": "best_model_config",
+  "description": "Best model configuration from Ray Tune sweep",
+
+  "d_model": 768,
+  "n_heads": 16,
+  "n_layers": 10,
+  "ffn_multiplier": 4,
+
+  "dropout": 0.35,
+  "embed_dropout": 0.20,
+  "drop_path_rate": 0.15,
+
+  "use_sensor_prior": true,
+  "sensor_prior_weight": 0.55,
+
+  "learning_rate": 1e-4,
+  "weight_decay": 0.05,
+  "warmup_epochs": 15,
+  "restart_period": 25,
+  "label_smoothing": 0.10,
+
+  "batch_size": 16,
+  "grad_clip": 1.0,
+  "beta1": 0.9,
+  "beta2": 0.999,
+
+  "pooling_n_heads": 8,
+  "pooling_n_queries": 16,
+
+  "max_seq_len": 32,
+  "max_epochs": 200,
+  "patience": 50,
+  "seed": 42,
+
+  "sensor_input_dim": 155,
+  "use_enhanced_encoder": true,
+  "use_multihead_pooling": true,
+  "use_multiscale": true
+}

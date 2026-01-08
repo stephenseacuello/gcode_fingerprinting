@@ -9,12 +9,14 @@ Implements various augmentation strategies to address class imbalance:
 - Mixup augmentation
 - Time warping (DTW-inspired)
 - Cutout (temporal masking)
+- Token-level mixup (NEW)
+- Adversarial perturbations (NEW)
 """
 
 import torch
 import torch.nn.functional as F
 import numpy as np
-from typing import Dict, Optional, Tuple, List
+from typing import Dict, Optional, Tuple, List, Callable
 import random
 from scipy.interpolate import interp1d
 
@@ -280,18 +282,57 @@ class DataAugmenter:
 
         return torch.cat(segments, dim=0)
 
+    def adversarial_perturbation(
+        self,
+        continuous: torch.Tensor,
+        epsilon: float = 0.01,
+        gradient_fn: Optional[Callable] = None,
+    ) -> torch.Tensor:
+        """
+        Apply adversarial perturbation to sensor data.
+
+        Uses FGSM-style perturbation if gradient_fn is provided,
+        otherwise uses random direction perturbation.
+
+        Args:
+            continuous: [T, D] sensor data
+            epsilon: Maximum perturbation magnitude
+            gradient_fn: Optional function that computes gradients w.r.t. input
+
+        Returns:
+            Adversarially perturbed sensor data [T, D]
+        """
+        if gradient_fn is not None:
+            # FGSM-style: perturb in gradient direction
+            continuous_grad = continuous.clone().requires_grad_(True)
+            grad = gradient_fn(continuous_grad)
+            perturbation = epsilon * torch.sign(grad)
+        else:
+            # Random direction perturbation (when no gradient available)
+            # Generate smooth random perturbation
+            T, D = continuous.shape
+            random_dir = torch.randn_like(continuous)
+            # Normalize to unit norm per feature
+            norms = random_dir.norm(dim=0, keepdim=True) + 1e-8
+            random_dir = random_dir / norms
+            perturbation = epsilon * random_dir * continuous.abs().mean()
+
+        return continuous + perturbation
+
     def augment_sample(self, sample: Dict, strong: bool = False) -> Dict:
         """
         Apply random augmentations to a sample.
 
         Args:
-            sample: Dictionary with 'continuous', 'categorical', 'tokens', 'length'
+            sample: Dictionary with sensor features (supports both 'continuous' and 'sensor_features' keys)
             strong: If True, apply more aggressive augmentation
 
         Returns:
             Augmented sample dictionary
         """
-        continuous = sample['continuous'].clone()
+        # Support both key names for sensor data
+        sensor_key = 'sensor_features' if 'sensor_features' in sample else 'continuous'
+        continuous = sample[sensor_key].clone()
 
         # Determine augmentation probability (higher for strong mode)
         aug_prob = self.augment_prob * 1.5 if strong else self.augment_prob
@@ -326,17 +367,14 @@ class DataAugmenter:
         if strong and random.random() < 0.2:
             continuous = self.permute_segments(continuous)
 
-        # Return augmented sample (tokens and categorical unchanged)
-        return {
-            'continuous': continuous,
-            'categorical': sample['categorical'],
-            'tokens': sample['tokens'],
-            'residuals': sample.get('residuals', torch.zeros(1)),  # Pass through residuals
-            'param_value_raw': sample.get('param_value_raw', torch.zeros(1)),  # Pass through param_value_raw
-            'length': sample['length'],
-            'gcode_text': sample.get('gcode_text', ''),
-            'operation_type': sample.get('operation_type', 0)  # Pass through operation_type
-        }
+        # Adversarial perturbation (very low probability, strong mode only)
+        if strong and random.random() < 0.1:
+            continuous = self.adversarial_perturbation(continuous, epsilon=0.01)
+
+        # Return augmented sample - preserve all original keys and update sensor data
+        result = dict(sample)  # Copy all original keys
+        result[sensor_key] = continuous  # Update sensor data with augmented version
+        return result
 
 
 class AugmentedGCodeDataset(torch.utils.data.Dataset):
@@ -433,6 +471,189 @@ class AugmentedGCodeDataset(torch.utils.data.Dataset):
             sample = self.augmenter.augment_sample(sample)
 
         return sample
+
+
+class TokenMixup:
+    """
+    Token-level mixup for similar operations.
+
+    Mixes sensor embeddings between samples of the same operation type
+    to create synthetic training examples.
+    """
+
+    # Define which operations are similar and can be mixed
+    SIMILAR_OPS = {
+        # Normal operations
+        0: [0, 1],       # adaptive <-> adaptive150025
+        1: [0, 1],
+        2: [2, 3],       # face <-> face150025
+        3: [2, 3],
+        4: [4, 5],       # pocket <-> pocket150025
+        5: [4, 5],
+        # Damage operations (can mix among themselves)
+        6: [6, 7, 8],    # damageadaptive <-> damageface <-> damagepocket
+        7: [6, 7, 8],
+        8: [6, 7, 8],
+    }
+
+    def __init__(
+        self,
+        alpha: float = 0.2,
+        mixup_prob: float = 0.3,
+        same_op_only: bool = True,
+    ):
+        """
+        Args:
+            alpha: Beta distribution parameter for mixup ratio
+            mixup_prob: Probability of applying mixup
+            same_op_only: If True, only mix within same operation type
+        """
+        self.alpha = alpha
+        self.mixup_prob = mixup_prob
+        self.same_op_only = same_op_only
+
+    def mixup_batch(
+        self,
+        sensor_features: torch.Tensor,
+        tokens: torch.Tensor,
+        operation_types: torch.Tensor,
+        targets: Optional[Dict[str, torch.Tensor]] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, Optional[Dict]]:
+        """
+        Apply mixup to a batch of samples.
+
+        Args:
+            sensor_features: [B, T, D] sensor embeddings
+            tokens: [B, L] input tokens
+            operation_types: [B] operation type indices
+            targets: Optional target dictionary
+
+        Returns:
+            Mixed sensor features, tokens, labels, and optionally mixed targets
+        """
+        if random.random() > self.mixup_prob:
+            return sensor_features, tokens, operation_types, targets
+
+        B = sensor_features.size(0)
+        device = sensor_features.device
+
+        # Sample mixup coefficient from Beta distribution
+        lam = np.random.beta(self.alpha, self.alpha)
+
+        # Find mixup partners based on operation similarity
+        mix_indices = torch.zeros(B, dtype=torch.long, device=device)
+
+        for i in range(B):
+            op_type = operation_types[i].item()
+            if self.same_op_only:
+                # Find samples with same operation type
+                same_op_mask = (operation_types == op_type)
+                candidates = same_op_mask.nonzero(as_tuple=True)[0]
+            else:
+                # Find samples with similar operation type
+                similar_ops = self.SIMILAR_OPS.get(op_type, [op_type])
+                similar_mask = torch.zeros(B, dtype=torch.bool, device=device)
+                for sim_op in similar_ops:
+                    similar_mask |= (operation_types == sim_op)
+                candidates = similar_mask.nonzero(as_tuple=True)[0]
+
+            if len(candidates) > 1:
+                # Remove self from candidates
+                candidates = candidates[candidates != i]
+                if len(candidates) > 0:
+                    mix_indices[i] = candidates[torch.randint(len(candidates), (1,))]
+                else:
+                    mix_indices[i] = i
+            else:
+                mix_indices[i] = i
+
+        # Mix sensor features
+        mixed_sensors = lam * sensor_features + (1 - lam) * sensor_features[mix_indices]
+
+        # For tokens and targets, we use the original (hard labels)
+        # The mixup is only applied to continuous sensor features
+
+        return mixed_sensors, tokens, operation_types, targets
+
+
+class TemperatureSampler:
+    """
+    Temperature-based batch sampler for upweighting rare operations.
+
+    Uses softmax temperature to control the sampling distribution:
+    - Lower temperature -> more uniform sampling
+    - Higher temperature -> more frequency-based sampling
+    """
+
+    def __init__(
+        self,
+        labels: List[int],
+        temperature: float = 0.5,
+        base_weight: float = 1.0,
+    ):
+        """
+        Args:
+            labels: List of operation type labels for all samples
+            temperature: Sampling temperature (lower = more uniform)
+            base_weight: Minimum weight for any class
+        """
+        self.labels = np.array(labels)
+        self.temperature = temperature
+        self.base_weight = base_weight
+
+        # Compute class frequencies
+        unique, counts = np.unique(self.labels, return_counts=True)
+        self.class_counts = dict(zip(unique, counts))
+
+        # Compute sampling weights using temperature
+        self._compute_weights()
+
+    def _compute_weights(self):
+        """Compute sample weights based on inverse frequency with temperature."""
+        n_samples = len(self.labels)
+        max_count = max(self.class_counts.values())
+
+        # Inverse frequency with temperature scaling
+        class_weights = {}
+        for cls, count in self.class_counts.items():
+            # Apply temperature: higher temp = closer to original freq
+            # Lower temp = more uniform
+            weight = (max_count / count) ** (1.0 / self.temperature)
+            class_weights[cls] = max(weight, self.base_weight)
+
+        # Assign weights to samples
+        self.weights = np.array([class_weights[label] for label in self.labels])
+
+        # Normalize
+        self.weights = self.weights / self.weights.sum() * n_samples
+
+    def get_sampler(self) -> torch.utils.data.WeightedRandomSampler:
+        """Get a WeightedRandomSampler with computed weights."""
+        return torch.utils.data.WeightedRandomSampler(
+            weights=self.weights.tolist(),
+            num_samples=len(self.labels),
+            replacement=True,
+        )
+
+    def get_batch_weights(self, batch_labels: torch.Tensor) -> torch.Tensor:
+        """
+        Get per-sample weights for a batch.
+
+        Useful for weighted loss computation within a batch.
+
+        Args:
+            batch_labels: [B] operation type indices
+
+        Returns:
+            [B] weights for each sample
+        """
+        device = batch_labels.device
+        weights = torch.tensor(
+            [self.weights[self.labels == label.item()].mean()
+             for label in batch_labels],
+            device=device,
+        )
+        return weights
 
 
 def get_rare_token_ids(vocab_path: str) -> list:

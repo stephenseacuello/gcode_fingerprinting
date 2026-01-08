@@ -1,0 +1,11 @@
+{
+  "individual": {
+    "ensemble_seedA1": 0.8392171910974674,
+    "ensemble_seedA2": 0.8399846508058327,
+    "ensemble_seedA3": 0.8411358403683806
+  },
+  "ensemble": 0.843054489639294,
+  "best_individual": 0.8411358403683806,
+  "improvement": 0.0019186492709133418,
+  "note": null
+}

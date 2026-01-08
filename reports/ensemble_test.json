@@ -1,0 +1,19 @@
+{
+  "individual_models": {
+    "outputs/breakthrough_full_vocab/best_model.pt": {
+      "token_accuracy": 0.13315425940138143,
+      "type_accuracy": 0.0
+    },
+    "outputs/ensemble_test/model_seed_123/best_model.pt": {
+      "token_accuracy": 0.09861857252494244,
+      "type_accuracy": 0.0
+    }
+  },
+  "ensemble": {
+    "token_accuracy": 0.22908672294704527,
+    "type_accuracy": 0.0,
+    "n_models": 2
+  },
+  "best_individual": 0.13315425940138143,
+  "improvement": 0.09593246354566384
+}

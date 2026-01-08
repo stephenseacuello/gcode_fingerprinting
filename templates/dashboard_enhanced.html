@@ -905,6 +905,409 @@
             background: #f44336;
             animation: pulse-danger 0.5s infinite;
         }
+
+        /* ======================= TOOLPATH VISUALIZATION STYLES ======================= */
+
+        .toolpath-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .toolpath-control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toolpath-control-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .toolpath-control-group select,
+        .toolpath-control-group input[type="range"] {
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .playback-controls {
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+        }
+
+        .playback-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 4px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .playback-btn:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .playback-btn.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .playback-btn.jump-error {
+            background: #f44336;
+            color: white;
+        }
+
+        .playback-btn.jump-error:hover {
+            background: #d32f2f;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .speed-control input[type="range"] {
+            width: 80px;
+        }
+
+        .speed-value {
+            font-size: 0.875rem;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        /* 3D Plot Containers */
+        .toolpath-plots-container {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .toolpath-plots-container.single-view {
+            grid-template-columns: 1fr;
+        }
+
+        .toolpath-plots-container.side-by-side {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .toolpath-plot-wrapper {
+            position: relative;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .toolpath-plot-wrapper .plot-label {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        /* Accuracy Timeline */
+        .accuracy-timeline-container {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .accuracy-timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .accuracy-timeline-header h4 {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .timeline-legend {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.75rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.correct { background: #4CAF50; }
+        .legend-dot.partial { background: #FF9800; }
+        .legend-dot.wrong { background: #f44336; }
+
+        #accuracyTimelineChart {
+            height: 120px;
+            cursor: pointer;
+        }
+
+        /* Metrics Panel */
+        .toolpath-metrics {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .toolpath-metric-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .toolpath-metric-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .toolpath-metric-value.accuracy { color: #4CAF50; }
+        .toolpath-metric-value.mean-error { color: #2196F3; }
+        .toolpath-metric-value.max-error { color: #FF9800; }
+        .toolpath-metric-value.points { color: #9C27B0; }
+
+        .toolpath-metric-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Command Comparison Panel */
+        .command-comparison {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .command-comparison-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .command-number {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .command-match-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .command-match-badge.correct {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+
+        .command-match-badge.partial {
+            background: rgba(255, 152, 0, 0.2);
+            color: #FF9800;
+        }
+
+        .command-match-badge.wrong {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .command-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .command-label {
+            min-width: 50px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .command-value {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.875rem;
+            background: var(--bg-primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            flex: 1;
+        }
+
+        .command-value.gt { border-left: 3px solid #2196F3; }
+        .command-value.pred { border-left: 3px solid #FF9800; }
+
+        /* Command diff highlighting */
+        .diff-match { color: inherit; }
+        .diff-deletion {
+            color: #EF5350;
+            text-decoration: line-through;
+            background: rgba(239, 83, 80, 0.15);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        .diff-insertion {
+            color: #66BB6A;
+            background: rgba(102, 187, 106, 0.2);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        .diff-substitution {
+            color: #FFA726;
+            background: rgba(255, 167, 38, 0.2);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        .command-error-info {
+            display: flex;
+            gap: 2rem;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.875rem;
+        }
+
+        .error-stat {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .error-stat-label {
+            color: var(--text-secondary);
+        }
+
+        .error-stat-value {
+            font-weight: 600;
+        }
+
+        /* View Mode Toggle */
+        .view-mode-toggle {
+            display: flex;
+            background: var(--bg-primary);
+            border-radius: 6px;
+            padding: 0.25rem;
+            gap: 0.25rem;
+        }
+
+        .view-mode-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .view-mode-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .view-mode-btn.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* Scope Controls */
+        .scope-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .scope-control select {
+            min-width: 120px;
+        }
+
+        /* No Data State */
+        .toolpath-no-data {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .toolpath-no-data-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .toolpath-no-data h3 {
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Animation for current point marker */
+        @keyframes pulse-marker {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .toolpath-plots-container.side-by-side {
+                grid-template-columns: 1fr;
+            }
+
+            .toolpath-metrics {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .toolpath-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolpath-metrics {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
     </style>
 </head>
 <body data-theme="light">
@@ -922,6 +1325,7 @@
     <div class="tab-nav">
         <button class="tab-nav-btn active" data-tab="dashboard">📊 Dashboard</button>
         <button class="tab-nav-btn" data-tab="control-center" id="controlCenterTab">🛡️ Control Center</button>
+        <button class="tab-nav-btn" data-tab="toolpath" id="toolpathTab">🛤️ Toolpath</button>
     </div>
 
     <div class="container">
@@ -2018,6 +2422,167 @@
             </div>
         </div>
         </div><!-- End Dashboard Tab -->
+
+        <!-- ==================== TOOLPATH VISUALIZATION TAB ==================== -->
+        <div class="tab-content" id="toolpath-content">
+            <!-- Controls -->
+            <div class="toolpath-controls">
+                <!-- View Mode Toggle -->
+                <div class="toolpath-control-group">
+                    <label>View:</label>
+                    <div class="view-mode-toggle">
+                        <button class="view-mode-btn active" data-mode="error-colored" title="Single path colored by accuracy">Error Colored</button>
+                        <button class="view-mode-btn" data-mode="overlaid" title="GT and Predicted paths overlaid">Overlaid</button>
+                        <button class="view-mode-btn" data-mode="side-by-side" title="Side-by-side synchronized views">Side by Side</button>
+                    </div>
+                </div>
+
+                <!-- Scope Selector -->
+                <div class="toolpath-control-group scope-control">
+                    <label>Scope:</label>
+                    <select id="toolpathScope">
+                        <option value="full">Full Session</option>
+                        <option value="last50">Last 50</option>
+                        <option value="last100">Last 100</option>
+                        <option value="last200">Last 200</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                    <input type="number" id="scopeStart" placeholder="Start" style="width: 80px; display: none;">
+                    <input type="number" id="scopeEnd" placeholder="End" style="width: 80px; display: none;">
+                </div>
+
+                <!-- Playback Controls -->
+                <div class="toolpath-control-group">
+                    <label>Playback:</label>
+                    <div class="playback-controls">
+                        <button class="playback-btn" id="tpRewind" title="Go to start">⏮</button>
+                        <button class="playback-btn" id="tpStepBack" title="Step back">◀</button>
+                        <button class="playback-btn" id="tpPlay" title="Play/Pause">▶</button>
+                        <button class="playback-btn" id="tpStepForward" title="Step forward">▶</button>
+                        <button class="playback-btn" id="tpFastForward" title="Go to end">⏭</button>
+                        <button class="playback-btn jump-error" id="tpJumpError" title="Jump to next error">🔴</button>
+                    </div>
+                </div>
+
+                <!-- Speed Control -->
+                <div class="toolpath-control-group speed-control">
+                    <label>Speed:</label>
+                    <input type="range" id="tpSpeed" min="1" max="10" value="3">
+                    <span class="speed-value" id="tpSpeedValue">3x</span>
+                </div>
+
+                <!-- Refresh Button -->
+                <button class="btn btn-secondary" id="tpRefresh" style="margin-left: auto;">↻ Refresh</button>
+            </div>
+
+            <!-- No Data State -->
+            <div id="toolpathNoData" class="toolpath-no-data">
+                <div class="toolpath-no-data-icon">🛤️</div>
+                <h3>No Toolpath Data Available</h3>
+                <p>Run inference on sensor data to generate GT vs Predicted toolpath visualization.</p>
+                <p style="font-size: 0.875rem; margin-top: 1rem;">
+                    The toolpath visualization compares ground truth G-code commands with model predictions,<br>
+                    showing position errors and accuracy in 3D space.
+                </p>
+            </div>
+
+            <!-- Main Visualization (hidden until data available) -->
+            <div id="toolpathVisualization" style="display: none;">
+                <!-- Metrics Panel -->
+                <div class="toolpath-metrics">
+                    <div class="toolpath-metric-card">
+                        <div class="toolpath-metric-value accuracy" id="tpAccuracy">--</div>
+                        <div class="toolpath-metric-label">Accuracy</div>
+                    </div>
+                    <div class="toolpath-metric-card">
+                        <div class="toolpath-metric-value mean-error" id="tpMeanError">--</div>
+                        <div class="toolpath-metric-label">Mean Error (mm)</div>
+                    </div>
+                    <div class="toolpath-metric-card">
+                        <div class="toolpath-metric-value max-error" id="tpMaxError">--</div>
+                        <div class="toolpath-metric-label">Max Error (mm)</div>
+                    </div>
+                    <div class="toolpath-metric-card">
+                        <div class="toolpath-metric-value points" id="tpPoints">--</div>
+                        <div class="toolpath-metric-label">Total Points</div>
+                    </div>
+                </div>
+
+                <!-- 3D Plot Container -->
+                <div class="toolpath-plots-container single-view" id="toolpathPlotsContainer">
+                    <!-- Error-Colored Single View (default) -->
+                    <div class="toolpath-plot-wrapper" id="errorColoredPlotWrapper">
+                        <span class="plot-label">GT vs Predicted (Error-Colored)</span>
+                        <div id="errorColoredPlot" style="width: 100%; height: 500px;"></div>
+                    </div>
+
+                    <!-- Overlaid View (hidden by default) -->
+                    <div class="toolpath-plot-wrapper" id="overlaidPlotWrapper" style="display: none;">
+                        <span class="plot-label">Overlaid: GT (Blue) + Pred (Orange)</span>
+                        <div id="overlaidPlot" style="width: 100%; height: 500px;"></div>
+                    </div>
+
+                    <!-- Side-by-Side Views (hidden by default) -->
+                    <div class="toolpath-plot-wrapper" id="gtPlotWrapper" style="display: none;">
+                        <span class="plot-label">Ground Truth</span>
+                        <div id="gtPlot" style="width: 100%; height: 500px;"></div>
+                    </div>
+                    <div class="toolpath-plot-wrapper" id="predPlotWrapper" style="display: none;">
+                        <span class="plot-label">Predicted</span>
+                        <div id="predPlot" style="width: 100%; height: 500px;"></div>
+                    </div>
+                </div>
+
+                <!-- Accuracy Timeline -->
+                <div class="accuracy-timeline-container">
+                    <div class="accuracy-timeline-header">
+                        <h4>Accuracy Timeline (Click to Jump)</h4>
+                        <div class="timeline-legend">
+                            <div class="legend-item">
+                                <span class="legend-dot correct"></span>
+                                <span>Correct</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot partial"></span>
+                                <span>Partial</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot wrong"></span>
+                                <span>Wrong</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="accuracyTimelineChart"></div>
+                </div>
+
+                <!-- Command Comparison Panel -->
+                <div class="command-comparison" id="commandComparison">
+                    <div class="command-comparison-header">
+                        <span class="command-number" id="cmdNumber">Command #--</span>
+                        <span class="command-match-badge correct" id="cmdBadge">--</span>
+                    </div>
+                    <div class="command-row">
+                        <span class="command-label">GT:</span>
+                        <span class="command-value gt" id="cmdGt">--</span>
+                    </div>
+                    <div class="command-row">
+                        <span class="command-label">Pred:</span>
+                        <span class="command-value pred" id="cmdPred">--</span>
+                    </div>
+                    <div class="command-error-info">
+                        <div class="error-stat">
+                            <span class="error-stat-label">Position Error:</span>
+                            <span class="error-stat-value" id="cmdError">-- mm</span>
+                        </div>
+                        <div class="error-stat">
+                            <span class="error-stat-label">Command Match:</span>
+                            <span class="error-stat-value" id="cmdMatch">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- End Toolpath Tab -->
+
     </div><!-- End Container -->
 
     <script>
@@ -2165,6 +2730,57 @@
 
             const progress = status.total_rows > 0 ? (status.current_idx / status.total_rows) * 100 : 0;
             document.getElementById('progressBar').style.width = `${progress}%`;
+        });
+
+        // Real-time toolpath updates via WebSocket (supports both single points and batches)
+        socket.on('toolpath_update', (data) => {
+            // Initialize toolpath data if needed
+            if (!toolpathState.data) {
+                toolpathState.data = { comparison: [], metrics: {}, timeline_data: [] };
+            }
+
+            // Handle batch updates (for efficiency with large datasets)
+            if (data.batch && Array.isArray(data.batch)) {
+                // Replace recent points with batch data (avoids duplicates)
+                const batchStart = Math.max(0, data.total_points - data.batch.length);
+                // Trim to batchStart and append batch
+                toolpathState.data.comparison = toolpathState.data.comparison.slice(0, batchStart);
+                toolpathState.data.comparison.push(...data.batch);
+
+                // Rebuild error indices from batch
+                toolpathState.errorIndices = toolpathState.data.comparison
+                    .map((pt, i) => pt.accuracy_level === 'wrong' ? i : -1)
+                    .filter(i => i >= 0);
+            } else if (data.point) {
+                // Single point update (real-time streaming)
+                toolpathState.data.comparison.push(data.point);
+
+                // Track error indices
+                if (data.point.accuracy_level === 'wrong') {
+                    if (!toolpathState.errorIndices) toolpathState.errorIndices = [];
+                    toolpathState.errorIndices.push(toolpathState.data.comparison.length - 1);
+                }
+            }
+
+            // Update metrics
+            if (data.metrics) {
+                toolpathState.data.metrics = data.metrics;
+            }
+
+            // Throttled update for performance (max 10 fps)
+            throttledToolpathUpdate();
+
+            // Update metrics display immediately
+            if (data.metrics) {
+                updateMetrics(data.metrics);
+            }
+
+            // Reduced logging for batch mode
+            if (data.batch) {
+                console.log(`[Toolpath] Batch update: ${data.total_points} total points`);
+            } else {
+                console.log(`[Toolpath] Point ${data.total_points || 'N/A'} received, error: ${data.point?.error_distance?.toFixed(4) || 'N/A'}mm`);
+            }
         });
 
         socket.on('error', (data) => {
@@ -5764,6 +6380,815 @@ ${JSON.stringify(checkpoint.config, null, 2)}
         // Initialize Control Center on load
         loadSafetySettings();
         loadSensorChannels();
+
+        // ======================= TOOLPATH VISUALIZATION =======================
+
+        // Toolpath State
+        const toolpathState = {
+            data: null,           // Current toolpath data from API
+            viewMode: 'error-colored',  // 'error-colored', 'overlaid', 'side-by-side'
+            scope: 'full',        // 'full', 'last50', 'last100', 'last200', 'custom'
+            customRange: { start: 0, end: 100 },
+            currentIndex: 0,      // Current playback position
+            isPlaying: false,
+            playbackSpeed: 3,     // 1-10x speed
+            animationId: null,
+            errorIndices: [],     // Indices where errors occurred
+            lastCamera: null      // For syncing side-by-side views
+        };
+
+        // Color constants
+        const TP_COLORS = {
+            correct: '#4CAF50',
+            partial: '#FF9800',
+            wrong: '#f44336',
+            gt: '#2196F3',
+            pred: '#FF9800',
+            marker: '#E91E63'
+        };
+
+        // Continuous error gradient: Green (0 error) -> Yellow -> Red (max error)
+        function getErrorGradientColor(errorDistance, maxError = 0.1) {
+            const normalized = Math.min(errorDistance / maxError, 1.0);
+            // HSL: 120 = green, 60 = yellow, 0 = red
+            const hue = 120 * (1 - normalized);
+            return `hsl(${hue}, 70%, 50%)`;
+        }
+
+        // Get error color based on mode (discrete or continuous)
+        function getToolpathColor(pt, maxError = 0.1, useContinuous = true) {
+            if (useContinuous) {
+                return getErrorGradientColor(pt.error_distance, maxError);
+            }
+            // Fallback to discrete colors
+            return pt.accuracy_level === 'correct' ? TP_COLORS.correct :
+                   pt.accuracy_level === 'partial' ? TP_COLORS.partial : TP_COLORS.wrong;
+        }
+
+        // Motion type visualization styles
+        // G0 = rapid (dashed, thin), G1 = linear (solid), G2/G3 = arc (thick)
+        const MOTION_TYPE_STYLES = {
+            'G0': { dash: 'dash', width: 1, suffix: ' (rapid)' },
+            'G1': { dash: 'solid', width: 2, suffix: '' },
+            'G2': { dash: 'solid', width: 3, suffix: ' (CW arc)' },
+            'G3': { dash: 'solid', width: 3, suffix: ' (CCW arc)' }
+        };
+
+        // Get motion type from G-code command
+        function getMotionType(command) {
+            if (!command) return 'G1';  // Default to linear
+            const match = command.match(/^(G[0-3])/i);
+            return match ? match[1].toUpperCase() : 'G1';
+        }
+
+        // Get line style for motion type
+        function getMotionStyle(command) {
+            const type = getMotionType(command);
+            return MOTION_TYPE_STYLES[type] || MOTION_TYPE_STYLES['G1'];
+        }
+
+        // Performance throttling for large datasets
+        const TOOLPATH_THROTTLE_MS = 100;  // Max 10 updates/sec
+        let lastToolpathUpdateTime = 0;
+        let toolpathUpdatePending = false;
+
+        function throttledToolpathUpdate() {
+            const now = Date.now();
+            if (now - lastToolpathUpdateTime >= TOOLPATH_THROTTLE_MS) {
+                lastToolpathUpdateTime = now;
+                toolpathUpdatePending = false;
+                updateToolpathView();
+            } else if (!toolpathUpdatePending) {
+                toolpathUpdatePending = true;
+                setTimeout(() => {
+                    lastToolpathUpdateTime = Date.now();
+                    toolpathUpdatePending = false;
+                    updateToolpathView();
+                }, TOOLPATH_THROTTLE_MS - (now - lastToolpathUpdateTime));
+            }
+        }
+
+        // Decimate path for large datasets (Level-of-Detail)
+        function decimatePath(pathData, targetPoints = 500) {
+            if (!pathData || pathData.length <= targetPoints) return pathData;
+            const stride = Math.ceil(pathData.length / targetPoints);
+            // Always keep first, last, and error points
+            const decimated = [];
+            for (let i = 0; i < pathData.length; i++) {
+                if (i === 0 || i === pathData.length - 1 ||
+                    i % stride === 0 ||
+                    pathData[i].accuracy_level === 'wrong') {
+                    decimated.push(pathData[i]);
+                }
+            }
+            return decimated;
+        }
+
+        // Command diff highlighting - compare GT vs Pred tokens
+        function computeCommandDiff(gtCommand, predCommand) {
+            if (!gtCommand || !predCommand) {
+                return { gt: gtCommand || '', pred: predCommand || '', hasDiff: true };
+            }
+
+            const gtTokens = gtCommand.split(/\s+/);
+            const predTokens = predCommand.split(/\s+/);
+
+            let gtHtml = [];
+            let predHtml = [];
+
+            // Simple token-by-token comparison
+            const maxLen = Math.max(gtTokens.length, predTokens.length);
+            let hasDiff = false;
+
+            for (let i = 0; i < maxLen; i++) {
+                const gt = gtTokens[i] || '';
+                const pred = predTokens[i] || '';
+
+                if (gt === pred) {
+                    // Match - no highlighting
+                    gtHtml.push(`<span class="diff-match">${gt}</span>`);
+                    predHtml.push(`<span class="diff-match">${pred}</span>`);
+                } else if (!gt) {
+                    // Insertion in pred (extra token)
+                    predHtml.push(`<span class="diff-insertion">${pred}</span>`);
+                    hasDiff = true;
+                } else if (!pred) {
+                    // Deletion from gt (missing token)
+                    gtHtml.push(`<span class="diff-deletion">${gt}</span>`);
+                    hasDiff = true;
+                } else {
+                    // Substitution (different token)
+                    gtHtml.push(`<span class="diff-deletion">${gt}</span>`);
+                    predHtml.push(`<span class="diff-substitution">${pred}</span>`);
+                    hasDiff = true;
+                }
+            }
+
+            return {
+                gt: gtHtml.join(' '),
+                pred: predHtml.join(' '),
+                hasDiff: hasDiff
+            };
+        }
+
+        // Initialize toolpath visualization
+        function initializeToolpathVisualization() {
+            // View mode buttons
+            document.querySelectorAll('.view-mode-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.view-mode-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    toolpathState.viewMode = this.dataset.mode;
+                    updateToolpathView();
+                });
+            });
+
+            // Scope selector
+            const scopeSelect = document.getElementById('toolpathScope');
+            scopeSelect.addEventListener('change', function() {
+                toolpathState.scope = this.value;
+                const isCustom = this.value === 'custom';
+                document.getElementById('scopeStart').style.display = isCustom ? 'inline-block' : 'none';
+                document.getElementById('scopeEnd').style.display = isCustom ? 'inline-block' : 'none';
+                if (!isCustom) {
+                    loadToolpathData();
+                }
+            });
+
+            // Custom range inputs
+            document.getElementById('scopeStart').addEventListener('change', function() {
+                toolpathState.customRange.start = parseInt(this.value) || 0;
+                loadToolpathData();
+            });
+            document.getElementById('scopeEnd').addEventListener('change', function() {
+                toolpathState.customRange.end = parseInt(this.value) || 100;
+                loadToolpathData();
+            });
+
+            // Playback controls
+            document.getElementById('tpRewind').addEventListener('click', () => seekToPosition(0));
+            document.getElementById('tpStepBack').addEventListener('click', () => stepPlayback(-1));
+            document.getElementById('tpPlay').addEventListener('click', togglePlayback);
+            document.getElementById('tpStepForward').addEventListener('click', () => stepPlayback(1));
+            document.getElementById('tpFastForward').addEventListener('click', () => {
+                if (toolpathState.data && toolpathState.data.comparison) {
+                    seekToPosition(toolpathState.data.comparison.length - 1);
+                }
+            });
+            document.getElementById('tpJumpError').addEventListener('click', jumpToNextError);
+
+            // Speed control
+            const speedSlider = document.getElementById('tpSpeed');
+            speedSlider.addEventListener('input', function() {
+                toolpathState.playbackSpeed = parseInt(this.value);
+                document.getElementById('tpSpeedValue').textContent = this.value + 'x';
+            });
+
+            // Refresh button
+            document.getElementById('tpRefresh').addEventListener('click', loadToolpathData);
+
+            // Load initial data
+            loadToolpathData();
+        }
+
+        // Load toolpath data from API
+        async function loadToolpathData() {
+            try {
+                let url = '/api/toolpath/accumulated';
+
+                if (toolpathState.scope === 'custom') {
+                    url = `/api/toolpath/range/${toolpathState.customRange.start}/${toolpathState.customRange.end}`;
+                }
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.success && data.comparison && data.comparison.length > 0) {
+                    // Apply scope filtering for last N
+                    let comparison = data.comparison;
+                    if (toolpathState.scope.startsWith('last')) {
+                        const n = parseInt(toolpathState.scope.replace('last', ''));
+                        comparison = comparison.slice(-n);
+                    }
+
+                    toolpathState.data = {
+                        comparison: comparison,
+                        metrics: data.metrics,
+                        timeline_data: data.timeline_data
+                    };
+
+                    // Build error indices
+                    toolpathState.errorIndices = comparison
+                        .map((pt, i) => pt.accuracy_level === 'wrong' ? i : -1)
+                        .filter(i => i >= 0);
+
+                    // Show visualization
+                    document.getElementById('toolpathNoData').style.display = 'none';
+                    document.getElementById('toolpathVisualization').style.display = 'block';
+
+                    // Update all views
+                    updateMetrics(data.metrics);
+                    updateToolpathView();
+                    updateAccuracyTimeline();
+                    if (comparison.length > 0) {
+                        updateCommandComparison(toolpathState.currentIndex);
+                    }
+                } else {
+                    // No data available
+                    document.getElementById('toolpathNoData').style.display = 'block';
+                    document.getElementById('toolpathVisualization').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Failed to load toolpath data:', error);
+            }
+        }
+
+        // Update metrics display
+        function updateMetrics(metrics) {
+            if (!metrics) return;
+
+            // Note: accuracy is already a percentage (0-100) from the backend
+            document.getElementById('tpAccuracy').textContent =
+                metrics.accuracy.toFixed(1) + '%';
+            document.getElementById('tpMeanError').textContent =
+                metrics.mean_error.toFixed(4);
+            document.getElementById('tpMaxError').textContent =
+                metrics.max_error.toFixed(4);
+            document.getElementById('tpPoints').textContent =
+                metrics.total_points;
+        }
+
+        // Update toolpath view based on current mode
+        function updateToolpathView() {
+            const container = document.getElementById('toolpathPlotsContainer');
+            const data = toolpathState.data;
+            if (!data || !data.comparison) return;
+
+            // Hide all plot wrappers first
+            document.getElementById('errorColoredPlotWrapper').style.display = 'none';
+            document.getElementById('overlaidPlotWrapper').style.display = 'none';
+            document.getElementById('gtPlotWrapper').style.display = 'none';
+            document.getElementById('predPlotWrapper').style.display = 'none';
+
+            // Update container layout
+            container.classList.remove('single-view', 'side-by-side');
+
+            switch (toolpathState.viewMode) {
+                case 'error-colored':
+                    container.classList.add('single-view');
+                    document.getElementById('errorColoredPlotWrapper').style.display = 'block';
+                    renderErrorColoredPlot();
+                    break;
+                case 'overlaid':
+                    container.classList.add('single-view');
+                    document.getElementById('overlaidPlotWrapper').style.display = 'block';
+                    renderOverlaidPlot();
+                    break;
+                case 'side-by-side':
+                    container.classList.add('side-by-side');
+                    document.getElementById('gtPlotWrapper').style.display = 'block';
+                    document.getElementById('predPlotWrapper').style.display = 'block';
+                    renderSideBySidePlots();
+                    break;
+            }
+        }
+
+        // Render error-colored single plot
+        function renderErrorColoredPlot() {
+            const data = toolpathState.data;
+            if (!data || !data.comparison) return;
+
+            // Apply decimation for large datasets (>500 points)
+            const rawComparison = data.comparison;
+            const comparison = rawComparison.length > 500 ? decimatePath(rawComparison, 500) : rawComparison;
+
+            const isDark = document.body.dataset.theme === 'dark';
+            const bgColor = isDark ? '#1a1a2e' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+            const gridColor = isDark ? '#333355' : '#e0e0e0';
+
+            // Extract coordinates and colors
+            const x = [], y = [], z = [], colors = [], hoverText = [];
+
+            // Get max error for color scaling
+            const maxError = data.metrics?.max_error || 0.1;
+
+            comparison.forEach((pt, i) => {
+                // Use predicted coordinates for path
+                x.push(pt.pred.x);
+                y.push(pt.pred.y);
+                z.push(pt.pred.z);
+
+                // Color by continuous error gradient (green -> yellow -> red)
+                const color = getToolpathColor(pt, maxError, true);
+                colors.push(color);
+
+                // Include motion type in hover info
+                const motionStyle = getMotionStyle(pt.gt.command);
+                hoverText.push(
+                    `Command #${pt.index}${motionStyle.suffix}<br>` +
+                    `GT: ${pt.gt.command}<br>` +
+                    `Pred: ${pt.pred.command}<br>` +
+                    `Error: ${pt.error_distance.toFixed(4)}mm<br>` +
+                    `Accuracy: ${pt.accuracy_level}`
+                );
+            });
+
+            // Path trace
+            const pathTrace = {
+                type: 'scatter3d',
+                mode: 'lines+markers',
+                x: x,
+                y: y,
+                z: z,
+                marker: {
+                    size: 4,
+                    color: colors,
+                    opacity: 0.8
+                },
+                line: {
+                    color: colors,
+                    width: 2
+                },
+                hovertext: hoverText,
+                hoverinfo: 'text',
+                name: 'Toolpath'
+            };
+
+            // Current position marker
+            const currentIdx = Math.min(toolpathState.currentIndex, comparison.length - 1);
+            const markerTrace = {
+                type: 'scatter3d',
+                mode: 'markers',
+                x: [comparison[currentIdx].pred.x],
+                y: [comparison[currentIdx].pred.y],
+                z: [comparison[currentIdx].pred.z],
+                marker: {
+                    size: 12,
+                    color: TP_COLORS.marker,
+                    symbol: 'diamond',
+                    opacity: 1
+                },
+                name: 'Current Position',
+                hoverinfo: 'skip'
+            };
+
+            const layout = {
+                scene: {
+                    xaxis: { title: 'X (mm)', color: textColor, gridcolor: gridColor },
+                    yaxis: { title: 'Y (mm)', color: textColor, gridcolor: gridColor },
+                    zaxis: { title: 'Z (mm)', color: textColor, gridcolor: gridColor },
+                    bgcolor: bgColor
+                },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                margin: { l: 0, r: 0, t: 0, b: 0 },
+                showlegend: false
+            };
+
+            Plotly.react('errorColoredPlot', [pathTrace, markerTrace], layout, { displayModeBar: false, responsive: true });
+
+            // Store camera for syncing
+            const plotDiv = document.getElementById('errorColoredPlot');
+            plotDiv.on('plotly_relayout', function(eventData) {
+                if (eventData['scene.camera']) {
+                    toolpathState.lastCamera = eventData['scene.camera'];
+                }
+            });
+        }
+
+        // Render overlaid plot (GT blue + Pred orange)
+        function renderOverlaidPlot() {
+            const data = toolpathState.data;
+            if (!data || !data.comparison) return;
+
+            // Apply decimation for large datasets
+            const rawComparison = data.comparison;
+            const comparison = rawComparison.length > 500 ? decimatePath(rawComparison, 500) : rawComparison;
+
+            const isDark = document.body.dataset.theme === 'dark';
+            const bgColor = isDark ? '#1a1a2e' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+            const gridColor = isDark ? '#333355' : '#e0e0e0';
+
+            // GT path
+            const gtX = [], gtY = [], gtZ = [];
+            const predX = [], predY = [], predZ = [];
+
+            comparison.forEach(pt => {
+                gtX.push(pt.gt.x);
+                gtY.push(pt.gt.y);
+                gtZ.push(pt.gt.z);
+                predX.push(pt.pred.x);
+                predY.push(pt.pred.y);
+                predZ.push(pt.pred.z);
+            });
+
+            const gtTrace = {
+                type: 'scatter3d',
+                mode: 'lines+markers',
+                x: gtX, y: gtY, z: gtZ,
+                marker: { size: 3, color: TP_COLORS.gt },
+                line: { color: TP_COLORS.gt, width: 3 },
+                name: 'Ground Truth'
+            };
+
+            const predTrace = {
+                type: 'scatter3d',
+                mode: 'lines+markers',
+                x: predX, y: predY, z: predZ,
+                marker: { size: 3, color: TP_COLORS.pred },
+                line: { color: TP_COLORS.pred, width: 2, dash: 'dash' },
+                name: 'Predicted'
+            };
+
+            // Error points (wrong predictions)
+            const errorPts = comparison.filter(pt => pt.accuracy_level === 'wrong');
+            const errorTrace = {
+                type: 'scatter3d',
+                mode: 'markers',
+                x: errorPts.map(pt => pt.pred.x),
+                y: errorPts.map(pt => pt.pred.y),
+                z: errorPts.map(pt => pt.pred.z),
+                marker: { size: 8, color: TP_COLORS.wrong, symbol: 'x' },
+                name: 'Errors'
+            };
+
+            // Current position
+            const currentIdx = Math.min(toolpathState.currentIndex, comparison.length - 1);
+            const markerTrace = {
+                type: 'scatter3d',
+                mode: 'markers',
+                x: [comparison[currentIdx].pred.x],
+                y: [comparison[currentIdx].pred.y],
+                z: [comparison[currentIdx].pred.z],
+                marker: { size: 12, color: TP_COLORS.marker, symbol: 'diamond' },
+                name: 'Current',
+                hoverinfo: 'skip'
+            };
+
+            const layout = {
+                scene: {
+                    xaxis: { title: 'X (mm)', color: textColor, gridcolor: gridColor },
+                    yaxis: { title: 'Y (mm)', color: textColor, gridcolor: gridColor },
+                    zaxis: { title: 'Z (mm)', color: textColor, gridcolor: gridColor },
+                    bgcolor: bgColor
+                },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                margin: { l: 0, r: 0, t: 0, b: 0 },
+                legend: { x: 0.02, y: 0.98, bgcolor: 'rgba(0,0,0,0.5)', font: { color: 'white' } }
+            };
+
+            Plotly.react('overlaidPlot', [gtTrace, predTrace, errorTrace, markerTrace], layout, { displayModeBar: false, responsive: true });
+        }
+
+        // Render side-by-side synchronized plots
+        function renderSideBySidePlots() {
+            const data = toolpathState.data;
+            if (!data || !data.comparison) return;
+
+            // Apply decimation for large datasets
+            const rawComparison = data.comparison;
+            const comparison = rawComparison.length > 500 ? decimatePath(rawComparison, 500) : rawComparison;
+
+            const isDark = document.body.dataset.theme === 'dark';
+            const bgColor = isDark ? '#1a1a2e' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+            const gridColor = isDark ? '#333355' : '#e0e0e0';
+
+            // Extract coordinates
+            const gtX = [], gtY = [], gtZ = [];
+            const predX = [], predY = [], predZ = [], predColors = [];
+
+            // Get max error for color scaling
+            const maxError = data.metrics?.max_error || 0.1;
+
+            comparison.forEach(pt => {
+                gtX.push(pt.gt.x);
+                gtY.push(pt.gt.y);
+                gtZ.push(pt.gt.z);
+                predX.push(pt.pred.x);
+                predY.push(pt.pred.y);
+                predZ.push(pt.pred.z);
+                // Use continuous error gradient
+                predColors.push(getToolpathColor(pt, maxError, true));
+            });
+
+            const currentIdx = Math.min(toolpathState.currentIndex, comparison.length - 1);
+
+            // Shared layout config
+            const sceneConfig = {
+                xaxis: { title: 'X', color: textColor, gridcolor: gridColor },
+                yaxis: { title: 'Y', color: textColor, gridcolor: gridColor },
+                zaxis: { title: 'Z', color: textColor, gridcolor: gridColor },
+                bgcolor: bgColor,
+                camera: toolpathState.lastCamera || undefined
+            };
+
+            // GT Plot
+            const gtTrace = {
+                type: 'scatter3d',
+                mode: 'lines+markers',
+                x: gtX, y: gtY, z: gtZ,
+                marker: { size: 3, color: TP_COLORS.gt },
+                line: { color: TP_COLORS.gt, width: 2 },
+                name: 'GT Path'
+            };
+
+            const gtMarker = {
+                type: 'scatter3d',
+                mode: 'markers',
+                x: [gtX[currentIdx]], y: [gtY[currentIdx]], z: [gtZ[currentIdx]],
+                marker: { size: 12, color: TP_COLORS.marker, symbol: 'diamond' },
+                name: 'Current'
+            };
+
+            const gtLayout = {
+                scene: sceneConfig,
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                margin: { l: 0, r: 0, t: 0, b: 0 },
+                showlegend: false
+            };
+
+            Plotly.react('gtPlot', [gtTrace, gtMarker], gtLayout, { displayModeBar: false, responsive: true });
+
+            // Predicted Plot
+            const predTrace = {
+                type: 'scatter3d',
+                mode: 'lines+markers',
+                x: predX, y: predY, z: predZ,
+                marker: { size: 3, color: predColors },
+                line: { color: predColors, width: 2 },
+                name: 'Pred Path'
+            };
+
+            const predMarker = {
+                type: 'scatter3d',
+                mode: 'markers',
+                x: [predX[currentIdx]], y: [predY[currentIdx]], z: [predZ[currentIdx]],
+                marker: { size: 12, color: TP_COLORS.marker, symbol: 'diamond' },
+                name: 'Current'
+            };
+
+            const predLayout = {
+                scene: sceneConfig,
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                margin: { l: 0, r: 0, t: 0, b: 0 },
+                showlegend: false
+            };
+
+            Plotly.react('predPlot', [predTrace, predMarker], predLayout, { displayModeBar: false, responsive: true });
+
+            // Sync camera between plots
+            const gtPlot = document.getElementById('gtPlot');
+            const predPlot = document.getElementById('predPlot');
+
+            gtPlot.on('plotly_relayout', function(eventData) {
+                if (eventData['scene.camera']) {
+                    toolpathState.lastCamera = eventData['scene.camera'];
+                    Plotly.relayout('predPlot', { 'scene.camera': eventData['scene.camera'] });
+                }
+            });
+
+            predPlot.on('plotly_relayout', function(eventData) {
+                if (eventData['scene.camera']) {
+                    toolpathState.lastCamera = eventData['scene.camera'];
+                    Plotly.relayout('gtPlot', { 'scene.camera': eventData['scene.camera'] });
+                }
+            });
+        }
+
+        // Update accuracy timeline chart
+        function updateAccuracyTimeline() {
+            const data = toolpathState.data;
+            if (!data || !data.comparison) return;
+
+            const comparison = data.comparison;
+            const isDark = document.body.dataset.theme === 'dark';
+            const bgColor = isDark ? '#1a1a2e' : '#ffffff';
+            const textColor = isDark ? '#e0e0e0' : '#333333';
+
+            // Get max error for color scaling
+            const maxError = data.metrics?.max_error || 0.1;
+
+            const indices = comparison.map((_, i) => i);
+            const errors = comparison.map(pt => pt.error_distance);
+            // Use continuous error gradient for timeline
+            const colors = comparison.map(pt => getToolpathColor(pt, maxError, true));
+
+            const barTrace = {
+                type: 'bar',
+                x: indices,
+                y: errors,
+                marker: { color: colors },
+                hovertemplate: 'Command #%{x}<br>Error: %{y:.4f}mm<extra></extra>'
+            };
+
+            // Current position line
+            const currentLine = {
+                type: 'scatter',
+                mode: 'lines',
+                x: [toolpathState.currentIndex, toolpathState.currentIndex],
+                y: [0, Math.max(...errors) * 1.1],
+                line: { color: TP_COLORS.marker, width: 2, dash: 'dash' },
+                hoverinfo: 'skip'
+            };
+
+            const layout = {
+                xaxis: {
+                    title: 'Command Index',
+                    color: textColor,
+                    gridcolor: isDark ? '#333355' : '#e0e0e0'
+                },
+                yaxis: {
+                    title: 'Error (mm)',
+                    color: textColor,
+                    gridcolor: isDark ? '#333355' : '#e0e0e0'
+                },
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                margin: { l: 50, r: 20, t: 10, b: 40 },
+                showlegend: false,
+                hovermode: 'closest',
+                bargap: 0.1
+            };
+
+            Plotly.react('accuracyTimelineChart', [barTrace, currentLine], layout, { displayModeBar: false, responsive: true });
+
+            // Click handler for timeline
+            const timelineChart = document.getElementById('accuracyTimelineChart');
+            timelineChart.on('plotly_click', function(eventData) {
+                if (eventData.points && eventData.points.length > 0) {
+                    const clickedIndex = eventData.points[0].x;
+                    seekToPosition(clickedIndex);
+                }
+            });
+        }
+
+        // Update command comparison panel with diff highlighting
+        function updateCommandComparison(index) {
+            const data = toolpathState.data;
+            if (!data || !data.comparison || index >= data.comparison.length) return;
+
+            const pt = data.comparison[index];
+
+            document.getElementById('cmdNumber').textContent = `Command #${pt.index}`;
+
+            const badge = document.getElementById('cmdBadge');
+            badge.className = 'command-match-badge ' + pt.accuracy_level;
+            badge.textContent = pt.accuracy_level === 'correct' ? '✓ Correct' :
+                               pt.accuracy_level === 'partial' ? '~ Partial' : '✗ Wrong';
+
+            // Use diff highlighting for command comparison
+            const diff = computeCommandDiff(pt.gt.command, pt.pred.command);
+            document.getElementById('cmdGt').innerHTML = diff.gt;
+            document.getElementById('cmdPred').innerHTML = diff.pred;
+
+            document.getElementById('cmdError').textContent = pt.error_distance.toFixed(4) + ' mm';
+            document.getElementById('cmdMatch').textContent = pt.command_match ? '✓ Match' : '✗ Mismatch';
+        }
+
+        // Seek to specific position
+        function seekToPosition(index) {
+            const data = toolpathState.data;
+            if (!data || !data.comparison) return;
+
+            toolpathState.currentIndex = Math.max(0, Math.min(index, data.comparison.length - 1));
+            updateToolpathView();
+            updateAccuracyTimeline();
+            updateCommandComparison(toolpathState.currentIndex);
+        }
+
+        // Step playback forward/backward
+        function stepPlayback(direction) {
+            const data = toolpathState.data;
+            if (!data || !data.comparison) return;
+
+            const newIndex = toolpathState.currentIndex + direction;
+            if (newIndex >= 0 && newIndex < data.comparison.length) {
+                seekToPosition(newIndex);
+            }
+        }
+
+        // Toggle playback
+        function togglePlayback() {
+            toolpathState.isPlaying = !toolpathState.isPlaying;
+            const playBtn = document.getElementById('tpPlay');
+
+            if (toolpathState.isPlaying) {
+                playBtn.textContent = '⏸';
+                playBtn.classList.add('active');
+                startPlaybackAnimation();
+            } else {
+                playBtn.textContent = '▶';
+                playBtn.classList.remove('active');
+                stopPlaybackAnimation();
+            }
+        }
+
+        // Start playback animation
+        function startPlaybackAnimation() {
+            const data = toolpathState.data;
+            if (!data || !data.comparison) return;
+
+            const intervalMs = 1000 / toolpathState.playbackSpeed;
+
+            function animate() {
+                if (!toolpathState.isPlaying) return;
+
+                toolpathState.currentIndex++;
+                if (toolpathState.currentIndex >= data.comparison.length) {
+                    toolpathState.currentIndex = 0; // Loop
+                }
+
+                seekToPosition(toolpathState.currentIndex);
+                toolpathState.animationId = setTimeout(animate, intervalMs);
+            }
+
+            animate();
+        }
+
+        // Stop playback animation
+        function stopPlaybackAnimation() {
+            if (toolpathState.animationId) {
+                clearTimeout(toolpathState.animationId);
+                toolpathState.animationId = null;
+            }
+        }
+
+        // Jump to next error
+        function jumpToNextError() {
+            if (toolpathState.errorIndices.length === 0) return;
+
+            // Find next error after current position
+            const nextError = toolpathState.errorIndices.find(i => i > toolpathState.currentIndex);
+
+            if (nextError !== undefined) {
+                seekToPosition(nextError);
+            } else {
+                // Wrap around to first error
+                seekToPosition(toolpathState.errorIndices[0]);
+            }
+        }
+
+        // Initialize toolpath when tab is activated
+        document.querySelectorAll('.tab-nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.dataset.tab === 'toolpath') {
+                    // Initialize if first time
+                    if (!toolpathState.data) {
+                        loadToolpathData();
+                    }
+                }
+            });
+        });
+
+        // Initialize toolpath visualization on load
+        initializeToolpathVisualization();
+
     </script>
 </body>
 </html>

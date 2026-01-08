@@ -55,6 +55,12 @@ from miracle.dataset.target_utils import TokenDecomposer
 from miracle.utilities.gcode_tokenizer import GCodeTokenizer
 from miracle.training.grammar_constraints import GCodeGrammarConstraints
 from miracle.visualization.model_interpreter import ModelInterpreter
+from miracle.utilities.gcode_parser import (
+    GCodeToCoordinateParser,
+    MachineState,
+    compare_gcode_paths,
+    parse_gcode_to_coords
+)
 
 
 def convert_numpy_to_list(obj):
@@ -181,6 +187,16 @@ state = {
         'view_mode': 'grouped',  # 'key', 'grouped', 'full'
         'selected_channels': [],  # For custom selection
         'update_rate_ms': 100,  # Sensor update rate
+    },
+    # Toolpath visualization state
+    'toolpath': {
+        'comparison_points': [],  # List of ComparisonPoint dicts
+        'gt_path': [],            # Ground truth toolpath points
+        'pred_path': [],          # Predicted toolpath points
+        'metrics': {},            # PathMetrics dict
+        'timeline_data': [],      # For accuracy timeline chart
+        'machine_state': None,    # Current MachineState for continuity
+        'error_indices': [],      # Indices with errors for jump-to-error
     },
 }
 
@@ -442,11 +458,23 @@ def load_model(checkpoint_path):
             def tokens_to_gcode(self, token_ids):
                 """Convert token IDs to G-code string."""
                 tokens = []
-                for tid in token_ids:
+                param_letters = {'X', 'Y', 'Z', 'F', 'S', 'R', 'I', 'J', 'K', 'P', 'Q', 'A', 'B', 'C', 'E'}
+                token_list = list(token_ids)
+
+                for i, tid in enumerate(token_list):
                     tid = int(tid)
                     if tid in (self.bos_id, self.eos_id, self.pad_id):
                         continue
                     token_str = self.id_to_token.get(tid, f'<UNK:{tid}>')
+
+                    # Skip standalone parameter letters if next token is NUM_* with same letter
+                    # This prevents "X NUM_X_1234" -> "X X0.1234" duplication
+                    if token_str in param_letters and i + 1 < len(token_list):
+                        next_tid = int(token_list[i + 1])
+                        next_token = self.id_to_token.get(next_tid, '')
+                        if next_token.startswith(f'NUM_{token_str}_'):
+                            continue  # Skip this standalone letter
+
                     # Parse NUM_X_1234 format to actual values
                     if token_str.startswith('NUM_'):
                         # Format: NUM_X_1234 -> X1.2340 (with param prefix and 4 decimal places)
@@ -518,16 +546,44 @@ def load_model(checkpoint_path):
         grammar_constraints = None
         vocab_value_map = None
 
-        # Create metadata
-        metadata = {
+        # Load preprocessing metadata - check split_dir from args first, then standard locations
+        split_dir = args.get('split_dir', None)
+        metadata_search_dirs = []
+        if split_dir:
+            metadata_search_dirs.append(split_dir)
+        metadata_search_dirs.extend([
+            'outputs/production/data_splits',
+            'outputs/stratified_splits_full_vocab',
+            'outputs/processed_hybrid',
+            'outputs/processed',
+        ])
+
+        metadata = None
+        for data_dir_str in metadata_search_dirs:
+            data_dir = Path(data_dir_str)
+            metadata_path = data_dir / 'train_sequences_metadata.json'
+            if metadata_path.exists():
+                with open(metadata_path) as f:
+                    metadata = json.load(f)
+                logger.info(f"✓ Loaded sensor preprocessing metadata from: {metadata_path}")
+                break
+
+        if metadata is None:
+            logger.warning("⚠️ No preprocessing metadata found - using minimal metadata")
+            metadata = {}
+
+        # Add model-specific info to metadata
+        metadata.update({
             'checkpoint_path': checkpoint_path,
             'best_metric': checkpoint.get('best_metric', 0),
             'epoch': checkpoint.get('epoch', 0),
             'architecture': f'd_model={d_model}, n_heads={n_heads}, n_layers={n_layers}',
             'vocab_size': vocab_size,
-        }
+        })
 
         logger.info(f"✅ SensorMultiHeadDecoder loaded: {d_model}d, {n_heads}h, {n_layers}L, vocab={vocab_size}")
+        if 'master_columns' in metadata:
+            logger.info(f"  Metadata: {len(metadata['master_columns'])} continuous features")
 
         return model, tokenizer, config_dict, metadata, model_type, decomposer, grammar_constraints, vocab_value_map
 
@@ -679,7 +735,7 @@ def load_model(checkpoint_path):
         # Maps regression values to nearest available vocabulary tokens
         vocab_value_map = {}
         if decomposer and vocab_path.exists():
-            import json
+            # Note: json is imported at module level - don't re-import here
             vocab_data = json.load(open(vocab_path))
             param_values = {}
 
@@ -719,14 +775,22 @@ def load_model(checkpoint_path):
                 logger.warning(f"⚠️ Failed to initialize grammar constraints: {e}")
 
         # Load preprocessing metadata - try multiple locations
+        # First check if split_dir is specified in model args
         metadata = None
-        metadata_search_dirs = [
+        split_dir = args.get('split_dir', None)
+        metadata_search_dirs = []
+        if split_dir:
+            metadata_search_dirs.append(split_dir)
+        # Add standard locations
+        metadata_search_dirs.extend([
+            'outputs/production/data_splits',  # Production model splits
+            'outputs/stratified_splits_full_vocab',
             'outputs/processed_hybrid',
             'outputs/processed_with_ops',
             'outputs/processed_v2',
             'outputs/processed_2digit_FIXED',
             'outputs/processed',
-        ]
+        ])
 
         for data_dir_str in metadata_search_dirs:
             data_dir = Path(data_dir_str)
@@ -1992,6 +2056,11 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
                     'timestamp': predictions['timestamp'],
                     'token_breakdown': predictions.get('token_breakdown', [])
                 })
+
+                # Update toolpath visualization incrementally
+                if ground_truth_gcode:
+                    toolpath_point = update_toolpath_incremental(ground_truth_gcode, full_command_text)
+                    predictions['toolpath_point'] = toolpath_point
             else:
                 # Autoregressive disabled
                 predictions['full_command'] = '<DISABLED>'
@@ -3842,6 +3911,49 @@ def get_tokenizer_info():
         return jsonify({'success': False, 'error': str(e)})
 
 
+@app.route('/api/test_gcode', methods=['POST'])
+def test_gcode():
+    """Test G-code tokenization - shows how input is tokenized."""
+    if not state['tokenizer']:
+        return jsonify({'success': False, 'error': 'Tokenizer not loaded. Please load a model first.'})
+
+    try:
+        data = request.get_json()
+        gcode_input = data.get('gcode', '')
+
+        if not gcode_input.strip():
+            return jsonify({'success': False, 'error': 'No G-code provided'})
+
+        # Split input into lines
+        lines = gcode_input.strip().split('\n')
+
+        # Canonicalize and tokenize
+        tokenizer = state['tokenizer']
+        canonical_lines = tokenizer.canonicalize(lines)
+        tokens = tokenizer.tokenize_canonical(canonical_lines)
+
+        # Check how many are in vocabulary
+        in_vocab = sum(1 for t in tokens if t in tokenizer.vocab)
+        total = len(tokens)
+
+        return jsonify({
+            'success': True,
+            'input': gcode_input,
+            'canonical': canonical_lines,
+            'tokens': tokens,
+            'token_count': total,
+            'in_vocab': in_vocab,
+            'out_of_vocab': total - in_vocab,
+            'message': f'Successfully tokenized {total} tokens ({in_vocab} in vocabulary, {total - in_vocab} OOV)'
+        })
+
+    except Exception as e:
+        logger.error(f"Error testing G-code: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)})
+
+
 @app.route('/api/command_types')
 def get_command_types():
     """Get command type distribution."""
@@ -4874,6 +4986,446 @@ def get_attention_history():
 
 
 # ============================================================================
+# Toolpath Visualization API
+# ============================================================================
+
+# Initialize global parser for toolpath visualization
+toolpath_parser = GCodeToCoordinateParser(arc_segments=20)
+
+
+@app.route('/api/toolpath/parse', methods=['POST'])
+def parse_toolpath():
+    """
+    Parse GT and predicted G-code into coordinates for comparison.
+
+    Request body:
+    {
+        "gt_gcode": ["G1 X1.5 Y2.0 Z-0.1", ...],
+        "pred_gcode": ["G1 X1.5 Y2.1 Z-0.1", ...],
+        "initial_state": {"x": 0, "y": 0, "z": 0}  // optional
+    }
+
+    Returns comparison data with metrics and timeline for visualization.
+    """
+    try:
+        data = request.json
+        gt_gcode = data.get('gt_gcode', [])
+        pred_gcode = data.get('pred_gcode', [])
+        initial = data.get('initial_state', {})
+
+        # Parse and compare
+        result = compare_gcode_paths(
+            gt_gcode, pred_gcode,
+            initial_x=initial.get('x', 0),
+            initial_y=initial.get('y', 0),
+            initial_z=initial.get('z', 0)
+        )
+
+        # Update state
+        state['toolpath']['comparison_points'] = result['comparison']
+        state['toolpath']['metrics'] = result['metrics']
+        state['toolpath']['timeline_data'] = result['timeline_data']
+        state['toolpath']['error_indices'] = result['error_indices']
+
+        return jsonify({
+            'success': True,
+            'comparison': result['comparison'],
+            'metrics': result['metrics'],
+            'timeline_data': result['timeline_data'],
+            'error_indices': result['error_indices']
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to parse toolpath: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/toolpath/accumulated')
+def get_accumulated_toolpath():
+    """
+    Get the full accumulated toolpath from all predictions so far.
+
+    Returns accumulated GT and predicted paths with deviation analysis.
+    """
+    try:
+        # Collect GT and predicted G-codes from generation history
+        gt_gcode = []
+        pred_gcode = []
+
+        for entry in state['generation_history']:
+            if entry.get('ground_truth'):
+                gt_gcode.append(entry['ground_truth'])
+            if entry.get('predicted'):
+                pred_gcode.append(entry['predicted'])
+
+        if not gt_gcode and not pred_gcode:
+            return jsonify({
+                'success': True,
+                'comparison': [],
+                'metrics': {'total_points': 0, 'accuracy': 0},
+                'timeline_data': [],
+                'total_points': 0
+            })
+
+        # Parse and compare accumulated paths
+        result = compare_gcode_paths(gt_gcode, pred_gcode)
+
+        # Update state
+        state['toolpath']['comparison_points'] = result['comparison']
+        state['toolpath']['metrics'] = result['metrics']
+        state['toolpath']['timeline_data'] = result['timeline_data']
+        state['toolpath']['error_indices'] = result['error_indices']
+
+        return jsonify({
+            'success': True,
+            'comparison': result['comparison'],
+            'metrics': result['metrics'],
+            'timeline_data': result['timeline_data'],
+            'error_indices': result['error_indices'],
+            'total_points': result['metrics']['total_points']
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get accumulated toolpath: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/toolpath/range/<int:start>/<int:end>')
+def get_toolpath_range(start, end):
+    """
+    Get toolpath for a custom range of commands.
+
+    Args:
+        start: Starting index (inclusive)
+        end: Ending index (exclusive)
+
+    Returns comparison data for the specified range.
+    """
+    try:
+        history = list(state['generation_history'])
+
+        if not history:
+            return jsonify({
+                'success': False,
+                'error': 'No generation history available'
+            })
+
+        # Clamp range
+        start = max(0, start)
+        end = min(len(history), end)
+
+        gt_gcode = []
+        pred_gcode = []
+
+        for entry in history[start:end]:
+            if entry.get('ground_truth'):
+                gt_gcode.append(entry['ground_truth'])
+            if entry.get('predicted'):
+                pred_gcode.append(entry['predicted'])
+
+        if not gt_gcode and not pred_gcode:
+            return jsonify({
+                'success': True,
+                'comparison': [],
+                'metrics': {'total_points': 0, 'accuracy': 0},
+                'timeline_data': [],
+                'range': {'start': start, 'end': end}
+            })
+
+        result = compare_gcode_paths(gt_gcode, pred_gcode)
+
+        return jsonify({
+            'success': True,
+            'comparison': result['comparison'],
+            'metrics': result['metrics'],
+            'timeline_data': result['timeline_data'],
+            'error_indices': result['error_indices'],
+            'range': {'start': start, 'end': end}
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get toolpath range: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/toolpath/point/<int:idx>')
+def get_toolpath_point(idx):
+    """
+    Get detailed info for a single point (click-to-inspect).
+
+    Args:
+        idx: Index of the point in the comparison
+
+    Returns detailed comparison for that point.
+    """
+    try:
+        comparison = state['toolpath'].get('comparison_points', [])
+
+        if not comparison:
+            return jsonify({
+                'success': False,
+                'error': 'No comparison data available'
+            })
+
+        if idx < 0 or idx >= len(comparison):
+            return jsonify({
+                'success': False,
+                'error': f'Index {idx} out of range (0-{len(comparison)-1})'
+            })
+
+        point = comparison[idx]
+
+        # Get additional context from generation history if available
+        history = list(state['generation_history'])
+        confidence = None
+        if idx < len(history):
+            confidence = history[idx].get('confidence')
+
+        return jsonify({
+            'success': True,
+            'point': point,
+            'confidence': confidence,
+            'index': idx,
+            'total_points': len(comparison)
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get toolpath point: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/toolpath/errors')
+def get_toolpath_errors():
+    """
+    Get list of error indices for jump-to-error functionality.
+
+    Query params:
+        level: Minimum error level ('partial' or 'wrong'), default 'partial'
+
+    Returns list of indices where errors occurred.
+    """
+    try:
+        level = request.args.get('level', 'partial')
+        comparison = state['toolpath'].get('comparison_points', [])
+
+        if not comparison:
+            return jsonify({
+                'success': True,
+                'error_indices': [],
+                'total_errors': 0
+            })
+
+        # Filter by error level
+        error_levels = {'correct': 0, 'partial': 1, 'wrong': 2}
+        min_val = error_levels.get(level, 1)
+
+        error_indices = [
+            cp['index'] for cp in comparison
+            if error_levels.get(cp['accuracy_level'], 0) >= min_val
+        ]
+
+        return jsonify({
+            'success': True,
+            'error_indices': error_indices,
+            'total_errors': len(error_indices),
+            'total_points': len(comparison)
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get toolpath errors: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/toolpath/state')
+def get_toolpath_state():
+    """Get current toolpath visualization state."""
+    try:
+        return jsonify({
+            'success': True,
+            'metrics': state['toolpath'].get('metrics', {}),
+            'total_points': len(state['toolpath'].get('comparison_points', [])),
+            'error_count': len(state['toolpath'].get('error_indices', [])),
+            'has_data': len(state['toolpath'].get('comparison_points', [])) > 0
+        })
+
+    except Exception as e:
+        logger.error(f"Failed to get toolpath state: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/toolpath/reset', methods=['POST'])
+def reset_toolpath():
+    """Reset toolpath visualization state."""
+    try:
+        state['toolpath'] = {
+            'comparison_points': [],
+            'gt_path': [],
+            'pred_path': [],
+            'metrics': {},
+            'timeline_data': [],
+            'machine_state': None,
+            'error_indices': [],
+        }
+
+        return jsonify({'success': True, 'message': 'Toolpath state reset'})
+
+    except Exception as e:
+        logger.error(f"Failed to reset toolpath: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+# ============================================================================
+# Incremental Toolpath Update (Called during inference)
+# ============================================================================
+
+def _update_toolpath_metrics():
+    """Update running metrics for toolpath comparison."""
+    comparison_points = state['toolpath'].get('comparison_points', [])
+    if not comparison_points:
+        state['toolpath']['metrics'] = {}
+        return
+
+    total = len(comparison_points)
+    correct = sum(1 for cp in comparison_points if cp.get('accuracy_level') == 'correct')
+    partial = sum(1 for cp in comparison_points if cp.get('accuracy_level') == 'partial')
+    wrong = sum(1 for cp in comparison_points if cp.get('accuracy_level') == 'wrong')
+
+    errors = [cp.get('error_distance', 0) for cp in comparison_points]
+    total_error = sum(errors)
+    max_error = max(errors) if errors else 0
+    mean_error = total_error / total if total > 0 else 0
+
+    state['toolpath']['metrics'] = {
+        'total_points': total,
+        'correct_count': correct,
+        'partial_count': partial,
+        'wrong_count': wrong,
+        'total_error': round(total_error, 6),
+        'max_error': round(max_error, 6),
+        'mean_error': round(mean_error, 6),
+        'accuracy': round((correct / total) * 100, 2) if total > 0 else 0
+    }
+
+    # Update error indices for jump-to-error functionality
+    state['toolpath']['error_indices'] = [
+        i for i, cp in enumerate(comparison_points)
+        if cp.get('accuracy_level') in ('partial', 'wrong')
+    ]
+
+
+def update_toolpath_incremental(gt_gcode: str, pred_gcode: str) -> dict:
+    """
+    Incrementally update toolpath state with a single GT/Pred pair.
+
+    Called during inference for each prediction to build real-time visualization.
+
+    Args:
+        gt_gcode: Ground truth G-code string from CSV
+        pred_gcode: Predicted G-code string from model
+
+    Returns:
+        Dict with comparison point data for WebSocket emission
+    """
+    try:
+        from miracle.utilities.gcode_parser import GCodeToCoordinateParser, MachineState, ToolpathPoint
+
+        # Initialize machine state for first call
+        if state['toolpath'].get('machine_state') is None:
+            state['toolpath']['machine_state'] = MachineState()
+
+        current_state = state['toolpath']['machine_state']
+        parser = GCodeToCoordinateParser(arc_segments=10)  # Fewer segments for performance
+
+        # Parse GT and Pred from same initial state for fair comparison
+        gt_points = []
+        pred_points = []
+
+        if gt_gcode and gt_gcode.strip():
+            gt_points = parser.parse_sequence([gt_gcode], current_state.copy())
+
+        # Reset parser state for pred parsing
+        parser = GCodeToCoordinateParser(arc_segments=10)
+        if pred_gcode and pred_gcode.strip():
+            pred_points = parser.parse_sequence([pred_gcode], current_state.copy())
+
+        # Update machine state using GT as canonical reference
+        if gt_points:
+            last_gt = gt_points[-1]
+            state['toolpath']['machine_state'] = MachineState(
+                x=last_gt.x,
+                y=last_gt.y,
+                z=last_gt.z,
+                motion_mode=last_gt.motion_type if last_gt.motion_type != 'start' else 'G1',
+                distance_mode=current_state.distance_mode,
+                feed_rate=last_gt.feed_rate
+            )
+
+        # Create comparison point
+        idx = len(state['toolpath']['comparison_points'])
+
+        if gt_points and pred_points:
+            gt_pt = gt_points[-1]  # Use endpoint
+            pred_pt = pred_points[-1]
+            error_distance = gt_pt.distance_to(pred_pt)
+            command_match = gt_pt.motion_type == pred_pt.motion_type
+
+            # Classify accuracy
+            if error_distance < 0.001 and command_match:
+                accuracy_level = 'correct'
+            elif error_distance < 0.1:
+                accuracy_level = 'partial'
+            else:
+                accuracy_level = 'wrong'
+
+            comparison = {
+                'index': idx,
+                'gt': gt_pt.to_dict(),
+                'pred': pred_pt.to_dict(),
+                'error_distance': round(error_distance, 6),
+                'command_match': command_match,
+                'accuracy_level': accuracy_level,
+                'gt_command': gt_gcode,
+                'pred_command': pred_gcode
+            }
+        else:
+            # Handle missing data - create placeholder
+            comparison = {
+                'index': idx,
+                'gt': {'x': current_state.x, 'y': current_state.y, 'z': current_state.z,
+                       'motion_type': 'unknown', 'command': gt_gcode or '', 'feed_rate': 0, 'line_index': idx},
+                'pred': {'x': current_state.x, 'y': current_state.y, 'z': current_state.z,
+                         'motion_type': 'unknown', 'command': pred_gcode or '', 'feed_rate': 0, 'line_index': idx},
+                'error_distance': 0,
+                'command_match': False,
+                'accuracy_level': 'wrong',
+                'gt_command': gt_gcode or '',
+                'pred_command': pred_gcode or ''
+            }
+
+        # Append to state
+        state['toolpath']['comparison_points'].append(comparison)
+
+        # Update metrics
+        _update_toolpath_metrics()
+
+        return comparison
+
+    except Exception as e:
+        logger.error(f"Toolpath incremental update failed: {e}")
+        import traceback
+        traceback.print_exc()
+        # Return minimal comparison on error
+        idx = len(state['toolpath'].get('comparison_points', []))
+        return {
+            'index': idx,
+            'error_distance': 0,
+            'accuracy_level': 'wrong',
+            'gt_command': gt_gcode or '',
+            'pred_command': pred_gcode or ''
+        }
+
+
+# ============================================================================
 # WebSocket Event Handlers
 # ============================================================================
 
@@ -5024,6 +5576,22 @@ def handle_start_inference(data=None):
                         'total_rows': len(state['csv_data']),
                         'progress': (state['current_idx'] / len(state['csv_data'])) * 100
                     })
+
+                    # Emit toolpath update for real-time 3D visualization
+                    # Batch every 10 points for efficiency (reduces WebSocket overhead)
+                    if predictions.get('toolpath_point'):
+                        total_points = len(state['toolpath'].get('comparison_points', []))
+                        # Emit every 10 points, or on first point, or when < 50 total (real-time start)
+                        if total_points <= 50 or total_points % 10 == 0:
+                            # Get recent points for batch update
+                            batch_size = min(10, total_points)
+                            recent_points = state['toolpath'].get('comparison_points', [])[-batch_size:]
+                            emit('toolpath_update', {
+                                'point': predictions['toolpath_point'],
+                                'batch': recent_points if total_points > 50 else None,
+                                'metrics': state['toolpath'].get('metrics', {}),
+                                'total_points': total_points
+                            })
 
                 # Small delay to prevent overwhelming the client
                 socketio.sleep(0.01)  # 10ms delay = ~100 updates/second max

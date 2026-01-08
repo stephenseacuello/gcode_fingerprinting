@@ -1,0 +1,131 @@
+program: scripts/training/train_sensor_multihead.py
+method: grid
+project: gcode-ablation-study
+name: ablation-scaling
+
+parameters:
+  # Fixed parameters (baseline)
+  split_dir:
+    value: outputs/production/data_splits
+  vocab_path:
+    value: data/vocabulary_4digit_full.json
+  encoder_path:
+    value: outputs/production/encoder/best_model.pt
+  max_epochs:
+    value: 120
+  patience:
+    value: 35
+  batch_size:
+    value: 32
+  lr_scheduler:
+    value: cosine_restarts
+  restart_period:
+    value: 15
+  use_sensor_prior:
+    value: true
+  sensor_prior_weight:
+    value: 0.51
+  augment:
+    value: true
+  augment_prob:
+    value: 0.3
+  progressive_augmentation:
+    value: true
+  use_error_sampling:
+    value: true
+  error_boost:
+    value: 1.5
+  use_position_weights:
+    value: true
+  position_weight_scale:
+    value: 3.0
+  use_enhanced_encoder:
+    value: true
+  use_multihead_pooling:
+    value: true
+  track_metric:
+    value: token
+
+  # Ablation variables
+  d_model:
+    values: [384, 512, 768]
+  n_layers:
+    values: [6, 8, 10]
+  n_heads:
+    values: [8, 16]
+  d_ff_multiplier:
+    values: [4.0, 6.0]
+
+  # Adjust hyperparameters based on model size
+  learning_rate:
+    values: [0.00024, 0.00018, 0.00012]
+  dropout:
+    values: [0.32, 0.35, 0.38]
+  weight_decay:
+    values: [0.052, 0.055, 0.06]
+  warmup_epochs:
+    values: [12, 15, 18]
+
+metric:
+  name: val_token_acc
+  goal: maximize
+
+command:
+  - ${env}
+  - PYTHONPATH=src
+  - python
+  - ${program}
+  - --split-dir
+  - ${split_dir}
+  - --vocab-path
+  - ${vocab_path}
+  - --encoder-path
+  - ${encoder_path}
+  - --output-dir
+  - outputs/ablation/${run_id}
+  - --d-model
+  - ${d_model}
+  - --n-layers
+  - ${n_layers}
+  - --n-heads
+  - ${n_heads}
+  - --d-ff-multiplier
+  - ${d_ff_multiplier}
+  - --dropout
+  - ${dropout}
+  - --learning-rate
+  - ${learning_rate}
+  - --weight-decay
+  - ${weight_decay}
+  - --warmup-epochs
+  - ${warmup_epochs}
+  - --max-epochs
+  - ${max_epochs}
+  - --patience
+  - ${patience}
+  - --batch-size
+  - ${batch_size}
+  - --lr-scheduler
+  - ${lr_scheduler}
+  - --restart-period
+  - ${restart_period}
+  - --use-sensor-prior
+  - --sensor-prior-weight
+  - ${sensor_prior_weight}
+  - --augment
+  - --augment-prob
+  - ${augment_prob}
+  - --progressive-augmentation
+  - --use-error-sampling
+  - --error-boost
+  - ${error_boost}
+  - --use-position-weights
+  - --position-weight-scale
+  - ${position_weight_scale}
+  - --use-enhanced-encoder
+  - --use-multihead-pooling
+  - --track-metric
+  - ${track_metric}
+  - --use-wandb
+  - --wandb-project
+  - gcode-ablation-study

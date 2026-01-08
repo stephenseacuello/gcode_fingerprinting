@@ -1,0 +1,11 @@
+{
+  "individual": {
+    "best_config_100ep": 0.8319263238679969,
+    "best_config_seed42": 0.8357636224098235,
+    "best_config_seed456": 0.8315425940138143
+  },
+  "ensemble": null,
+  "best_individual": 0.8357636224098235,
+  "improvement": null,
+  "note": "Ensemble not valid - models trained with different encoder seeds"
+}

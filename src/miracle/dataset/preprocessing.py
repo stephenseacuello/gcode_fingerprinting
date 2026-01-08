@@ -225,9 +225,11 @@ class GCodePreprocessor:
 
         # G-code text (check both possible column names)
         if 'gcode_text' in df.columns:
-            gcode_texts = df['gcode_text'].tolist()
+            # Handle NaN values by converting to empty string
+            gcode_texts = df['gcode_text'].fillna('').astype(str).tolist()
         elif 'gcode_string' in df.columns:
-            gcode_texts = df['gcode_string'].tolist()
+            # Handle NaN values by converting to empty string
+            gcode_texts = df['gcode_string'].fillna('').astype(str).tolist()
         else:
             gcode_texts = None
 
@@ -264,10 +266,11 @@ class GCodePreprocessor:
             gcode_window = gcode_texts[start_idx:end_idx] if gcode_texts else None
 
             # Get unique G-code commands in this window (for label)
-            if gcode_window:
-                unique_gcodes = list(set(gcode_window))
+            # Filter out empty strings from gcode_window
+            valid_gcodes = [g for g in (gcode_window or []) if g and isinstance(g, str) and g.strip()]
+            if valid_gcodes:
                 # Use the most frequent one as the label
-                gcode_label = max(set(gcode_window), key=gcode_window.count)
+                gcode_label = max(set(valid_gcodes), key=valid_gcodes.count)
 
                 # Tokenize using advanced tokenizer
                 token_ids = self.tokenizer.encode([gcode_label], add_bos_eos=False)

@@ -1,0 +1,154 @@
+# Local Mac Sweep - Optimized for M-series Mac
+#
+# Designed for efficient local exploration on Apple Silicon
+# - Mac-friendly model sizes (fits in unified memory)
+# - Focused parameter ranges around proven best values
+# - ~40-50 runs, ~40 epochs each
+#
+# Usage:
+#   wandb sweep configs/sweep_local_mac.yaml
+#   wandb agent <sweep_id> --count 50
+#
+# Estimated time: 10-16 hours total (depending on M1/M2/M3)
+
+program: scripts/train_sensor_multihead.py
+method: bayes
+metric:
+  name: val/token_accuracy
+  goal: maximize
+
+# Aggressive early stopping for local runs
+early_terminate:
+  type: hyperband
+  min_iter: 8
+  eta: 2
+  s: 2
+
+command:
+  - .venv/bin/python
+  - ${program}
+  - --use-wandb
+  - --wandb-project=gcode-local-mac
+  - --split-dir=outputs/stratified_splits_full_vocab
+  - --vocab-path=data/vocabulary_4digit_full.json
+  - --encoder-path=outputs/mm_dtae_lstm_v2/best_model.pt
+  - --output-dir=outputs/sweep_local/${env:WANDB_RUN_ID:local_run}
+  # Fixed training params for speed
+  - --max-epochs=40
+  - --patience=12
+  - --batch-size=24
+  # Always-on proven features
+  - --use-type-constraint
+  - --use-sensor-prior
+  - --use-position-weights
+  - --use-error-sampling
+  - --optimizer=adamw
+  - --grad-clip=1.0
+  # Always enable these high-value features
+  - --adaptive-weighting
+  - --augment
+  - --use-enhanced-encoder
+  - --use-multihead-pooling
+  - --progressive-augmentation
+  - ${args}
+
+parameters:
+  # ============================================================
+  # ARCHITECTURE (Mac-friendly sizes)
+  # ============================================================
+  d-model:
+    values: [192, 256, 320]
+  n-layers:
+    values: [4, 5, 6]
+  n-heads:
+    values: [4, 8]
+  dropout:
+    distribution: uniform
+    min: 0.30
+    max: 0.40
+  embed-dropout:
+    distribution: uniform
+    min: 0.10
+    max: 0.20
+
+  # ============================================================
+  # LEARNING RATE (Most impactful)
+  # ============================================================
+  learning-rate:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.0003
+  weight-decay:
+    distribution: uniform
+    min: 0.04
+    max: 0.08
+
+  # ============================================================
+  # LR SCHEDULER
+  # ============================================================
+  lr-scheduler:
+    values: [cosine, cosine_restarts]
+  warmup-epochs:
+    values: [8, 10, 12]
+  warmup-type:
+    values: [linear, cosine]
+  restart-period:
+    values: [15, 20]
+
+  # ============================================================
+  # FEATURE WEIGHTS (High Impact)
+  # ============================================================
+  sensor-prior-weight:
+    distribution: uniform
+    min: 0.4
+    max: 0.6
+  position-weight-scale:
+    values: [2.5, 3.0, 3.5]
+  error-boost:
+    values: [1.5, 2.0, 2.5]
+
+  # ============================================================
+  # LOSS TUNING
+  # ============================================================
+  label-smoothing:
+    distribution: uniform
+    min: 0.08
+    max: 0.12
+  command-weight:
+    distribution: uniform
+    min: 2.0
+    max: 3.0
+  digit-focal-gamma:
+    values: [5.0, 6.0, 7.0]
+
+  # ============================================================
+  # ENCODER ENHANCEMENTS
+  # ============================================================
+  auxiliary-loss-weight:
+    distribution: uniform
+    min: 0.2
+    max: 0.4
+
+  # ============================================================
+  # AUGMENTATION
+  # ============================================================
+  augment-start:
+    value: 0.1
+  augment-end:
+    distribution: uniform
+    min: 0.3
+    max: 0.5
+
+  # ============================================================
+  # REGULARIZATION
+  # ============================================================
+  drop-path-rate:
+    distribution: uniform
+    min: 0.0
+    max: 0.12
+
+  # ============================================================
+  # SEED (For ensemble diversity)
+  # ============================================================
+  seed:
+    values: [42, 123, 456]

@@ -1,0 +1,172 @@
+# Comprehensive Single Sweep (Fallback)
+# Use this if the tiered approach has issues
+# Searches all parameter spaces simultaneously
+#
+# Duration: ~14 days with 1400 runs across 8 GPUs
+#
+# Usage:
+#   wandb sweep configs/sweep_comprehensive.yaml
+#   # Launch 8 agents (one per GPU):
+#   for i in {0..7}; do CUDA_VISIBLE_DEVICES=$i wandb agent <sweep_id> --count 175 & done
+
+program: scripts/train_sensor_multihead.py
+method: bayes
+metric:
+  name: val/sequence_accuracy
+  goal: maximize
+
+early_terminate:
+  type: hyperband
+  min_iter: 10
+  eta: 3
+  s: 2
+
+command:
+  - ${env}
+  - .venv/bin/python
+  - ${program}
+  - --use-wandb
+  - --wandb-project=gcode-sweep-comprehensive
+  - --epochs=120
+  - --data-dir=outputs/processed_v3
+  - --vocab-path=data/vocabulary_4digit_full.json
+  - ${args}
+
+parameters:
+  # === Architecture ===
+  d_model:
+    values: [128, 192, 256, 320]
+  n_layers:
+    values: [3, 4, 5, 6]
+  n_heads:
+    values: [4, 8]
+  dropout:
+    distribution: uniform
+    min: 0.1
+    max: 0.4
+  embed_dropout:
+    distribution: uniform
+    min: 0.0
+    max: 0.25
+  d_ff_multiplier:
+    values: [3.0, 4.0, 5.0]
+
+  # === Optimizer ===
+  optimizer:
+    values: [adamw, adam]
+  learning_rate:
+    distribution: log_uniform_values
+    min: 0.00005
+    max: 0.003
+  weight_decay:
+    distribution: log_uniform_values
+    min: 0.01
+    max: 0.1
+  beta1:
+    values: [0.9, 0.95]
+  beta2:
+    values: [0.98, 0.99, 0.999]
+
+  # === LR Scheduler ===
+  lr_scheduler:
+    values: [cosine, plateau, warmup_cosine]
+  warmup_epochs:
+    values: [3, 5, 10]
+  cosine_t_max:
+    values: [80, 100, 120]
+
+  # === Data Augmentation ===
+  augment:
+    value: true
+  augment_prob:
+    distribution: uniform
+    min: 0.15
+    max: 0.5
+  noise_level:
+    distribution: uniform
+    min: 0.005
+    max: 0.03
+  shift_range:
+    values: [1, 2]
+  time_warp_sigma:
+    distribution: uniform
+    min: 0.05
+    max: 0.2
+  feature_dropout_prob:
+    distribution: uniform
+    min: 0.0
+    max: 0.1
+  cutout_length:
+    values: [1, 2, 3]
+  jitter_sigma:
+    distribution: uniform
+    min: 0.003
+    max: 0.015
+
+  # === Oversampling ===
+  oversample_rare:
+    values: [true, false]
+  oversample_factor:
+    values: [2, 3, 4]
+
+  # === Training Strategy ===
+  batch_size:
+    values: [16, 32, 64]
+  curriculum:
+    values: [true, false]
+  scheduled_sampling:
+    values: [true, false]
+  teacher_forcing_start:
+    values: [0.9, 1.0]
+  teacher_forcing_end:
+    values: [0.1, 0.2, 0.3]
+  teacher_forcing_decay_epochs:
+    values: [30, 50, 70]
+
+  # === Focal Loss ===
+  use_focal_loss:
+    value: true
+  focal_gamma:
+    values: [1.0, 2.0, 3.0, 4.0]
+  focal_alpha:
+    distribution: uniform
+    min: 0.2
+    max: 0.45
+  digit_focal_gamma:
+    values: [3.0, 5.0, 7.0]
+  label_smoothing:
+    distribution: uniform
+    min: 0.0
+    max: 0.1
+
+  # === Loss Weights ===
+  type_weight:
+    distribution: uniform
+    min: 0.5
+    max: 1.8
+  command_weight:
+    distribution: uniform
+    min: 0.6
+    max: 2.2
+  param_type_weight:
+    distribution: uniform
+    min: 0.4
+    max: 1.3
+  digit_weight:
+    distribution: uniform
+    min: 0.5
+    max: 1.8
+
+  # === Grammar Constraints ===
+  use_grammar_constraints:
+    values: [true, false]
+  grammar_weight:
+    distribution: uniform
+    min: 0.05
+    max: 0.3
+
+  # === Advanced Training ===
+  grad_clip:
+    values: [0.5, 1.0, 2.0]
+  accumulation_steps:
+    values: [1, 2]

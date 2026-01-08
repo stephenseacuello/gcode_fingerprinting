@@ -1076,8 +1076,21 @@ class SensorMultiHeadDecoder(nn.Module):
             # Causal mask for current length
             tgt_mask = self._generate_causal_mask(current_tokens.size(1), device)
 
-            # Decoder forward
-            if not self.no_cross_attention:
+            # Decoder forward - handle both decoder_layers (DropPath) and standard decoder
+            if self.decoder_layers is not None:
+                hidden = tgt
+                if not self.no_cross_attention:
+                    for layer in self.decoder_layers:
+                        hidden = layer(
+                            hidden,
+                            memory,
+                            tgt_mask=tgt_mask,
+                            memory_key_padding_mask=memory_key_padding_mask,
+                        )
+                else:
+                    for layer in self.decoder_layers:
+                        hidden = layer(hidden, src_mask=tgt_mask)
+            elif not self.no_cross_attention:
                 hidden = self.decoder(
                     tgt=tgt,
                     memory=memory,
@@ -1184,8 +1197,16 @@ class SensorMultiHeadDecoder(nn.Module):
         # Causal mask
         tgt_mask = self._generate_causal_mask(L, device)
 
-        # Transformer decoder (with cross-attention ablation)
-        if not self.no_cross_attention:
+        # Transformer decoder - handle both decoder_layers (DropPath) and standard decoder
+        if self.decoder_layers is not None:
+            hidden = tgt
+            if not self.no_cross_attention:
+                for layer in self.decoder_layers:
+                    hidden = layer(hidden, memory, tgt_mask=tgt_mask)
+            else:
+                for layer in self.decoder_layers:
+                    hidden = layer(hidden, src_mask=tgt_mask)
+        elif not self.no_cross_attention:
             hidden = self.decoder(tgt=tgt, memory=memory, tgt_mask=tgt_mask, **kwargs)
         else:
             hidden = self.decoder(src=tgt, mask=tgt_mask)
@@ -1294,8 +1315,27 @@ class SensorMultiHeadDecoder(nn.Module):
             # Causal mask
             tgt_mask = self._generate_causal_mask(generated.size(1), device)
 
-            # Decode
-            hidden = self.decoder(tgt=tgt, memory=memory, tgt_mask=tgt_mask)
+            # Decode - handle both decoder_layers (DropPath) and standard decoder cases
+            if self.decoder_layers is not None:
+                # Use custom layers with DropPath
+                hidden = tgt
+                if not self.no_cross_attention:
+                    for layer in self.decoder_layers:
+                        hidden = layer(
+                            hidden,
+                            memory,
+                            tgt_mask=tgt_mask,
+                        )
+                else:
+                    for layer in self.decoder_layers:
+                        hidden = layer(
+                            hidden,
+                            src_mask=tgt_mask,
+                        )
+            elif not self.no_cross_attention:
+                hidden = self.decoder(tgt=tgt, memory=memory, tgt_mask=tgt_mask)
+            else:
+                hidden = self.decoder(src=tgt, mask=tgt_mask)
             hidden = self.output_norm(hidden)
 
             # Get predictions for last position
@@ -1425,8 +1465,16 @@ class SensorMultiHeadDecoder(nn.Module):
             # Causal mask
             tgt_mask = self._generate_causal_mask(generated.size(1), device)
 
-            # Decode (with gradients!)
-            if not self.no_cross_attention:
+            # Decode (with gradients!) - handle both decoder_layers and standard decoder
+            if self.decoder_layers is not None:
+                hidden = tgt
+                if not self.no_cross_attention:
+                    for layer in self.decoder_layers:
+                        hidden = layer(hidden, memory, tgt_mask=tgt_mask)
+                else:
+                    for layer in self.decoder_layers:
+                        hidden = layer(hidden, src_mask=tgt_mask)
+            elif not self.no_cross_attention:
                 hidden = self.decoder(tgt=tgt, memory=memory, tgt_mask=tgt_mask)
             else:
                 hidden = self.decoder(src=tgt, mask=tgt_mask)

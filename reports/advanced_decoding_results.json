@@ -1,0 +1,58 @@
+{
+  "greedy": {
+    "token_accuracy": 0.0,
+    "sequence_accuracy": 0.0,
+    "grammar_validity": 0.4,
+    "token_accuracy_std": 0.0,
+    "sequence_accuracy_std": 0.0
+  },
+  "constrained_greedy": {
+    "token_accuracy": 0.2333333373069763,
+    "sequence_accuracy": 0.1,
+    "grammar_validity": 1.0,
+    "token_accuracy_std": 0.3281570918358716,
+    "sequence_accuracy_std": 0.30000000000000004
+  },
+  "sample_t0.7": {
+    "token_accuracy": 0.04285714328289032,
+    "sequence_accuracy": 0.0,
+    "grammar_validity": 0.3,
+    "token_accuracy_std": 0.12857142984867095,
+    "sequence_accuracy_std": 0.0
+  },
+  "sample_t0.5": {
+    "token_accuracy": 0.0,
+    "sequence_accuracy": 0.0,
+    "grammar_validity": 0.4,
+    "token_accuracy_std": 0.0,
+    "sequence_accuracy_std": 0.0
+  },
+  "voting_n5": {
+    "token_accuracy": 0.0,
+    "sequence_accuracy": 0.0,
+    "grammar_validity": 0.4,
+    "token_accuracy_std": 0.0,
+    "sequence_accuracy_std": 0.0
+  },
+  "voting_n10": {
+    "token_accuracy": 0.025,
+    "sequence_accuracy": 0.0,
+    "grammar_validity": 0.4,
+    "token_accuracy_std": 0.07500000000000001,
+    "sequence_accuracy_std": 0.0
+  },
+  "mbr_n5": {
+    "token_accuracy": 0.0,
+    "sequence_accuracy": 0.0,
+    "grammar_validity": 0.3,
+    "token_accuracy_std": 0.0,
+    "sequence_accuracy_std": 0.0
+  },
+  "mbr_n10": {
+    "token_accuracy": 0.0,
+    "sequence_accuracy": 0.0,
+    "grammar_validity": 0.4,
+    "token_accuracy_std": 0.0,
+    "sequence_accuracy_std": 0.0
+  }
+}

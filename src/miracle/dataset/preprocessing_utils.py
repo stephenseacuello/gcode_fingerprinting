@@ -356,3 +356,347 @@ def get_column_statistics(data: np.ndarray) -> dict:
         'mean': np.nanmean(data, axis=0),
         'std': np.nanstd(data, axis=0),
     }
+
+
+# ============================================================================
+# G-code Value Clamping and Denoising
+# ============================================================================
+
+class GCodeValueDenoiser:
+    """
+    Clamp and denoise raw G-code parameter values before bucketing.
+
+    This helps prevent:
+    1. Out-of-vocabulary buckets from extreme values
+    2. Noise-induced bucket boundary crossings
+    3. Inconsistent bucket assignments for near-boundary values
+
+    Usage:
+        denoiser = GCodeValueDenoiser()
+        clean_values = denoiser.denoise(raw_values, param_type='X')
+    """
+
+    # Default bounds per parameter (based on typical CNC machine limits)
+    DEFAULT_BOUNDS = {
+        'X': (-100.0, 100.0),
+        'Y': (-100.0, 100.0),
+        'Z': (-50.0, 50.0),
+        'R': (-50.0, 50.0),
+        'I': (-100.0, 100.0),
+        'J': (-100.0, 100.0),
+        'K': (-50.0, 50.0),
+        'F': (0.0, 10000.0),
+        'S': (0.0, 30000.0),
+        'A': (-360.0, 360.0),
+        'B': (-360.0, 360.0),
+        'C': (-360.0, 360.0),
+    }
+
+    # Default precisions per parameter (for rounding/quantization)
+    DEFAULT_PRECISION = {
+        'X': 0.001,
+        'Y': 0.001,
+        'Z': 0.001,
+        'R': 0.0001,
+        'I': 0.001,
+        'J': 0.001,
+        'K': 0.001,
+        'F': 1.0,
+        'S': 10.0,
+        'A': 0.001,
+        'B': 0.001,
+        'C': 0.001,
+    }
+
+    def __init__(
+        self,
+        bounds: dict = None,
+        precision: dict = None,
+        denoise_sigma: float = 0.0,
+        snap_threshold: float = 0.0,
+        use_median_filter: bool = False,
+        median_window: int = 3,
+    ):
+        """
+        Initialize the denoiser.
+
+        Args:
+            bounds: Dict mapping param letter to (min, max) bounds.
+                    Uses DEFAULT_BOUNDS if None.
+            precision: Dict mapping param letter to quantization precision.
+                       Uses DEFAULT_PRECISION if None.
+            denoise_sigma: Gaussian smoothing sigma. 0 = no smoothing.
+            snap_threshold: Snap values within this threshold of bucket boundaries
+                           to the boundary. Helps reduce bucket ambiguity.
+            use_median_filter: Apply median filter to remove impulse noise.
+            median_window: Window size for median filter.
+        """
+        self.bounds = {**self.DEFAULT_BOUNDS, **(bounds or {})}
+        self.precision = {**self.DEFAULT_PRECISION, **(precision or {})}
+        self.denoise_sigma = denoise_sigma
+        self.snap_threshold = snap_threshold
+        self.use_median_filter = use_median_filter
+        self.median_window = median_window
+
+    def clamp(self, value: float, param_type: str) -> float:
+        """
+        Clamp value to valid range for parameter type.
+
+        Args:
+            value: Raw parameter value
+            param_type: Parameter letter (e.g., 'X', 'Y', 'Z')
+
+        Returns:
+            Clamped value
+        """
+        if param_type not in self.bounds:
+            return value  # Unknown param, pass through
+
+        min_val, max_val = self.bounds[param_type]
+        return max(min_val, min(max_val, value))
+
+    def quantize(self, value: float, param_type: str) -> float:
+        """
+        Quantize value to precision for parameter type.
+
+        Args:
+            value: Raw parameter value
+            param_type: Parameter letter
+
+        Returns:
+            Quantized value
+        """
+        if param_type not in self.precision:
+            return value
+
+        prec = self.precision[param_type]
+        if prec > 0:
+            return round(value / prec) * prec
+        return value
+
+    def snap_to_bucket_boundary(
+        self,
+        value: float,
+        param_type: str,
+        bucket_digits: int = 4,
+    ) -> float:
+        """
+        Snap value to nearest bucket boundary if within threshold.
+
+        This reduces bucket ambiguity for values near boundaries.
+
+        Args:
+            value: Raw parameter value
+            param_type: Parameter letter
+            bucket_digits: Number of digits in bucket (for computing step size)
+
+        Returns:
+            Snapped value (or original if not near boundary)
+        """
+        if self.snap_threshold <= 0:
+            return value
+
+        # Compute bucket step size based on precision and digits
+        prec = self.precision.get(param_type, 0.001)
+        bucket_step = prec * (10 ** (4 - bucket_digits))
+
+        if bucket_step <= 0:
+            return value
+
+        # Find nearest bucket boundary
+        bucket_idx = round(value / bucket_step)
+        bucket_boundary = bucket_idx * bucket_step
+
+        # Snap if within threshold
+        if abs(value - bucket_boundary) < self.snap_threshold * bucket_step:
+            return bucket_boundary
+
+        return value
+
+    def denoise_sequence(
+        self,
+        values: np.ndarray,
+        param_type: str,
+    ) -> np.ndarray:
+        """
+        Denoise a sequence of values for a single parameter.
+
+        Args:
+            values: Array of values [N]
+            param_type: Parameter letter
+
+        Returns:
+            Denoised values [N]
+        """
+        if len(values) == 0:
+            return values
+
+        values = values.copy().astype(np.float64)
+
+        # 1. Median filter for impulse noise
+        if self.use_median_filter and len(values) >= self.median_window:
+            from scipy.ndimage import median_filter
+            values = median_filter(values, size=self.median_window, mode='nearest')
+
+        # 2. Gaussian smoothing
+        if self.denoise_sigma > 0:
+            from scipy.ndimage import gaussian_filter1d
+            values = gaussian_filter1d(values, sigma=self.denoise_sigma, mode='nearest')
+
+        # 3. Clamp to bounds
+        min_val, max_val = self.bounds.get(param_type, (-np.inf, np.inf))
+        values = np.clip(values, min_val, max_val)
+
+        # 4. Quantize
+        prec = self.precision.get(param_type, 0.001)
+        if prec > 0:
+            values = np.round(values / prec) * prec
+
+        return values
+
+    def denoise(
+        self,
+        value: float,
+        param_type: str,
+        bucket_digits: int = 4,
+    ) -> float:
+        """
+        Denoise a single raw G-code value.
+
+        Args:
+            value: Raw parameter value
+            param_type: Parameter letter (e.g., 'X', 'Y', 'Z')
+            bucket_digits: Number of digits for bucketing
+
+        Returns:
+            Cleaned value
+        """
+        # 1. Clamp to valid range
+        value = self.clamp(value, param_type)
+
+        # 2. Quantize to precision
+        value = self.quantize(value, param_type)
+
+        # 3. Snap to bucket boundary if near
+        value = self.snap_to_bucket_boundary(value, param_type, bucket_digits)
+
+        return value
+
+    def denoise_batch(
+        self,
+        values: np.ndarray,
+        param_types: list,
+        bucket_digits: int = 4,
+    ) -> np.ndarray:
+        """
+        Denoise a batch of G-code values.
+
+        Args:
+            values: Array of values [N]
+            param_types: List of parameter letters [N]
+            bucket_digits: Number of digits for bucketing
+
+        Returns:
+            Cleaned values [N]
+        """
+        cleaned = np.zeros_like(values, dtype=np.float64)
+
+        for i, (val, ptype) in enumerate(zip(values, param_types)):
+            cleaned[i] = self.denoise(val, ptype, bucket_digits)
+
+        return cleaned
+
+
+def clamp_gcode_values(
+    values: np.ndarray,
+    param_types: list,
+    bounds: dict = None,
+) -> np.ndarray:
+    """
+    Simple function to clamp G-code values to valid ranges.
+
+    Args:
+        values: Array of values [N]
+        param_types: List of parameter letters [N]
+        bounds: Optional custom bounds dict
+
+    Returns:
+        Clamped values [N]
+    """
+    denoiser = GCodeValueDenoiser(bounds=bounds)
+    return np.array([
+        denoiser.clamp(v, pt) for v, pt in zip(values, param_types)
+    ])
+
+
+def denoise_gcode_values(
+    values: np.ndarray,
+    param_types: list,
+    denoise_sigma: float = 0.5,
+    snap_threshold: float = 0.1,
+    bucket_digits: int = 4,
+) -> np.ndarray:
+    """
+    Denoise G-code values with Gaussian smoothing and boundary snapping.
+
+    Args:
+        values: Array of values [N]
+        param_types: List of parameter letters [N]
+        denoise_sigma: Gaussian smoothing sigma
+        snap_threshold: Bucket boundary snap threshold
+        bucket_digits: Number of digits for bucketing
+
+    Returns:
+        Denoised values [N]
+    """
+    denoiser = GCodeValueDenoiser(
+        denoise_sigma=denoise_sigma,
+        snap_threshold=snap_threshold,
+    )
+    return denoiser.denoise_batch(values, param_types, bucket_digits)
+
+
+def adaptive_denoise_by_operation(
+    values: np.ndarray,
+    param_types: list,
+    operation_type: str,
+    bucket_digits: int = 4,
+) -> np.ndarray:
+    """
+    Apply operation-specific denoising settings.
+
+    Different machining operations have different noise characteristics:
+    - Adaptive clearing: higher vibration, needs more smoothing
+    - Face milling: lower vibration, less smoothing needed
+    - Pocket: moderate smoothing
+
+    Args:
+        values: Array of values [N]
+        param_types: List of parameter letters [N]
+        operation_type: One of 'adaptive', 'face', 'pocket', etc.
+        bucket_digits: Number of digits for bucketing
+
+    Returns:
+        Denoised values [N]
+    """
+    # Operation-specific settings
+    op_settings = {
+        'adaptive': {'denoise_sigma': 0.8, 'snap_threshold': 0.15},
+        'adaptive150025': {'denoise_sigma': 0.8, 'snap_threshold': 0.15},
+        'face': {'denoise_sigma': 0.3, 'snap_threshold': 0.05},
+        'face150025': {'denoise_sigma': 0.3, 'snap_threshold': 0.05},
+        'pocket': {'denoise_sigma': 0.5, 'snap_threshold': 0.1},
+        'pocket150025': {'denoise_sigma': 0.5, 'snap_threshold': 0.1},
+        'damageadaptive': {'denoise_sigma': 1.0, 'snap_threshold': 0.2},
+        'damageface': {'denoise_sigma': 0.6, 'snap_threshold': 0.1},
+        'damagepocket': {'denoise_sigma': 0.7, 'snap_threshold': 0.12},
+    }
+
+    settings = op_settings.get(operation_type, {'denoise_sigma': 0.5, 'snap_threshold': 0.1})
+
+    return denoise_gcode_values(
+        values, param_types,
+        denoise_sigma=settings['denoise_sigma'],
+        snap_threshold=settings['snap_threshold'],
+        bucket_digits=bucket_digits,
+    )

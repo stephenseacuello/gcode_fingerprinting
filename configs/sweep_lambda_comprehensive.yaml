@@ -1,0 +1,349 @@
+# Lambda GPU Cluster - Comprehensive Hyperparameter Sweep
+#
+# This sweep incorporates all verified improvements from the 4-phase enhancement plan:
+# - Phase 1: SCST fine-tuning parameters
+# - Phase 2: Ensemble training (seeds as hyperparameter)
+# - Phase 3: TTA settings
+# - Phase 4: Decoding strategy parameters
+#
+# Designed for Lambda cluster with 8x A100 GPUs
+# Estimated runtime: ~2-3 days with 400 runs, 100 epochs each
+#
+# Usage:
+#   # On Lambda cluster:
+#   wandb sweep configs/sweep_lambda_comprehensive.yaml
+#
+#   # Launch 8 agents (one per GPU):
+#   for i in {0..7}; do
+#     CUDA_VISIBLE_DEVICES=$i wandb agent <sweep_id> --count 50 &
+#   done
+#
+# Best known config (baseline): 81.76% token accuracy
+# Target: 90%+ token accuracy
+
+program: scripts/train_sensor_multihead.py
+method: bayes
+metric:
+  name: val/token_accuracy
+  goal: maximize
+
+# Early stopping with Hyperband - aggressive pruning
+early_terminate:
+  type: hyperband
+  min_iter: 15
+  eta: 3
+  s: 3
+
+command:
+  - python  # Lambda uses system Python with venv activated
+  - ${program}
+  - --use-wandb
+  - --wandb-project=gcode-lambda-sweep
+  - --split-dir=outputs/stratified_splits_full_vocab
+  - --vocab-path=data/vocabulary_4digit_full.json
+  - --encoder-path=outputs/mm_dtae_lstm_v2/best_model.pt
+  - --output-dir=outputs/sweep_runs/${env:WANDB_RUN_ID:sweep_run}
+  # Fixed flags that proved beneficial
+  - --use-type-constraint
+  - --use-sensor-prior
+  - --use-position-weights
+  - --use-error-sampling
+  - --adaptive-weighting
+  - ${args}
+
+parameters:
+  # ============================================================
+  # ARCHITECTURE (Most impactful - primary sweep dimension)
+  # ============================================================
+  d-model:
+    values: [192, 256, 320, 384]  # Best was 256
+  n-layers:
+    values: [4, 5, 6, 7]  # Best was 5
+  n-heads:
+    values: [4, 8, 16]
+  dropout:
+    distribution: uniform
+    min: 0.25
+    max: 0.45  # Best was 0.35
+  embed-dropout:
+    distribution: uniform
+    min: 0.10
+    max: 0.25  # Best was 0.15
+  d-ff-multiplier:
+    values: [3.0, 4.0, 5.0]
+
+  # ============================================================
+  # TRAINING SCHEDULE
+  # ============================================================
+  max-epochs:
+    values: [100, 150, 200]
+  patience:
+    values: [25, 30, 40]
+  batch-size:
+    values: [24, 32, 48, 64]
+
+  # ============================================================
+  # OPTIMIZER (AdamW proved best)
+  # ============================================================
+  optimizer:
+    value: adamw
+  learning-rate:
+    distribution: log_uniform_values
+    min: 0.00008
+    max: 0.0005  # Best was 0.00015
+  weight-decay:
+    distribution: log_uniform_values
+    min: 0.03
+    max: 0.10  # Best was 0.05
+  beta1:
+    values: [0.9, 0.95]
+  beta2:
+    values: [0.98, 0.99, 0.999]  # Best was 0.999
+  grad-clip:
+    values: [0.5, 1.0, 2.0]  # Best was 1.0
+
+  # ============================================================
+  # LR SCHEDULER
+  # ============================================================
+  lr-scheduler:
+    values: [cosine, warmup_cosine]  # Cosine proved best
+  warmup-epochs:
+    values: [5, 10, 15]  # Best was 10
+
+  # ============================================================
+  # REGULARIZATION
+  # ============================================================
+  label-smoothing:
+    distribution: uniform
+    min: 0.05
+    max: 0.15  # Best was 0.1
+
+  # ============================================================
+  # SENSOR PRIOR (Phase 2 improvement)
+  # ============================================================
+  sensor-prior-weight:
+    distribution: uniform
+    min: 0.3
+    max: 0.7  # Best was 0.5
+
+  # ============================================================
+  # POSITION WEIGHTING (Phase 3 improvement)
+  # ============================================================
+  position-weight-scale:
+    values: [2.0, 3.0, 4.0, 5.0]  # Best was 3.0
+
+  # ============================================================
+  # ERROR-FOCUSED SAMPLING (Phase 4 improvement)
+  # ============================================================
+  error-boost:
+    values: [1.5, 2.0, 2.5, 3.0]  # Best was 2.0
+
+  # ============================================================
+  # LOSS WEIGHTS
+  # ============================================================
+  type-weight:
+    distribution: uniform
+    min: 0.8
+    max: 1.5
+  command-weight:
+    distribution: uniform
+    min: 2.0
+    max: 3.5  # Best was 2.5
+  param-type-weight:
+    distribution: uniform
+    min: 1.0
+    max: 2.0  # Best was 1.5
+  digit-weight:
+    distribution: uniform
+    min: 0.8
+    max: 1.5
+  legacy-weight:
+    distribution: uniform
+    min: 0.8
+    max: 1.5
+
+  # ============================================================
+  # DATA AUGMENTATION
+  # ============================================================
+  augment:
+    values: [true, false]
+  augment-prob:
+    distribution: uniform
+    min: 0.2
+    max: 0.5
+  noise-level:
+    distribution: uniform
+    min: 0.005
+    max: 0.02
+  shift-range:
+    values: [1, 2]
+  time-warp-sigma:
+    distribution: uniform
+    min: 0.05
+    max: 0.15
+  jitter-sigma:
+    distribution: uniform
+    min: 0.003
+    max: 0.01
+
+  # ============================================================
+  # FOCAL LOSS
+  # ============================================================
+  use-focal-loss:
+    values: [true, false]
+  focal-gamma:
+    values: [2.0, 3.0, 4.0]
+  focal-alpha:
+    distribution: uniform
+    min: 0.2
+    max: 0.35
+  digit-focal-gamma:
+    values: [4.0, 5.0, 6.0]
+
+  # ============================================================
+  # CURRICULUM LEARNING
+  # ============================================================
+  curriculum:
+    values: [true, false]
+  curriculum-phases:
+    values: [2, 3]
+  curriculum-epochs-per-phase:
+    values: [20, 30]
+
+  # ============================================================
+  # SCHEDULED SAMPLING
+  # ============================================================
+  scheduled-sampling:
+    values: [true, false]
+  teacher-forcing-start:
+    values: [0.9, 1.0]
+  teacher-forcing-end:
+    values: [0.2, 0.4, 0.6]
+  teacher-forcing-decay:
+    values: [linear, cosine]
+
+  # ============================================================
+  # SEED (For ensemble diversity analysis)
+  # ============================================================
+  seed:
+    values: [42, 123, 456, 789, 1337]
+
+  # ============================================================
+  # SCST FINE-TUNING (Phase 1 - can be enabled post-training)
+  # ============================================================
+  use-scst:
+    values: [true, false]
+  scst-start-epoch:
+    values: [80, 100]
+  scst-weight:
+    distribution: uniform
+    min: 0.3
+    max: 0.7
+  scst-lr:
+    distribution: log_uniform_values
+    min: 0.000001
+    max: 0.00001
+  sample-temperature:
+    values: [0.6, 0.7, 0.8]
+  use-mixed-reward:
+    value: true
+
+  # ============================================================
+  # GRAMMAR CONSTRAINTS
+  # ============================================================
+  use-grammar-constraints:
+    values: [true, false]
+  grammar-weight:
+    distribution: uniform
+    min: 0.05
+    max: 0.2
+
+  # ============================================================
+  # ENCODER ENHANCEMENTS (NEW)
+  # ============================================================
+  use-enhanced-encoder:
+    values: [true, false]
+  use-multihead-pooling:
+    values: [true, false]
+  use-auxiliary-heads:
+    values: [true, false]
+  auxiliary-loss-weight:
+    distribution: uniform
+    min: 0.1
+    max: 0.5
+  pooling-n-heads:
+    values: [4, 8]
+  pooling-n-queries:
+    values: [4, 8, 16]
+
+  # ============================================================
+  # ADVANCED LOSS IMPROVEMENTS (NEW)
+  # ============================================================
+  use-eos-calibration:
+    values: [true, false]
+  eos-calibration-weight:
+    distribution: uniform
+    min: 0.1
+    max: 0.4
+  use-dual-head-value:
+    values: [true, false]
+  dual-head-weight:
+    distribution: uniform
+    min: 0.2
+    max: 0.5
+  use-consistency-loss:
+    values: [true, false]
+  consistency-weight:
+    distribution: uniform
+    min: 0.05
+    max: 0.2
+
+  # ============================================================
+  # PROGRESSIVE AUGMENTATION (NEW)
+  # ============================================================
+  progressive-augmentation:
+    values: [true, false]
+  augment-start:
+    distribution: uniform
+    min: 0.05
+    max: 0.15
+  augment-end:
+    distribution: uniform
+    min: 0.3
+    max: 0.6
+
+  # ============================================================
+  # MIXUP AUGMENTATION (NEW)
+  # ============================================================
+  use-mixup:
+    values: [true, false]
+  mixup-prob:
+    distribution: uniform
+    min: 0.3
+    max: 0.6
+  mixup-alpha:
+    distribution: uniform
+    min: 0.1
+    max: 0.3
+
+  # ============================================================
+  # REGULARIZATION IMPROVEMENTS (NEW)
+  # ============================================================
+  drop-path-rate:
+    distribution: uniform
+    min: 0.0
+    max: 0.2
+  encoder-dropout:
+    distribution: uniform
+    min: 0.1
+    max: 0.3
+
+  # ============================================================
+  # LR SCHEDULE IMPROVEMENTS (NEW)
+  # ============================================================
+  warmup-type:
+    values: [linear, cosine]
+  lr-scheduler:
+    values: [cosine, cosine_restarts]
+  restart-period:
+    values: [20, 30, 40]

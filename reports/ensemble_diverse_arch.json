@@ -1,0 +1,11 @@
+{
+  "individual": {
+    "ensemble_archB1": 0.8453568687643899,
+    "ensemble_archB2": 0.8461243284727552,
+    "ensemble_archB3": 0.8511128165771297
+  },
+  "ensemble": 0.8491941673062164,
+  "best_individual": 0.8511128165771297,
+  "improvement": -0.0019186492709132308,
+  "note": null
+}

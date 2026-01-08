@@ -1,0 +1,149 @@
+# Phase 2: Untested Features Sweep
+#
+# This sweep tests features that were NOT explored in the first sweep:
+# - Auxiliary heads (was always OFF)
+# - EOS calibration (was always OFF)
+# - Mixup augmentation (not used)
+# - Larger d_model (384)
+#
+# Uses best hyperparameters from Phase 1 sweep as baseline.
+# ~20-30 runs, 50 epochs each
+#
+# Usage:
+#   wandb sweep configs/sweep_phase2_features.yaml
+#   wandb agent <sweep_id> --count 30
+
+program: scripts/train_sensor_multihead.py
+method: bayes
+metric:
+  name: val/token_accuracy
+  goal: maximize
+
+early_terminate:
+  type: hyperband
+  min_iter: 10
+  eta: 2
+  s: 2
+
+command:
+  - .venv/bin/python
+  - ${program}
+  - --use-wandb
+  - --wandb-project=gcode-phase2-features
+  - --split-dir=outputs/stratified_splits_full_vocab
+  - --vocab-path=data/vocabulary_4digit_full.json
+  - --encoder-path=outputs/mm_dtae_lstm_v2/best_model.pt
+  - --output-dir=outputs/sweep_phase2/${env:WANDB_RUN_ID:phase2_run}
+  # === FIXED: Best from Phase 1 ===
+  - --max-epochs=50
+  - --patience=20
+  - --batch-size=24
+  - --n-layers=5
+  - --n-heads=8
+  - --learning-rate=0.00024
+  - --weight-decay=0.052
+  - --lr-scheduler=cosine_restarts
+  - --restart-period=15
+  - --warmup-epochs=12
+  - --warmup-type=cosine
+  - --grad-clip=1.0
+  - --label-smoothing=0.10
+  - --command-weight=2.14
+  - --digit-focal-gamma=7.0
+  - --optimizer=adamw
+  # === ALWAYS ON (proven beneficial) ===
+  - --use-type-constraint
+  - --use-sensor-prior
+  - --use-position-weights
+  - --use-error-sampling
+  - --adaptive-weighting
+  - --augment
+  - --use-enhanced-encoder
+  - --use-multihead-pooling
+  - --progressive-augmentation
+  - ${args}
+
+parameters:
+  # ============================================================
+  # ARCHITECTURE (Test larger model)
+  # ============================================================
+  d-model:
+    values: [320, 384]  # Test if 384 helps
+  dropout:
+    distribution: uniform
+    min: 0.28
+    max: 0.36
+  embed-dropout:
+    distribution: uniform
+    min: 0.14
+    max: 0.20
+
+  # ============================================================
+  # FEATURE WEIGHTS (Fine-tune around best)
+  # ============================================================
+  sensor-prior-weight:
+    distribution: uniform
+    min: 0.48
+    max: 0.58
+  position-weight-scale:
+    values: [2.5, 3.0, 3.5]
+  error-boost:
+    values: [1.25, 1.5, 1.75]
+
+  # ============================================================
+  # NEW: AUXILIARY HEADS (Was always OFF)
+  # ============================================================
+  use-auxiliary-heads:
+    values: [true, false]
+  auxiliary-loss-weight:
+    distribution: uniform
+    min: 0.15
+    max: 0.35
+
+  # ============================================================
+  # NEW: EOS CALIBRATION (Was always OFF)
+  # ============================================================
+  use-eos-calibration:
+    values: [true, false]
+  eos-calibration-weight:
+    distribution: uniform
+    min: 0.1
+    max: 0.3
+
+  # ============================================================
+  # NEW: MIXUP AUGMENTATION (Not used in Phase 1)
+  # ============================================================
+  use-mixup:
+    values: [true, false]
+  mixup-prob:
+    distribution: uniform
+    min: 0.3
+    max: 0.5
+  mixup-alpha:
+    distribution: uniform
+    min: 0.1
+    max: 0.25
+
+  # ============================================================
+  # AUGMENTATION (Fine-tune)
+  # ============================================================
+  augment-start:
+    value: 0.1
+  augment-end:
+    distribution: uniform
+    min: 0.30
+    max: 0.45
+
+  # ============================================================
+  # REGULARIZATION (Fine-tune)
+  # ============================================================
+  drop-path-rate:
+    distribution: uniform
+    min: 0.05
+    max: 0.15
+
+  # ============================================================
+  # SEEDS (For ensemble)
+  # ============================================================
+  seed:
+    values: [42, 123, 456]

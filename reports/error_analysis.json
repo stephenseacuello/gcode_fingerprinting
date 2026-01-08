@@ -1,0 +1,859 @@
+{
+  "overall": {
+    "total_tokens": 2583,
+    "correct_tokens": 1694,
+    "token_accuracy": 0.6558265582655827,
+    "total_sequences": 630,
+    "correct_sequences": 61,
+    "sequence_accuracy": 0.09682539682539683
+  },
+  "by_token_type": {
+    "COMMAND": {
+      "total": 424,
+      "correct": 204,
+      "incorrect": 220,
+      "accuracy": 0.4811320754716981
+    },
+    "PARAM_TYPE": {
+      "total": 757,
+      "correct": 589,
+      "incorrect": 168,
+      "accuracy": 0.7780713342140027
+    },
+    "NUM_X": {
+      "total": 459,
+      "correct": 123,
+      "incorrect": 336,
+      "accuracy": 0.2679738562091503
+    },
+    "SPECIAL": {
+      "total": 630,
+      "correct": 602,
+      "incorrect": 28,
+      "accuracy": 0.9555555555555556
+    },
+    "NUM_Y": {
+      "total": 217,
+      "correct": 91,
+      "incorrect": 126,
+      "accuracy": 0.41935483870967744
+    },
+    "NUM_R": {
+      "total": 28,
+      "correct": 28,
+      "incorrect": 0,
+      "accuracy": 1.0
+    },
+    "NUM_Z": {
+      "total": 51,
+      "correct": 45,
+      "incorrect": 6,
+      "accuracy": 0.8823529411764706
+    },
+    "OTHER": {
+      "total": 15,
+      "correct": 11,
+      "incorrect": 4,
+      "accuracy": 0.7333333333333333
+    },
+    "NUM_F": {
+      "total": 2,
+      "correct": 1,
+      "incorrect": 1,
+      "accuracy": 0.5
+    }
+  },
+  "by_position": {
+    "0": 340,
+    "2": 279,
+    "1": 246,
+    "3": 12,
+    "5": 6,
+    "4": 6
+  },
+  "top_confusion_pairs": [
+    {
+      "pred": "X",
+      "target": "G1",
+      "count": 166
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_3275",
+      "count": 76
+    },
+    {
+      "pred": "X",
+      "target": "Y",
+      "count": 69
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_3535",
+      "count": 53
+    },
+    {
+      "pred": "Y",
+      "target": "G1",
+      "count": 36
+    },
+    {
+      "pred": "G1",
+      "target": "Y",
+      "count": 34
+    },
+    {
+      "pred": "G1",
+      "target": "X",
+      "count": 32
+    },
+    {
+      "pred": "G1",
+      "target": "EOS",
+      "count": 28
+    },
+    {
+      "pred": "Y",
+      "target": "X",
+      "count": 26
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_1575",
+      "count": 20
+    },
+    {
+      "pred": "NUM_Y_2913",
+      "target": "NUM_Y_0175",
+      "count": 14
+    },
+    {
+      "pred": "NUM_X_3032",
+      "target": "NUM_X_3535",
+      "count": 13
+    },
+    {
+      "pred": "NUM_Y_2913",
+      "target": "NUM_Y_0604",
+      "count": 13
+    },
+    {
+      "pred": "NUM_X_3032",
+      "target": "NUM_X_-125",
+      "count": 10
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_1554",
+      "count": 10
+    },
+    {
+      "pred": "X",
+      "target": "G53",
+      "count": 8
+    },
+    {
+      "pred": "NUM_Y_3178",
+      "target": "NUM_Y_0086",
+      "count": 8
+    },
+    {
+      "pred": "G1",
+      "target": "NUM_Y_0175",
+      "count": 7
+    },
+    {
+      "pred": "NUM_X_3275",
+      "target": "NUM_X_-125",
+      "count": 7
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_3032",
+      "count": 7
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_1444",
+      "count": 5
+    },
+    {
+      "pred": "NUM_Y_3410",
+      "target": "NUM_Y_3178",
+      "count": 5
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_1694",
+      "count": 5
+    },
+    {
+      "pred": "X",
+      "target": "G0",
+      "count": 5
+    },
+    {
+      "pred": "NUM_Y_1456",
+      "target": "NUM_Y_1200",
+      "count": 4
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_1564",
+      "count": 4
+    },
+    {
+      "pred": "NUM_Y_2913",
+      "target": "NUM_Y_0649",
+      "count": 4
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_1676",
+      "count": 4
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_1075",
+      "count": 4
+    },
+    {
+      "pred": "NUM_X_-125",
+      "target": "NUM_X_1646",
+      "count": 4
+    }
+  ],
+  "errors_by_type_samples": {
+    "COMMAND": [
+      {
+        "pred": "X",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_0670"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_-125"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_3535"
+        ]
+      },
+      {
+        "pred": "Y",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_0232"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_3275"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_-125"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_-125"
+        ]
+      },
+      {
+        "pred": "Y",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_3178"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_-125"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "G1",
+        "position": 0,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_3275"
+        ]
+      }
+    ],
+    "NUM_X": [
+      {
+        "pred": "NUM_X_-125",
+        "target": "NUM_X_0670",
+        "position": 2,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_0670",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_X_3032",
+        "target": "NUM_X_-125",
+        "position": 2,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_-125",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_X_3032",
+        "target": "NUM_X_3535",
+        "position": 2,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_3535",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_X_-125",
+        "target": "NUM_X_1575",
+        "position": 1,
+        "context": [
+          "X",
+          "NUM_X_1575",
+          "Y",
+          "NUM_Y_1456"
+        ]
+      },
+      {
+        "pred": "NUM_X_-125",
+        "target": "NUM_X_3275",
+        "position": 2,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_3275",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_X_-125",
+        "target": "NUM_X_3535",
+        "position": 2,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_3535",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_X_-125",
+        "target": "NUM_X_3275",
+        "position": 2,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_3275",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_X_-125",
+        "target": "NUM_X_1695",
+        "position": 1,
+        "context": [
+          "X",
+          "NUM_X_1695",
+          "Y",
+          "NUM_Y_1566"
+        ]
+      },
+      {
+        "pred": "NUM_X_1046",
+        "target": "NUM_X_0901",
+        "position": 1,
+        "context": [
+          "X",
+          "NUM_X_0901",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_X_0596",
+        "target": "NUM_X_3122",
+        "position": 1,
+        "context": [
+          "X",
+          "NUM_X_3122",
+          "EOS"
+        ]
+      }
+    ],
+    "PARAM_TYPE": [
+      {
+        "pred": "X",
+        "target": "Y",
+        "position": 1,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_0962",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "Y",
+        "target": "X",
+        "position": 1,
+        "context": [
+          "G1",
+          "X",
+          "NUM_X_-125",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "Y",
+        "position": 0,
+        "context": [
+          "Y",
+          "NUM_Y_0604",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "X",
+        "position": 0,
+        "context": [
+          "X",
+          "NUM_X_-125",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "Y",
+        "position": 1,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_0816",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "Y",
+        "position": 0,
+        "context": [
+          "Y",
+          "NUM_Y_0175",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "Y",
+        "position": 1,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_0378",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "Y",
+        "position": 0,
+        "context": [
+          "Y",
+          "NUM_Y_0175",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "Y",
+        "position": 1,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_3178",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "Y",
+        "position": 0,
+        "context": [
+          "Y",
+          "NUM_Y_2913",
+          "EOS"
+        ]
+      }
+    ],
+    "NUM_Y": [
+      {
+        "pred": "NUM_Y_0086",
+        "target": "NUM_Y_0962",
+        "position": 2,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_0962",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "NUM_Y_0604",
+        "position": 1,
+        "context": [
+          "Y",
+          "NUM_Y_0604",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Y_3178",
+        "target": "NUM_Y_0232",
+        "position": 2,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_0232",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Y_3178",
+        "target": "NUM_Y_0816",
+        "position": 2,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_0816",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "NUM_Y_0175",
+        "position": 1,
+        "context": [
+          "Y",
+          "NUM_Y_0175",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Y_3410",
+        "target": "NUM_Y_0378",
+        "position": 2,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_0378",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Y_2913",
+        "target": "NUM_Y_0175",
+        "position": 1,
+        "context": [
+          "Y",
+          "NUM_Y_0175",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Y_3410",
+        "target": "NUM_Y_3178",
+        "position": 2,
+        "context": [
+          "G1",
+          "Y",
+          "NUM_Y_3178",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "NUM_Y_0175",
+        "position": 1,
+        "context": [
+          "Y",
+          "NUM_Y_0175",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "NUM_Y_0175",
+        "position": 1,
+        "context": [
+          "Y",
+          "NUM_Y_0175",
+          "EOS"
+        ]
+      }
+    ],
+    "SPECIAL": [
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      },
+      {
+        "pred": "G1",
+        "target": "EOS",
+        "position": 0,
+        "context": [
+          "EOS"
+        ]
+      }
+    ],
+    "OTHER": [
+      {
+        "pred": "Y",
+        "target": "Y0.",
+        "position": 1,
+        "context": [
+          "G1",
+          "Y0.",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "Y0.",
+        "position": 1,
+        "context": [
+          "G1",
+          "Y0.",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "Y0.",
+        "position": 1,
+        "context": [
+          "G1",
+          "Y0.",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "X",
+        "target": "Y0.",
+        "position": 1,
+        "context": [
+          "G1",
+          "Y0.",
+          "EOS"
+        ]
+      }
+    ],
+    "NUM_Z": [
+      {
+        "pred": "NUM_Z_-034",
+        "target": "NUM_Z_0036",
+        "position": 5,
+        "context": [
+          "NUM_Y_1575",
+          "Z",
+          "NUM_Z_0036",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Z_-023",
+        "target": "NUM_Z_-068",
+        "position": 5,
+        "context": [
+          "NUM_Y_1462",
+          "Z",
+          "NUM_Z_-068",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Z_-113",
+        "target": "NUM_Z_-100",
+        "position": 5,
+        "context": [
+          "NUM_Y_1617",
+          "Z",
+          "NUM_Z_-100",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Z_-105",
+        "target": "NUM_Z_-096",
+        "position": 5,
+        "context": [
+          "NUM_Y_1510",
+          "Z",
+          "NUM_Z_-096",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Z_-034",
+        "target": "NUM_Z_0036",
+        "position": 5,
+        "context": [
+          "NUM_Y_1575",
+          "Z",
+          "NUM_Z_0036",
+          "EOS"
+        ]
+      },
+      {
+        "pred": "NUM_Z_-105",
+        "target": "NUM_Z_-096",
+        "position": 5,
+        "context": [
+          "NUM_Y_1510",
+          "Z",
+          "NUM_Z_-096",
+          "EOS"
+        ]
+      }
+    ],
+    "NUM_F": [
+      {
+        "pred": "EOS",
+        "target": "NUM_F_0007",
+        "position": 4,
+        "context": [
+          "NUM_Z_0125",
+          "F",
+          "NUM_F_0007",
+          "EOS"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "individual": {
+    "ensemble_large_s123": 0.8484267075978511,
+    "ensemble_large_s42": 0.8499616270145818,
+    "ensemble_large_s456": 0.8488104374520338
+  },
+  "ensemble": 0.8545663852647736,
+  "best_individual": 0.8499616270145818,
+  "improvement": 0.004604758250191798,
+  "note": null
+}

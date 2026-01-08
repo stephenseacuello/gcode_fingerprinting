@@ -22,7 +22,12 @@ __all__ = [
     "MultiHeadGCodeLoss",
     "MultiHeadFocalLoss",
     "FocalLoss",
+    "PositionWeightedCrossEntropy",
+    "PositionWeightedFocalLoss",
     "DigitLoss",
+    "ConsistencyLoss",
+    "DualHeadValueLoss",
+    "EOSCalibrationLoss",
 ]
 
 
@@ -415,6 +420,168 @@ class FocalLoss(nn.Module):
         loss = loss.mean()
 
         return loss
+
+
+class PositionWeightedCrossEntropy(nn.Module):
+    """
+    Cross-entropy with position-dependent weights.
+
+    Weights loss higher for early positions in the sequence, which typically
+    have higher error rates (95% of errors at positions 0-2 in error analysis).
+
+    This helps the model focus on getting the beginning of the sequence right,
+    which is critical for command prediction accuracy.
+    """
+
+    def __init__(
+        self,
+        position_weights: Optional[list] = None,
+        max_len: int = 32,
+        ignore_index: int = 0,
+        label_smoothing: float = 0.0,
+    ):
+        """
+        Args:
+            position_weights: List of weights for each position. If shorter than max_len,
+                            remaining positions get weight 1.0. Default: [3.0, 2.5, 2.0, 1.5, 1.2]
+            max_len: Maximum sequence length
+            ignore_index: Token index to ignore in loss computation (usually PAD=0)
+            label_smoothing: Optional label smoothing factor
+        """
+        super().__init__()
+        self.ignore_index = ignore_index
+        self.label_smoothing = label_smoothing
+
+        if position_weights is None:
+            # Default: higher weight for early positions where most errors occur
+            position_weights = [3.0, 2.5, 2.0, 1.5, 1.2, 1.0, 1.0, 1.0]
+
+        # Pad to max_len with 1.0
+        position_weights = list(position_weights) + [1.0] * (max_len - len(position_weights))
+        self.register_buffer('position_weights', torch.tensor(position_weights[:max_len]))
+
+    def forward(
+        self,
+        logits: torch.Tensor,
+        targets: torch.Tensor,
+        reduction: str = 'mean',
+    ) -> torch.Tensor:
+        """
+        Compute position-weighted cross-entropy loss.
+
+        Args:
+            logits: [B, L, C] unnormalized scores
+            targets: [B, L] target class indices
+            reduction: 'mean', 'sum', or 'none'
+
+        Returns:
+            Weighted loss value
+        """
+        B, L, C = logits.shape
+
+        # Compute per-position loss (no reduction)
+        loss = F.cross_entropy(
+            logits.view(-1, C),
+            targets.view(-1),
+            reduction='none',
+            ignore_index=self.ignore_index,
+            label_smoothing=self.label_smoothing,
+        )
+        loss = loss.view(B, L)  # [B, L]
+
+        # Apply position weights (move to correct device)
+        weights = self.position_weights[:L].to(logits.device).unsqueeze(0).expand(B, -1)  # [B, L]
+        weighted_loss = loss * weights
+
+        # Mask out ignored positions (they have loss = 0 from cross_entropy)
+        valid_mask = targets != self.ignore_index
+
+        if reduction == 'mean':
+            # Average over valid positions
+            n_valid = valid_mask.sum()
+            if n_valid > 0:
+                return weighted_loss.sum() / n_valid
+            return torch.tensor(0.0, device=logits.device, requires_grad=True)
+        elif reduction == 'sum':
+            return weighted_loss.sum()
+        else:
+            return weighted_loss
+
+
+class PositionWeightedFocalLoss(nn.Module):
+    """
+    Focal loss with position-dependent weights.
+
+    Combines focal loss (for class imbalance) with position weighting
+    (for sequence position importance).
+    """
+
+    def __init__(
+        self,
+        position_weights: Optional[list] = None,
+        max_len: int = 32,
+        alpha: float = 0.25,
+        gamma: float = 2.0,
+        ignore_index: int = 0,
+    ):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.ignore_index = ignore_index
+
+        if position_weights is None:
+            position_weights = [3.0, 2.5, 2.0, 1.5, 1.2, 1.0, 1.0, 1.0]
+
+        position_weights = list(position_weights) + [1.0] * (max_len - len(position_weights))
+        self.register_buffer('position_weights', torch.tensor(position_weights[:max_len]))
+
+    def forward(
+        self,
+        logits: torch.Tensor,
+        targets: torch.Tensor,
+        reduction: str = 'mean',
+    ) -> torch.Tensor:
+        """Compute position-weighted focal loss."""
+        B, L, C = logits.shape
+
+        # Get probabilities
+        probs = F.softmax(logits, dim=-1)  # [B, L, C]
+
+        # Gather target probabilities
+        targets_expanded = targets.unsqueeze(-1)  # [B, L, 1]
+        pt = probs.gather(2, targets_expanded.clamp(0)).squeeze(-1)  # [B, L]
+
+        # Focal weight
+        focal_weight = (1 - pt) ** self.gamma
+
+        # Cross-entropy
+        ce_loss = F.cross_entropy(
+            logits.view(-1, C),
+            targets.view(-1),
+            reduction='none',
+            ignore_index=self.ignore_index,
+        )
+        ce_loss = ce_loss.view(B, L)  # [B, L]
+
+        # Focal loss
+        loss = self.alpha * focal_weight * ce_loss
+
+        # Apply position weights (move to correct device)
+        weights = self.position_weights[:L].to(logits.device).unsqueeze(0).expand(B, -1)  # [B, L]
+        weighted_loss = loss * weights
+
+        # Mask for valid positions
+        valid_mask = targets != self.ignore_index
+
+        if reduction == 'mean':
+            n_valid = valid_mask.sum()
+            if n_valid > 0:
+                return weighted_loss.sum() / n_valid
+            return torch.tensor(0.0, device=logits.device, requires_grad=True)
+        elif reduction == 'sum':
+            return weighted_loss.sum()
+        else:
+            return weighted_loss
 
 
 class PerDigitFocalLoss(nn.Module):
@@ -909,3 +1076,456 @@ class MultiHeadGCodeLoss(nn.Module):
                 loss_dict[f'digit_{key}'] = value
 
         return total_loss, loss_dict
+
+
+class ConsistencyLoss(nn.Module):
+    """
+    Consistency loss between different numeric representations.
+
+    Ensures that:
+    1. Digit-by-digit predictions are consistent with regression output
+    2. Bucket predictions are consistent with digit predictions
+    3. Raw float values match reconstructed values from digits
+
+    This helps the model learn coherent numeric representations.
+    """
+
+    def __init__(
+        self,
+        consistency_weight: float = 0.1,
+        use_huber: bool = True,
+        huber_delta: float = 1.0,
+    ):
+        """
+        Args:
+            consistency_weight: Weight for consistency loss
+            use_huber: Use Huber loss instead of MSE (more robust)
+            huber_delta: Delta parameter for Huber loss
+        """
+        super().__init__()
+        self.consistency_weight = consistency_weight
+        self.use_huber = use_huber
+
+        if use_huber:
+            self.loss_fn = nn.HuberLoss(delta=huber_delta)
+        else:
+            self.loss_fn = nn.MSELoss()
+
+    def digits_to_float(
+        self,
+        sign_logits: torch.Tensor,
+        digit_logits: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Convert digit predictions to float values.
+
+        Args:
+            sign_logits: [N, 3] sign predictions (positive, negative, zero)
+            digit_logits: [N, n_positions, 10] digit predictions
+
+        Returns:
+            [N] reconstructed float values
+        """
+        N = sign_logits.size(0)
+        device = sign_logits.device
+
+        # Get predicted sign
+        sign_probs = F.softmax(sign_logits, dim=-1)
+        # Sign: 0=positive, 1=negative, 2=zero
+        sign_pred = torch.argmax(sign_probs, dim=-1)  # [N]
+        sign_mult = torch.where(
+            sign_pred == 1,
+            torch.tensor(-1.0, device=device),
+            torch.where(
+                sign_pred == 2,
+                torch.tensor(0.0, device=device),
+                torch.tensor(1.0, device=device),
+            )
+        )
+
+        # Get predicted digits (soft argmax for differentiability)
+        n_positions = digit_logits.size(1)
+        digit_probs = F.softmax(digit_logits, dim=-1)  # [N, n_pos, 10]
+
+        # Compute expected value for each position (0-9)
+        digit_values = torch.arange(10, dtype=torch.float, device=device)  # [10]
+        expected_digits = (digit_probs * digit_values).sum(dim=-1)  # [N, n_pos]
+
+        # Convert to float: assume format is XX.XXXX (2 int digits, 4 decimal)
+        # Position 0: tens, Position 1: ones, Position 2: 0.1, etc.
+        position_weights = torch.tensor(
+            [10.0, 1.0, 0.1, 0.01, 0.001, 0.0001],
+            device=device
+        )[:n_positions]
+
+        reconstructed = (expected_digits * position_weights).sum(dim=-1)  # [N]
+        reconstructed = reconstructed * sign_mult
+
+        return reconstructed
+
+    def forward(
+        self,
+        logits: Dict[str, torch.Tensor],
+        targets: Dict[str, torch.Tensor],
+        numeric_mask: torch.Tensor,
+    ) -> Tuple[torch.Tensor, Dict[str, float]]:
+        """
+        Compute consistency loss between numeric representations.
+
+        Args:
+            logits: Dict with sign_logits, digit_logits, aux_value (regression)
+            targets: Dict with param_value_raw (ground truth floats)
+            numeric_mask: [B, T] mask for numeric positions
+
+        Returns:
+            consistency_loss: Scalar loss
+            loss_dict: Individual components
+        """
+        device = numeric_mask.device
+        loss_dict = {}
+
+        if not numeric_mask.any():
+            zero = torch.tensor(0.0, device=device, requires_grad=True)
+            return zero, {'digit_reg_consistency': 0.0, 'total_consistency': 0.0}
+
+        # Flatten to [N, ...] where N is number of numeric positions
+        sign_logits = logits['digit_sign_logits'][numeric_mask]  # [N, 3]
+        digit_logits = logits['digit_logits'][numeric_mask]  # [N, n_pos, 10]
+
+        # Reconstruct float from digits
+        digit_reconstructed = self.digits_to_float(sign_logits, digit_logits)
+
+        # Consistency with regression output (if available)
+        total_loss = torch.tensor(0.0, device=device, requires_grad=True)
+
+        if 'digit_aux_value' in logits:
+            aux_value = logits['digit_aux_value'].squeeze(-1)  # [B, T]
+            aux_flat = aux_value[numeric_mask]  # [N]
+
+            digit_reg_loss = self.loss_fn(digit_reconstructed, aux_flat)
+            loss_dict['digit_reg_consistency'] = digit_reg_loss.item()
+            total_loss = total_loss + digit_reg_loss
+
+        # Consistency with ground truth (soft supervision)
+        if 'param_value_raw' in targets:
+            gt_values = targets['param_value_raw'][numeric_mask]  # [N]
+            gt_loss = self.loss_fn(digit_reconstructed, gt_values)
+            loss_dict['digit_gt_consistency'] = gt_loss.item()
+            total_loss = total_loss + gt_loss * 0.5  # Lower weight
+
+        total_loss = total_loss * self.consistency_weight
+        loss_dict['total_consistency'] = total_loss.item()
+
+        return total_loss, loss_dict
+
+
+class DualHeadValueLoss(nn.Module):
+    """
+    Dual-head value prediction: coarse bucket + regression residual.
+
+    The idea is to:
+    1. Predict a coarse bucket (e.g., which 0.1 range the value falls in)
+    2. Predict a fine residual within that bucket (regression)
+
+    This combines the benefits of:
+    - Classification (easier to optimize, handles multimodal distributions)
+    - Regression (arbitrary precision)
+    """
+
+    def __init__(
+        self,
+        n_buckets: int = 100,
+        bucket_range: Tuple[float, float] = (-10.0, 10.0),
+        bucket_weight: float = 1.0,
+        residual_weight: float = 0.5,
+        use_huber: bool = True,
+        huber_delta: float = 0.1,
+        ignore_index: int = -1,
+    ):
+        """
+        Args:
+            n_buckets: Number of coarse buckets
+            bucket_range: (min, max) range for bucketing
+            bucket_weight: Weight for bucket classification loss
+            residual_weight: Weight for residual regression loss
+            use_huber: Use Huber loss for residual
+            huber_delta: Delta for Huber loss
+            ignore_index: Index to ignore in bucket classification
+        """
+        super().__init__()
+        self.n_buckets = n_buckets
+        self.bucket_range = bucket_range
+        self.bucket_weight = bucket_weight
+        self.residual_weight = residual_weight
+        self.ignore_index = ignore_index
+
+        # Compute bucket width
+        self.bucket_width = (bucket_range[1] - bucket_range[0]) / n_buckets
+
+        # Losses
+        self.bucket_loss_fn = nn.CrossEntropyLoss(ignore_index=ignore_index)
+        if use_huber:
+            self.residual_loss_fn = nn.HuberLoss(delta=huber_delta)
+        else:
+            self.residual_loss_fn = nn.MSELoss()
+
+    def value_to_bucket(self, values: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Convert continuous values to bucket index + residual.
+
+        Args:
+            values: [N] continuous values
+
+        Returns:
+            bucket_idx: [N] bucket indices (0 to n_buckets-1)
+            residuals: [N] residual within bucket (-0.5 to 0.5 of bucket width)
+        """
+        # Clamp to range
+        clamped = torch.clamp(
+            values,
+            self.bucket_range[0],
+            self.bucket_range[1] - 1e-6
+        )
+
+        # Compute bucket index
+        normalized = (clamped - self.bucket_range[0]) / self.bucket_width
+        bucket_idx = normalized.long().clamp(0, self.n_buckets - 1)
+
+        # Compute residual (normalized to [-0.5, 0.5])
+        bucket_start = bucket_idx.float() * self.bucket_width + self.bucket_range[0]
+        residuals = (clamped - bucket_start) / self.bucket_width - 0.5
+
+        return bucket_idx, residuals
+
+    def forward(
+        self,
+        bucket_logits: torch.Tensor,
+        residual_pred: torch.Tensor,
+        value_targets: torch.Tensor,
+        mask: torch.Tensor,
+    ) -> Tuple[torch.Tensor, Dict[str, float]]:
+        """
+        Compute dual-head loss.
+
+        Args:
+            bucket_logits: [B, T, n_buckets] bucket predictions
+            residual_pred: [B, T, 1] residual predictions
+            value_targets: [B, T] target continuous values
+            mask: [B, T] mask for valid positions
+
+        Returns:
+            total_loss: Combined loss
+            loss_dict: Individual components
+        """
+        device = bucket_logits.device
+
+        if not mask.any():
+            zero = torch.tensor(0.0, device=device, requires_grad=True)
+            return zero, {'bucket_loss': 0.0, 'residual_loss': 0.0, 'total_dual': 0.0}
+
+        # Flatten valid positions
+        bucket_logits_flat = bucket_logits[mask]  # [N, n_buckets]
+        residual_flat = residual_pred.squeeze(-1)[mask]  # [N]
+        targets_flat = value_targets[mask]  # [N]
+
+        # Get ground truth buckets and residuals
+        gt_buckets, gt_residuals = self.value_to_bucket(targets_flat)
+
+        # Bucket classification loss
+        bucket_loss = self.bucket_loss_fn(bucket_logits_flat, gt_buckets)
+
+        # Residual regression loss
+        residual_loss = self.residual_loss_fn(residual_flat, gt_residuals)
+
+        # Combine
+        total_loss = self.bucket_weight * bucket_loss + self.residual_weight * residual_loss
+
+        loss_dict = {
+            'bucket_loss': bucket_loss.item(),
+            'residual_loss': residual_loss.item(),
+            'total_dual': total_loss.item(),
+        }
+
+        return total_loss, loss_dict
+
+    def decode_value(
+        self,
+        bucket_logits: torch.Tensor,
+        residual_pred: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Decode continuous value from bucket prediction + residual.
+
+        Args:
+            bucket_logits: [B, T, n_buckets]
+            residual_pred: [B, T, 1]
+
+        Returns:
+            [B, T] decoded continuous values
+        """
+        # Get predicted bucket
+        bucket_idx = bucket_logits.argmax(dim=-1)  # [B, T]
+
+        # Convert bucket to center value
+        bucket_center = bucket_idx.float() * self.bucket_width + self.bucket_range[0] + self.bucket_width / 2
+
+        # Add residual (scaled by bucket width)
+        residual = residual_pred.squeeze(-1)  # [B, T]
+        value = bucket_center + residual * self.bucket_width
+
+        return value
+
+
+class EOSCalibrationLoss(nn.Module):
+    """
+    EOS calibration loss to improve sequence length prediction.
+
+    Addresses the common issue where models:
+    - Generate too long (don't predict EOS early enough)
+    - Generate too short (predict EOS too early)
+
+    Uses:
+    1. Length-aware EOS boosting/penalty
+    2. Optional length prediction head
+    3. Sequence length consistency loss
+    """
+
+    def __init__(
+        self,
+        eos_token_id: int = 2,
+        length_penalty: float = 0.6,
+        target_length_weight: float = 0.1,
+        min_length_penalty: float = 0.0,
+        use_length_head: bool = False,
+    ):
+        """
+        Args:
+            eos_token_id: EOS token ID in vocabulary
+            length_penalty: Penalty/boost for length deviation (alpha in length normalization)
+            target_length_weight: Weight for length prediction loss
+            min_length_penalty: Penalty for generating EOS before min length
+            use_length_head: Whether to use auxiliary length prediction
+        """
+        super().__init__()
+        self.eos_token_id = eos_token_id
+        self.length_penalty = length_penalty
+        self.target_length_weight = target_length_weight
+        self.min_length_penalty = min_length_penalty
+        self.use_length_head = use_length_head
+
+        if use_length_head:
+            # Length prediction loss (regression)
+            self.length_loss_fn = nn.SmoothL1Loss()
+
+    def forward(
+        self,
+        logits: torch.Tensor,
+        targets: torch.Tensor,
+        lengths: torch.Tensor,
+        length_pred: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, Dict[str, float]]:
+        """
+        Compute EOS calibration loss.
+
+        Args:
+            logits: [B, T, V] token logits
+            targets: [B, T] target tokens
+            lengths: [B] actual target sequence lengths (including EOS)
+            length_pred: [B] predicted sequence lengths (if use_length_head)
+
+        Returns:
+            calibration_loss: Scalar loss
+            loss_dict: Individual components
+        """
+        B, T, V = logits.shape
+        device = logits.device
+
+        loss_dict = {}
+        total_loss = torch.tensor(0.0, device=device, requires_grad=True)
+
+        # 1. EOS position loss: encourage correct EOS prediction at target length
+        eos_logits = logits[:, :, self.eos_token_id]  # [B, T]
+
+        # Create mask for target EOS positions
+        eos_mask = (targets == self.eos_token_id)  # [B, T]
+
+        # Loss to encourage high EOS prob at correct position
+        if eos_mask.any():
+            # BCE loss for EOS positions
+            eos_probs = torch.sigmoid(eos_logits)  # [B, T]
+            eos_targets = eos_mask.float()  # [B, T]
+
+            # Weight positions near target EOS more heavily
+            position_weights = torch.zeros_like(eos_targets)
+            for b in range(B):
+                target_len = lengths[b].item()
+                # High weight at EOS position, decay before
+                for t in range(T):
+                    if t < target_len - 1:
+                        position_weights[b, t] = max(0.0, 1.0 - (target_len - 1 - t) * 0.1)
+                    elif t == target_len - 1:
+                        position_weights[b, t] = 1.0
+                    else:
+                        # Penalty for predicting EOS after target length
+                        position_weights[b, t] = self.min_length_penalty
+
+            eos_loss = F.binary_cross_entropy(
+                eos_probs,
+                eos_targets,
+                weight=position_weights,
+                reduction='mean'
+            )
+            total_loss = total_loss + eos_loss
+            loss_dict['eos_position_loss'] = eos_loss.item()
+
+        # 2. Length prediction loss (if using length head)
+        if self.use_length_head and length_pred is not None:
+            length_loss = self.length_loss_fn(
+                length_pred.squeeze(-1),
+                lengths.float()
+            )
+            total_loss = total_loss + self.target_length_weight * length_loss
+            loss_dict['length_pred_loss'] = length_loss.item()
+
+        loss_dict['total_eos_calibration'] = total_loss.item()
+
+        return total_loss, loss_dict
+
+    def apply_length_penalty(
+        self,
+        log_probs: torch.Tensor,
+        current_length: int,
+        target_length: Optional[int] = None,
+    ) -> torch.Tensor:
+        """
+        Apply length penalty to log probabilities during inference.
+
+        Uses length normalization: score = log_prob / (length ^ alpha)
+
+        Args:
+            log_probs: [B, V] log probabilities
+            current_length: Current sequence length
+            target_length: Optional target length for adaptive penalty
+
+        Returns:
+            [B, V] adjusted log probabilities
+        """
+        if target_length is not None:
+            # Adaptive penalty based on distance to target
+            length_ratio = current_length / target_length
+            if length_ratio < 0.8:
+                # Too short - penalize EOS
+                eos_penalty = -5.0 * (0.8 - length_ratio)
+            elif length_ratio > 1.2:
+                # Too long - boost EOS
+                eos_penalty = 5.0 * (length_ratio - 1.2)
+            else:
+                eos_penalty = 0.0
+
+            log_probs_adjusted = log_probs.clone()
+            log_probs_adjusted[:, self.eos_token_id] += eos_penalty
+            return log_probs_adjusted
+
+        # Standard length normalization
+        length_factor = current_length ** self.length_penalty
+        return log_probs / length_factor

@@ -1,0 +1,11 @@
+{
+  "individual": {
+    "ensemble_m1": 0.8380660015349194,
+    "ensemble_m2": 0.8445894090560245,
+    "ensemble_m3": 0.840752110514198
+  },
+  "ensemble": 0.8438219493476592,
+  "best_individual": 0.8445894090560245,
+  "improvement": -0.0007674597083653367,
+  "note": null
+}

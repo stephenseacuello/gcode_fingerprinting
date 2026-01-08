@@ -1,0 +1,54 @@
+{
+  "name": "large_v1",
+  "description": "Single large model - 2x capacity for maximum accuracy",
+
+  "architecture": {
+    "d_model": 768,
+    "n_layers": 8,
+    "n_heads": 24,
+    "d_ff_multiplier": 4.0,
+    "dropout": 0.38,
+    "embed_dropout": 0.20,
+    "sensor_dim": 256,
+    "operation_embed_dim": 64,
+    "drop_path_rate": 0.15
+  },
+
+  "encoder": {
+    "hidden_dim": 512,
+    "lstm_layers": 3,
+    "use_enhanced_encoder": true,
+    "use_multihead_pooling": true,
+    "pooling_n_heads": 8,
+    "pooling_n_queries": 16
+  },
+
+  "training": {
+    "seed": 123,
+    "batch_size": 16,
+    "max_epochs": 200,
+    "patience": 50,
+    "learning_rate": 0.00015,
+    "weight_decay": 0.06,
+    "warmup_epochs": 15,
+    "lr_scheduler": "cosine_restarts",
+    "restart_period": 25,
+    "min_lr": 1e-7,
+    "grad_clip": 1.0,
+    "label_smoothing": 0.12
+  },
+
+  "features": {
+    "use_sensor_prior": true,
+    "sensor_prior_weight": 0.55,
+    "augment": true,
+    "augment_prob": 0.25,
+    "progressive_augmentation": true,
+    "use_error_sampling": true,
+    "error_boost": 1.8,
+    "use_position_weights": true,
+    "position_weight_scale": 3.0
+  },
+
+  "notes": "Large model with 2x d_model, 8 layers, 24 heads. Larger encoder with 512 hidden dim and 3 LSTM layers. Conservative learning rate and longer training."
+}

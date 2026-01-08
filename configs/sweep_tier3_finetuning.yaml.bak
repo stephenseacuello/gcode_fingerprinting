@@ -1,0 +1,129 @@
+# Tier 3: Loss Weights & SCST Fine-Tuning Sweep
+# Focus: Fine-tune loss weights and enable SCST for sequence-level optimization
+# Duration: ~4 days (300 runs across 8 GPUs)
+#
+# Note: Architecture params from Tier 1 and augmentation params from Tier 2
+#       should be injected via the launch script
+#
+# Usage:
+#   # After Tier 2 completes, inject best configs:
+#   envsubst < configs/sweep_tier3_finetuning.yaml > configs/sweep_tier3_resolved.yaml
+#   wandb sweep configs/sweep_tier3_resolved.yaml
+
+program: scripts/train_sensor_multihead.py
+method: bayes
+metric:
+  name: val/sequence_accuracy
+  goal: maximize
+
+early_terminate:
+  type: hyperband
+  min_iter: 20
+  eta: 3
+  s: 2
+
+command:
+  - .venv/bin/python
+  - ${program}
+  - --use-wandb
+  - --wandb-project=gcode-sweep-tier3
+  - --max-epochs=150
+  - --patience=30
+  - --split-dir=outputs/processed_v3
+  - --vocab-path=data/vocabulary_4digit_full.json
+  - --encoder-path=outputs/mm_dtae_lstm_v2/best_model.pt
+  - --use-enhanced-encoder
+  - --use-multiscale-encoder
+  - --use-multihead-pooling
+  # Architecture from Tier 1 (defaults - update after Tier 1)
+  - --d-model=256
+  - --n-layers=4
+  - --n-heads=8
+  - --dropout=0.3
+  - --learning-rate=0.0002
+  - --optimizer=adamw
+  # Augmentation from Tier 2 (defaults - update after Tier 2)
+  - --augment
+  - --augment-prob=0.3
+  - --noise-level=0.01
+  - --time-warp-sigma=0.1
+  - --focal-gamma=2.0
+  - --output-dir=outputs/sweep_runs/${env:WANDB_RUN_ID:sweep_run}
+  # Fixed boolean flags
+  - --use-grammar-constraints
+  - --scheduled-sampling
+  - --use-swa
+  - --use-scst
+  - --use-mixed-reward
+  - ${args}
+
+parameters:
+  # === Loss Weights (PRIMARY FOCUS) ===
+  type-weight:
+    distribution: uniform
+    min: 0.3
+    max: 2.0
+  command-weight:
+    distribution: uniform
+    min: 0.5
+    max: 2.5
+  param-type-weight:
+    distribution: uniform
+    min: 0.3
+    max: 1.5
+  digit-weight:
+    distribution: uniform
+    min: 0.5
+    max: 2.0
+
+  # === Grammar Constraint Weights ===
+  grammar-weight:
+    distribution: uniform
+    min: 0.05
+    max: 0.4
+  constraint-arc-radius-weight:
+    distribution: uniform
+    min: 0.5
+    max: 2.0
+  constraint-modal-group-weight:
+    distribution: uniform
+    min: 0.3
+    max: 1.2
+  constraint-cmd-param-weight:
+    distribution: uniform
+    min: 0.2
+    max: 1.0
+  constraint-rapid-feed-weight:
+    distribution: uniform
+    min: 0.2
+    max: 0.8
+  constraint-modal-state-weight:
+    distribution: uniform
+    min: 0.1
+    max: 0.6
+
+  # === SCST ===
+  scst-start-epoch:
+    values: [80, 100, 120]
+  scst-weight:
+    distribution: uniform
+    min: 0.1
+    max: 0.6
+  scst-lr:
+    distribution: log_uniform_values
+    min: 0.000001
+    max: 0.00005
+  sample-temperature:
+    distribution: uniform
+    min: 0.6
+    max: 1.2
+
+  # === Advanced Training ===
+  grad-clip:
+    values: [0.5, 1.0, 2.0]
+  accumulation-steps:
+    values: [1, 2, 4]
+
+  # === Scheduled Sampling ===
+  teacher-forcing-end:
+    values: [0.1, 0.2, 0.3]
