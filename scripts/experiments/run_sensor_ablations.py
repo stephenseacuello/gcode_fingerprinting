@@ -543,7 +543,7 @@ def main():
     parser.add_argument('--encoder-path', type=str, required=True, help='Path to encoder checkpoint')
     parser.add_argument('--vocab-path', type=str, required=True, help='Path to vocabulary JSON')
     parser.add_argument('--output-dir', type=str, required=True, help='Output directory')
-    parser.add_argument('--master-columns', type=str, help='Path to master columns JSON')
+    parser.add_argument('--master-columns', type=str, help='Path to master columns JSON (optional, auto-detected from data)')
     parser.add_argument('--ablation-type', type=str, default='both',
                         choices=['leave_one_out', 'leave_one_in', 'both'],
                         help='Type of ablation to run')
@@ -556,12 +556,27 @@ def main():
     with open(args.config) as f:
         config = json.load(f)
 
-    # Load or generate master columns
+    # Load master columns - try multiple sources
+    master_columns = None
+
+    # 1. Try explicit path
     if args.master_columns and os.path.exists(args.master_columns):
         with open(args.master_columns) as f:
             master_columns = json.load(f)
-    else:
-        # Generate default column list (sensor_id.modality format)
+        print(f"Loaded master columns from: {args.master_columns}")
+
+    # 2. Try metadata file in data directory
+    if master_columns is None:
+        metadata_path = Path(args.data_dir) / 'train_sequences_metadata.json'
+        if metadata_path.exists():
+            with open(metadata_path) as f:
+                metadata = json.load(f)
+            if 'master_columns' in metadata:
+                master_columns = metadata['master_columns']
+                print(f"Loaded master columns from metadata: {len(master_columns)} features")
+
+    # 3. Fallback to default
+    if master_columns is None:
         master_columns = []
         for sensor_id in SENSOR_IDS:
             for modality in MODALITIES:
