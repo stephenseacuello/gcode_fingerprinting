@@ -47,6 +47,15 @@ def train_single_seed(
         vocab_data = json.load(f)
     vocab = vocab_data['vocab']
 
+    # Load metadata to get input_dim
+    metadata_path = Path(data_dir) / 'metadata.json'
+    if metadata_path.exists():
+        with open(metadata_path) as f:
+            metadata = json.load(f)
+        input_dim = metadata.get('n_continuous_features', 155)
+    else:
+        input_dim = config.get('sensor_input_dim', 155)
+
     # Load datasets
     max_seq_len = config.get('max_seq_len', 32)
     train_dataset = DecoderDatasetFromSplits(
@@ -72,7 +81,7 @@ def train_single_seed(
 
     # Create encoder
     encoder = EnhancedEncoder(
-        input_dim=config.get('sensor_input_dim', 155),
+        input_dim=input_dim,
         hidden_dim=256,
         latent_dim=128,
         n_operations=9,
@@ -287,6 +296,15 @@ def learn_ensemble_weights(
         vocab_data = json.load(f)
     vocab = vocab_data['vocab']
 
+    # Load metadata to get input_dim
+    metadata_path = Path(data_dir) / 'metadata.json'
+    if metadata_path.exists():
+        with open(metadata_path) as f:
+            metadata = json.load(f)
+        input_dim = metadata.get('n_continuous_features', 155)
+    else:
+        input_dim = config.get('sensor_input_dim', 155)
+
     # Load validation data
     max_seq_len = config.get('max_seq_len', 32)
     val_dataset = DecoderDatasetFromSplits(
@@ -301,7 +319,7 @@ def learn_ensemble_weights(
 
     # Load encoder
     encoder = EnhancedEncoder(
-        input_dim=config.get('sensor_input_dim', 155),
+        input_dim=input_dim,
         hidden_dim=256,
         latent_dim=128,
         n_operations=9,

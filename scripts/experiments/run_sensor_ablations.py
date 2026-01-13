@@ -199,6 +199,15 @@ def train_ablation_model(
         vocab_data = json.load(f)
     vocab = vocab_data['vocab']
 
+    # Load metadata to get input_dim
+    metadata_path = Path(data_dir) / 'metadata.json'
+    if metadata_path.exists():
+        with open(metadata_path) as f:
+            metadata = json.load(f)
+        input_dim = metadata.get('n_continuous_features', 155)
+    else:
+        input_dim = config.get('sensor_input_dim', 155)
+
     # Load datasets with mask applied
     max_seq_len = config.get('max_seq_len', 32)
     train_base = DecoderDatasetFromSplits(
@@ -237,7 +246,7 @@ def train_ablation_model(
 
     # Create encoder
     encoder = EnhancedEncoder(
-        input_dim=config.get('sensor_input_dim', 155),
+        input_dim=input_dim,
         hidden_dim=256,
         latent_dim=128,
         n_operations=9,
