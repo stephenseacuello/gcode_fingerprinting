@@ -91,6 +91,15 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         vocab_data = json.load(f)
     vocab = vocab_data['vocab']
 
+    # Load metadata to get input_dim
+    metadata_path = Path(data_dir) / 'metadata.json'
+    if metadata_path.exists():
+        with open(metadata_path) as f:
+            metadata = json.load(f)
+        input_dim = metadata.get('n_continuous_features', 155)
+    else:
+        input_dim = 155
+
     # Configurable sequence length
     max_seq_len = config.get('max_seq_len', 32)
 
@@ -118,7 +127,7 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
 
     # Create encoder with configurable pooling
     encoder = EnhancedEncoder(
-        input_dim=155,
+        input_dim=input_dim,
         hidden_dim=256,
         latent_dim=128,
         n_operations=9,
