@@ -1,0 +1,189 @@
+# Push to 90% Sweep - Single GPU Version (RTX A6000 48GB)
+# Constrained model sizes to fit in memory with 2k vocab
+# Based on: d_model=2048, n_layers=10, low regularization achieved 83.4%
+
+name: gcode-push-to-90-single-gpu
+project: gcode-fingerprinting
+
+search_space:
+  # ============ ARCHITECTURE - CONSTRAINED FOR 48GB ============
+  d_model:
+    type: choice
+    values: [256, 384, 512, 640, 768, 896, 1024, 1280, 1536, 2048]
+
+  n_layers:
+    type: choice
+    values: [2, 3, 4, 5, 6, 7, 8, 10, 12]
+
+  n_heads:
+    type: choice
+    values: [4, 8, 12, 16, 32]
+
+  ffn_multiplier:
+    type: choice
+    values: [2, 3, 4]
+
+  # ============ REGULARIZATION ============
+  dropout:
+    type: uniform
+    min: 0.0
+    max: 0.40
+
+  embed_dropout:
+    type: uniform
+    min: 0.0
+    max: 0.35
+
+  drop_path_rate:
+    type: uniform
+    min: 0.0
+    max: 0.25
+
+  label_smoothing:
+    type: uniform
+    min: 0.0
+    max: 0.20
+
+  # ============ SENSOR PRIOR ============
+  use_sensor_prior:
+    type: choice
+    values: [true, false]
+
+  sensor_prior_weight:
+    type: uniform
+    min: 0.1
+    max: 0.99
+
+  # ============ LEARNING RATE ============
+  learning_rate:
+    type: loguniform
+    min: 1e-5
+    max: 0.005
+
+  weight_decay:
+    type: loguniform
+    min: 0.001
+    max: 0.1
+
+  # ============ OPTIMIZER ============
+  optimizer:
+    type: choice
+    values: ["adamw", "adam", "radam", "nadam"]
+
+  beta1:
+    type: uniform
+    min: 0.85
+    max: 0.95
+
+  beta2:
+    type: uniform
+    min: 0.95
+    max: 0.999
+
+  momentum:
+    type: uniform
+    min: 0.85
+    max: 0.95
+
+  # ============ SCHEDULER ============
+  scheduler:
+    type: choice
+    values: ["cosine", "cosine_restarts", "one_cycle", "linear_warmup"]
+
+  warmup_epochs:
+    type: choice
+    values: [5, 10, 15, 20, 30]
+
+  restart_period:
+    type: choice
+    values: [20, 30, 40, 50, 80]
+
+  step_size:
+    type: choice
+    values: [20, 30, 40, 50]
+
+  gamma:
+    type: uniform
+    min: 0.1
+    max: 0.5
+
+  # ============ SEQUENCE LENGTH ============
+  max_seq_len:
+    type: choice
+    values: [16, 20, 24, 28, 32]
+
+  # ============ POOLING ============
+  pooling_n_heads:
+    type: choice
+    values: [2, 4, 8, 16]
+
+  pooling_n_queries:
+    type: choice
+    values: [16, 32, 64, 128]
+
+  # ============ BATCH SIZE - CONSERVATIVE ============
+  batch_size:
+    type: choice
+    values: [8, 12, 16, 24, 32]
+
+  grad_clip:
+    type: choice
+    values: [0.5, 1.0, 2.0, 5.0]
+
+  # ============ AUGMENTATION ============
+  use_augmentation:
+    type: choice
+    values: [true, false]
+
+  augment_prob:
+    type: uniform
+    min: 0.0
+    max: 0.4
+
+  noise_std:
+    type: loguniform
+    min: 0.001
+    max: 0.05
+
+  mixup_alpha:
+    type: uniform
+    min: 0.0
+    max: 0.3
+
+# Fixed parameters
+fixed:
+  seed: 123
+  max_epochs: 400
+  patience: 75
+  use_enhanced_encoder: true
+
+# Ray Tune settings
+ray_tune:
+  num_samples: 500
+  max_concurrent_trials: 1
+
+  scheduler:
+    type: ASHAScheduler
+    max_t: 400
+    grace_period: 35
+    reduction_factor: 3
+
+  search_alg:
+    type: OptunaSearch
+    metric: val_token_acc
+    mode: max
+
+# Resources per trial
+resources:
+  gpu: 1
+  cpu: 4
+
+# Checkpointing
+checkpoint:
+  frequency: 25
+  keep_num: 3
+
+# WandB integration
+wandb:
+  project: gcode-push-to-90-2k-vocab
+  group: bizon-single-gpu-sweep
