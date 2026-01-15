@@ -2767,12 +2767,35 @@
                 toolpathState.data.metrics = data.metrics;
             }
 
+            // Show visualization and hide "No data" message when data arrives
+            if (toolpathState.data.comparison.length > 0) {
+                const noDataEl = document.getElementById('toolpathNoData');
+                const vizEl = document.getElementById('toolpathVisualization');
+                if (noDataEl && noDataEl.style.display !== 'none') {
+                    noDataEl.style.display = 'none';
+                }
+                if (vizEl && vizEl.style.display === 'none') {
+                    vizEl.style.display = 'block';
+                }
+            }
+
             // Throttled update for performance (max 10 fps)
             throttledToolpathUpdate();
 
             // Update metrics display immediately
             if (data.metrics) {
                 updateMetrics(data.metrics);
+            }
+
+            // Update accuracy timeline and command comparison
+            // (throttled to avoid excessive redraws)
+            if (toolpathState.data.comparison.length > 0) {
+                // Only update every 5th point or batch to reduce overhead
+                if (data.batch || toolpathState.data.comparison.length % 5 === 0) {
+                    updateAccuracyTimeline();
+                }
+                // Update current command comparison
+                updateCommandComparison(toolpathState.currentIndex);
             }
 
             // Reduced logging for batch mode
@@ -6647,15 +6670,23 @@ ${JSON.stringify(checkpoint.config, null, 2)}
         function updateMetrics(metrics) {
             if (!metrics) return;
 
-            // Note: accuracy is already a percentage (0-100) from the backend
-            document.getElementById('tpAccuracy').textContent =
-                metrics.accuracy.toFixed(1) + '%';
-            document.getElementById('tpMeanError').textContent =
-                metrics.mean_error.toFixed(4);
-            document.getElementById('tpMaxError').textContent =
-                metrics.max_error.toFixed(4);
-            document.getElementById('tpPoints').textContent =
-                metrics.total_points;
+            try {
+                // Note: accuracy is already a percentage (0-100) from the backend
+                const accuracy = metrics.accuracy ?? 0;
+                const meanError = metrics.mean_error ?? 0;
+                const maxError = metrics.max_error ?? 0;
+                const totalPoints = metrics.total_points ?? 0;
+
+                document.getElementById('tpAccuracy').textContent =
+                    (typeof accuracy === 'number' ? accuracy.toFixed(1) : '0.0') + '%';
+                document.getElementById('tpMeanError').textContent =
+                    typeof meanError === 'number' ? meanError.toFixed(4) : '0.0000';
+                document.getElementById('tpMaxError').textContent =
+                    typeof maxError === 'number' ? maxError.toFixed(4) : '0.0000';
+                document.getElementById('tpPoints').textContent = totalPoints;
+            } catch (e) {
+                console.error('[Toolpath] Error updating metrics:', e);
+            }
         }
 
         // Update toolpath view based on current mode
@@ -7178,9 +7209,23 @@ ${JSON.stringify(checkpoint.config, null, 2)}
         document.querySelectorAll('.tab-nav-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 if (this.dataset.tab === 'toolpath') {
-                    // Initialize if first time
-                    if (!toolpathState.data) {
+                    // Initialize if first time or refresh if we have data
+                    if (!toolpathState.data || toolpathState.data.comparison.length === 0) {
                         loadToolpathData();
+                    } else {
+                        // Trigger resize for Plotly charts (they don't render correctly when hidden)
+                        setTimeout(() => {
+                            const plotIds = ['errorColoredPlot', 'overlaidPlot', 'gtPlot', 'predPlot', 'accuracyTimeline'];
+                            plotIds.forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el && el.data) {
+                                    Plotly.Plots.resize(el);
+                                }
+                            });
+                            // Also refresh the view
+                            updateToolpathView();
+                            updateAccuracyTimeline();
+                        }, 100);
                     }
                 }
             });

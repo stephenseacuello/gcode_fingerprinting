@@ -328,6 +328,89 @@ def reconstruct_numeric_token(token_str, tokenizer_config):
         return f"{actual_value:.3f}"
 
 
+def apply_gcode_grammar(tokens):
+    """
+    Apply G-code grammar enforcement to a list of tokens.
+
+    Handles model predictions that may be missing G-commands by:
+    1. Detecting if no command is present
+    2. Inserting G1 (linear interpolation) as default command
+    3. Grouping parameters into proper G-code line
+
+    Args:
+        tokens: List of token strings (e.g., ['X0.1234', 'Y0.5678'])
+
+    Returns:
+        Properly formatted G-code string
+    """
+    if not tokens:
+        return '<EMPTY>'
+
+    param_letters = {'X', 'Y', 'Z', 'F', 'S', 'R', 'I', 'J', 'K', 'P', 'Q', 'A', 'B', 'C', 'E'}
+    command_tokens = {'G0', 'G1', 'G2', 'G3', 'G17', 'G18', 'G19', 'G20', 'G21',
+                      'G28', 'G40', 'G41', 'G42', 'G43', 'G49', 'G53', 'G54',
+                      'G80', 'G81', 'G82', 'G83', 'G90', 'G91', 'G94', 'G95',
+                      'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M30'}
+
+    # Check if first token is a G/M command
+    first_is_command = False
+    if tokens:
+        first_token = tokens[0]
+        first_is_command = (first_token in command_tokens or
+                            (first_token.startswith('G') and len(first_token) <= 3) or
+                            (first_token.startswith('M') and len(first_token) <= 3))
+
+    # Check if ANY token is a command
+    has_command = any(t in command_tokens or
+                      (t.startswith('G') and len(t) <= 3 and t[1:].replace('.', '').isdigit()) or
+                      (t.startswith('M') and len(t) <= 3 and t[1:].isdigit())
+                      for t in tokens)
+
+    # If no command found, insert G1 at the beginning
+    if not has_command:
+        # Check if first token is a parameter value (starts with X, Y, Z, etc.)
+        if tokens and len(tokens[0]) > 1 and tokens[0][0] in param_letters:
+            tokens = ['G1'] + list(tokens)  # Ensure we have a mutable copy
+            logger.info(f"Grammar fix: Inserted G1 command prefix for tokens starting with {tokens[1]}")
+
+    # Group tokens into proper G-code line, ensuring no duplicate parameters
+    gcode_parts = []
+    used_params = set()
+    commands = []
+
+    for token in tokens:
+        # Skip standalone parameter letters without values (e.g., 'X', 'Y', 'Z')
+        # These are incomplete tokens that shouldn't appear in output
+        if token in param_letters:
+            logger.debug(f"Grammar fix: Skipping standalone letter '{token}'")
+            continue
+
+        # Check if command
+        is_cmd = (token in command_tokens or
+                  (token.startswith('G') and len(token) <= 3 and token[1:].replace('.', '').isdigit()) or
+                  (token.startswith('M') and len(token) <= 3 and token[1:].isdigit()))
+
+        if is_cmd:
+            commands.append(token)
+        elif len(token) > 1 and token[0] in param_letters:
+            param_letter = token[0]
+            # Skip duplicate parameters (keep first occurrence)
+            if param_letter not in used_params:
+                gcode_parts.append(token)
+                used_params.add(param_letter)
+        # else: skip unrecognized tokens
+
+    # Ensure we have at least one command if we have parameters
+    if not commands and gcode_parts:
+        commands.append('G1')
+        logger.debug(f"Grammar fix: Added G1 command for orphaned parameters")
+
+    # Build final G-code: commands first, then parameters
+    result_parts = commands + gcode_parts
+
+    return ' '.join(result_parts) if result_parts else '<EMPTY>'
+
+
 # ============================================================================
 # Model and Data Loading
 # ============================================================================
@@ -456,11 +539,27 @@ def load_model(checkpoint_path):
                 return self
 
             def tokens_to_gcode(self, token_ids):
-                """Convert token IDs to G-code string."""
-                tokens = []
+                """
+                Convert token IDs to G-code string with proper grammar enforcement.
+
+                Handles model predictions that may be missing G-commands by:
+                1. Detecting if no command is present
+                2. Grouping parameters into proper G-code lines
+                3. Applying RS-274D grammar rules
+                """
+                raw_tokens = []
                 param_letters = {'X', 'Y', 'Z', 'F', 'S', 'R', 'I', 'J', 'K', 'P', 'Q', 'A', 'B', 'C', 'E'}
+                command_tokens = {'G0', 'G1', 'G2', 'G3', 'G17', 'G18', 'G19', 'G20', 'G21',
+                                  'G28', 'G40', 'G41', 'G42', 'G43', 'G49', 'G53', 'G54',
+                                  'G80', 'G81', 'G82', 'G83', 'G90', 'G91', 'G94', 'G95',
+                                  'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M30'}
                 token_list = list(token_ids)
 
+                # Debug: log raw token IDs
+                debug_raw_ids = [int(t) for t in token_list[:10]]  # First 10
+                logger.debug(f"tokens_to_gcode input IDs: {debug_raw_ids}")
+
+                # First pass: collect all tokens
                 for i, tid in enumerate(token_list):
                     tid = int(tid)
                     if tid in (self.bos_id, self.eos_id, self.pad_id):
@@ -468,30 +567,97 @@ def load_model(checkpoint_path):
                     token_str = self.id_to_token.get(tid, f'<UNK:{tid}>')
 
                     # Skip standalone parameter letters if next token is NUM_* with same letter
-                    # This prevents "X NUM_X_1234" -> "X X0.1234" duplication
                     if token_str in param_letters and i + 1 < len(token_list):
                         next_tid = int(token_list[i + 1])
                         next_token = self.id_to_token.get(next_tid, '')
                         if next_token.startswith(f'NUM_{token_str}_'):
-                            continue  # Skip this standalone letter
+                            continue
+
+                    # Skip standalone parameter letters (X, Y, Z without values)
+                    # These are incomplete tokens from model generation
+                    if token_str in param_letters:
+                        continue
 
                     # Parse NUM_X_1234 format to actual values
                     if token_str.startswith('NUM_'):
-                        # Format: NUM_X_1234 -> X1.2340 (with param prefix and 4 decimal places)
                         parts = token_str.split('_')
                         if len(parts) >= 3:
-                            param = parts[1]  # X, Y, Z, F, S, etc.
+                            param = parts[1]
                             try:
-                                value = int(parts[2]) / 10000.0  # 4 decimal digits
-                                # Include param prefix for proper G-code format
-                                tokens.append(f'{param}{value:.4f}')
+                                value = int(parts[2]) / 10000.0
+                                raw_tokens.append(f'{param}{value:.4f}')
                             except:
-                                tokens.append(token_str)
-                        else:
-                            tokens.append(token_str)
+                                pass  # Skip malformed NUM tokens
+                        # Skip malformed NUM tokens
                     else:
-                        tokens.append(token_str)
-                return ' '.join(tokens)
+                        raw_tokens.append(token_str)
+
+                if not raw_tokens:
+                    return '<EMPTY>'
+
+                # Debug: log collected raw tokens
+                logger.debug(f"tokens_to_gcode raw_tokens: {raw_tokens[:8]}")
+
+                # Second pass: Apply G-code grammar enforcement
+                # Check if FIRST token is a G/M command (not any token)
+                first_is_command = False
+                if raw_tokens:
+                    first_token = raw_tokens[0]
+                    first_is_command = (first_token in command_tokens or
+                                       (first_token.startswith('G') and len(first_token) <= 3 and first_token[1:].isdigit()) or
+                                       (first_token.startswith('M') and len(first_token) <= 3 and first_token[1:].isdigit()))
+
+                # Group tokens into G-code lines
+                # Each line should have: [command] [parameters...]
+                gcode_lines = []
+                current_line = []
+                used_params = set()
+
+                for token in raw_tokens:
+                    # Check if this is a command token
+                    is_command = (token in command_tokens or
+                                  (token.startswith('G') and len(token) <= 3 and token[1:].isdigit()) or
+                                  (token.startswith('M') and len(token) <= 3 and token[1:].isdigit()))
+
+                    if is_command:
+                        # Start new line if we have content
+                        if current_line:
+                            gcode_lines.append(' '.join(current_line))
+                            current_line = []
+                            used_params = set()
+                        current_line.append(token)
+                    else:
+                        # Parameter token (e.g., X1.2340)
+                        if len(token) > 1 and token[0] in param_letters:
+                            param_letter = token[0]
+                            # Check for duplicate parameter in same line
+                            if param_letter in used_params:
+                                # Start new line with inferred command
+                                if current_line:
+                                    gcode_lines.append(' '.join(current_line))
+                                # Use G1 as default (linear interpolation) - most common
+                                current_line = ['G1', token]
+                                used_params = {param_letter}
+                            else:
+                                # Add to current line
+                                # ALWAYS insert G1 if current_line is empty (no command yet)
+                                if not current_line:
+                                    # No command in current line - insert G1 as default
+                                    current_line.append('G1')
+                                    logger.debug(f"Grammar fix: Inserted G1 for param {token}")
+                                current_line.append(token)
+                                used_params.add(param_letter)
+                        # else: skip unrecognized tokens (don't add garbage to output)
+
+                # Add final line
+                if current_line:
+                    gcode_lines.append(' '.join(current_line))
+
+                # Return single G-code line (first one) for per-sample prediction
+                # This matches expected behavior for dashboard display
+                if gcode_lines:
+                    return gcode_lines[0]
+                return '<EMPTY>'
 
             @torch.no_grad()
             def generate(self, sensor_data, max_length=32, temperature=1.0, top_k=50):
@@ -650,8 +816,11 @@ def load_model(checkpoint_path):
             # Standard architecture: single param_value head
             n_param_values = state_dict['param_value_head.4.weight'].shape[0]
 
+        # Infer n_operation_types from checkpoint (defaults to 6 if not found)
+        n_operation_types = state_dict['operation_head.4.weight'].shape[0] if 'operation_head.4.weight' in state_dict else 6
+
         logger.info(f"Detected architecture: d_model={inferred_d_model}, n_commands={n_commands}, "
-                   f"n_param_types={n_param_types}, n_param_values={n_param_values}")
+                   f"n_param_types={n_param_types}, n_param_values={n_param_values}, n_operation_types={n_operation_types}")
 
         # ===== FIX 2: INFER VOCAB SIZE FROM CHECKPOINT =====
         inferred_vocab_size = state_dict['embed.weight'].shape[0] if 'embed.weight' in state_dict else 170
@@ -669,13 +838,14 @@ def load_model(checkpoint_path):
                 num_layers=config_dict.get('num_layers', 2),
                 dropout=0.1,
                 vocab_size=inferred_vocab_size,
+                n_operation_types=n_operation_types,  # Inferred from checkpoint
             ).to(device)
         except Exception as e:
             logger.error(f"Failed to create MultiHeadGCodeLM with inferred dimensions: {e}")
             raise ValueError(
                 f"Model creation failed. Detected dimensions: d_model={inferred_d_model}, "
                 f"n_commands={n_commands}, n_param_types={n_param_types}, n_param_values={n_param_values}, "
-                f"vocab_size={inferred_vocab_size}. Error: {e}"
+                f"n_operation_types={n_operation_types}, vocab_size={inferred_vocab_size}. Error: {e}"
             )
 
         # Load state dict - multi-head checkpoints have multihead_state_dict
@@ -715,13 +885,67 @@ def load_model(checkpoint_path):
 
         model.eval()
 
+        # Load backbone encoder for multihead models (MM_DTAE_LSTM)
+        # This is CRITICAL - without it, we'd create a random untrained LSTM for inference
+        if 'backbone_state_dict' in checkpoint:
+            logger.info("Loading trained backbone encoder (MM_DTAE_LSTM)...")
+            try:
+                # Infer backbone architecture from state dict
+                backbone_state = checkpoint['backbone_state_dict']
+
+                # Get sensor dimensions from config or infer from backbone state dict
+                sensor_input_dim = config_dict.get('sensor_input_dim', 296)  # Default to new 296-feature format
+
+                # Try to infer from backbone state dict (check various key patterns)
+                if 'encoders.0.proj.0.weight' in backbone_state:
+                    # New MM_DTAE_LSTM architecture uses encoders.*.proj
+                    sensor_input_dim = backbone_state['encoders.0.proj.0.weight'].shape[1]
+                    logger.info(f"Inferred sensor_input_dim={sensor_input_dim} from encoders.0.proj")
+                elif 'sensor_fc.0.weight' in backbone_state:
+                    # Old architecture used sensor_fc
+                    sensor_input_dim = backbone_state['sensor_fc.0.weight'].shape[1]
+                    logger.info(f"Inferred sensor_input_dim={sensor_input_dim} from sensor_fc")
+
+                # Create backbone model config
+                backbone_config = ModelConfig(
+                    sensor_dims=[sensor_input_dim, 1],  # continuous, categorical
+                    d_model=inferred_d_model,
+                    lstm_layers=config_dict.get('num_layers', 2),
+                    gcode_vocab=inferred_vocab_size,
+                    n_heads=config_dict.get('num_heads', config_dict.get('nhead', 4)),
+                    fp_dim=inferred_d_model,
+                )
+                backbone = MM_DTAE_LSTM(backbone_config).to(device)
+                backbone.load_state_dict(backbone_state, strict=False)
+                backbone.eval()
+
+                # Attach backbone to model for inference
+                model.backbone = backbone
+                logger.info(f"✅ Backbone encoder loaded: input_dim={sensor_input_dim}, d_model={inferred_d_model}")
+            except Exception as e:
+                logger.warning(f"⚠️ Failed to load backbone: {e}")
+                logger.warning("   Falling back to random LSTM encoder (predictions may be poor)")
+        else:
+            logger.warning("⚠️ No backbone_state_dict in checkpoint - using random encoder")
+
         # Load tokenizer (vocab for multi-head) - MUST match training config!
-        vocab_path = Path('data/vocabulary_4digit_hybrid.json')
-        if vocab_path.exists():
+        # Try vocab path from checkpoint config first, then fallback to standard locations
+        vocab_path = None
+        vocab_search_paths = [
+            config_dict.get('vocab_path'),  # From checkpoint config
+            'data/vocabulary_4digit_full.json',  # New 2498-token vocab
+            'data/vocabulary_4digit_hybrid.json',  # Old hybrid vocab
+        ]
+        for vpath in vocab_search_paths:
+            if vpath and Path(vpath).exists():
+                vocab_path = Path(vpath)
+                break
+
+        if vocab_path and vocab_path.exists():
             tokenizer = GCodeTokenizer.load(vocab_path)
             logger.info(f"✓ Loaded vocabulary from: {vocab_path}")
         else:
-            logger.error(f"✗ Vocabulary not found: {vocab_path}")
+            logger.error(f"✗ Vocabulary not found in any location: {vocab_search_paths}")
             tokenizer = None
 
         # Load decomposer for token reconstruction
@@ -1213,50 +1437,60 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
                 }
 
             elif state['model_type'] == 'multihead':
-                # Multi-head model: needs LSTM encoder for memory
+                # Multi-head model: needs backbone encoder for memory
                 # Get hidden_dim from config (inferred during model loading)
                 hidden_dim = state['config'].hidden_dim if hasattr(state['config'], 'hidden_dim') else 128
 
-                # Create a simple LSTM encoder if not already in model
-                if not hasattr(state['model'], 'lstm_encoder'):
-                    # Use the continuous features as input to an LSTM to get memory
-                    # CRITICAL: Use the same hidden_dim as the multihead model!
-                    lstm = torch.nn.LSTM(cont_tensor.shape[-1], hidden_dim, 2, batch_first=True, bidirectional=False)
-                    lstm = lstm.to(device).eval()
-                    state['model'].lstm_encoder = lstm
-                    logger.info(f"Created LSTM encoder with hidden_dim={hidden_dim}")
+                # Check if we have a loaded backbone (trained encoder)
+                if hasattr(state['model'], 'backbone') and state['model'].backbone is not None:
+                    # Use trained backbone encoder
+                    backbone = state['model'].backbone
+                    with torch.no_grad():
+                        # Run through backbone - same interface as training
+                        backbone_out = backbone(
+                            mods=[cont_tensor, cat_tensor],
+                            lengths=torch.tensor([cont_tensor.shape[1]]).to(device),
+                            gcode_in=None,
+                            modality_dropout_p=0.0
+                        )
+                        memory = backbone_out['memory']  # [B, T, D]
+                        fingerprint = backbone_out['fp']  # [B, D]
+                    logger.debug(f"Used trained backbone: memory shape={memory.shape}")
+                else:
+                    # Fallback: Create untrained LSTM encoder (not ideal but backwards compatible)
+                    logger.warning("Using fallback random LSTM encoder (no trained backbone)")
+                    if not hasattr(state['model'], 'lstm_encoder'):
+                        lstm = torch.nn.LSTM(cont_tensor.shape[-1], hidden_dim, 2, batch_first=True, bidirectional=False)
+                        lstm = lstm.to(device).eval()
+                        state['model'].lstm_encoder = lstm
+                        logger.info(f"Created fallback LSTM encoder with hidden_dim={hidden_dim}")
 
-                # Validate dimensions match
-                lstm_hidden_dim = state['model'].lstm_encoder.hidden_size
-                if lstm_hidden_dim != hidden_dim:
-                    logger.error(
-                        f"⚠️  DIMENSION MISMATCH: LSTM encoder has hidden_dim={lstm_hidden_dim}, "
-                        f"but multihead model expects d_model={hidden_dim}!"
-                    )
-                    # Recreate LSTM with correct dimensions
-                    lstm = torch.nn.LSTM(cont_tensor.shape[-1], hidden_dim, 2, batch_first=True, bidirectional=False)
-                    lstm = lstm.to(device).eval()
-                    state['model'].lstm_encoder = lstm
-                    logger.info(f"Recreated LSTM encoder with correct hidden_dim={hidden_dim}")
+                    # Validate dimensions match
+                    lstm_hidden_dim = state['model'].lstm_encoder.hidden_size
+                    if lstm_hidden_dim != hidden_dim:
+                        lstm = torch.nn.LSTM(cont_tensor.shape[-1], hidden_dim, 2, batch_first=True, bidirectional=False)
+                        lstm = lstm.to(device).eval()
+                        state['model'].lstm_encoder = lstm
 
-                # Get memory from LSTM
-                memory, _ = state['model'].lstm_encoder(cont_tensor)  # [B, T, D]
+                    # Get memory from LSTM
+                    memory, _ = state['model'].lstm_encoder(cont_tensor)  # [B, T, D]
+                    fingerprint = memory[:, -1, :]  # Use last hidden state
 
                 # Validate memory dimensions
                 if memory.shape[-1] != hidden_dim:
                     logger.error(
-                        f"❌ Memory dimension mismatch: LSTM output is {memory.shape[-1]}, "
+                        f"❌ Memory dimension mismatch: encoder output is {memory.shape[-1]}, "
                         f"but model expects {hidden_dim}"
                     )
                     raise ValueError(
-                        f"LSTM encoder output dimension ({memory.shape[-1]}) doesn't match "
+                        f"Encoder output dimension ({memory.shape[-1]}) doesn't match "
                         f"multihead model's d_model ({hidden_dim})"
                     )
 
                 # Store for later use in G-code generation
                 outputs = {
                     'memory': memory,
-                    'fingerprint': memory[:, -1, :],  # Use last hidden state as fingerprint
+                    'fingerprint': fingerprint if 'fingerprint' in dir() else memory[:, -1, :],
                     'anom': torch.zeros(1, 1).to(device),  # Placeholder
                 }
             else:
@@ -1353,6 +1587,28 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
             predictions['operation_type_id'] = op_type
 
         logger.info(f"Generated G-code: {generated_gcode[:50]}..." if len(generated_gcode) > 50 else f"Generated G-code: {generated_gcode}")
+
+        # Update toolpath visualization for sensor_decoder models
+        # Use ground truth if available, otherwise use prediction as both GT and pred
+        gt_for_toolpath = ground_truth_gcode if ground_truth_gcode else generated_gcode
+        toolpath_point = update_toolpath_incremental(gt_for_toolpath, generated_gcode)
+        predictions['toolpath_point'] = toolpath_point
+
+        # Add to generation history for sensor_decoder
+        state['generation_history'].append({
+            'predicted': generated_gcode,
+            'ground_truth': ground_truth_gcode if ground_truth_gcode else None,
+            'confidence': predictions['full_command_confidence'],
+            'timestamp': predictions['timestamp'],
+            'token_breakdown': predictions.get('token_breakdown', [])
+        })
+
+        # Calculate metrics if ground truth available
+        if ground_truth_gcode:
+            edit_dist = edit_distance(generated_gcode, ground_truth_gcode)
+            predictions['edit_distance'] = edit_dist
+            predictions['ground_truth'] = ground_truth_gcode
+            predictions['match'] = (generated_gcode == ground_truth_gcode)
 
     # Decode G-code with Top-K using logits from BOS token (for non-sensor_decoder models)
     elif state['tokenizer'] and 'memory' in outputs:
@@ -2029,8 +2285,9 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
                                     logger.error(f"   Position {i}: '{token}' → '{full_command_tokens[i + 1]}'")
                                     logger.error(f"   Full sequence: {full_command_tokens}")
 
-                # Join tokens
-                full_command_text = ' '.join(full_command_tokens) if full_command_tokens else '<EMPTY>'
+                # Join tokens with grammar enforcement
+                # Apply G-code grammar rules to ensure proper structure (command prefix, no duplicate params)
+                full_command_text = apply_gcode_grammar(full_command_tokens) if full_command_tokens else '<EMPTY>'
                 predictions['full_command'] = full_command_text
                 predictions['full_command_confidence'] = float(
                     full_command_confidence ** (1.0 / max(len(full_command_tokens), 1))
@@ -2058,9 +2315,12 @@ def process_sample(continuous, categorical, ground_truth_gcode=None):
                 })
 
                 # Update toolpath visualization incrementally
-                if ground_truth_gcode:
-                    toolpath_point = update_toolpath_incremental(ground_truth_gcode, full_command_text)
-                    predictions['toolpath_point'] = toolpath_point
+                # Works with or without ground truth (predictions-only mode shows predicted path)
+                toolpath_point = update_toolpath_incremental(
+                    ground_truth_gcode if ground_truth_gcode else full_command_text,
+                    full_command_text
+                )
+                predictions['toolpath_point'] = toolpath_point
             else:
                 # Autoregressive disabled
                 predictions['full_command'] = '<DISABLED>'

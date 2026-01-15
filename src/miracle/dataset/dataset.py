@@ -62,7 +62,11 @@ class GCodeDataset(Dataset):
         self.augment_noise_std = augment_noise_std
         self.augment_scale_range = augment_scale_range
 
-        self.continuous = torch.from_numpy(self.data['continuous']).float()  # [N, T, D_cont]
+        # Handle NaN values in continuous data (some sensor columns may be entirely missing)
+        continuous_data = self.data['continuous']
+        if np.isnan(continuous_data).any():
+            continuous_data = np.nan_to_num(continuous_data, nan=0.0)
+        self.continuous = torch.from_numpy(continuous_data).float()  # [N, T, D_cont]
         self.categorical = torch.from_numpy(self.data['categorical']).long()  # [N, T, D_cat]
         self.tokens = torch.from_numpy(self.data['tokens']).long()  # [N, max_token_len]
         self.lengths = torch.from_numpy(self.data['lengths']).long()  # [N]
@@ -75,16 +79,29 @@ class GCodeDataset(Dataset):
             # Default to unknown (9) if not available for backwards compatibility
             self.operation_type = torch.full((len(self.continuous),), 9, dtype=torch.long)
 
-        # Load residuals if available
+        # Load residuals if available and shape matches tokens
+        # Note: Some data formats store per-feature residuals (N, n_features) instead of
+        # per-token residuals (N, max_token_len). We only use token-aligned residuals.
         if 'residuals' in self.data:
-            self.residuals = torch.from_numpy(self.data['residuals']).float()  # [N, max_token_len]
+            residuals_arr = self.data['residuals']
+            if residuals_arr.shape == self.tokens.shape:
+                self.residuals = torch.from_numpy(residuals_arr).float()  # [N, max_token_len]
+            else:
+                # Shape mismatch - likely per-feature residuals, use zeros instead
+                self.residuals = torch.zeros_like(self.tokens).float()
         else:
             # Default to zeros if not available for backwards compatibility
             self.residuals = torch.zeros_like(self.tokens).float()
 
         # Load param_value_raw for regression training
+        # Must match token shape for proper alignment
         if 'param_value_raw' in self.data:
-            self.param_value_raw = torch.from_numpy(self.data['param_value_raw']).float()  # [N, max_token_len]
+            param_arr = self.data['param_value_raw']
+            if param_arr.shape == self.tokens.shape:
+                self.param_value_raw = torch.from_numpy(param_arr).float()  # [N, max_token_len]
+            else:
+                # Shape mismatch - use zeros instead
+                self.param_value_raw = torch.zeros_like(self.tokens).float()
         else:
             # Default to zeros if not available for backwards compatibility
             self.param_value_raw = torch.zeros_like(self.tokens).float()
