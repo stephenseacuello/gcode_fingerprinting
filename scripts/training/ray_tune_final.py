@@ -226,13 +226,16 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
     )
 
     batch_size = config.get('batch_size', 16)
+    # Windows has issues with multiprocessing DataLoader workers
+    import platform
+    num_workers = 0 if platform.system() == 'Windows' else 4
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True,
-        collate_fn=decoder_collate_fn, num_workers=4, pin_memory=True
+        collate_fn=decoder_collate_fn, num_workers=num_workers, pin_memory=True
     )
     val_loader = DataLoader(
         val_dataset, batch_size=batch_size, shuffle=False,
-        collate_fn=decoder_collate_fn, num_workers=2, pin_memory=True
+        collate_fn=decoder_collate_fn, num_workers=num_workers, pin_memory=True
     )
 
     # Create encoder
