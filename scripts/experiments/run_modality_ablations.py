@@ -30,6 +30,7 @@ import os
 import sys
 import json
 import argparse
+import platform
 import torch
 import torch.nn as nn
 import numpy as np
@@ -37,6 +38,9 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from torch.utils.data import DataLoader
+
+# Windows has issues with multiprocessing DataLoader workers
+NUM_WORKERS = 0 if platform.system() == 'Windows' else 4
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 
@@ -231,15 +235,15 @@ def train_ablation_model(
     batch_size = config.get('batch_size', 16)
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True,
-        collate_fn=decoder_collate_fn, num_workers=4, pin_memory=True
+        collate_fn=decoder_collate_fn, num_workers=NUM_WORKERS, pin_memory=True
     )
     val_loader = DataLoader(
         val_dataset, batch_size=batch_size, shuffle=False,
-        collate_fn=decoder_collate_fn, num_workers=2
+        collate_fn=decoder_collate_fn, num_workers=NUM_WORKERS
     )
     test_loader = DataLoader(
         test_dataset, batch_size=batch_size, shuffle=False,
-        collate_fn=decoder_collate_fn, num_workers=2
+        collate_fn=decoder_collate_fn, num_workers=NUM_WORKERS
     )
 
     # Create encoder
