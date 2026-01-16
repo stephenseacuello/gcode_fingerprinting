@@ -7,11 +7,15 @@ import os
 import sys
 import json
 import argparse
+import platform
 import torch
 import torch.nn as nn
 import numpy as np
 from pathlib import Path
 from torch.utils.data import DataLoader
+
+# Windows has issues with multiprocessing DataLoader workers
+NUM_WORKERS = 0 if platform.system() == 'Windows' else 4
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 
@@ -72,11 +76,11 @@ def train_single_seed(
     batch_size = config.get('batch_size', 16)
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True,
-        collate_fn=decoder_collate_fn, num_workers=4, pin_memory=True
+        collate_fn=decoder_collate_fn, num_workers=NUM_WORKERS, pin_memory=True
     )
     val_loader = DataLoader(
         val_dataset, batch_size=batch_size, shuffle=False,
-        collate_fn=decoder_collate_fn, num_workers=2, pin_memory=True
+        collate_fn=decoder_collate_fn, num_workers=NUM_WORKERS, pin_memory=True
     )
 
     # Create encoder
@@ -314,7 +318,7 @@ def learn_ensemble_weights(
     )
     val_loader = DataLoader(
         val_dataset, batch_size=config.get('batch_size', 16), shuffle=False,
-        collate_fn=decoder_collate_fn, num_workers=2
+        collate_fn=decoder_collate_fn, num_workers=NUM_WORKERS
     )
 
     # Load encoder
