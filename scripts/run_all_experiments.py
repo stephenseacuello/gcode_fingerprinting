@@ -44,6 +44,7 @@ def main():
     parser.add_argument('--skip-sensor', action='store_true', help='Skip sensor ablations')
     parser.add_argument('--skip-modality', action='store_true', help='Skip modality ablations')
     parser.add_argument('--skip-baselines', action='store_true', help='Skip baselines')
+    parser.add_argument('--skip-architecture', action='store_true', help='Skip architecture ablations')
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
@@ -86,6 +87,17 @@ def main():
             '--output-dir', str(output_dir / 'baselines'),
             '--seeds', '42,123,456',
         ], "Baseline Comparisons")
+
+    # 4. Architecture ablations
+    if not args.skip_architecture:
+        run_command([
+            sys.executable, 'scripts/experiments/run_architecture_ablations.py',
+            '--config', args.config,
+            '--data-dir', args.data_dir,
+            '--vocab-path', args.vocab_path,
+            '--encoder-path', args.encoder_path,
+            '--output-dir', str(output_dir / 'architecture_ablations'),
+        ], "Architecture Ablations")
 
     print("\n" + "#"*70)
     print("# ALL EXPERIMENTS COMPLETE")
