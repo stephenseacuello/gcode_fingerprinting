@@ -597,7 +597,20 @@ def main():
             master_columns = json.load(f)
         print(f"Loaded master columns from: {args.master_columns}")
 
-    # 2. Try metadata file in data directory
+    # 2. Try metadata.json in data directory (continuous_columns)
+    if master_columns is None:
+        metadata_path = Path(args.data_dir) / 'metadata.json'
+        if metadata_path.exists():
+            with open(metadata_path) as f:
+                metadata = json.load(f)
+            if 'continuous_columns' in metadata:
+                master_columns = metadata['continuous_columns']
+                print(f"Loaded columns from metadata.json: {len(master_columns)} features")
+            elif 'master_columns' in metadata:
+                master_columns = metadata['master_columns']
+                print(f"Loaded master columns from metadata: {len(master_columns)} features")
+
+    # 3. Try train_sequences_metadata.json
     if master_columns is None:
         metadata_path = Path(args.data_dir) / 'train_sequences_metadata.json'
         if metadata_path.exists():
@@ -605,9 +618,9 @@ def main():
                 metadata = json.load(f)
             if 'master_columns' in metadata:
                 master_columns = metadata['master_columns']
-                print(f"Loaded master columns from metadata: {len(master_columns)} features")
+                print(f"Loaded master columns from train metadata: {len(master_columns)} features")
 
-    # 3. Fallback to default
+    # 4. Fallback to default
     if master_columns is None:
         master_columns = []
         for sensor_id in SENSOR_IDS:

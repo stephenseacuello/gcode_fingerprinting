@@ -92,11 +92,11 @@ def main():
     if not args.skip_architecture:
         run_command([
             sys.executable, 'scripts/experiments/run_architecture_ablations.py',
-            '--config', args.config,
-            '--data-dir', args.data_dir,
+            '--split-dir', args.data_dir,
             '--vocab-path', args.vocab_path,
             '--encoder-path', args.encoder_path,
             '--output-dir', str(output_dir / 'architecture_ablations'),
+            '--ablation', 'all',
         ], "Architecture Ablations")
 
     print("\n" + "#"*70)

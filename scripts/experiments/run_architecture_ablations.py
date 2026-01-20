@@ -50,7 +50,7 @@ def run_training(
     run_output.mkdir(parents=True, exist_ok=True)
 
     cmd = [
-        sys.executable, 'scripts/train_sensor_multihead.py',
+        sys.executable, 'scripts/training/train_sensor_multihead.py',
         '--seed', str(base_args['seed']),
         '--split-dir', base_args['split_dir'],
         '--vocab-path', base_args['vocab_path'],

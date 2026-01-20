@@ -118,7 +118,7 @@ def train_lstm_only_baseline(
     run_output.mkdir(parents=True, exist_ok=True)
 
     cmd = [
-        sys.executable, 'scripts/train_sensor_multihead.py',
+        sys.executable, 'scripts/training/train_sensor_multihead.py',
         '--seed', str(seed),
         '--split-dir', split_dir,
         '--vocab-path', vocab_path,
@@ -164,7 +164,7 @@ def train_no_positional_baseline(
     run_output.mkdir(parents=True, exist_ok=True)
 
     cmd = [
-        sys.executable, 'scripts/train_sensor_multihead.py',
+        sys.executable, 'scripts/training/train_sensor_multihead.py',
         '--seed', str(seed),
         '--split-dir', split_dir,
         '--vocab-path', vocab_path,
@@ -209,7 +209,7 @@ def train_no_operation_conditioning_baseline(
     run_output.mkdir(parents=True, exist_ok=True)
 
     cmd = [
-        sys.executable, 'scripts/train_sensor_multihead.py',
+        sys.executable, 'scripts/training/train_sensor_multihead.py',
         '--seed', str(seed),
         '--split-dir', split_dir,
         '--vocab-path', vocab_path,
@@ -254,7 +254,7 @@ def train_small_model_baseline(
     run_output.mkdir(parents=True, exist_ok=True)
 
     cmd = [
-        sys.executable, 'scripts/train_sensor_multihead.py',
+        sys.executable, 'scripts/training/train_sensor_multihead.py',
         '--seed', str(seed),
         '--split-dir', split_dir,
         '--vocab-path', vocab_path,
@@ -299,7 +299,7 @@ def train_no_augmentation_baseline(
     run_output.mkdir(parents=True, exist_ok=True)
 
     cmd = [
-        sys.executable, 'scripts/train_sensor_multihead.py',
+        sys.executable, 'scripts/training/train_sensor_multihead.py',
         '--seed', str(seed),
         '--split-dir', split_dir,
         '--vocab-path', vocab_path,
