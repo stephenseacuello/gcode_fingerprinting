@@ -371,7 +371,7 @@ def learn_ensemble_weights(
             use_sensor_prior=config.get('use_sensor_prior', True),
             sensor_prior_weight=config.get('sensor_prior_weight', 0.5),
         )
-        decoder.load_state_dict(ckpt['model_state_dict'])
+        decoder.load_state_dict(ckpt['model_state_dict'], strict=False)
         decoder.to(device)
         decoder.eval()
         decoders.append(decoder)
