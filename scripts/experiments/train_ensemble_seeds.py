@@ -26,6 +26,125 @@ from miracle.model.sensor_multihead_decoder import SensorMultiHeadDecoder
 from miracle.dataset.decoder_dataset import DecoderDatasetFromSplits, decoder_collate_fn
 
 
+def evaluate_on_test(
+    decoder,
+    encoder,
+    data_dir: str,
+    vocab_path: str,
+    config: dict,
+    device: str = 'cuda',
+):
+    """Evaluate model on test set and return detailed metrics."""
+    from collections import defaultdict
+
+    # Load vocab
+    with open(vocab_path) as f:
+        vocab_data = json.load(f)
+    vocab = vocab_data['vocab']
+    idx_to_token = {v: k for k, v in vocab.items()}
+
+    max_seq_len = config.get('max_seq_len', 32)
+    test_dataset = DecoderDatasetFromSplits(
+        split_dir=data_dir,
+        split='test',
+        max_token_len=max_seq_len,
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=config.get('batch_size', 16), shuffle=False,
+        collate_fn=decoder_collate_fn, num_workers=NUM_WORKERS, pin_memory=True
+    )
+
+    decoder.eval()
+    encoder.eval()
+
+    total_correct = 0
+    total_tokens = 0
+
+    # Per-token-type tracking (command, param_type, digit, etc.)
+    type_correct = defaultdict(int)
+    type_total = defaultdict(int)
+
+    # Per-operation tracking
+    op_correct = defaultdict(int)
+    op_total = defaultdict(int)
+
+    with torch.no_grad():
+        for batch in test_loader:
+            sensor_data = batch['sensor_features'].to(device)
+            operations = batch['operation_type'].to(device)
+            input_tokens = batch['input_tokens'].to(device)
+            target_tokens = batch['target_tokens'].to(device)
+
+            encoder_out = encoder(sensor_data)
+            sensor_memory = encoder_out['memory']
+            outputs = decoder(
+                tokens=input_tokens,
+                sensor_embeddings=sensor_memory,
+                operation_type=operations,
+            )
+
+            logits = outputs['legacy_logits']
+            preds = logits.argmax(dim=-1)
+            mask = target_tokens != 0
+
+            # Overall accuracy
+            correct = ((preds == target_tokens) & mask)
+            total_correct += correct.sum().item()
+            total_tokens += mask.sum().item()
+
+            # Per-operation accuracy
+            for i in range(operations.size(0)):
+                op = operations[i].item()
+                sample_mask = mask[i]
+                sample_correct = correct[i]
+                op_correct[op] += sample_correct.sum().item()
+                op_total[op] += sample_mask.sum().item()
+
+            # Per-token-type accuracy (based on token position patterns)
+            for i in range(target_tokens.size(0)):
+                for j in range(target_tokens.size(1)):
+                    if mask[i, j]:
+                        target_idx = target_tokens[i, j].item()
+                        target_tok = idx_to_token.get(target_idx, '<UNK>')
+
+                        # Classify token type
+                        if target_tok.startswith('G') or target_tok.startswith('M'):
+                            tok_type = 'command'
+                        elif target_tok in ['X', 'Y', 'Z', 'E', 'F', 'I', 'J', 'R', 'S']:
+                            tok_type = 'param_type'
+                        elif target_tok in ['+', '-']:
+                            tok_type = 'sign'
+                        elif target_tok == '.':
+                            tok_type = 'decimal'
+                        elif target_tok.isdigit():
+                            tok_type = 'digit'
+                        else:
+                            tok_type = 'other'
+
+                        type_total[tok_type] += 1
+                        if correct[i, j]:
+                            type_correct[tok_type] += 1
+
+    test_acc = total_correct / total_tokens if total_tokens > 0 else 0
+
+    # Compute per-type accuracies
+    type_accs = {}
+    for t in type_total:
+        type_accs[t] = type_correct[t] / type_total[t] if type_total[t] > 0 else 0
+
+    # Compute per-operation accuracies
+    op_accs = {}
+    for op in op_total:
+        op_accs[op] = op_correct[op] / op_total[op] if op_total[op] > 0 else 0
+
+    return {
+        'test_acc': test_acc,
+        'type_accs': type_accs,
+        'op_accs': op_accs,
+        'total_tokens': total_tokens,
+    }
+
+
 def train_single_seed(
     config: dict,
     seed: int,
@@ -269,16 +388,35 @@ def train_single_seed(
 
     print(f"  Best val_acc: {best_val_acc:.4f}")
 
+    # Evaluate on test set
+    print(f"  Evaluating on test set...")
+    test_results = evaluate_on_test(
+        decoder=decoder,
+        encoder=encoder,
+        data_dir=data_dir,
+        vocab_path=vocab_path,
+        config=config,
+        device=device,
+    )
+    test_acc = test_results['test_acc']
+    print(f"  Test accuracy: {test_acc:.4f}")
+    print(f"  Per-type accuracies:")
+    for tok_type, acc in sorted(test_results['type_accs'].items()):
+        print(f"    {tok_type}: {acc:.4f}")
+
     # Save final results
     with open(seed_output_dir / 'results.json', 'w') as f:
         json.dump({
             'seed': seed,
             'best_val_acc': best_val_acc,
+            'test_acc': test_acc,
+            'test_type_accs': test_results['type_accs'],
+            'test_op_accs': {str(k): v for k, v in test_results['op_accs'].items()},
             'final_epoch': epoch,
             'config': config,
         }, f, indent=2)
 
-    return best_val_acc, seed_output_dir / 'best_model.pt'
+    return best_val_acc, test_acc, seed_output_dir / 'best_model.pt'
 
 
 def learn_ensemble_weights(
@@ -487,19 +625,25 @@ def main():
     results = []
     for seed in seeds:
         expected_path = output_dir / f'seed_{seed}' / 'best_model.pt'
+        results_path = output_dir / f'seed_{seed}' / 'results.json'
         if expected_path.exists():
             print(f"\n{'='*60}")
             print(f"Seed {seed}: Model already exists, skipping training")
             print(f"{'='*60}")
             # Load existing results
-            import torch
             ckpt = torch.load(expected_path, map_location='cpu', weights_only=False)
             val_acc = ckpt.get('val_acc', ckpt.get('best_val_acc', 0.0))
-            print(f"  Loaded model with val_acc: {val_acc:.4f}")
+            # Try to load test_acc from results.json
+            test_acc = 0.0
+            if results_path.exists():
+                with open(results_path) as f:
+                    saved_results = json.load(f)
+                test_acc = saved_results.get('test_acc', 0.0)
+            print(f"  Loaded model with val_acc: {val_acc:.4f}, test_acc: {test_acc:.4f}")
             model_paths.append(str(expected_path))
-            results.append({'seed': seed, 'val_acc': val_acc})
+            results.append({'seed': seed, 'val_acc': val_acc, 'test_acc': test_acc})
         else:
-            val_acc, model_path = train_single_seed(
+            val_acc, test_acc, model_path = train_single_seed(
                 config=config,
                 seed=seed,
                 data_dir=args.data_dir,
@@ -509,7 +653,7 @@ def main():
                 device=args.device,
             )
             model_paths.append(model_path)
-            results.append({'seed': seed, 'val_acc': val_acc})
+            results.append({'seed': seed, 'val_acc': val_acc, 'test_acc': test_acc})
 
     # Learn ensemble weights
     weights, ensemble_acc = learn_ensemble_weights(
@@ -523,12 +667,18 @@ def main():
     )
 
     # Save summary
+    best_individual_val = max(r['val_acc'] for r in results)
+    best_individual_test = max(r['test_acc'] for r in results)
+    avg_test_acc = sum(r['test_acc'] for r in results) / len(results)
+
     summary = {
         'seeds': seeds,
         'individual_results': results,
         'ensemble_weights': weights.tolist(),
         'ensemble_val_acc': ensemble_acc,
-        'best_individual_acc': max(r['val_acc'] for r in results),
+        'best_individual_val_acc': best_individual_val,
+        'best_individual_test_acc': best_individual_test,
+        'avg_test_acc': avg_test_acc,
     }
     with open(output_dir / 'ensemble_summary.json', 'w') as f:
         json.dump(summary, f, indent=2)
@@ -536,9 +686,14 @@ def main():
     print(f"\n{'='*60}")
     print("ENSEMBLE TRAINING COMPLETE")
     print(f"{'='*60}")
-    print(f"Best individual: {summary['best_individual_acc']:.4f}")
-    print(f"Ensemble:        {ensemble_acc:.4f}")
-    print(f"Improvement:     {ensemble_acc - summary['best_individual_acc']:.4f}")
+    print(f"Individual results:")
+    for r in results:
+        print(f"  Seed {r['seed']}: val={r['val_acc']:.4f}, test={r['test_acc']:.4f}")
+    print(f"\nBest individual (val):  {best_individual_val:.4f}")
+    print(f"Best individual (test): {best_individual_test:.4f}")
+    print(f"Average test:           {avg_test_acc:.4f}")
+    print(f"Ensemble (val):         {ensemble_acc:.4f}")
+    print(f"Improvement:            {ensemble_acc - best_individual_val:.4f}")
 
 
 if __name__ == '__main__':

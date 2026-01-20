@@ -238,6 +238,15 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         collate_fn=decoder_collate_fn, num_workers=num_workers, pin_memory=True
     )
 
+    # Load test set for periodic evaluation
+    test_dataset = DecoderDatasetFromSplits(
+        split_dir=data_dir, split='test', max_token_len=max_seq_len,
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=batch_size, shuffle=False,
+        collate_fn=decoder_collate_fn, num_workers=num_workers, pin_memory=True
+    )
+
     # Create encoder
     encoder = EnhancedEncoder(
         input_dim=input_dim,
@@ -326,7 +335,9 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
     patience = config.get('patience', 60)
     warmup_epochs = config.get('warmup_epochs', 10)
     best_val_acc = 0.0
+    best_test_acc = 0.0
     patience_counter = 0
+    test_eval_interval = 25  # Evaluate test set every 25 epochs
 
     n_params = sum(p.numel() for p in decoder.parameters())
     n_trainable = sum(p.numel() for p in decoder.parameters() if p.requires_grad)
@@ -435,6 +446,37 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
             gpu_memory_mb = torch.cuda.max_memory_allocated() / 1024 / 1024
             torch.cuda.reset_peak_memory_stats()
 
+        # Evaluate on test set periodically or when val improves
+        test_acc = best_test_acc  # Default to last known test_acc
+        run_test_eval = (epoch % test_eval_interval == 0) or (val_acc > best_val_acc)
+        if run_test_eval:
+            test_correct = 0
+            test_total = 0
+            with torch.no_grad():
+                for batch in test_loader:
+                    sensor_data = batch['sensor_features'].to(device)
+                    operations = batch['operation_type'].to(device)
+                    input_tokens = batch['input_tokens'].to(device)
+                    target_tokens = batch['target_tokens'].to(device)
+
+                    encoder_out = encoder(sensor_data)
+                    sensor_memory = encoder_out['memory']
+                    outputs = decoder(
+                        tokens=input_tokens,
+                        sensor_embeddings=sensor_memory,
+                        operation_type=operations,
+                    )
+
+                    logits = outputs['legacy_logits']
+                    preds = logits.argmax(dim=-1)
+                    mask = target_tokens != 0
+                    test_correct += ((preds == target_tokens) & mask).sum().item()
+                    test_total += mask.sum().item()
+
+            test_acc = test_correct / test_total if test_total > 0 else 0
+            if test_acc > best_test_acc:
+                best_test_acc = test_acc
+
         # Report to Ray Tune
         from ray.air import session
         session.report({
@@ -443,6 +485,8 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
             'val_loss': avg_val_loss,
             'train_token_acc': train_acc,
             'val_token_acc': val_acc,
+            'test_token_acc': test_acc,
+            'best_test_acc': best_test_acc,
             'learning_rate': current_lr,
             'best_val_acc': best_val_acc,
             'overfitting_gap': train_acc - val_acc,
@@ -569,6 +613,7 @@ def main():
     print("BEST TRIAL")
     print("=" * 60)
     print(f"Val Token Acc: {best_result.metrics['val_token_acc']:.4f}")
+    print(f"Test Token Acc: {best_result.metrics.get('best_test_acc', 'N/A')}")
     print(f"Optimizer: {best_result.config.get('optimizer', 'adamw')}")
     print(f"Scheduler: {best_result.config.get('scheduler', 'cosine_restarts')}")
     print(f"d_model: {best_result.config['d_model']}")
