@@ -482,21 +482,34 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Train each seed
+    # Train each seed (skip if model already exists)
     model_paths = []
     results = []
     for seed in seeds:
-        val_acc, model_path = train_single_seed(
-            config=config,
-            seed=seed,
-            data_dir=args.data_dir,
-            encoder_path=args.encoder_path,
-            vocab_path=args.vocab_path,
-            output_dir=str(output_dir),
-            device=args.device,
-        )
-        model_paths.append(model_path)
-        results.append({'seed': seed, 'val_acc': val_acc})
+        expected_path = output_dir / f'seed_{seed}' / 'best_model.pt'
+        if expected_path.exists():
+            print(f"\n{'='*60}")
+            print(f"Seed {seed}: Model already exists, skipping training")
+            print(f"{'='*60}")
+            # Load existing results
+            import torch
+            ckpt = torch.load(expected_path, map_location='cpu', weights_only=False)
+            val_acc = ckpt.get('val_acc', ckpt.get('best_val_acc', 0.0))
+            print(f"  Loaded model with val_acc: {val_acc:.4f}")
+            model_paths.append(str(expected_path))
+            results.append({'seed': seed, 'val_acc': val_acc})
+        else:
+            val_acc, model_path = train_single_seed(
+                config=config,
+                seed=seed,
+                data_dir=args.data_dir,
+                encoder_path=args.encoder_path,
+                vocab_path=args.vocab_path,
+                output_dir=str(output_dir),
+                device=args.device,
+            )
+            model_paths.append(model_path)
+            results.append({'seed': seed, 'val_acc': val_acc})
 
     # Learn ensemble weights
     weights, ensemble_acc = learn_ensemble_weights(
