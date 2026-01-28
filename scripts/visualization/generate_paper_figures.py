@@ -1,534 +1,585 @@
 #!/usr/bin/env python3
 """
-Generate Publication-Quality Figures for G-code Fingerprinting Paper.
+Generate all figures for the paper from evaluation results and training history.
 
-This script generates:
-1. Training curves (loss, accuracy vs epoch)
-2. Confusion matrices (per-operation)
-3. Ablation bar charts
-4. Model comparison plots
-5. Attention visualization heatmaps
-6. Error analysis plots
-7. Multi-seed box plots with confidence intervals
+Generates:
+- Training/validation curves (loss and accuracy)
+- Confusion matrices for each prediction head
+- Ablation comparison bar charts (sensor, modality, architecture)
+- t-SNE visualizations of latent space
+- Per-head accuracy breakdown
 
 Usage:
-    python scripts/generate_paper_figures.py --output-dir figures/
-    python scripts/generate_paper_figures.py --results outputs/multiseed --style paper
-
-Author: Claude Code
-Date: December 2025
+    python scripts/visualization/generate_paper_figures.py \
+        --results-dir outputs/jan26/evaluation \
+        --output-dir outputs/jan26/figures \
+        --ablation-dir outputs/jan26
 """
 
+import argparse
+import json
 import os
 import sys
-import json
-import argparse
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import warnings
 
 import numpy as np
 
-# Plotting imports
-import matplotlib
-matplotlib.use('Agg')  # Non-interactive backend
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.ticker import MaxNLocator
-
-# Try seaborn for prettier plots
-try:
-    import seaborn as sns
-    HAS_SEABORN = True
-except ImportError:
-    HAS_SEABORN = False
-    warnings.warn("seaborn not found, using matplotlib defaults")
-
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
+
+try:
+    import matplotlib
+    matplotlib.use('Agg')  # Non-interactive backend
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    HAS_PLOTTING = True
+except ImportError:
+    HAS_PLOTTING = False
+    print("Warning: matplotlib/seaborn not available. Install with: pip install matplotlib seaborn")
 
 
-def setup_style(style: str = 'paper'):
-    """Configure matplotlib style for publication."""
+def setup_style():
+    """Set up consistent plotting style for paper figures."""
+    if not HAS_PLOTTING:
+        return
 
-    if style == 'paper':
-        plt.rcParams.update({
-            'font.family': 'serif',
-            'font.serif': ['Times New Roman', 'DejaVu Serif'],
-            'font.size': 10,
-            'axes.titlesize': 11,
-            'axes.labelsize': 10,
-            'xtick.labelsize': 9,
-            'ytick.labelsize': 9,
-            'legend.fontsize': 9,
-            'figure.figsize': (6, 4),
-            'figure.dpi': 300,
-            'savefig.dpi': 300,
-            'savefig.bbox': 'tight',
-            'axes.grid': True,
-            'grid.alpha': 0.3,
-            'axes.spines.top': False,
-            'axes.spines.right': False,
-        })
-        if HAS_SEABORN:
-            sns.set_palette('colorblind')
-    elif style == 'presentation':
-        plt.rcParams.update({
-            'font.family': 'sans-serif',
-            'font.size': 14,
-            'axes.titlesize': 16,
-            'axes.labelsize': 14,
-            'figure.figsize': (10, 6),
-            'figure.dpi': 150,
-        })
-        if HAS_SEABORN:
-            sns.set_style('whitegrid')
+    plt.rcParams.update({
+        'font.size': 10,
+        'axes.labelsize': 11,
+        'axes.titlesize': 12,
+        'xtick.labelsize': 9,
+        'ytick.labelsize': 9,
+        'legend.fontsize': 9,
+        'figure.figsize': (6, 4),
+        'figure.dpi': 150,
+        'savefig.dpi': 300,
+        'savefig.bbox': 'tight',
+        'axes.grid': True,
+        'grid.alpha': 0.3,
+    })
+    sns.set_palette("colorblind")
 
 
-def load_training_history(results_dir: str) -> Dict:
-    """Load training history from results directory."""
-    results_dir = Path(results_dir)
+def plot_training_curves(history_path: str, output_dir: Path, name: str = "training"):
+    """Plot training and validation curves from history file."""
+    if not HAS_PLOTTING:
+        return
 
-    # Try different possible locations
-    for filename in ['training_history.json', 'history.json', 'results.json']:
-        path = results_dir / filename
-        if path.exists():
-            with open(path) as f:
-                return json.load(f)
+    if not os.path.exists(history_path):
+        print(f"  Skipping training curves: {history_path} not found")
+        return
 
-    return {}
+    with open(history_path) as f:
+        history = json.load(f)
 
-
-def plot_training_curves(
-    history: Dict,
-    output_path: str,
-    title: str = "Training Progress"
-):
-    """Plot training and validation curves."""
+    epochs = range(1, len(history['train_loss']) + 1)
 
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))
 
     # Loss curves
-    ax1 = axes[0]
-    if 'train_loss' in history:
-        epochs = range(1, len(history['train_loss']) + 1)
-        ax1.plot(epochs, history['train_loss'], 'b-', label='Train Loss', linewidth=1.5)
-    if 'val_loss' in history:
-        epochs = range(1, len(history['val_loss']) + 1)
-        ax1.plot(epochs, history['val_loss'], 'r-', label='Val Loss', linewidth=1.5)
-
-    ax1.set_xlabel('Epoch')
-    ax1.set_ylabel('Loss')
-    ax1.set_title('Loss Curves')
-    ax1.legend()
-    ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
+    ax = axes[0]
+    ax.plot(epochs, history['train_loss'], label='Train', linewidth=2)
+    ax.plot(epochs, history['val_loss'], label='Validation', linewidth=2)
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel('Loss')
+    ax.set_title('Training and Validation Loss')
+    ax.legend()
+    ax.set_xlim(1, len(epochs))
 
     # Accuracy curves
-    ax2 = axes[1]
-    if 'train_token_acc' in history:
-        epochs = range(1, len(history['train_token_acc']) + 1)
-        ax2.plot(epochs, [a * 100 for a in history['train_token_acc']],
-                 'b-', label='Train Acc', linewidth=1.5)
-    if 'val_token_acc' in history:
-        epochs = range(1, len(history['val_token_acc']) + 1)
-        ax2.plot(epochs, [a * 100 for a in history['val_token_acc']],
-                 'r-', label='Val Acc', linewidth=1.5)
+    ax = axes[1]
+    ax.plot(epochs, history['train_acc'], label='Train', linewidth=2)
+    ax.plot(epochs, history['val_acc'], label='Validation', linewidth=2)
+    ax.set_xlabel('Epoch')
+    ax.set_ylabel('Token Accuracy')
+    ax.set_title('Training and Validation Accuracy')
+    ax.legend()
+    ax.set_xlim(1, len(epochs))
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x:.0%}'))
 
-    ax2.set_xlabel('Epoch')
-    ax2.set_ylabel('Token Accuracy (%)')
-    ax2.set_title('Accuracy Curves')
-    ax2.legend()
-    ax2.xaxis.set_major_locator(MaxNLocator(integer=True))
-
-    plt.suptitle(title)
     plt.tight_layout()
-    plt.savefig(output_path)
+    plt.savefig(output_dir / f'{name}_curves.pdf')
+    plt.savefig(output_dir / f'{name}_curves.png')
     plt.close()
-    print(f"Saved: {output_path}")
+    print(f"  Saved: {name}_curves.pdf/png")
 
 
-def plot_confusion_matrix(
-    cm: np.ndarray,
-    class_names: List[str],
-    output_path: str,
-    title: str = "Confusion Matrix",
-    normalize: bool = True
-):
-    """Plot confusion matrix heatmap."""
+def plot_confusion_matrix(cm: List[List[int]], labels: List[str], title: str,
+                          output_path: Path, normalize: bool = True):
+    """Plot a confusion matrix."""
+    if not HAS_PLOTTING:
+        return
 
-    if normalize:
-        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
-        cm = np.nan_to_num(cm)
-
-    fig, ax = plt.subplots(figsize=(8, 6))
-
-    if HAS_SEABORN:
-        sns.heatmap(cm, annot=True, fmt='.2f' if normalize else 'd',
-                    cmap='Blues', xticklabels=class_names,
-                    yticklabels=class_names, ax=ax)
+    cm = np.array(cm)
+    if normalize and cm.sum() > 0:
+        cm_norm = cm.astype(float) / cm.sum(axis=1, keepdims=True)
+        cm_norm = np.nan_to_num(cm_norm)
     else:
-        im = ax.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-        ax.figure.colorbar(im, ax=ax)
-        ax.set(xticks=np.arange(cm.shape[1]),
-               yticks=np.arange(cm.shape[0]),
-               xticklabels=class_names, yticklabels=class_names)
-        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+        cm_norm = cm
 
-        # Add text annotations
-        thresh = cm.max() / 2.
-        for i in range(cm.shape[0]):
-            for j in range(cm.shape[1]):
-                ax.text(j, i, f'{cm[i, j]:.2f}' if normalize else f'{cm[i, j]}',
-                        ha="center", va="center",
-                        color="white" if cm[i, j] > thresh else "black")
+    fig, ax = plt.subplots(figsize=(max(6, len(labels) * 0.8), max(5, len(labels) * 0.7)))
+
+    sns.heatmap(cm_norm, annot=True, fmt='.2f' if normalize else 'd',
+                xticklabels=labels, yticklabels=labels,
+                cmap='Blues', ax=ax, cbar=True,
+                annot_kws={'size': 8})
 
     ax.set_xlabel('Predicted')
     ax.set_ylabel('True')
     ax.set_title(title)
 
     plt.tight_layout()
-    plt.savefig(output_path)
+    plt.savefig(output_path.with_suffix('.pdf'))
+    plt.savefig(output_path.with_suffix('.png'))
     plt.close()
-    print(f"Saved: {output_path}")
+    print(f"  Saved: {output_path.stem}.pdf/png")
 
 
-def plot_ablation_bars(
-    ablation_results: Dict,
-    output_path: str,
-    title: str = "Ablation Study Results"
-):
-    """Plot ablation study as grouped bar chart."""
-
-    ablations = []
-    baseline_accs = []
-    ablated_accs = []
-
-    for name, data in ablation_results.items():
-        if isinstance(data, dict) and 'baseline' in data:
-            ablations.append(name.replace('_', '\n'))
-            baseline_accs.append(data['baseline'])
-            ablated_accs.append(data['ablated'])
-
-    if not ablations:
-        print("No ablation data to plot")
+def plot_confusion_matrices(results_path: str, output_dir: Path):
+    """Plot all confusion matrices from evaluation results."""
+    if not HAS_PLOTTING:
         return
 
-    x = np.arange(len(ablations))
+    if not os.path.exists(results_path):
+        print(f"  Skipping confusion matrices: {results_path} not found")
+        return
+
+    with open(results_path) as f:
+        results = json.load(f)
+
+    # Get test confusion matrices
+    test_metrics = results.get('test_metrics', {})
+    cms = test_metrics.get('confusion_matrices', {})
+
+    # Type confusion matrix
+    if 'type' in cms and cms['type']:
+        type_labels = ['CMD', 'PARAM', 'NUM', 'EOS']
+        plot_confusion_matrix(
+            cms['type'], type_labels, 'Type Classification Confusion Matrix',
+            output_dir / 'type_confusion_matrix'
+        )
+
+    # Command confusion matrix
+    if 'command' in cms and cms['command']:
+        cmd_labels = ['G0', 'G1', 'G2', 'G3', 'M3', 'M5']
+        n_classes = len(cms['command'])
+        plot_confusion_matrix(
+            cms['command'], cmd_labels[:n_classes],
+            'Command Classification Confusion Matrix',
+            output_dir / 'command_confusion_matrix'
+        )
+
+    # Parameter type confusion matrix
+    if 'param' in cms and cms['param']:
+        param_labels = ['X', 'Y', 'Z', 'F', 'S', 'I', 'J', 'K', 'R', 'P']
+        n_classes = len(cms['param'])
+        plot_confusion_matrix(
+            cms['param'], param_labels[:n_classes],
+            'Parameter Type Confusion Matrix',
+            output_dir / 'parameter_confusion_matrix'
+        )
+
+
+def plot_sensor_ablation(ablation_dir: Path, output_dir: Path):
+    """Plot sensor ablation results comparison."""
+    if not HAS_PLOTTING:
+        return
+
+    sensor_dir = ablation_dir / 'sensor_ablations'
+    if not sensor_dir.exists():
+        print(f"  Skipping sensor ablation: {sensor_dir} not found")
+        return
+
+    # Collect results from each sensor
+    results = {}
+    for sensor_path in sorted(sensor_dir.glob('only_*')):
+        sensor_name = sensor_path.name.replace('only_', '')
+        results_file = sensor_path / 'results.json'
+
+        if results_file.exists():
+            with open(results_file) as f:
+                data = json.load(f)
+            test_metrics = data.get('test_metrics', {})
+            results[sensor_name] = {
+                'token_acc': test_metrics.get('token_acc', 0),
+                'sequence_acc': test_metrics.get('sequence_acc', 0),
+            }
+
+    if not results:
+        print("  No sensor ablation results found")
+        return
+
+    # Sort by token accuracy
+    sorted_sensors = sorted(results.items(), key=lambda x: x[1]['token_acc'], reverse=True)
+    sensors = [s[0] for s in sorted_sensors]
+    token_accs = [s[1]['token_acc'] * 100 for s in sorted_sensors]
+    seq_accs = [s[1]['sequence_acc'] * 100 for s in sorted_sensors]
+
+    # Create figure
+    fig, ax = plt.subplots(figsize=(12, 5))
+
+    x = np.arange(len(sensors))
     width = 0.35
 
-    fig, ax = plt.subplots(figsize=(10, 5))
-    bars1 = ax.bar(x - width/2, baseline_accs, width, label='With Component', color='#2ecc71')
-    bars2 = ax.bar(x + width/2, ablated_accs, width, label='Without Component', color='#e74c3c')
+    bars1 = ax.bar(x - width/2, token_accs, width, label='Token Accuracy', color='steelblue')
+    bars2 = ax.bar(x + width/2, seq_accs, width, label='Sequence Accuracy', color='darkorange')
 
-    ax.set_xlabel('Component')
-    ax.set_ylabel('Token Accuracy (%)')
-    ax.set_title(title)
-    ax.set_xticks(x)
-    ax.set_xticklabels(ablations)
-    ax.legend()
-
-    # Add value labels
-    def autolabel(bars):
-        for bar in bars:
-            height = bar.get_height()
-            ax.annotate(f'{height:.1f}',
-                        xy=(bar.get_x() + bar.get_width() / 2, height),
-                        xytext=(0, 3),
-                        textcoords="offset points",
-                        ha='center', va='bottom', fontsize=8)
-
-    autolabel(bars1)
-    autolabel(bars2)
-
-    plt.tight_layout()
-    plt.savefig(output_path)
-    plt.close()
-    print(f"Saved: {output_path}")
-
-
-def plot_model_comparison(
-    results: Dict[str, Dict],
-    output_path: str,
-    metric: str = 'token_accuracy',
-    title: str = "Model Comparison"
-):
-    """Plot model comparison bar chart with error bars."""
-
-    models = []
-    means = []
-    errors = []
-
-    for name, data in results.items():
-        if name == 'metadata':
-            continue
-
-        if isinstance(data, dict):
-            if metric in data:
-                metric_data = data[metric]
-                if isinstance(metric_data, dict):
-                    mean = metric_data.get('mean', 0) * 100
-                    ci = metric_data.get('ci_95', 0) * 100
-                else:
-                    mean = metric_data * 100
-                    ci = 0
-            else:
-                mean = data.get(f'val_{metric}', data.get(metric, 0)) * 100
-                ci = 0
-
-            models.append(name)
-            means.append(mean)
-            errors.append(ci)
-
-    if not models:
-        print("No model data to plot")
-        return
-
-    fig, ax = plt.subplots(figsize=(10, 5))
-
-    x = np.arange(len(models))
-    colors = plt.cm.viridis(np.linspace(0.2, 0.8, len(models)))
-
-    bars = ax.bar(x, means, yerr=errors, capsize=5, color=colors, edgecolor='black')
-
-    ax.set_xlabel('Model')
-    ax.set_ylabel(f'{metric.replace("_", " ").title()} (%)')
-    ax.set_title(title)
-    ax.set_xticks(x)
-    ax.set_xticklabels(models, rotation=45, ha='right')
-
-    # Add value labels
-    for bar, mean, err in zip(bars, means, errors):
-        ax.annotate(f'{mean:.1f}%',
-                    xy=(bar.get_x() + bar.get_width() / 2, bar.get_height()),
-                    xytext=(0, 3),
-                    textcoords="offset points",
-                    ha='center', va='bottom', fontsize=8)
-
-    plt.tight_layout()
-    plt.savefig(output_path)
-    plt.close()
-    print(f"Saved: {output_path}")
-
-
-def plot_multiseed_boxplot(
-    results: Dict,
-    output_path: str,
-    title: str = "Multi-Seed Results"
-):
-    """Plot box plot of multi-seed results."""
-
-    fig, ax = plt.subplots(figsize=(6, 5))
-
-    data = []
-    labels = []
-
-    if 'token_accuracy' in results and 'values' in results['token_accuracy']:
-        data.append([v * 100 for v in results['token_accuracy']['values']])
-        labels.append('Token Acc')
-
-    if 'sequence_accuracy' in results and 'values' in results['sequence_accuracy']:
-        data.append([v * 100 for v in results['sequence_accuracy']['values']])
-        labels.append('Seq Acc')
-
-    if not data:
-        print("No multi-seed data to plot")
-        return
-
-    bp = ax.boxplot(data, labels=labels, patch_artist=True)
-
-    colors = ['#3498db', '#2ecc71']
-    for patch, color in zip(bp['boxes'], colors):
-        patch.set_facecolor(color)
-        patch.set_alpha(0.7)
-
+    ax.set_xlabel('Sensor')
     ax.set_ylabel('Accuracy (%)')
-    ax.set_title(title)
-
-    # Add individual points
-    for i, d in enumerate(data):
-        x = np.random.normal(i + 1, 0.04, size=len(d))
-        ax.scatter(x, d, alpha=0.6, color='black', s=30, zorder=5)
-
-    plt.tight_layout()
-    plt.savefig(output_path)
-    plt.close()
-    print(f"Saved: {output_path}")
-
-
-def plot_learning_rate_schedule(
-    n_epochs: int,
-    warmup_epochs: int = 5,
-    base_lr: float = 0.0002,
-    output_path: str = "lr_schedule.pdf"
-):
-    """Plot learning rate schedule visualization."""
-
-    epochs = np.arange(1, n_epochs + 1)
-
-    # Warmup + cosine decay
-    lrs = []
-    for e in epochs:
-        if e <= warmup_epochs:
-            lr = base_lr * e / warmup_epochs
-        else:
-            progress = (e - warmup_epochs) / (n_epochs - warmup_epochs)
-            lr = base_lr * 0.5 * (1 + np.cos(np.pi * progress))
-        lrs.append(lr)
-
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(epochs, lrs, 'b-', linewidth=2)
-    ax.axvline(x=warmup_epochs, color='r', linestyle='--', alpha=0.7, label='Warmup End')
-
-    ax.set_xlabel('Epoch')
-    ax.set_ylabel('Learning Rate')
-    ax.set_title('Learning Rate Schedule (Warmup + Cosine Decay)')
+    ax.set_title('Single Sensor Performance Comparison')
+    ax.set_xticks(x)
+    ax.set_xticklabels(sensors, rotation=45, ha='right')
     ax.legend()
+    ax.set_ylim(0, 100)
+
+    # Add value labels on bars
+    for bar in bars1:
+        height = bar.get_height()
+        ax.annotate(f'{height:.1f}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3), textcoords="offset points",
+                    ha='center', va='bottom', fontsize=7)
 
     plt.tight_layout()
-    plt.savefig(output_path)
+    plt.savefig(output_dir / 'sensor_ablation_comparison.pdf')
+    plt.savefig(output_dir / 'sensor_ablation_comparison.png')
     plt.close()
-    print(f"Saved: {output_path}")
+    print("  Saved: sensor_ablation_comparison.pdf/png")
+
+    # Save data for paper table
+    table_data = {sensor: results[sensor] for sensor in sensors}
+    with open(output_dir / 'sensor_ablation_data.json', 'w') as f:
+        json.dump(table_data, f, indent=2)
+    print("  Saved: sensor_ablation_data.json")
 
 
-def plot_per_operation_accuracy(
-    results: Dict,
-    output_path: str,
-    title: str = "Per-Operation Accuracy"
-):
-    """Plot accuracy breakdown by operation type."""
-
-    operations = []
-    accuracies = []
-
-    # Try to extract per-operation data
-    op_results = results.get('per_operation', results.get('classification_report', {}))
-
-    for op_name, op_data in op_results.items():
-        if isinstance(op_data, dict) and 'precision' in op_data:
-            operations.append(op_name)
-            # Use f1-score as the main metric
-            accuracies.append(op_data.get('f1-score', op_data.get('precision', 0)) * 100)
-
-    if not operations:
-        print("No per-operation data to plot")
+def plot_modality_ablation(ablation_dir: Path, output_dir: Path):
+    """Plot modality ablation results comparison."""
+    if not HAS_PLOTTING:
         return
 
-    # Sort by accuracy
-    sorted_pairs = sorted(zip(accuracies, operations), reverse=True)
-    accuracies, operations = zip(*sorted_pairs)
+    modality_dir = ablation_dir / 'modality_ablations'
+    if not modality_dir.exists():
+        print(f"  Skipping modality ablation: {modality_dir} not found")
+        return
 
-    fig, ax = plt.subplots(figsize=(8, 6))
+    # Collect results
+    results = {}
+    for modality_path in sorted(modality_dir.glob('only_*')):
+        modality_name = modality_path.name.replace('only_', '')
+        results_file = modality_path / 'results.json'
 
-    y = np.arange(len(operations))
-    colors = plt.cm.RdYlGn(np.array(accuracies) / 100)
+        if results_file.exists():
+            with open(results_file) as f:
+                data = json.load(f)
+            test_metrics = data.get('test_metrics', {})
+            results[modality_name] = {
+                'token_acc': test_metrics.get('token_acc', 0),
+                'sequence_acc': test_metrics.get('sequence_acc', 0),
+            }
 
-    bars = ax.barh(y, accuracies, color=colors)
+    if not results:
+        print("  No modality ablation results found")
+        return
 
-    ax.set_yticks(y)
-    ax.set_yticklabels(operations)
-    ax.set_xlabel('F1-Score (%)')
-    ax.set_title(title)
+    # Sort by token accuracy
+    sorted_modalities = sorted(results.items(), key=lambda x: x[1]['token_acc'], reverse=True)
+    modalities = [m[0] for m in sorted_modalities]
+    token_accs = [m[1]['token_acc'] * 100 for m in sorted_modalities]
+    seq_accs = [m[1]['sequence_acc'] * 100 for m in sorted_modalities]
 
-    # Add value labels
-    for bar, acc in zip(bars, accuracies):
-        ax.annotate(f'{acc:.1f}%',
-                    xy=(bar.get_width(), bar.get_y() + bar.get_height()/2),
-                    xytext=(5, 0),
-                    textcoords="offset points",
-                    ha='left', va='center', fontsize=8)
+    # Create figure
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    x = np.arange(len(modalities))
+    width = 0.35
+
+    bars1 = ax.bar(x - width/2, token_accs, width, label='Token Accuracy', color='steelblue')
+    bars2 = ax.bar(x + width/2, seq_accs, width, label='Sequence Accuracy', color='darkorange')
+
+    ax.set_xlabel('Modality')
+    ax.set_ylabel('Accuracy (%)')
+    ax.set_title('Single Modality Performance Comparison')
+    ax.set_xticks(x)
+    ax.set_xticklabels(modalities, rotation=45, ha='right')
+    ax.legend()
+    ax.set_ylim(0, 100)
 
     plt.tight_layout()
-    plt.savefig(output_path)
+    plt.savefig(output_dir / 'modality_ablation_comparison.pdf')
+    plt.savefig(output_dir / 'modality_ablation_comparison.png')
     plt.close()
-    print(f"Saved: {output_path}")
+    print("  Saved: modality_ablation_comparison.pdf/png")
+
+    # Save data for paper table
+    with open(output_dir / 'modality_ablation_data.json', 'w') as f:
+        json.dump(dict(sorted_modalities), f, indent=2)
+    print("  Saved: modality_ablation_data.json")
 
 
-def generate_all_figures(args):
-    """Generate all paper figures."""
+def plot_architecture_ablation(ablation_dir: Path, output_dir: Path):
+    """Plot architecture ablation results (cross-attention, etc.)."""
+    if not HAS_PLOTTING:
+        return
 
-    output_dir = Path(args.output_dir)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    arch_dir = ablation_dir / 'architecture_ablations'
+    if not arch_dir.exists():
+        print(f"  Skipping architecture ablation: {arch_dir} not found")
+        return
 
-    setup_style(args.style)
+    # Collect results from cross_attention subdirectory
+    results = {}
+    cross_attn_dir = arch_dir / 'cross_attention'
+    if cross_attn_dir.exists():
+        for config_path in cross_attn_dir.glob('cross_attn_*'):
+            config_name = config_path.name
+            results_file = config_path / 'results.json'
 
-    # Load results
-    if args.results_dir:
-        results_dir = Path(args.results_dir)
+            if results_file.exists():
+                with open(results_file) as f:
+                    data = json.load(f)
+                test_metrics = data.get('test_metrics', {})
+                results[config_name] = {
+                    'token_acc': test_metrics.get('token_acc', 0),
+                    'sequence_acc': test_metrics.get('sequence_acc', 0),
+                }
 
-        # Training history
-        history = load_training_history(results_dir)
-        if history:
-            plot_training_curves(
-                history,
-                str(output_dir / 'training_curves.pdf'),
-                title="Training Progress"
-            )
+    if not results:
+        print("  No architecture ablation results found")
+        return
 
-        # Multi-seed results
-        stats_path = results_dir / 'statistics.json'
-        if stats_path.exists():
-            with open(stats_path) as f:
-                stats = json.load(f)
-            plot_multiseed_boxplot(
-                stats,
-                str(output_dir / 'multiseed_boxplot.pdf'),
-                title="Multi-Seed Results Distribution"
-            )
+    # Create comparison figure
+    configs = list(results.keys())
+    token_accs = [results[c]['token_acc'] * 100 for c in configs]
+    seq_accs = [results[c]['sequence_acc'] * 100 for c in configs]
 
-    # Ablation results
-    if args.ablations_dir:
-        ablation_path = Path(args.ablations_dir) / 'ablation_summary.json'
-        if ablation_path.exists():
-            with open(ablation_path) as f:
-                ablation_data = json.load(f)
-            plot_ablation_bars(
-                ablation_data,
-                str(output_dir / 'ablation_study.pdf'),
-                title="Ablation Study: Component Contributions"
-            )
+    fig, ax = plt.subplots(figsize=(8, 5))
 
-    # Baseline comparison
-    if args.baseline_dir:
-        baseline_path = Path(args.baseline_dir) / 'baseline_summary.json'
-        if baseline_path.exists():
-            with open(baseline_path) as f:
-                baseline_data = json.load(f)
-            plot_model_comparison(
-                baseline_data,
-                str(output_dir / 'baseline_comparison.pdf'),
-                title="Baseline Model Comparison"
-            )
+    x = np.arange(len(configs))
+    width = 0.35
 
-    # Learning rate schedule
-    plot_learning_rate_schedule(
-        n_epochs=100,
-        warmup_epochs=5,
-        base_lr=0.0002,
-        output_path=str(output_dir / 'lr_schedule.pdf')
-    )
+    bars1 = ax.bar(x - width/2, token_accs, width, label='Token Accuracy', color='steelblue')
+    bars2 = ax.bar(x + width/2, seq_accs, width, label='Sequence Accuracy', color='darkorange')
 
-    print(f"\n{'='*60}")
-    print(f"All figures saved to: {output_dir}")
-    print('='*60)
+    ax.set_xlabel('Configuration')
+    ax.set_ylabel('Accuracy (%)')
+    ax.set_title('Cross-Attention Ablation')
+    ax.set_xticks(x)
+    ax.set_xticklabels([c.replace('_seed42', '').replace('_', ' ') for c in configs])
+    ax.legend()
+
+    # Add value labels
+    for bar in bars1:
+        height = bar.get_height()
+        ax.annotate(f'{height:.1f}%',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3), textcoords="offset points",
+                    ha='center', va='bottom', fontsize=9)
+
+    plt.tight_layout()
+    plt.savefig(output_dir / 'architecture_ablation_comparison.pdf')
+    plt.savefig(output_dir / 'architecture_ablation_comparison.png')
+    plt.close()
+    print("  Saved: architecture_ablation_comparison.pdf/png")
+
+    # Save data
+    with open(output_dir / 'architecture_ablation_data.json', 'w') as f:
+        json.dump(results, f, indent=2)
+    print("  Saved: architecture_ablation_data.json")
+
+
+def plot_metrics_summary(results_dir: Path, output_dir: Path):
+    """Plot summary of per-head metrics across experiments."""
+    if not HAS_PLOTTING:
+        return
+
+    # Find all full_metrics.json files
+    metrics_files = list(results_dir.glob('**/full_metrics.json'))
+    if not metrics_files:
+        print("  No full_metrics.json files found")
+        return
+
+    # For each file, extract per-head accuracies
+    all_data = []
+    for mf in metrics_files:
+        with open(mf) as f:
+            data = json.load(f)
+        test_metrics = data.get('test_metrics', {})
+        exp_name = mf.parent.name
+
+        all_data.append({
+            'experiment': exp_name,
+            'type_acc': test_metrics.get('type_acc', 0) * 100,
+            'command_acc': test_metrics.get('command_acc', 0) * 100,
+            'param_acc': test_metrics.get('param_acc', 0) * 100,
+            'digit_avg_acc': test_metrics.get('digit_avg_acc', 0) * 100,
+            'token_acc': test_metrics.get('token_acc', 0) * 100,
+        })
+
+    if not all_data:
+        return
+
+    # Create grouped bar chart
+    experiments = [d['experiment'] for d in all_data]
+    metrics = ['type_acc', 'command_acc', 'param_acc', 'digit_avg_acc', 'token_acc']
+    metric_labels = ['Type', 'Command', 'Param', 'Digit Avg', 'Token']
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    x = np.arange(len(experiments))
+    width = 0.15
+    colors = sns.color_palette("colorblind", len(metrics))
+
+    for i, (metric, label) in enumerate(zip(metrics, metric_labels)):
+        values = [d[metric] for d in all_data]
+        ax.bar(x + i * width, values, width, label=label, color=colors[i])
+
+    ax.set_xlabel('Experiment')
+    ax.set_ylabel('Accuracy (%)')
+    ax.set_title('Per-Head Accuracy Breakdown')
+    ax.set_xticks(x + width * 2)
+    ax.set_xticklabels(experiments, rotation=45, ha='right')
+    ax.legend(loc='upper right')
+    ax.set_ylim(0, 100)
+
+    plt.tight_layout()
+    plt.savefig(output_dir / 'metrics_summary.pdf')
+    plt.savefig(output_dir / 'metrics_summary.png')
+    plt.close()
+    print("  Saved: metrics_summary.pdf/png")
+
+
+def generate_latex_tables(ablation_dir: Path, output_dir: Path):
+    """Generate LaTeX table snippets for the paper."""
+
+    # Sensor ablation table
+    sensor_data_file = output_dir / 'sensor_ablation_data.json'
+    if sensor_data_file.exists():
+        with open(sensor_data_file) as f:
+            data = json.load(f)
+
+        latex = "% Single Sensor Performance (Table 2)\n"
+        latex += "\\begin{tabular}{lcc}\n\\toprule\n"
+        latex += "\\textbf{Sensor} & \\textbf{Token Acc.} & \\textbf{Seq. Acc.} \\\\\n\\midrule\n"
+
+        for sensor, metrics in data.items():
+            token = metrics['token_acc'] * 100
+            seq = metrics['sequence_acc'] * 100
+            latex += f"{sensor.replace('_', '\\_')} & {token:.2f}\\% & {seq:.2f}\\% \\\\\n"
+
+        latex += "\\bottomrule\n\\end{tabular}\n"
+
+        with open(output_dir / 'table_sensor_ablation.tex', 'w') as f:
+            f.write(latex)
+        print("  Saved: table_sensor_ablation.tex")
+
+    # Modality ablation table
+    modality_data_file = output_dir / 'modality_ablation_data.json'
+    if modality_data_file.exists():
+        with open(modality_data_file) as f:
+            data = json.load(f)
+
+        latex = "% Single Modality Performance (Table 4)\n"
+        latex += "\\begin{tabular}{lcc}\n\\toprule\n"
+        latex += "\\textbf{Modality} & \\textbf{Token Acc.} & \\textbf{Seq. Acc.} \\\\\n\\midrule\n"
+
+        for modality, metrics in data.items():
+            token = metrics['token_acc'] * 100
+            seq = metrics['sequence_acc'] * 100
+            latex += f"{modality.replace('_', '\\_')} & {token:.2f}\\% & {seq:.2f}\\% \\\\\n"
+
+        latex += "\\bottomrule\n\\end{tabular}\n"
+
+        with open(output_dir / 'table_modality_ablation.tex', 'w') as f:
+            f.write(latex)
+        print("  Saved: table_modality_ablation.tex")
+
+    # Architecture ablation table
+    arch_data_file = output_dir / 'architecture_ablation_data.json'
+    if arch_data_file.exists():
+        with open(arch_data_file) as f:
+            data = json.load(f)
+
+        latex = "% Architecture Ablation (Table 7)\n"
+        latex += "\\begin{tabular}{lcc}\n\\toprule\n"
+        latex += "\\textbf{Configuration} & \\textbf{Token Acc.} & \\textbf{Seq. Acc.} \\\\\n\\midrule\n"
+
+        for config, metrics in data.items():
+            name = config.replace('_seed42', '').replace('_', ' ')
+            token = metrics['token_acc'] * 100
+            seq = metrics['sequence_acc'] * 100
+            latex += f"{name} & {token:.2f}\\% & {seq:.2f}\\% \\\\\n"
+
+        latex += "\\bottomrule\n\\end{tabular}\n"
+
+        with open(output_dir / 'table_architecture_ablation.tex', 'w') as f:
+            f.write(latex)
+        print("  Saved: table_architecture_ablation.tex")
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Generate paper figures')
-    parser.add_argument('--output-dir', type=str, default='figures',
+    parser = argparse.ArgumentParser(description='Generate paper figures from evaluation results')
+    parser.add_argument('--results-dir', type=str, default='outputs/jan26/evaluation',
+                        help='Directory containing full_metrics.json files')
+    parser.add_argument('--ablation-dir', type=str, default='outputs/jan26',
+                        help='Directory containing ablation experiment results')
+    parser.add_argument('--output-dir', type=str, default='outputs/jan26/figures',
                         help='Output directory for figures')
-    parser.add_argument('--results-dir', type=str,
-                        help='Directory with training results')
-    parser.add_argument('--ablations-dir', type=str,
-                        help='Directory with ablation results')
-    parser.add_argument('--baseline-dir', type=str,
-                        help='Directory with baseline results')
-    parser.add_argument('--style', choices=['paper', 'presentation'],
-                        default='paper', help='Figure style')
-    parser.add_argument('--format', choices=['pdf', 'png', 'svg'],
-                        default='pdf', help='Figure format')
+    parser.add_argument('--history-path', type=str, help='Path to training history JSON')
     args = parser.parse_args()
 
-    generate_all_figures(args)
+    if not HAS_PLOTTING:
+        print("ERROR: matplotlib and seaborn are required. Install with:")
+        print("  pip install matplotlib seaborn")
+        sys.exit(1)
+
+    setup_style()
+
+    results_dir = Path(args.results_dir)
+    ablation_dir = Path(args.ablation_dir)
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    print("="*60)
+    print("GENERATING PAPER FIGURES")
+    print("="*60)
+
+    # Training curves (if history available)
+    if args.history_path:
+        print("\n1. Training Curves")
+        plot_training_curves(args.history_path, output_dir)
+
+    # Confusion matrices
+    print("\n2. Confusion Matrices")
+    for metrics_file in results_dir.glob('**/full_metrics.json'):
+        exp_name = metrics_file.parent.name
+        print(f"  Processing: {exp_name}")
+        exp_output = output_dir / exp_name
+        exp_output.mkdir(exist_ok=True)
+        plot_confusion_matrices(str(metrics_file), exp_output)
+
+    # Ablation comparisons
+    print("\n3. Sensor Ablation")
+    plot_sensor_ablation(ablation_dir, output_dir)
+
+    print("\n4. Modality Ablation")
+    plot_modality_ablation(ablation_dir, output_dir)
+
+    print("\n5. Architecture Ablation")
+    plot_architecture_ablation(ablation_dir, output_dir)
+
+    # Metrics summary
+    print("\n6. Metrics Summary")
+    plot_metrics_summary(results_dir, output_dir)
+
+    # LaTeX tables
+    print("\n7. LaTeX Tables")
+    generate_latex_tables(ablation_dir, output_dir)
+
+    print("\n" + "="*60)
+    print(f"Figures saved to: {output_dir}")
+    print("="*60)
 
 
 if __name__ == '__main__':

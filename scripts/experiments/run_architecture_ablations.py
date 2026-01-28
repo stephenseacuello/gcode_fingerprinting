@@ -49,6 +49,14 @@ def run_training(
     run_output = Path(output_dir) / run_name
     run_output.mkdir(parents=True, exist_ok=True)
 
+    # Set up environment with PYTHONPATH to find miracle module
+    env = os.environ.copy()
+    src_path = str(Path(__file__).parent.parent.parent / 'src')
+    if 'PYTHONPATH' in env:
+        env['PYTHONPATH'] = f"{src_path}:{env['PYTHONPATH']}"
+    else:
+        env['PYTHONPATH'] = src_path
+
     cmd = [
         sys.executable, 'scripts/training/train_sensor_multihead.py',
         '--seed', str(base_args['seed']),
@@ -78,7 +86,7 @@ def run_training(
     print(f"Extra args: {' '.join(extra_args)}")
     print('='*60)
 
-    result = subprocess.run(cmd, capture_output=False, text=True)
+    result = subprocess.run(cmd, capture_output=False, text=True, env=env)
 
     # Load results
     results_path = run_output / 'results.json'

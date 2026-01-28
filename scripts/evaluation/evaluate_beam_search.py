@@ -28,116 +28,13 @@ from collections import defaultdict
 from tqdm import tqdm
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 
 from miracle.model.sensor_multihead_decoder import SensorMultiHeadDecoder
+from miracle.model.model import EnhancedEncoder
 from miracle.dataset.target_utils import TokenDecomposer
 from miracle.dataset.decoder_dataset import DecoderDatasetFromSplits
 from miracle.utilities.device import get_device
-
-
-# ============================================================================
-# MM-DTAE-LSTM Encoder (copied from training script for consistency)
-# ============================================================================
-
-class MM_DTAE_LSTM(nn.Module):
-    """MM-DTAE-LSTM encoder for sensor feature extraction.
-
-    This must match the architecture from train_sensor_multihead.py exactly.
-    """
-
-    def __init__(
-        self,
-        input_dim: int = 155,
-        hidden_dim: int = 256,
-        latent_dim: int = 128,
-        n_classes: int = 9,
-        num_lstm_layers: int = 2,
-        dropout: float = 0.3,
-        bidirectional: bool = True,
-        noise_factor: float = 0.1
-    ):
-        super().__init__()
-        self.input_dim = input_dim
-        self.hidden_dim = hidden_dim
-        self.latent_dim = latent_dim
-        self.n_classes = n_classes
-        self.noise_factor = noise_factor
-        self.bidirectional = bidirectional
-        self.num_directions = 2 if bidirectional else 1
-
-        self.input_proj = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.LayerNorm(hidden_dim),
-            nn.GELU(),
-            nn.Dropout(dropout)
-        )
-
-        self.encoder_lstm = nn.LSTM(
-            input_size=hidden_dim,
-            hidden_size=hidden_dim,
-            num_layers=num_lstm_layers,
-            batch_first=True,
-            bidirectional=bidirectional,
-            dropout=dropout if num_lstm_layers > 1 else 0
-        )
-
-        encoder_output_dim = hidden_dim * self.num_directions
-        self.bottleneck = nn.Sequential(
-            nn.Linear(encoder_output_dim, latent_dim),
-            nn.LayerNorm(latent_dim),
-            nn.GELU(),
-            nn.Dropout(dropout)
-        )
-
-        self.decoder_proj = nn.Sequential(
-            nn.Linear(latent_dim, hidden_dim),
-            nn.LayerNorm(hidden_dim),
-            nn.GELU(),
-            nn.Dropout(dropout)
-        )
-
-        self.decoder_lstm = nn.LSTM(
-            input_size=hidden_dim,
-            hidden_size=hidden_dim,
-            num_layers=num_lstm_layers,
-            batch_first=True,
-            dropout=dropout if num_lstm_layers > 1 else 0
-        )
-
-        self.reconstruction_head = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim, input_dim)
-        )
-
-        self.classification_head = nn.Sequential(
-            nn.Linear(latent_dim, latent_dim),
-            nn.LayerNorm(latent_dim),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(latent_dim, n_classes)
-        )
-
-        self.temporal_attention = nn.Sequential(
-            nn.Linear(latent_dim, 1),
-            nn.Softmax(dim=1)
-        )
-
-    def encode(self, x: torch.Tensor) -> tuple:
-        """Encode input sequence to latent representation."""
-        x = self.input_proj(x)
-        encoded, (h_n, c_n) = self.encoder_lstm(x)
-        latent = self.bottleneck(encoded)
-        return latent, (h_n, c_n)
-
-    def classify(self, latent: torch.Tensor) -> tuple:
-        """Classify operation type from latent."""
-        attn_weights = self.temporal_attention(latent)
-        pooled = (latent * attn_weights).sum(dim=1)
-        logits = self.classification_head(pooled)
-        return logits, attn_weights
 
 
 # ============================================================================
@@ -156,7 +53,8 @@ def greedy_decode(decoder, encoder, sensor_features, operation_type,
     B = sensor_features.size(0)
 
     # Get sensor embeddings
-    sensor_emb, _ = encoder.encode(sensor_features)
+    # EnhancedEncoder returns (pooled, memory_sequence) - we need memory_sequence for decoder
+    _, sensor_emb = encoder.encode(sensor_features)
 
     # Initialize
     generated = torch.full((B, 1), bos_id, dtype=torch.long, device=device)
@@ -220,7 +118,8 @@ def beam_search_decode(decoder, encoder, sensor_features, operation_type,
     B = sensor_features.size(0)
 
     # Get sensor embeddings (shared across all beams)
-    sensor_emb, _ = encoder.encode(sensor_features)
+    # EnhancedEncoder returns (pooled, memory_sequence) - we need memory_sequence for decoder
+    _, sensor_emb = encoder.encode(sensor_features)
 
     # Process each batch item separately (beam search is per-sample)
     all_best_sequences = []
@@ -372,7 +271,7 @@ def compute_sequence_accuracy(pred_tokens, target_tokens, pad_id, eos_id):
 # Main Evaluation
 # ============================================================================
 
-def load_models(model_dir, encoder_path, vocab_path, device):
+def load_models(model_dir, encoder_path, vocab_path, device, split_dir=None):
     """Load encoder and decoder models."""
     # Load vocabulary - TokenDecomposer expects path, not dict
     decomposer = TokenDecomposer(str(vocab_path))
@@ -383,19 +282,49 @@ def load_models(model_dir, encoder_path, vocab_path, device):
         results = json.load(f)
     args = results.get('args', {})
 
-    # Create encoder
-    encoder = MM_DTAE_LSTM(
-        input_dim=155,
-        hidden_dim=256,
-        latent_dim=128,
-        num_lstm_layers=2,
-        n_classes=9,
-        dropout=0.3,
+    # Get input_dim from data metadata (or use default)
+    input_dim = 296  # Default for no_leakage data
+    if split_dir:
+        import json as json_mod
+        metadata_path = Path(split_dir) / 'metadata.json'
+        if metadata_path.exists():
+            with open(metadata_path) as f:
+                metadata = json_mod.load(f)
+            input_dim = metadata.get('n_continuous_features', 296)
+            print(f"  Using input_dim={input_dim} from metadata")
+
+    # Load the training checkpoint (contains both encoder and decoder)
+    checkpoint_path = model_dir / 'best_model.pt'
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+    print(f"  Loaded checkpoint with keys: {list(checkpoint.keys())}")
+
+    # Create EnhancedEncoder (matches train_sensor_multihead.py)
+    encoder = EnhancedEncoder(
+        input_dim=input_dim,
+        hidden_dim=args.get('encoder_hidden_dim', 256),
+        latent_dim=args.get('sensor_dim', 128),
+        n_operations=args.get('n_operations', 9),
+        n_scales=args.get('encoder_n_scales', 4),
+        kernel_sizes=args.get('encoder_kernel_sizes', [3, 5, 7, 11]),
+        dilations=args.get('encoder_dilations', [1, 2, 4, 8]),
+        dropout=args.get('encoder_dropout', 0.3),
+        lstm_layers=args.get('encoder_lstm_layers', 2),
     ).to(device)
 
-    # Load encoder weights
-    encoder_ckpt = torch.load(encoder_path, map_location=device, weights_only=False)
-    encoder.load_state_dict(encoder_ckpt['model_state_dict'])
+    # Load encoder weights from training checkpoint (not pre-trained encoder)
+    if 'encoder_state_dict' in checkpoint:
+        # Use strict=False due to potential naming differences in pooling layer
+        missing, unexpected = encoder.load_state_dict(checkpoint['encoder_state_dict'], strict=False)
+        if missing:
+            print(f"  WARNING: Missing keys: {missing[:5]}..." if len(missing) > 5 else f"  WARNING: Missing keys: {missing}")
+        if unexpected:
+            print(f"  NOTE: Unexpected keys (ignored): {unexpected[:3]}..." if len(unexpected) > 3 else f"  NOTE: Unexpected keys (ignored): {unexpected}")
+        print(f"  Loaded encoder from checkpoint encoder_state_dict")
+    else:
+        # Fallback to separate encoder file (shouldn't be needed)
+        encoder_ckpt = torch.load(encoder_path, map_location=device, weights_only=False)
+        encoder.load_state_dict(encoder_ckpt['model_state_dict'], strict=False)
+        print(f"  WARNING: Loaded encoder from separate file (may have dimension mismatch)")
     encoder.eval()
 
     # Create decoder
@@ -417,8 +346,7 @@ def load_models(model_dir, encoder_path, vocab_path, device):
     ).to(device)
 
     # Load decoder weights
-    decoder_ckpt = torch.load(model_dir / 'best_model.pt', map_location=device, weights_only=False)
-    decoder.load_state_dict(decoder_ckpt['model_state_dict'])
+    decoder.load_state_dict(checkpoint['model_state_dict'], strict=False)
     decoder.eval()
 
     return encoder, decoder, decomposer, args
@@ -458,8 +386,10 @@ def evaluate_decoding_methods(encoder, decoder, test_dataset, decomposer, device
             op_type = sample['operation_type'].unsqueeze(0).to(device)
 
             # Get encoder operation classification
-            sensor_emb, _ = encoder.encode(sensor_features)
-            op_logits, _ = encoder.classify(sensor_emb)
+            # EnhancedEncoder.encode() returns (pooled_features, memory_sequence)
+            # pooled_features is 2D for classification, memory_sequence is 3D for decoder
+            pooled, sensor_emb = encoder.encode(sensor_features)
+            op_logits, _ = encoder.classify(pooled)
             operation_type = op_logits.argmax(-1)
 
             max_len = target_tokens.size(1)
@@ -526,11 +456,11 @@ def evaluate_decoding_methods(encoder, decoder, test_dataset, decomposer, device
 
 def main():
     # Paths
-    base_dir = Path(__file__).parent.parent
-    model_dir = base_dir / 'outputs' / 'sensor_multihead_v3'
-    encoder_path = base_dir / 'outputs' / 'mm_dtae_lstm_v2' / 'best_model.pt'
-    split_dir = base_dir / 'outputs' / 'stratified_splits_v2'
-    vocab_path = base_dir / 'data' / 'vocabulary_4digit_hybrid.json'
+    base_dir = Path(__file__).parent.parent.parent  # Go up to project root
+    model_dir = base_dir / 'outputs' / 'jan23_followup' / 'no_leakage' / 'training_tuned'
+    encoder_path = base_dir / 'outputs' / 'production' / 'encoder' / 'best_model.pt'
+    split_dir = base_dir / 'outputs' / 'jan23_followup' / 'no_leakage'
+    vocab_path = base_dir / 'data' / 'vocabulary_4digit_full.json'
 
     device = get_device()
     print(f"Using device: {device}")
@@ -538,7 +468,7 @@ def main():
     # Load models
     print("\nLoading models...")
     encoder, decoder, decomposer, args = load_models(
-        model_dir, encoder_path, vocab_path, device
+        model_dir, encoder_path, vocab_path, device, split_dir=split_dir
     )
     print(f"  Encoder: MM-DTAE-LSTM (128-dim latent)")
     print(f"  Decoder: SensorMultiHeadDecoder ({args.get('d_model', 192)}-dim)")

@@ -2043,6 +2043,16 @@ def main():
     best_metric = 0 if args.track_metric != 'loss' else float('inf')
     patience_counter = 0
 
+    # Training history for visualization
+    history = {
+        'train_loss': [],
+        'val_loss': [],
+        'train_acc': [],
+        'val_acc': [],
+        'val_seq_acc': [],
+        'lr': [],
+    }
+
     print("\nStarting training...")
     for epoch in range(args.max_epochs):
         # Log curriculum phase
@@ -2119,6 +2129,14 @@ def main():
         print(f"  Val Loss: {val_metrics['loss']:.4f}")
         print(f"  Val Token Acc: {val_metrics.get('token', 0):.2%}")
         print(f"  LR: {optimizer.param_groups[0]['lr']:.2e}")
+
+        # Update training history
+        history['train_loss'].append(train_metrics['loss'])
+        history['val_loss'].append(val_metrics['loss'])
+        history['train_acc'].append(train_metrics.get('token', train_metrics.get('acc', 0)))
+        history['val_acc'].append(val_metrics.get('token', 0))
+        history['val_seq_acc'].append(val_metrics.get('sequence', 0))
+        history['lr'].append(optimizer.param_groups[0]['lr'])
 
         # Show sample predictions every N epochs
         if (epoch + 1) % args.print_every == 0 or epoch == 0:
@@ -2299,6 +2317,11 @@ def main():
 
     with open(output_dir / 'results.json', 'w') as f:
         json.dump(results, f, indent=2)
+
+    # Save training history for visualization
+    with open(output_dir / 'history.json', 'w') as f:
+        json.dump(history, f, indent=2)
+    print(f"\nTraining history saved to {output_dir / 'history.json'}")
 
     if args.use_wandb and WANDB_AVAILABLE:
         wandb.log({

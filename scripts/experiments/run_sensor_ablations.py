@@ -37,8 +37,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from torch.utils.data import DataLoader
 
-# Windows has issues with multiprocessing DataLoader workers
-NUM_WORKERS = 0 if platform.system() == 'Windows' else 4
+# Windows and macOS have issues with multiprocessing DataLoader workers
+NUM_WORKERS = 0 if platform.system() in ('Windows', 'Darwin') else 4
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 
@@ -183,20 +183,22 @@ def train_ablation_model(
     device: str = 'cuda',
     max_epochs: int = 100,
     patience: int = 20,
+    seed: int = 42,
 ) -> Dict:
     """Train a model with sensor ablation."""
     from torch.optim import AdamW
     from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 
     print(f"\n{'='*60}")
-    print(f"Training: {ablation_name}")
+    print(f"Training: {ablation_name} (seed={seed})")
     print(f"Mask sum: {sensor_mask.sum():.0f}/{len(sensor_mask)} features active")
     print(f"{'='*60}")
 
     # Set seed
-    seed = config.get('seed', 42)
     torch.manual_seed(seed)
     np.random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
     # Load vocab
     with open(vocab_path) as f:
@@ -260,9 +262,9 @@ def train_ablation_model(
         pooling_n_queries=config.get('pooling_n_queries', 16),
     )
 
-    # Load pretrained encoder
+    # Load pretrained encoder (load to CPU first to avoid device compatibility issues)
     if os.path.exists(encoder_path):
-        ckpt = torch.load(encoder_path, map_location=device, weights_only=False)
+        ckpt = torch.load(encoder_path, map_location='cpu', weights_only=False)
         encoder.load_state_dict(ckpt.get('model_state_dict', ckpt), strict=False)
     encoder.to(device)
     encoder.eval()
@@ -409,40 +411,74 @@ def run_leave_one_out_ablations(
     device: str = 'cuda',
     max_epochs: int = 100,
     patience: int = 20,
+    seeds: List[int] = None,
 ) -> Dict[str, Dict]:
     """Run leave-one-out ablations for each sensor."""
+    if seeds is None:
+        seeds = [42]
+
     results = {}
+
+    def run_single_ablation(mask, ablation_name):
+        if len(seeds) == 1:
+            return train_ablation_model(
+                config=config,
+                data_dir=data_dir,
+                encoder_path=encoder_path,
+                vocab_path=vocab_path,
+                output_dir=output_dir,
+                sensor_mask=mask,
+                ablation_name=ablation_name,
+                device=device,
+                max_epochs=max_epochs,
+                patience=patience,
+                seed=seeds[0],
+            )
+        else:
+            # Multi-seed
+            ablation_dir = Path(output_dir) / ablation_name
+            ablation_dir.mkdir(parents=True, exist_ok=True)
+
+            seed_results = []
+            for seed in seeds:
+                seed_output_dir = ablation_dir / f'seed_{seed}'
+                result = train_ablation_model(
+                    config=config,
+                    data_dir=data_dir,
+                    encoder_path=encoder_path,
+                    vocab_path=vocab_path,
+                    output_dir=str(seed_output_dir),
+                    sensor_mask=mask,
+                    ablation_name=f'{ablation_name}_seed{seed}',
+                    device=device,
+                    max_epochs=max_epochs,
+                    patience=patience,
+                    seed=seed,
+                )
+                seed_results.append(result)
+
+            test_accs = [r['test_token_acc'] for r in seed_results]
+            aggregate = {
+                'ablation_name': ablation_name,
+                'n_seeds': len(seeds),
+                'seeds': seeds,
+                'test_token_acc_mean': float(np.mean(test_accs)),
+                'test_token_acc_std': float(np.std(test_accs)),
+                'test_token_acc_all': test_accs,
+                'seed_results': seed_results,
+            }
+            with open(ablation_dir / 'aggregate_results.json', 'w') as f:
+                json.dump(aggregate, f, indent=2)
+            return aggregate
 
     # First train baseline (all sensors)
     baseline_mask = np.ones(len(master_columns), dtype=np.float32)
-    results['baseline'] = train_ablation_model(
-        config=config,
-        data_dir=data_dir,
-        encoder_path=encoder_path,
-        vocab_path=vocab_path,
-        output_dir=output_dir,
-        sensor_mask=baseline_mask,
-        ablation_name='baseline_all_sensors',
-        device=device,
-        max_epochs=max_epochs,
-        patience=patience,
-    )
+    results['baseline'] = run_single_ablation(baseline_mask, 'baseline_all_sensors')
 
     # Leave-one-out for each sensor
     for sensor_id in SENSOR_IDS:
         mask = get_sensor_mask(master_columns, sensor_to_ablate=sensor_id)
-        results[f'without_{sensor_id}'] = train_ablation_model(
-            config=config,
-            data_dir=data_dir,
-            encoder_path=encoder_path,
-            vocab_path=vocab_path,
-            output_dir=output_dir,
-            sensor_mask=mask,
-            ablation_name=f'without_{sensor_id}',
-            device=device,
-            max_epochs=max_epochs,
-            patience=patience,
-        )
+        results[f'without_{sensor_id}'] = run_single_ablation(mask, f'without_{sensor_id}')
 
     return results
 
@@ -457,24 +493,71 @@ def run_leave_one_in_ablations(
     device: str = 'cuda',
     max_epochs: int = 100,
     patience: int = 20,
+    seeds: List[int] = None,
 ) -> Dict[str, Dict]:
     """Run leave-one-in ablations (single sensor only)."""
+    if seeds is None:
+        seeds = [42]
+
     results = {}
 
     for sensor_id in SENSOR_IDS:
         mask = get_sensor_mask(master_columns, sensors_to_keep=[sensor_id])
-        results[f'only_{sensor_id}'] = train_ablation_model(
-            config=config,
-            data_dir=data_dir,
-            encoder_path=encoder_path,
-            vocab_path=vocab_path,
-            output_dir=output_dir,
-            sensor_mask=mask,
-            ablation_name=f'only_{sensor_id}',
-            device=device,
-            max_epochs=max_epochs,
-            patience=patience,
-        )
+        ablation_name = f'only_{sensor_id}'
+
+        if len(seeds) == 1:
+            # Single seed - flat structure (backward compatible)
+            results[ablation_name] = train_ablation_model(
+                config=config,
+                data_dir=data_dir,
+                encoder_path=encoder_path,
+                vocab_path=vocab_path,
+                output_dir=output_dir,
+                sensor_mask=mask,
+                ablation_name=ablation_name,
+                device=device,
+                max_epochs=max_epochs,
+                patience=patience,
+                seed=seeds[0],
+            )
+        else:
+            # Multi-seed - nested structure for ANOVA
+            ablation_dir = Path(output_dir) / ablation_name
+            ablation_dir.mkdir(parents=True, exist_ok=True)
+
+            seed_results = []
+            for seed in seeds:
+                seed_output_dir = ablation_dir / f'seed_{seed}'
+                result = train_ablation_model(
+                    config=config,
+                    data_dir=data_dir,
+                    encoder_path=encoder_path,
+                    vocab_path=vocab_path,
+                    output_dir=str(seed_output_dir),
+                    sensor_mask=mask,
+                    ablation_name=f'{ablation_name}_seed{seed}',
+                    device=device,
+                    max_epochs=max_epochs,
+                    patience=patience,
+                    seed=seed,
+                )
+                seed_results.append(result)
+
+            # Aggregate results
+            test_accs = [r['test_token_acc'] for r in seed_results]
+            results[ablation_name] = {
+                'ablation_name': ablation_name,
+                'n_seeds': len(seeds),
+                'seeds': seeds,
+                'test_token_acc_mean': float(np.mean(test_accs)),
+                'test_token_acc_std': float(np.std(test_accs)),
+                'test_token_acc_all': test_accs,
+                'seed_results': seed_results,
+            }
+
+            # Save aggregate
+            with open(ablation_dir / 'aggregate_results.json', 'w') as f:
+                json.dump(results[ablation_name], f, indent=2)
 
     return results
 
@@ -562,8 +645,20 @@ def main():
                         help='Type of ablation to run')
     parser.add_argument('--max-epochs', type=int, default=100, help='Max epochs per ablation')
     parser.add_argument('--patience', type=int, default=20, help='Early stopping patience')
-    parser.add_argument('--device', type=str, default='cuda', help='Device')
+    parser.add_argument('--device', type=str, default=None, help='Device (auto-detected if not specified)')
+    parser.add_argument('--n-seeds', type=int, default=1, help='Number of seeds per ablation (for ANOVA)')
+    parser.add_argument('--seeds', type=str, default='42,123,456', help='Comma-separated seed values')
     args = parser.parse_args()
+
+    # Auto-detect device if not specified
+    if args.device is None:
+        if torch.cuda.is_available():
+            args.device = 'cuda'
+        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+            args.device = 'mps'
+        else:
+            args.device = 'cpu'
+        print(f"Auto-detected device: {args.device}")
 
     # Load config
     with open(args.config) as f:
@@ -613,6 +708,17 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Parse seeds
+    seeds = [int(s.strip()) for s in args.seeds.split(',')]
+    if args.n_seeds > 1:
+        seeds = seeds[:args.n_seeds]
+    else:
+        seeds = [seeds[0]]  # Use first seed only
+
+    print(f"Running with seeds: {seeds}")
+    if len(seeds) > 1:
+        print("  Multi-seed mode enabled for ANOVA statistical testing")
+
     all_results = {}
 
     # Run ablations
@@ -627,6 +733,7 @@ def main():
             device=args.device,
             max_epochs=args.max_epochs,
             patience=args.patience,
+            seeds=seeds,
         )
         all_results.update(loo_results)
 
@@ -641,6 +748,7 @@ def main():
             device=args.device,
             max_epochs=args.max_epochs,
             patience=args.patience,
+            seeds=seeds,
         )
         all_results.update(loi_results)
 
