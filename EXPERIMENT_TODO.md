@@ -1,8 +1,76 @@
 # Experiment TODO - G-code Fingerprinting
 
-## 🔴 PENDING (GPU Required)
+## 🔴 COMPREHENSIVE NESTED ABLATION (Primary Experiment)
 
-### Phase 0: Architecture Ablations (TBD)
+### Conference Mode (501 runs, ~7 days on 1 GPU)
+```bash
+# Step 1: Generate manifest (no GPU)
+python scripts/experiments/run_comprehensive_ablation.py \
+    --phase manifest --mode conference \
+    --config configs/decoder_config.json \
+    --data-dir outputs/jan23_followup/no_leakage \
+    --output-dir outputs/comprehensive_ablation
+
+# Step 2: Validate masks (no GPU)
+python scripts/experiments/run_comprehensive_ablation.py \
+    --phase validate \
+    --data-dir outputs/jan23_followup/no_leakage \
+    --output-dir outputs/comprehensive_ablation
+
+# Step 3: Train on Bizon (~7 days)
+python scripts/experiments/run_comprehensive_ablation.py \
+    --phase train \
+    --config configs/decoder_config.json \
+    --data-dir outputs/jan23_followup/no_leakage \
+    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --vocab-path data/vocabulary_4digit_full.json \
+    --output-dir outputs/comprehensive_ablation \
+    --num-workers 32 --no-save-weights
+
+# Step 4: Analyze (no GPU)
+python scripts/experiments/run_comprehensive_ablation.py \
+    --phase analyze \
+    --data-dir outputs/jan23_followup/no_leakage \
+    --output-dir outputs/comprehensive_ablation
+```
+
+### Full Mode (2,403 runs, ~33 days on 1 GPU)
+```bash
+python scripts/experiments/run_comprehensive_ablation.py \
+    --phase all --mode full \
+    --config configs/decoder_config.json \
+    --data-dir outputs/jan23_followup/no_leakage \
+    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --vocab-path data/vocabulary_4digit_full.json \
+    --output-dir outputs/comprehensive_ablation_full \
+    --num-workers 32 --no-save-weights
+```
+
+### Components Breakdown
+
+| Component | Description | Conference | Full |
+|-----------|-------------|-----------|------|
+| A | Per-sensor nested modality ablation (6 or 12 sensors) | 342 | 2,124 |
+| B | Global baselines (all-features, machine-only, sensor-only) | 42 | 42 |
+| C | Sensor-level leave-one-out (all 12 sensors) | 36 | 36 |
+| D | Cross-sensor grouped modality ablation | 54 | 54 |
+| E | Cross-sensor individual modality ablation | -- | 120 |
+| F | Leakage isolation (top 3 sensors) | 27 | 27 |
+| **Total** | | **501** | **2,403** |
+
+### Research Questions Answered
+- Q1: Which sensor is most informative? (C)
+- Q2: Which modality matters most per sensor? (A)
+- Q3: Which modality is most important globally? (D, E)
+- Q4: How much do machine features contribute? (B)
+- Q5: How much accuracy comes from leaked features? (F)
+- Q6: Are differences statistically significant? (3 seeds → ANOVA)
+
+---
+
+## 🔴 LEGACY EXPERIMENTS (GPU Required, may be superseded by comprehensive study)
+
+### Phase 0: Architecture Ablations (TBD -- DEFERRED for conference)
 ```bash
 python scripts/experiments/run_architecture_ablations.py \
     --config configs/decoder_config.json \
