@@ -1269,9 +1269,9 @@ def train_with_ray(
     print(f"\nRay initialized: {ray.cluster_resources()}")
     print(f"Using {num_gpus} GPUs for parallel training")
 
-    # Make ray_worker a remote function (1 CPU per worker, no GPU resource
-    # reservation since we handle CUDA device assignment manually)
-    remote_worker = ray.remote(num_cpus=1)(ray_worker)
+    # Each worker needs num_gpus=1 so Ray makes CUDA visible to the process.
+    # We still manually assign gpu_id for device placement.
+    remote_worker = ray.remote(num_cpus=1, num_gpus=1)(ray_worker)
 
     subset = manifest[args.start_idx:args.end_idx]
 
