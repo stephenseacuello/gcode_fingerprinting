@@ -1187,7 +1187,8 @@ def ray_worker(
     on a specific GPU and trains one run.
     """
     import torch
-    device = f'cuda:{gpu_id}'
+    # Ray sets CUDA_VISIBLE_DEVICES to a single GPU, so always use cuda:0
+    device = 'cuda:0'
     output_dir = Path(output_dir)
 
     run_id = run_config['run_id']
