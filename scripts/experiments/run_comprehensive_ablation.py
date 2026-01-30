@@ -1164,6 +1164,222 @@ def run_analysis(output_dir: Path, manifest: List[Dict]):
 
 
 # =============================================================================
+# RAY PARALLEL TRAINING
+# =============================================================================
+
+def ray_worker(
+    run_config: Dict,
+    master_columns: List[str],
+    config: Dict,
+    encoder_path: str,
+    data_dir: str,
+    vocab_path: str,
+    output_dir: str,
+    max_epochs: int,
+    patience: int,
+    num_workers: int,
+    no_save_weights: bool,
+    use_wandb: bool,
+    gpu_id: int,
+) -> Dict:
+    """
+    Ray remote function: each worker loads its own encoder + datasets
+    on a specific GPU and trains one run.
+    """
+    import torch
+    device = f'cuda:{gpu_id}'
+    output_dir = Path(output_dir)
+
+    run_id = run_config['run_id']
+    results_path = output_dir / run_id / 'results.json'
+    if results_path.exists():
+        return {'run_id': run_id, 'status': 'skipped'}
+
+    try:
+        # Load resources (each worker independently)
+        with open(vocab_path) as f:
+            vocab = json.load(f)['vocab']
+
+        input_dim = len(master_columns)
+        encoder = EnhancedEncoder(
+            input_dim=input_dim,
+            hidden_dim=256,
+            latent_dim=128,
+            n_operations=9,
+            use_multiscale=True,
+            n_scales=4,
+            pooling_n_heads=config.get('pooling_n_heads', 8),
+            pooling_n_queries=config.get('pooling_n_queries', 16),
+        )
+        if os.path.exists(encoder_path):
+            ckpt = torch.load(encoder_path, map_location='cpu', weights_only=False)
+            encoder.load_state_dict(
+                ckpt.get('model_state_dict', ckpt), strict=False
+            )
+        encoder.to(device)
+        encoder.eval()
+
+        max_seq_len = config.get('max_seq_len', 32)
+        base_datasets = {
+            'train': DecoderDatasetFromSplits(
+                split_dir=data_dir, split='train', max_token_len=max_seq_len,
+            ),
+            'val': DecoderDatasetFromSplits(
+                split_dir=data_dir, split='val', max_token_len=max_seq_len,
+            ),
+            'test': DecoderDatasetFromSplits(
+                split_dir=data_dir, split='test', max_token_len=max_seq_len,
+            ),
+        }
+
+        result = train_single_run(
+            run_config=run_config,
+            master_columns=master_columns,
+            config=config,
+            encoder=encoder,
+            base_datasets=base_datasets,
+            vocab=vocab,
+            output_dir=output_dir,
+            device=device,
+            max_epochs=max_epochs,
+            patience=patience,
+            num_workers=num_workers,
+            no_save_weights=no_save_weights,
+            use_wandb=use_wandb,
+        )
+        return {'run_id': run_id, 'status': 'completed', 'result': result}
+
+    except Exception as e:
+        traceback.print_exc()
+        return {'run_id': run_id, 'status': 'failed', 'error': str(e)}
+
+
+def train_with_ray(
+    manifest: List[Dict],
+    master_columns: List[str],
+    config: Dict,
+    args,
+    output_dir: Path,
+):
+    """Distribute training across GPUs using Ray."""
+    import ray
+
+    num_gpus = args.num_gpus
+    ray.init(ignore_reinit_error=True)
+    print(f"\nRay initialized: {ray.cluster_resources()}")
+    print(f"Using {num_gpus} GPUs for parallel training")
+
+    # Make ray_worker a remote function (1 CPU per worker, no GPU resource
+    # reservation since we handle CUDA device assignment manually)
+    remote_worker = ray.remote(num_cpus=1)(ray_worker)
+
+    subset = manifest[args.start_idx:args.end_idx]
+
+    # Filter out already-completed runs
+    pending = []
+    skipped = 0
+    for run_config in subset:
+        results_path = output_dir / run_config['run_id'] / 'results.json'
+        if results_path.exists():
+            skipped += 1
+        else:
+            pending.append(run_config)
+
+    print(f"Total: {len(subset)}, Pending: {len(pending)}, Already done: {skipped}")
+
+    if not pending:
+        print("Nothing to do.")
+        ray.shutdown()
+        return
+
+    # Submit tasks round-robin across GPUs
+    # Keep up to num_gpus tasks in flight at a time
+    in_flight = {}  # ray_ref -> run_id
+    completed = 0
+    failed = 0
+    failures = []
+    failures_path = output_dir / 'failures.json'
+    if failures_path.exists():
+        with open(failures_path) as f:
+            failures = json.load(f)
+
+    task_idx = 0
+
+    def submit_next():
+        nonlocal task_idx
+        if task_idx >= len(pending):
+            return
+        run_config = pending[task_idx]
+        gpu_id = task_idx % num_gpus
+        ref = remote_worker.remote(
+            run_config=run_config,
+            master_columns=master_columns,
+            config=config,
+            encoder_path=args.encoder_path,
+            data_dir=args.data_dir,
+            vocab_path=args.vocab_path,
+            output_dir=str(output_dir),
+            max_epochs=args.max_epochs,
+            patience=args.patience,
+            num_workers=args.num_workers,
+            no_save_weights=args.no_save_weights,
+            use_wandb=not args.no_wandb,
+            gpu_id=gpu_id,
+        )
+        in_flight[ref] = run_config['run_id']
+        task_idx += 1
+
+    # Seed initial batch
+    for _ in range(min(num_gpus, len(pending))):
+        submit_next()
+
+    # Process as they complete
+    while in_flight:
+        done_refs, _ = ray.wait(list(in_flight.keys()), num_returns=1)
+        for ref in done_refs:
+            run_id = in_flight.pop(ref)
+            try:
+                result = ray.get(ref)
+                if result['status'] == 'completed':
+                    completed += 1
+                    print(f"  [{completed + failed}/{len(pending)}] "
+                          f"{run_id}: DONE")
+                elif result['status'] == 'failed':
+                    failed += 1
+                    failures.append({
+                        'run_id': run_id,
+                        'error': result.get('error', 'unknown'),
+                        'timestamp': datetime.now().isoformat(),
+                    })
+                    print(f"  [{completed + failed}/{len(pending)}] "
+                          f"{run_id}: FAILED - {result.get('error', '')[:80]}")
+                else:
+                    # skipped (shouldn't happen since we pre-filtered)
+                    pass
+            except Exception as e:
+                failed += 1
+                failures.append({
+                    'run_id': run_id,
+                    'error': str(e),
+                    'timestamp': datetime.now().isoformat(),
+                })
+                print(f"  [{completed + failed}/{len(pending)}] "
+                      f"{run_id}: EXCEPTION - {str(e)[:80]}")
+
+            # Save failures incrementally
+            with open(failures_path, 'w') as f:
+                json.dump(failures, f, indent=2)
+
+            # Submit next task
+            submit_next()
+
+    ray.shutdown()
+    print(f"\n{'='*70}")
+    print(f"RAY TRAINING COMPLETE: {completed} done, {skipped} skipped, {failed} failed")
+    print(f"{'='*70}")
+
+
+# =============================================================================
 # MAIN
 # =============================================================================
 
@@ -1200,6 +1416,10 @@ def main():
                         help='Disable wandb logging')
     parser.add_argument('--manifest-path', type=str, default=None,
                         help='Path to pre-generated manifest')
+    parser.add_argument('--use-ray', action='store_true',
+                        help='Use Ray for parallel training across GPUs')
+    parser.add_argument('--num-gpus', type=int, default=2,
+                        help='Number of GPUs for Ray (default: 2)')
     args = parser.parse_args()
 
     output_dir = Path(args.output_dir)
@@ -1247,139 +1467,151 @@ def main():
         assert args.encoder_path, "--encoder-path required for training"
         assert args.vocab_path, "--vocab-path required for training"
 
-        # Auto-detect device
-        if args.device is None:
-            if torch.cuda.is_available():
-                args.device = 'cuda'
-            elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-                args.device = 'mps'
-            else:
-                args.device = 'cpu'
-        print(f"Device: {args.device}")
-
-        # Load shared resources
+        # Load config (needed for both Ray and sequential paths)
         with open(args.config) as f:
             config = json.load(f)
-
-        with open(args.vocab_path) as f:
-            vocab_data = json.load(f)
-        vocab = vocab_data['vocab']
-
-        # Load encoder (frozen)
-        input_dim = len(master_columns)
-        encoder = EnhancedEncoder(
-            input_dim=input_dim,
-            hidden_dim=256,
-            latent_dim=128,
-            n_operations=9,
-            use_multiscale=True,
-            n_scales=4,
-            pooling_n_heads=config.get('pooling_n_heads', 8),
-            pooling_n_queries=config.get('pooling_n_queries', 16),
-        )
-        if os.path.exists(args.encoder_path):
-            ckpt = torch.load(args.encoder_path, map_location='cpu', weights_only=False)
-            encoder.load_state_dict(
-                ckpt.get('model_state_dict', ckpt), strict=False
-            )
-        encoder.to(args.device)
-        encoder.eval()
-        print("Encoder loaded and frozen")
-
-        # Load base datasets
-        max_seq_len = config.get('max_seq_len', 32)
-        base_datasets = {
-            'train': DecoderDatasetFromSplits(
-                split_dir=args.data_dir, split='train', max_token_len=max_seq_len,
-            ),
-            'val': DecoderDatasetFromSplits(
-                split_dir=args.data_dir, split='val', max_token_len=max_seq_len,
-            ),
-            'test': DecoderDatasetFromSplits(
-                split_dir=args.data_dir, split='test', max_token_len=max_seq_len,
-            ),
-        }
-        print(f"Datasets loaded: train={len(base_datasets['train'])}, "
-              f"val={len(base_datasets['val'])}, test={len(base_datasets['test'])}")
 
         # Load manifest
         manifest_path = args.manifest_path or (output_dir / 'manifest.json')
         with open(manifest_path) as f:
             manifest = json.load(f)
 
-        subset = manifest[args.start_idx:args.end_idx]
-        print(f"\nProcessing runs {args.start_idx} to "
-              f"{args.start_idx + len(subset) - 1} of {len(manifest)}")
+        if args.use_ray:
+            # ---- Ray parallel path ----
+            print(f"Using Ray with {args.num_gpus} GPUs")
+            train_with_ray(
+                manifest=manifest,
+                master_columns=master_columns,
+                config=config,
+                args=args,
+                output_dir=output_dir,
+            )
+        else:
+            # ---- Sequential path ----
+            # Auto-detect device
+            if args.device is None:
+                if torch.cuda.is_available():
+                    args.device = 'cuda'
+                elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+                    args.device = 'mps'
+                else:
+                    args.device = 'cpu'
+            print(f"Device: {args.device}")
 
-        # Failures log
-        failures_path = output_dir / 'failures.json'
-        failures = []
-        if failures_path.exists():
-            with open(failures_path) as f:
-                failures = json.load(f)
+            with open(args.vocab_path) as f:
+                vocab_data = json.load(f)
+            vocab = vocab_data['vocab']
 
-        completed = 0
-        skipped = 0
-        failed = 0
-
-        for i, run_config in enumerate(subset):
-            run_dir = output_dir / run_config['run_id']
-            results_path = run_dir / 'results.json'
-
-            if results_path.exists():
-                skipped += 1
-                continue
-
-            global_idx = args.start_idx + i
-            print(f"\n[{global_idx}/{len(manifest)}] ({completed} done, "
-                  f"{skipped} skipped, {failed} failed)")
-
-            try:
-                train_single_run(
-                    run_config=run_config,
-                    master_columns=master_columns,
-                    config=config,
-                    encoder=encoder,
-                    base_datasets=base_datasets,
-                    vocab=vocab,
-                    output_dir=output_dir,
-                    device=args.device,
-                    max_epochs=args.max_epochs,
-                    patience=args.patience,
-                    num_workers=args.num_workers,
-                    no_save_weights=args.no_save_weights,
-                    use_wandb=not args.no_wandb,
+            # Load encoder (frozen)
+            input_dim = len(master_columns)
+            encoder = EnhancedEncoder(
+                input_dim=input_dim,
+                hidden_dim=256,
+                latent_dim=128,
+                n_operations=9,
+                use_multiscale=True,
+                n_scales=4,
+                pooling_n_heads=config.get('pooling_n_heads', 8),
+                pooling_n_queries=config.get('pooling_n_queries', 16),
+            )
+            if os.path.exists(args.encoder_path):
+                ckpt = torch.load(args.encoder_path, map_location='cpu', weights_only=False)
+                encoder.load_state_dict(
+                    ckpt.get('model_state_dict', ckpt), strict=False
                 )
-                completed += 1
-            except RuntimeError as e:
-                if 'CUDA out of memory' in str(e) or 'out of memory' in str(e):
-                    print(f"  OOM ERROR: {e}")
+            encoder.to(args.device)
+            encoder.eval()
+            print("Encoder loaded and frozen")
+
+            # Load base datasets
+            max_seq_len = config.get('max_seq_len', 32)
+            base_datasets = {
+                'train': DecoderDatasetFromSplits(
+                    split_dir=args.data_dir, split='train', max_token_len=max_seq_len,
+                ),
+                'val': DecoderDatasetFromSplits(
+                    split_dir=args.data_dir, split='val', max_token_len=max_seq_len,
+                ),
+                'test': DecoderDatasetFromSplits(
+                    split_dir=args.data_dir, split='test', max_token_len=max_seq_len,
+                ),
+            }
+            print(f"Datasets loaded: train={len(base_datasets['train'])}, "
+                  f"val={len(base_datasets['val'])}, test={len(base_datasets['test'])}")
+
+            subset = manifest[args.start_idx:args.end_idx]
+            print(f"\nProcessing runs {args.start_idx} to "
+                  f"{args.start_idx + len(subset) - 1} of {len(manifest)}")
+
+            # Failures log
+            failures_path = output_dir / 'failures.json'
+            failures = []
+            if failures_path.exists():
+                with open(failures_path) as f:
+                    failures = json.load(f)
+
+            completed = 0
+            skipped = 0
+            failed = 0
+
+            for i, run_config in enumerate(subset):
+                run_dir = output_dir / run_config['run_id']
+                results_path = run_dir / 'results.json'
+
+                if results_path.exists():
+                    skipped += 1
+                    continue
+
+                global_idx = args.start_idx + i
+                print(f"\n[{global_idx}/{len(manifest)}] ({completed} done, "
+                      f"{skipped} skipped, {failed} failed)")
+
+                try:
+                    train_single_run(
+                        run_config=run_config,
+                        master_columns=master_columns,
+                        config=config,
+                        encoder=encoder,
+                        base_datasets=base_datasets,
+                        vocab=vocab,
+                        output_dir=output_dir,
+                        device=args.device,
+                        max_epochs=args.max_epochs,
+                        patience=args.patience,
+                        num_workers=args.num_workers,
+                        no_save_weights=args.no_save_weights,
+                        use_wandb=not args.no_wandb,
+                    )
+                    completed += 1
+                except RuntimeError as e:
+                    if 'CUDA out of memory' in str(e) or 'out of memory' in str(e):
+                        print(f"  OOM ERROR: {e}")
+                        failures.append({
+                            'run_id': run_config['run_id'],
+                            'error': 'OOM',
+                            'timestamp': datetime.now().isoformat(),
+                        })
+                        failed += 1
+                        torch.cuda.empty_cache()
+                    else:
+                        raise
+                except Exception as e:
+                    print(f"  ERROR: {e}")
+                    traceback.print_exc()
                     failures.append({
                         'run_id': run_config['run_id'],
-                        'error': 'OOM',
+                        'error': str(e),
                         'timestamp': datetime.now().isoformat(),
                     })
                     failed += 1
-                    torch.cuda.empty_cache()
-                else:
-                    raise
-            except Exception as e:
-                print(f"  ERROR: {e}")
-                traceback.print_exc()
-                failures.append({
-                    'run_id': run_config['run_id'],
-                    'error': str(e),
-                    'timestamp': datetime.now().isoformat(),
-                })
-                failed += 1
 
-            # Save failures incrementally
-            with open(failures_path, 'w') as f:
-                json.dump(failures, f, indent=2)
+                # Save failures incrementally
+                with open(failures_path, 'w') as f:
+                    json.dump(failures, f, indent=2)
 
-        print(f"\n{'='*70}")
-        print(f"TRAINING COMPLETE: {completed} done, {skipped} skipped, {failed} failed")
-        print(f"{'='*70}")
+            print(f"\n{'='*70}")
+            print(f"TRAINING COMPLETE: {completed} done, {skipped} skipped, {failed} failed")
+            print(f"{'='*70}")
 
     # ---- Phase: Analyze ----
     if args.phase in ('analyze', 'all'):

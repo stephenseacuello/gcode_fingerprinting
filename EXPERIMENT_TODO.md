@@ -2,7 +2,7 @@
 
 ## 🔴 COMPREHENSIVE NESTED ABLATION (Primary Experiment)
 
-### Conference Mode (501 runs, ~7 days on 1 GPU)
+### Conference Mode (501 runs, ~3.5 days on 2x RTX A6000)
 ```bash
 # Step 1: Generate manifest (no GPU)
 python scripts/experiments/run_comprehensive_ablation.py \
@@ -17,7 +17,7 @@ python scripts/experiments/run_comprehensive_ablation.py \
     --data-dir outputs/jan23_followup/no_leakage \
     --output-dir outputs/comprehensive_ablation
 
-# Step 3: Train on Bizon (~7 days)
+# Step 3: Train on Bizon with Ray (2x RTX A6000, ~3.5 days)
 python scripts/experiments/run_comprehensive_ablation.py \
     --phase train \
     --config configs/decoder_config.json \
@@ -25,7 +25,8 @@ python scripts/experiments/run_comprehensive_ablation.py \
     --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
     --output-dir outputs/comprehensive_ablation \
-    --num-workers 32 --no-save-weights
+    --num-workers 32 --no-save-weights \
+    --use-ray --num-gpus 2
 
 # Step 4: Analyze (no GPU)
 python scripts/experiments/run_comprehensive_ablation.py \
@@ -34,7 +35,7 @@ python scripts/experiments/run_comprehensive_ablation.py \
     --output-dir outputs/comprehensive_ablation
 ```
 
-### Full Mode (2,403 runs, ~33 days on 1 GPU)
+### Full Mode (2,403 runs, ~16.5 days on 2x RTX A6000)
 ```bash
 python scripts/experiments/run_comprehensive_ablation.py \
     --phase all --mode full \
@@ -43,7 +44,8 @@ python scripts/experiments/run_comprehensive_ablation.py \
     --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
     --output-dir outputs/comprehensive_ablation_full \
-    --num-workers 32 --no-save-weights
+    --num-workers 32 --no-save-weights \
+    --use-ray --num-gpus 2
 ```
 
 ### Components Breakdown
