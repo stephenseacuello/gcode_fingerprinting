@@ -1,5 +1,9 @@
 # Experiment TODO - G-code Fingerprinting
 
+> **Encoder:** All experiments use the MM_DTAE_LSTM encoder from the verified 100% pipeline.
+> Checkpoint: `outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt`
+> See `docs/post_encoder_fix.md` for migration details.
+
 ## 🔴 COMPREHENSIVE NESTED ABLATION (Primary Experiment)
 
 ### Conference Mode (501 runs, ~3.5 days on 2x RTX A6000)
@@ -8,21 +12,21 @@
 python scripts/experiments/run_comprehensive_ablation.py \
     --phase manifest --mode conference \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
+    --data-dir outputs/jan30/encoder_pipeline/data \
     --output-dir outputs/comprehensive_ablation
 
 # Step 2: Validate masks (no GPU)
 python scripts/experiments/run_comprehensive_ablation.py \
     --phase validate \
-    --data-dir outputs/jan23_followup/no_leakage \
+    --data-dir outputs/jan30/encoder_pipeline/data \
     --output-dir outputs/comprehensive_ablation
 
 # Step 3: Train on Bizon with Ray (2x RTX A6000, ~3.5 days)
 python scripts/experiments/run_comprehensive_ablation.py \
     --phase train \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
     --output-dir outputs/comprehensive_ablation \
     --num-workers 32 --no-save-weights \
@@ -31,7 +35,7 @@ python scripts/experiments/run_comprehensive_ablation.py \
 # Step 4: Analyze (no GPU)
 python scripts/experiments/run_comprehensive_ablation.py \
     --phase analyze \
-    --data-dir outputs/jan23_followup/no_leakage \
+    --data-dir outputs/jan30/encoder_pipeline/data \
     --output-dir outputs/comprehensive_ablation
 ```
 
@@ -40,8 +44,8 @@ python scripts/experiments/run_comprehensive_ablation.py \
 python scripts/experiments/run_comprehensive_ablation.py \
     --phase all --mode full \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
     --output-dir outputs/comprehensive_ablation_full \
     --num-workers 32 --no-save-weights \
@@ -76,10 +80,10 @@ python scripts/experiments/run_comprehensive_ablation.py \
 ```bash
 python scripts/experiments/run_architecture_ablations.py \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
-    --output-dir outputs/jan26/architecture_ablations
+    --output-dir outputs/jan30/architecture_ablations
 ```
 
 ### Phase 1: Complete v22 Sensor Ablations (8 remaining sensors)
@@ -89,10 +93,10 @@ python scripts/experiments/run_architecture_ablations.py \
 
 python scripts/experiments/run_sensor_ablations.py \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
-    --output-dir outputs/jan26/sensor_ablations \
+    --output-dir outputs/jan30/sensor_ablations \
     --ablation-type leave_one_in
 ```
 
@@ -105,10 +109,10 @@ Groups: accelerometer, gyroscope, magnetometer, environmental, color, rms, motor
 ```bash
 python scripts/experiments/run_grouped_modality_ablations.py \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
-    --output-dir outputs/jan26/grouped_modality_ablations
+    --output-dir outputs/jan30/grouped_modality_ablations
 ```
 
 **2b. Individual Modality Ablations (41 runs: 1 baseline + 20 leave-one-out + 20 leave-one-in)**
@@ -118,20 +122,20 @@ Modalities: Ax, Ay, Az, Gx, Gy, Gz, Mx, My, Mz, Pressure, Temperature, Proximity
 ```bash
 python scripts/experiments/run_individual_modality_ablations.py \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
-    --output-dir outputs/jan26/individual_modality_ablations
+    --output-dir outputs/jan30/individual_modality_ablations
 ```
 
 ### Phase 3: Baseline Comparisons
 ```bash
 python scripts/experiments/run_baseline_comparisons.py \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
-    --output-dir outputs/jan26/baseline_comparisons
+    --output-dir outputs/jan30/baseline_comparisons
 ```
 
 ### Phase 4: ANOVA Statistical Validation
@@ -140,8 +144,8 @@ python scripts/experiments/run_baseline_comparisons.py \
 ```bash
 python scripts/experiments/run_sensor_anova.py \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
     --output-dir outputs/anova/sensors \
     --seeds 42,123,456
@@ -151,8 +155,8 @@ python scripts/experiments/run_sensor_anova.py \
 ```bash
 python scripts/experiments/run_grouped_modality_anova.py \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
     --output-dir outputs/anova/grouped_modalities \
     --seeds 42,123,456
@@ -162,8 +166,8 @@ python scripts/experiments/run_grouped_modality_anova.py \
 ```bash
 python scripts/experiments/run_individual_modality_anova.py \
     --config configs/decoder_config.json \
-    --data-dir outputs/jan23_followup/no_leakage \
-    --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+    --data-dir outputs/jan30/encoder_pipeline/data \
+    --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
     --output-dir outputs/anova/individual_modalities \
     --seeds 42,123,456

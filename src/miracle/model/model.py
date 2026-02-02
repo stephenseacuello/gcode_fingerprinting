@@ -409,6 +409,7 @@ class ModelConfig:
     context_specs: Optional[Dict[str, int]] = None  # {"plane":3,"units":2,"absrel":2,"wcs":6,"tool":64}
     fp_dim: int = 128                                # fingerprint dimension
     use_attention_pooling: bool = True               # use attention pooling in fingerprint head
+    cls_pooling: str = 'last'                        # 'last' (last-step) or 'mean' (temporal mean)
 
 class MM_DTAE_LSTM(nn.Module):
     """Backbone: per-modality encoders → modality+context fusion → DTAE → LSTM → heads."""
@@ -433,6 +434,12 @@ class MM_DTAE_LSTM(nn.Module):
         self.head_cls = nn.Linear(config.d_model, 5)
         self.head_reg = nn.Linear(config.d_model, 3)
         self.head_anom = nn.Linear(config.d_model, 1)  # logits
+
+        # Per-modality damage heads: each modality gets a 4-class head (normal/c6/c7/c8)
+        # These operate on encoded_mods BEFORE fusion, trained end-to-end
+        self.per_mod_damage_heads = nn.ModuleList([
+            nn.Linear(config.d_model, 4) for _ in config.sensor_dims
+        ])
         self.head_future = nn.Sequential(
             nn.Linear(config.d_model, config.d_model), nn.GELU(), nn.Dropout(0.1),
             nn.Linear(config.d_model, config.future_len * config.d_model)
@@ -470,16 +477,23 @@ class MM_DTAE_LSTM(nn.Module):
         last_idx = (lengths.clamp(min=1) - 1).view(-1)
         last = lstm_out[torch.arange(lstm_out.size(0), device=lstm_out.device), last_idx]
 
+        # Pooling for cls head: last-step or mean
+        if getattr(self.config, 'cls_pooling', 'last') == 'mean':
+            cls_features = lstm_out.mean(dim=1)
+        else:
+            cls_features = last
+
         out: Dict[str, torch.Tensor] = {
             "recon": rec,
-            "cls": self.head_cls(last),
+            "cls": self.head_cls(cls_features),
             "reg": self.head_reg(last),
             "anom": self.head_anom(last),  # logits
             "future": self.head_future(last).view(last.size(0), self.config.future_len, -1),
             "gates": gates,                 # learned gates per modality
             "drop_mask": drop_mask,         # which modalities were kept this step
             "memory": lstm_out,             # LSTM outputs for LM head / analysis
-            "encoded_mods": torch.stack([m.detach() for m in encoded_mods], dim=2),  # [B,T,M,D]
+            "encoded_mods": torch.stack([m.detach() for m in encoded_mods], dim=2),  # [B,T,M,D] (detached for analysis)
+            "per_mod_damage": [head(em.mean(dim=1)) for head, em in zip(self.per_mod_damage_heads, encoded_mods)],  # list of [B, 4]
         }
         if gcode_in is not None:
             out["gcode_logits"] = self.gcode_head(lstm_out, gcode_in)

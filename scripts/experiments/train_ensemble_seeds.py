@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 from miracle.model.model import EnhancedEncoder
 from miracle.model.sensor_multihead_decoder import SensorMultiHeadDecoder
 from miracle.dataset.decoder_dataset import DecoderDatasetFromSplits, decoder_collate_fn
+from miracle.training.metrics import compute_comprehensive_metrics
 
 
 def evaluate_on_test(
@@ -137,11 +138,59 @@ def evaluate_on_test(
     for op in op_total:
         op_accs[op] = op_correct[op] / op_total[op] if op_total[op] > 0 else 0
 
+    # Comprehensive metrics: collect all preds/targets for precision/recall/F1/BLEU/ED
+    all_preds_list = []
+    all_targets_list = []
+    pred_sequences = []
+    target_sequences = []
+
+    with torch.no_grad():
+        for batch in test_loader:
+            sensor_data = batch['sensor_features'].to(device)
+            operations = batch['operation_type'].to(device)
+            input_tokens = batch['input_tokens'].to(device)
+            target_tokens = batch['target_tokens'].to(device)
+
+            encoder_out = encoder(sensor_data)
+            sensor_memory = encoder_out['memory']
+            outputs = decoder(
+                tokens=input_tokens,
+                sensor_embeddings=sensor_memory,
+                operation_type=operations,
+            )
+
+            logits = outputs['legacy_logits']
+            preds = logits.argmax(dim=-1)
+            mask = target_tokens != 0
+
+            for i in range(preds.size(0)):
+                m = mask[i]
+                all_preds_list.append(preds[i][m])
+                all_targets_list.append(target_tokens[i][m])
+                pred_sequences.append(preds[i][m].cpu().tolist())
+                target_sequences.append(target_tokens[i][m].cpu().tolist())
+
+    all_preds_flat = torch.cat(all_preds_list)
+    all_targets_flat = torch.cat(all_targets_list)
+    comprehensive = compute_comprehensive_metrics(
+        all_preds_flat, all_targets_flat,
+        pred_sequences, target_sequences,
+        pad_token=0, num_classes=len(vocab),
+    )
+
     return {
         'test_acc': test_acc,
         'type_accs': type_accs,
         'op_accs': op_accs,
         'total_tokens': total_tokens,
+        'precision': comprehensive['precision'],
+        'recall': comprehensive['recall'],
+        'f1': comprehensive['f1'],
+        'bleu': comprehensive['bleu'],
+        'bleu_1': comprehensive['bleu_1'],
+        'bleu_4': comprehensive['bleu_4'],
+        'avg_edit_distance': comprehensive['avg_edit_distance'],
+        'exact_match': comprehensive['exact_match'],
     }
 
 
@@ -153,6 +202,10 @@ def train_single_seed(
     vocab_path: str,
     output_dir: str,
     device: str = 'cuda',
+    freeze_encoder: bool = False,
+    encoder_lr_scale: float = 0.1,
+    max_epochs: int = None,
+    patience: int = None,
 ):
     """Train a single model with specified seed."""
     print(f"\n{'='*60}")
@@ -217,9 +270,16 @@ def train_single_seed(
     # Load pretrained encoder
     if os.path.exists(encoder_path):
         ckpt = torch.load(encoder_path, map_location=device, weights_only=False)
-        encoder.load_state_dict(ckpt.get('model_state_dict', ckpt), strict=False)
+        encoder.load_state_dict(ckpt.get('encoder_state_dict', ckpt.get('model_state_dict', ckpt)), strict=False)
     encoder.to(device)
-    encoder.eval()  # Freeze encoder
+    if freeze_encoder:
+        encoder.eval()
+        for p in encoder.parameters():
+            p.requires_grad = False
+        print(f"  Encoder FROZEN")
+    else:
+        encoder.train()
+        print(f"  Encoder UNFROZEN (lr_scale={encoder_lr_scale})")
 
     # Create decoder
     d_model = config['d_model']
@@ -259,12 +319,16 @@ def train_single_seed(
     decoder.to(device)
 
     # Optimizer
-    optimizer = AdamW(
-        decoder.parameters(),
-        lr=config['learning_rate'],
-        weight_decay=config['weight_decay'],
-        betas=(config.get('beta1', 0.9), config.get('beta2', 0.999)),
-    )
+    lr = config['learning_rate']
+    wd = config['weight_decay']
+    betas = (config.get('beta1', 0.9), config.get('beta2', 0.999))
+    if freeze_encoder:
+        optimizer = AdamW(decoder.parameters(), lr=lr, weight_decay=wd, betas=betas)
+    else:
+        optimizer = AdamW([
+            {'params': decoder.parameters(), 'lr': lr},
+            {'params': encoder.parameters(), 'lr': lr * encoder_lr_scale},
+        ], weight_decay=wd, betas=betas)
 
     # Scheduler
     scheduler = CosineAnnealingWarmRestarts(
@@ -277,8 +341,10 @@ def train_single_seed(
     criterion = nn.CrossEntropyLoss(ignore_index=0, label_smoothing=label_smoothing)
 
     # Training loop
-    max_epochs = config.get('max_epochs', 200)
-    patience = config.get('patience', 50)
+    if max_epochs is None:
+        max_epochs = config.get('max_epochs', 200)
+    if patience is None:
+        patience = config.get('patience', 50)
     best_val_acc = 0.0
     patience_counter = 0
 
@@ -298,7 +364,11 @@ def train_single_seed(
             input_tokens = batch['input_tokens'].to(device)
             target_tokens = batch['target_tokens'].to(device)
 
-            with torch.no_grad():
+            if freeze_encoder:
+                with torch.no_grad():
+                    encoder_out = encoder(sensor_data)
+                    sensor_memory = encoder_out['memory']
+            else:
                 encoder_out = encoder(sensor_data)
                 sensor_memory = encoder_out['memory']
 
@@ -315,8 +385,17 @@ def train_single_seed(
                 target_tokens.reshape(-1)
             )
 
+            # Encoder operation classification loss
+            if not freeze_encoder and 'cls_logits' in encoder_out:
+                op_loss_weight = config.get('op_loss_weight', 1.0)
+                op_cls_loss = nn.CrossEntropyLoss()(encoder_out['cls_logits'], operations)
+                loss = loss + op_loss_weight * op_cls_loss
+
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(decoder.parameters(), config.get('grad_clip', 1.0))
+            all_params = list(decoder.parameters())
+            if not freeze_encoder:
+                all_params += list(encoder.parameters())
+            torch.nn.utils.clip_grad_norm_(all_params, config.get('grad_clip', 1.0))
             optimizer.step()
 
             train_loss += loss.item()
@@ -364,7 +443,7 @@ def train_single_seed(
         val_acc = val_correct / val_total if val_total > 0 else 0
 
         if epoch % 10 == 0 or val_acc > best_val_acc:
-            print(f"  Epoch {epoch}: train_acc={train_acc:.4f}, val_acc={val_acc:.4f}")
+            print(f"  Epoch {epoch}:  Token Acc: train={train_acc:.2%}  val={val_acc:.2%}")
 
         # Early stopping and checkpointing
         if val_acc > best_val_acc:
@@ -386,7 +465,7 @@ def train_single_seed(
                 print(f"  Early stopping at epoch {epoch}")
                 break
 
-    print(f"  Best val_acc: {best_val_acc:.4f}")
+    print(f"  Best Val Token Acc: {best_val_acc:.2%}")
 
     # Evaluate on test set
     print(f"  Evaluating on test set...")
@@ -399,10 +478,10 @@ def train_single_seed(
         device=device,
     )
     test_acc = test_results['test_acc']
-    print(f"  Test accuracy: {test_acc:.4f}")
+    print(f"  Test Token Acc: {test_acc:.2%}")
     print(f"  Per-type accuracies:")
     for tok_type, acc in sorted(test_results['type_accs'].items()):
-        print(f"    {tok_type}: {acc:.4f}")
+        print(f"    {tok_type}: {acc:.2%}")
 
     # Save final results
     with open(seed_output_dir / 'results.json', 'w') as f:
@@ -410,9 +489,18 @@ def train_single_seed(
             'seed': seed,
             'best_val_acc': best_val_acc,
             'test_acc': test_acc,
+            'test_precision': test_results.get('precision', 0),
+            'test_recall': test_results.get('recall', 0),
+            'test_f1': test_results.get('f1', 0),
+            'test_bleu': test_results.get('bleu', 0),
+            'test_bleu_1': test_results.get('bleu_1', 0),
+            'test_bleu_4': test_results.get('bleu_4', 0),
+            'test_avg_edit_distance': test_results.get('avg_edit_distance', 0),
+            'test_exact_match': test_results.get('exact_match', 0),
             'test_type_accs': test_results['type_accs'],
             'test_op_accs': {str(k): v for k, v in test_results['op_accs'].items()},
             'final_epoch': epoch,
+            'freeze_encoder': freeze_encoder,
             'config': config,
         }, f, indent=2)
 
@@ -472,7 +560,7 @@ def learn_ensemble_weights(
     )
     if os.path.exists(encoder_path):
         ckpt = torch.load(encoder_path, map_location=device, weights_only=False)
-        encoder.load_state_dict(ckpt.get('model_state_dict', ckpt), strict=False)
+        encoder.load_state_dict(ckpt.get('encoder_state_dict', ckpt.get('model_state_dict', ckpt)), strict=False)
     encoder.to(device)
     encoder.eval()
 
@@ -605,8 +693,24 @@ def main():
     parser.add_argument('--vocab-path', type=str, required=True, help='Path to vocabulary JSON')
     parser.add_argument('--output-dir', type=str, required=True, help='Output directory')
     parser.add_argument('--seeds', type=str, default='42,123,456', help='Comma-separated seeds')
-    parser.add_argument('--device', type=str, default='cuda', help='Device')
+    parser.add_argument('--device', type=str, default=None, help='Device (auto-detected if not set)')
+    parser.add_argument('--freeze-encoder', action='store_true', help='Freeze encoder (default: unfrozen)')
+    parser.add_argument('--encoder-lr-scale', type=float, default=0.1, help='Encoder LR multiplier (default: 0.1)')
+    parser.add_argument('--max-epochs', type=int, default=None, help='Override max epochs from config')
+    parser.add_argument('--patience', type=int, default=None, help='Override patience from config')
+    parser.add_argument('--wandb-project', type=str, default='gcode-jan30-ensemble', help='WandB project name')
+    parser.add_argument('--no-wandb', action='store_true', help='Disable wandb')
     args = parser.parse_args()
+
+    # Auto-detect device
+    if args.device is None:
+        if torch.cuda.is_available():
+            args.device = 'cuda'
+        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+            args.device = 'mps'
+        else:
+            args.device = 'cpu'
+    print(f"Device: {args.device}")
 
     # Load config
     with open(args.config) as f:
@@ -651,6 +755,10 @@ def main():
                 vocab_path=args.vocab_path,
                 output_dir=str(output_dir),
                 device=args.device,
+                freeze_encoder=args.freeze_encoder,
+                encoder_lr_scale=args.encoder_lr_scale,
+                max_epochs=args.max_epochs,
+                patience=args.patience,
             )
             model_paths.append(model_path)
             results.append({'seed': seed, 'val_acc': val_acc, 'test_acc': test_acc})
@@ -688,12 +796,12 @@ def main():
     print(f"{'='*60}")
     print(f"Individual results:")
     for r in results:
-        print(f"  Seed {r['seed']}: val={r['val_acc']:.4f}, test={r['test_acc']:.4f}")
-    print(f"\nBest individual (val):  {best_individual_val:.4f}")
-    print(f"Best individual (test): {best_individual_test:.4f}")
-    print(f"Average test:           {avg_test_acc:.4f}")
-    print(f"Ensemble (val):         {ensemble_acc:.4f}")
-    print(f"Improvement:            {ensemble_acc - best_individual_val:.4f}")
+        print(f"  Seed {r['seed']}: val={r['val_acc']:.2%}  test={r['test_acc']:.2%}")
+    print(f"\nBest individual (val):  {best_individual_val:.2%}")
+    print(f"Best individual (test): {best_individual_test:.2%}")
+    print(f"Average test:           {avg_test_acc:.2%}")
+    print(f"Ensemble (val):         {ensemble_acc:.2%}")
+    print(f"Improvement:            {ensemble_acc - best_individual_val:+.2%}")
 
 
 if __name__ == '__main__':

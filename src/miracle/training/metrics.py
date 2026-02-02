@@ -15,8 +15,10 @@ from collections import defaultdict
 __all__ = [
     "compute_classification_metrics",
     "compute_sequence_metrics",
+    "compute_bleu",
     "compute_perplexity",
     "compute_confusion_matrix",
+    "compute_comprehensive_metrics",
     "MetricsTracker",
 ]
 
@@ -70,15 +72,15 @@ def compute_classification_metrics(
         fn = ((predictions != c) & (targets == c)).sum().float()
 
         # Precision
-        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        precision = (tp / (tp + fp)).item() if (tp + fp) > 0 else 0.0
         precision_scores.append(precision)
 
         # Recall
-        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        recall = (tp / (tp + fn)).item() if (tp + fn) > 0 else 0.0
         recall_scores.append(recall)
 
         # F1
-        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+        f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
         f1_scores.append(f1)
 
     # Macro-averaged metrics
@@ -201,6 +203,134 @@ def levenshtein_distance(seq1: List[int], seq2: List[int]) -> int:
                 )
 
     return dp[m][n]
+
+
+def compute_bleu(
+    predicted_sequences: List[List[int]],
+    target_sequences: List[List[int]],
+    max_n: int = 4,
+    pad_token: int = 0,
+) -> Dict[str, float]:
+    """
+    Compute corpus-level BLEU score (BLEU-1 through BLEU-4).
+
+    Args:
+        predicted_sequences: List of predicted token sequences
+        target_sequences: List of target token sequences
+        max_n: Maximum n-gram order (default 4)
+        pad_token: Padding token to strip
+
+    Returns:
+        Dictionary with bleu_1, bleu_2, bleu_3, bleu_4, bleu (geometric mean)
+    """
+    from collections import Counter
+    import math
+
+    clipped_counts = [0] * max_n
+    total_counts = [0] * max_n
+    bp_ref_len = 0
+    bp_hyp_len = 0
+
+    for pred_seq, ref_seq in zip(predicted_sequences, target_sequences):
+        pred_seq = [t for t in pred_seq if t != pad_token]
+        ref_seq = [t for t in ref_seq if t != pad_token]
+
+        bp_hyp_len += len(pred_seq)
+        bp_ref_len += len(ref_seq)
+
+        for n in range(1, max_n + 1):
+            pred_ngrams = Counter(
+                tuple(pred_seq[i:i + n]) for i in range(len(pred_seq) - n + 1)
+            )
+            ref_ngrams = Counter(
+                tuple(ref_seq[i:i + n]) for i in range(len(ref_seq) - n + 1)
+            )
+            clipped = sum(
+                min(count, ref_ngrams[ng]) for ng, count in pred_ngrams.items()
+            )
+            total = sum(pred_ngrams.values())
+            clipped_counts[n - 1] += clipped
+            total_counts[n - 1] += total
+
+    # Brevity penalty
+    if bp_hyp_len == 0:
+        bp = 0.0
+    elif bp_hyp_len >= bp_ref_len:
+        bp = 1.0
+    else:
+        bp = math.exp(1 - bp_ref_len / bp_hyp_len)
+
+    # Per-n precisions
+    precisions = {}
+    log_avg = 0.0
+    valid_n = 0
+    for n in range(max_n):
+        if total_counts[n] > 0 and clipped_counts[n] > 0:
+            p = clipped_counts[n] / total_counts[n]
+            precisions[f"bleu_{n + 1}"] = p
+            log_avg += math.log(p)
+            valid_n += 1
+        else:
+            precisions[f"bleu_{n + 1}"] = 0.0
+
+    if valid_n > 0:
+        precisions["bleu"] = bp * math.exp(log_avg / valid_n)
+    else:
+        precisions["bleu"] = 0.0
+
+    return precisions
+
+
+def compute_comprehensive_metrics(
+    all_predictions: torch.Tensor,
+    all_targets: torch.Tensor,
+    predicted_sequences: List[List[int]],
+    target_sequences: List[List[int]],
+    pad_token: int = 0,
+    num_classes: Optional[int] = None,
+) -> Dict[str, float]:
+    """
+    Compute all metrics at once: accuracy, precision, recall, F1, BLEU, edit distance.
+
+    Args:
+        all_predictions: Flat tensor of all predicted token IDs
+        all_targets: Flat tensor of all target token IDs
+        predicted_sequences: List of predicted token sequences (for sequence-level metrics)
+        target_sequences: List of target token sequences
+        pad_token: Padding token to ignore
+        num_classes: Number of classes for classification metrics
+
+    Returns:
+        Dictionary with all metrics
+    """
+    results = {}
+
+    # Flatten to 1D if needed (callers may pass [B, T] tensors)
+    if all_predictions.dim() > 1:
+        all_predictions = all_predictions.reshape(-1)
+    if all_targets.dim() > 1:
+        all_targets = all_targets.reshape(-1)
+
+    # Classification metrics (token-level)
+    cls_metrics = compute_classification_metrics(
+        all_predictions, all_targets,
+        num_classes=num_classes, ignore_index=pad_token,
+    )
+    results.update(cls_metrics)
+
+    # Sequence metrics (edit distance, exact match)
+    seq_metrics = compute_sequence_metrics(
+        predicted_sequences, target_sequences, pad_token=pad_token,
+    )
+    results.update(seq_metrics)
+
+    # BLEU
+    bleu_metrics = compute_bleu(
+        predicted_sequences, target_sequences, pad_token=pad_token,
+    )
+    results.update(bleu_metrics)
+
+    return results
 
 
 def compute_confusion_matrix(

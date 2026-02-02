@@ -31,17 +31,13 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-# Ray imports
-import ray
-from ray import tune
-from ray.tune import CLIReporter
-from ray.tune.schedulers import ASHAScheduler
-from ray.tune.search.optuna import OptunaSearch
-from ray.air import RunConfig, CheckpointConfig
-from ray.air.integrations.wandb import WandbLoggerCallback
+# Ray imports are deferred to main() so the script can run without Ray
+# for single-trial standalone mode (--no-ray flag).
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 SRC_PATH = str(PROJECT_ROOT / 'src')
+if SRC_PATH not in sys.path:
+    sys.path.insert(0, SRC_PATH)
 
 
 def load_config(config_path: str) -> dict:
@@ -50,18 +46,31 @@ def load_config(config_path: str) -> dict:
         return yaml.safe_load(f)
 
 
-def build_search_space(config: dict) -> dict:
-    """Convert config search space to Ray Tune format."""
+def build_search_space(config: dict, use_ray: bool = True) -> dict:
+    """Convert config search space to Ray Tune format or plain values."""
+    import random
     space = {}
     for param, spec in config.get('search_space', {}).items():
-        if spec['type'] == 'choice':
-            space[param] = tune.choice(spec['values'])
-        elif spec['type'] == 'uniform':
-            space[param] = tune.uniform(float(spec['min']), float(spec['max']))
-        elif spec['type'] == 'loguniform':
-            space[param] = tune.loguniform(float(spec['min']), float(spec['max']))
-        elif spec['type'] == 'randint':
-            space[param] = tune.randint(int(spec['min']), int(spec['max']))
+        if use_ray:
+            from ray import tune
+            if spec['type'] == 'choice':
+                space[param] = tune.choice(spec['values'])
+            elif spec['type'] == 'uniform':
+                space[param] = tune.uniform(float(spec['min']), float(spec['max']))
+            elif spec['type'] == 'loguniform':
+                space[param] = tune.loguniform(float(spec['min']), float(spec['max']))
+            elif spec['type'] == 'randint':
+                space[param] = tune.randint(int(spec['min']), int(spec['max']))
+        else:
+            # Without Ray: pick first/default value
+            if spec['type'] == 'choice':
+                space[param] = spec['values'][0]
+            elif spec['type'] == 'uniform':
+                space[param] = float(spec['min'])
+            elif spec['type'] == 'loguniform':
+                space[param] = float(spec['min'])
+            elif spec['type'] == 'randint':
+                space[param] = int(spec['min'])
     return space
 
 
@@ -184,7 +193,48 @@ def apply_augmentation(sensor_data: torch.Tensor, config: dict) -> torch.Tensor:
     return sensor_data
 
 
-def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str):
+def build_modality_indices(metadata_path: str):
+    """Build per-modality feature index groups from metadata.json."""
+    with open(metadata_path) as f:
+        metadata = json.load(f)
+    columns = metadata['continuous_columns']
+
+    sensor_patterns = {
+        'accelerometer': ['Ax', 'Ay', 'Az'],
+        'gyroscope': ['Gx', 'Gy', 'Gz'],
+        'magnetometer': ['Mx', 'My', 'Mz'],
+        'environmental': ['Pressure', 'Temperature', 'Proximity'],
+        'color': ['ColorR', 'ColorG', 'ColorB', 'ColorA'],
+        'rms': ['RMS'],
+    }
+
+    groups = {name: [] for name in sensor_patterns}
+    groups['machine'] = []
+
+    for idx, col in enumerate(columns):
+        matched = False
+        if '.' in col:
+            _, feat = col.rsplit('.', 1)
+            for group_name, patterns in sensor_patterns.items():
+                if feat in patterns:
+                    groups[group_name].append(idx)
+                    matched = True
+                    break
+        if not matched:
+            groups['machine'].append(idx)
+
+    group_names = list(groups.keys())
+    sensor_dims = [len(groups[name]) for name in group_names]
+    return group_names, groups, sensor_dims
+
+
+def split_modalities(sensor_data, group_indices):
+    """Split [B, T, D] tensor into list of [B, T, Cm] per modality."""
+    return [sensor_data[:, :, indices] for indices in group_indices]
+
+
+def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str = None,
+                freeze_encoder: bool = False, encoder_lr_scale: float = 0.1):
     """Training function for Ray Tune with full optimizer/scheduler support."""
     from torch.utils.data import DataLoader
     from miracle.dataset.decoder_dataset import (
@@ -192,7 +242,8 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         decoder_collate_fn,
     )
     from miracle.model.sensor_multihead_decoder import SensorMultiHeadDecoder
-    from miracle.model.model import EnhancedEncoder
+    from miracle.model.model import MM_DTAE_LSTM, ModelConfig
+    from miracle.training.metrics import compute_comprehensive_metrics
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -206,14 +257,10 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         vocab_data = json.load(f)
     vocab = vocab_data['vocab']
 
-    # Load metadata to get input_dim
+    # Build modality indices from metadata
     metadata_path = Path(data_dir) / 'metadata.json'
-    if metadata_path.exists():
-        with open(metadata_path) as f:
-            metadata = json.load(f)
-        input_dim = metadata.get('n_continuous_features', 155)
-    else:
-        input_dim = 155
+    group_names, groups, sensor_dims = build_modality_indices(str(metadata_path))
+    group_indices = [groups[name] for name in group_names]
 
     max_seq_len = config.get('max_seq_len', 32)
 
@@ -226,9 +273,15 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
     )
 
     batch_size = config.get('batch_size', 16)
-    # Windows has issues with multiprocessing DataLoader workers
+    # Python 3.14+ changed multiprocessing start method; datasets with open file
+    # handles (NpzFile) can't be pickled for forkserver. Use 0 workers on
+    # non-Linux or Python 3.14+.
     import platform
-    num_workers = 0 if platform.system() == 'Windows' else 4
+    num_workers = 4
+    if platform.system() == 'Windows':
+        num_workers = 0
+    elif sys.version_info >= (3, 14):
+        num_workers = 0
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True,
         collate_fn=decoder_collate_fn, num_workers=num_workers, pin_memory=True
@@ -247,26 +300,37 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
         collate_fn=decoder_collate_fn, num_workers=num_workers, pin_memory=True
     )
 
-    # Create encoder
-    encoder = EnhancedEncoder(
-        input_dim=input_dim,
-        hidden_dim=256,
-        latent_dim=128,
-        n_operations=9,
-        use_multiscale=True,
-        n_scales=4,
-        pooling_n_heads=config.get('pooling_n_heads', 8),
-        pooling_n_queries=config.get('pooling_n_queries', 16),
-    )
-
-    if os.path.exists(encoder_path):
+    # Load MM_DTAE_LSTM encoder from checkpoint
+    encoder = None
+    encoder_d_model = 256  # default
+    if encoder_path and os.path.exists(encoder_path):
         ckpt = torch.load(encoder_path, map_location=device, weights_only=False)
-        encoder.load_state_dict(ckpt.get('model_state_dict', ckpt), strict=False)
+        enc_config = ckpt['config']
+        if not isinstance(enc_config, ModelConfig):
+            enc_config = ModelConfig(**{k: v for k, v in enc_config.items()
+                                        if k in ModelConfig.__dataclass_fields__})
+        encoder = MM_DTAE_LSTM(enc_config)
+        # Resize head_cls to match checkpoint (model defaults to 5, checkpoint may have 9)
+        sd = ckpt['model_state_dict']
+        if 'head_cls.weight' in sd:
+            n_cls = sd['head_cls.weight'].shape[0]
+            if encoder.head_cls.out_features != n_cls:
+                encoder.head_cls = nn.Linear(enc_config.d_model, n_cls)
+        encoder.load_state_dict(sd, strict=False)
+        encoder_d_model = enc_config.d_model
+    else:
+        # No encoder path — create fresh MM_DTAE_LSTM
+        enc_config = ModelConfig(sensor_dims=sensor_dims)
+        encoder = MM_DTAE_LSTM(enc_config)
+        encoder_d_model = enc_config.d_model
 
     encoder.to(device)
-    encoder.eval()
-    for param in encoder.parameters():
-        param.requires_grad = False
+    if freeze_encoder:
+        encoder.eval()
+        for param in encoder.parameters():
+            param.requires_grad = False
+    else:
+        encoder.train()
 
     # Create decoder
     d_model = int(config['d_model'])
@@ -282,7 +346,7 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
     d_ff = d_model * ffn_multiplier
 
     decoder = SensorMultiHeadDecoder(
-        sensor_dim=128,
+        sensor_dim=encoder_d_model,
         d_model=d_model,
         n_heads=n_heads,
         n_layers=int(config['n_layers']),
@@ -309,10 +373,18 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
 
     # Get optimizer
     optimizer_name = config.get('optimizer', 'adamw')
+    lr = config['learning_rate']
+    if freeze_encoder:
+        opt_params = decoder.parameters()
+    else:
+        opt_params = [
+            {'params': decoder.parameters(), 'lr': lr},
+            {'params': encoder.parameters(), 'lr': lr * encoder_lr_scale},
+        ]
     optimizer = get_optimizer(
         optimizer_name,
-        decoder.parameters(),
-        lr=config['learning_rate'],
+        opt_params,
+        lr=lr,
         weight_decay=config['weight_decay'],
         beta1=config.get('beta1', 0.9),
         beta2=config.get('beta2', 0.999),
@@ -339,14 +411,17 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
     patience_counter = 0
     test_eval_interval = 25  # Evaluate test set every 25 epochs
 
-    n_params = sum(p.numel() for p in decoder.parameters())
-    n_trainable = sum(p.numel() for p in decoder.parameters() if p.requires_grad)
+    all_model_params = list(decoder.parameters()) + list(encoder.parameters())
+    n_params = sum(p.numel() for p in all_model_params)
+    n_trainable = sum(p.numel() for p in all_model_params if p.requires_grad)
 
     for epoch in range(max_epochs):
         epoch_start = time.time()
 
         # Training
         decoder.train()
+        if not freeze_encoder:
+            encoder.train()
         train_loss = 0.0
         train_correct = 0
         train_total = 0
@@ -360,8 +435,17 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
             # Apply augmentation
             sensor_data = apply_augmentation(sensor_data, config)
 
-            with torch.no_grad():
-                encoder_out = encoder(sensor_data)
+            # Split into per-modality tensors for MM_DTAE_LSTM
+            mods = split_modalities(sensor_data, group_indices)
+            sensor_lengths = torch.full((sensor_data.size(0),), sensor_data.size(1),
+                                        dtype=torch.long, device=device)
+
+            if freeze_encoder:
+                with torch.no_grad():
+                    encoder_out = encoder(mods, sensor_lengths)
+                    sensor_memory = encoder_out['memory']
+            else:
+                encoder_out = encoder(mods, sensor_lengths)
                 sensor_memory = encoder_out['memory']
 
             optimizer.zero_grad()
@@ -377,9 +461,18 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
                 target_tokens.reshape(-1)
             )
 
+            # Encoder operation classification loss
+            if not freeze_encoder and 'cls' in encoder_out:
+                op_loss_weight = config.get('op_loss_weight', 1.0)
+                op_cls_loss = nn.CrossEntropyLoss()(encoder_out['cls'], operations)
+                loss = loss + op_loss_weight * op_cls_loss
+
             loss.backward()
             grad_clip = config.get('grad_clip', 1.0)
-            torch.nn.utils.clip_grad_norm_(decoder.parameters(), grad_clip)
+            all_params = list(decoder.parameters())
+            if not freeze_encoder:
+                all_params += list(encoder.parameters())
+            torch.nn.utils.clip_grad_norm_(all_params, grad_clip)
             optimizer.step()
 
             if use_step_per_batch:
@@ -413,7 +506,10 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
                 input_tokens = batch['input_tokens'].to(device)
                 target_tokens = batch['target_tokens'].to(device)
 
-                encoder_out = encoder(sensor_data)
+                mods = split_modalities(sensor_data, group_indices)
+                sensor_lengths = torch.full((sensor_data.size(0),), sensor_data.size(1),
+                                            dtype=torch.long, device=device)
+                encoder_out = encoder(mods, sensor_lengths)
                 sensor_memory = encoder_out['memory']
                 outputs = decoder(
                     tokens=input_tokens,
@@ -448,10 +544,16 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
 
         # Evaluate on test set periodically or when val improves
         test_acc = best_test_acc  # Default to last known test_acc
+        test_metrics = {}
         run_test_eval = (epoch % test_eval_interval == 0) or (val_acc > best_val_acc)
         if run_test_eval:
             test_correct = 0
             test_total = 0
+            all_test_preds = []
+            all_test_targets = []
+            all_test_pred_seqs = []
+            all_test_target_seqs = []
+            encoder.eval()
             with torch.no_grad():
                 for batch in test_loader:
                     sensor_data = batch['sensor_features'].to(device)
@@ -459,7 +561,10 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
                     input_tokens = batch['input_tokens'].to(device)
                     target_tokens = batch['target_tokens'].to(device)
 
-                    encoder_out = encoder(sensor_data)
+                    mods = split_modalities(sensor_data, group_indices)
+                    sensor_lengths = torch.full((sensor_data.size(0),), sensor_data.size(1),
+                                                dtype=torch.long, device=device)
+                    encoder_out = encoder(mods, sensor_lengths)
                     sensor_memory = encoder_out['memory']
                     outputs = decoder(
                         tokens=input_tokens,
@@ -473,13 +578,32 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
                     test_correct += ((preds == target_tokens) & mask).sum().item()
                     test_total += mask.sum().item()
 
+                    all_test_preds.append(preds)
+                    all_test_targets.append(target_tokens)
+                    # Collect sequences for BLEU/ED
+                    for i in range(preds.size(0)):
+                        m = mask[i]
+                        all_test_pred_seqs.append(preds[i][m].cpu().tolist())
+                        all_test_target_seqs.append(target_tokens[i][m].cpu().tolist())
+
+            if not freeze_encoder:
+                encoder.train()
+
             test_acc = test_correct / test_total if test_total > 0 else 0
             if test_acc > best_test_acc:
                 best_test_acc = test_acc
 
-        # Report to Ray Tune
-        from ray.air import session
-        session.report({
+            # Compute comprehensive metrics
+            all_test_preds_t = torch.cat(all_test_preds, dim=0)
+            all_test_targets_t = torch.cat(all_test_targets, dim=0)
+            test_metrics = compute_comprehensive_metrics(
+                all_test_preds_t, all_test_targets_t,
+                all_test_pred_seqs, all_test_target_seqs,
+                pad_token=0,
+            )
+
+        # Report metrics
+        report_dict = {
             'epoch': epoch,
             'train_loss': avg_train_loss,
             'val_loss': avg_val_loss,
@@ -505,7 +629,20 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
             'use_augmentation': config.get('use_augmentation', False),
             'noise_std': config.get('noise_std', 0),
             'use_sensor_prior': config.get('use_sensor_prior', True),
-        })
+            'freeze_encoder': freeze_encoder,
+        }
+        # Add comprehensive test metrics when available
+        for k, v in test_metrics.items():
+            report_dict[f'test_{k}'] = v
+
+        # Report to Ray Tune if running under Ray, otherwise print
+        try:
+            from ray.air import session
+            session.report(report_dict)
+        except (ImportError, RuntimeError):
+            print(f"  Epoch {epoch}: train_loss={avg_train_loss:.4f} val_loss={avg_val_loss:.4f} | "
+                  f"train_acc={train_acc:.4f} val_acc={val_acc:.4f} test_acc={test_acc:.4f} | "
+                  f"best_test={best_test_acc:.4f} lr={current_lr:.6f} patience={patience_counter}/{patience}")
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
@@ -519,23 +656,71 @@ def train_model(config: dict, data_dir: str, vocab_path: str, encoder_path: str)
 def main():
     parser = argparse.ArgumentParser(description='Ray Tune Final Comprehensive Sweep')
     parser.add_argument('--config', default='configs/lambda_sweeps/final_comprehensive_sweep.yaml')
-    parser.add_argument('--data-dir', default='outputs/production/data_splits')
+    parser.add_argument('--split-dir', '--data-dir', dest='data_dir',
+                        default='outputs/jan30/encoder_pipeline/data')
     parser.add_argument('--vocab-path', default='data/vocabulary_4digit_full.json')
-    parser.add_argument('--encoder-path', default='outputs/production/encoder/best_model.pt')
+    parser.add_argument('--encoder-path',
+                        default='outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt',
+                        help='Path to pretrained MM_DTAE_LSTM encoder')
+    parser.add_argument('--freeze-encoder', action='store_true',
+                        help='Freeze encoder weights (default: train jointly)')
+    parser.add_argument('--encoder-lr-scale', type=float, default=0.1,
+                        help='Encoder LR multiplier relative to decoder LR (default: 0.1)')
     parser.add_argument('--num-samples', type=int, default=300)
     parser.add_argument('--max-concurrent', type=int, default=8)
+    parser.add_argument('--max-epochs', type=int, default=None,
+                        help='Override max_epochs from config')
+    parser.add_argument('--patience', type=int, default=None,
+                        help='Override patience from config')
     parser.add_argument('--experiment-name', default='gcode-final-sweep')
     parser.add_argument('--resume', action='store_true')
-    parser.add_argument('--local-dir', default=str(PROJECT_ROOT / 'outputs' / 'ray_sweep_final'))
-    parser.add_argument('--wandb-project', default='gcode-final-sweep')
+    parser.add_argument('--output-dir', '--local-dir', dest='local_dir',
+                        default=str(PROJECT_ROOT / 'outputs' / 'ray_sweep_final'))
+    parser.add_argument('--wandb-project', default='gcode-jan30-sweep')
     parser.add_argument('--no-wandb', action='store_true')
+    parser.add_argument('--no-ray', action='store_true',
+                        help='Run a single trial without Ray (standalone mode)')
     args = parser.parse_args()
 
     config = load_config(args.config)
-    search_space = build_search_space(config)
+    search_space = build_search_space(config, use_ray=not args.no_ray)
 
     for key, value in config.get('fixed', {}).items():
         search_space[key] = value
+
+    # CLI overrides for max_epochs and patience
+    if args.max_epochs is not None:
+        search_space['max_epochs'] = args.max_epochs
+    if args.patience is not None:
+        search_space['patience'] = args.patience
+
+    encoder_path = str(PROJECT_ROOT / args.encoder_path) if args.encoder_path else None
+
+    if args.no_ray:
+        # Standalone mode: run a single trial directly without Ray
+        print("Running in standalone mode (no Ray)")
+
+        print(f"Config: { {k: v for k, v in search_space.items() if k not in ('seed',)} }")
+
+        train_model(
+            config=search_space,
+            data_dir=str(PROJECT_ROOT / args.data_dir),
+            vocab_path=str(PROJECT_ROOT / args.vocab_path),
+            encoder_path=encoder_path,
+            freeze_encoder=args.freeze_encoder,
+            encoder_lr_scale=args.encoder_lr_scale,
+        )
+        print("\nStandalone training complete.")
+        return
+
+    # --- Ray Tune mode ---
+    import ray
+    from ray import tune as ray_tune
+    from ray.tune import CLIReporter
+    from ray.tune.schedulers import ASHAScheduler
+    from ray.tune.search.optuna import OptunaSearch
+    from ray.air import RunConfig, CheckpointConfig
+    from ray.air.integrations.wandb import WandbLoggerCallback
 
     ray.init(
         ignore_reinit_error=True,
@@ -549,10 +734,11 @@ def main():
         }
     )
 
+    asha_max_t = args.max_epochs if args.max_epochs else config['fixed'].get('max_epochs', 300)
     scheduler = ASHAScheduler(
         metric='val_token_acc',
         mode='max',
-        max_t=config['fixed'].get('max_epochs', 300),
+        max_t=asha_max_t,
         grace_period=25,
         reduction_factor=3,
     )
@@ -578,13 +764,15 @@ def main():
         train_model,
         data_dir=str(PROJECT_ROOT / args.data_dir),
         vocab_path=str(PROJECT_ROOT / args.vocab_path),
-        encoder_path=str(PROJECT_ROOT / args.encoder_path),
+        encoder_path=encoder_path,
+        freeze_encoder=args.freeze_encoder,
+        encoder_lr_scale=args.encoder_lr_scale,
     )
 
-    tuner = tune.Tuner(
-        tune.with_resources(train_fn, resources={'cpu': 4, 'gpu': 1}),
+    tuner = ray_tune.Tuner(
+        ray_tune.with_resources(train_fn, resources={'cpu': 4, 'gpu': 1}),
         param_space=search_space,
-        tune_config=tune.TuneConfig(
+        tune_config=ray_tune.TuneConfig(
             num_samples=args.num_samples,
             max_concurrent_trials=args.max_concurrent,
             scheduler=scheduler,
@@ -600,7 +788,7 @@ def main():
     )
 
     if args.resume:
-        tuner = tune.Tuner.restore(
+        tuner = ray_tune.Tuner.restore(
             os.path.join(args.local_dir, args.experiment_name),
             trainable=train_fn,
             resume_errored=True,
@@ -612,13 +800,13 @@ def main():
     print("\n" + "=" * 60)
     print("BEST TRIAL")
     print("=" * 60)
-    print(f"Val Token Acc: {best_result.metrics['val_token_acc']:.4f}")
-    print(f"Test Token Acc: {best_result.metrics.get('best_test_acc', 'N/A')}")
-    print(f"Optimizer: {best_result.config.get('optimizer', 'adamw')}")
-    print(f"Scheduler: {best_result.config.get('scheduler', 'cosine_restarts')}")
-    print(f"d_model: {best_result.config['d_model']}")
-    print(f"n_layers: {best_result.config['n_layers']}")
-    print(f"Config: {best_result.config}")
+    m = best_result.metrics
+    c = best_result.config
+    print(f"  Token Acc:      train={m.get('train_token_acc', 0):.2%}  val={m['val_token_acc']:.2%}  test={m.get('best_test_acc', 0):.2%}")
+    print(f"  Optimizer:      {c.get('optimizer', 'adamw')}")
+    print(f"  Scheduler:      {c.get('scheduler', 'cosine_restarts')}")
+    print(f"  Architecture:   d_model={c['d_model']}, n_layers={c['n_layers']}, n_heads={c['n_heads']}")
+    print(f"  Config: {c}")
 
     best_config_path = Path(args.local_dir) / 'best_config.json'
     with open(best_config_path, 'w') as f:

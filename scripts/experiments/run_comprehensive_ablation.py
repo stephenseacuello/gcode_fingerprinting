@@ -21,15 +21,15 @@ Usage:
     python scripts/experiments/run_comprehensive_ablation.py \
         --phase manifest --mode conference \
         --config configs/decoder_config.json \
-        --data-dir outputs/jan23_followup/no_leakage \
+        --data-dir outputs/jan30/encoder_pipeline/data \
         --output-dir outputs/comprehensive_ablation
 
     # Train on Bizon
     python scripts/experiments/run_comprehensive_ablation.py \
         --phase train \
         --config configs/decoder_config.json \
-        --data-dir outputs/jan23_followup/no_leakage \
-        --encoder-path outputs/jan26/ensemble/seed_42/best_model.pt \
+        --data-dir outputs/jan30/encoder_pipeline/data \
+        --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
         --vocab-path data/vocabulary_4digit_full.json \
         --output-dir outputs/comprehensive_ablation \
         --num-workers 32 --no-save-weights
@@ -37,7 +37,7 @@ Usage:
     # Analyze
     python scripts/experiments/run_comprehensive_ablation.py \
         --phase analyze \
-        --data-dir outputs/jan23_followup/no_leakage \
+        --data-dir outputs/jan30/encoder_pipeline/data \
         --output-dir outputs/comprehensive_ablation
 
 Author: Claude Code
@@ -61,9 +61,10 @@ from torch.utils.data import DataLoader
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
 
-from miracle.model.model import EnhancedEncoder
+from miracle.model.model import MM_DTAE_LSTM, ModelConfig
 from miracle.model.sensor_multihead_decoder import SensorMultiHeadDecoder
 from miracle.dataset.decoder_dataset import DecoderDatasetFromSplits, decoder_collate_fn
+from miracle.training.metrics import compute_comprehensive_metrics
 
 # =============================================================================
 # CONSTANTS (verified against metadata.json)
@@ -642,13 +643,19 @@ class MaskedDataset:
         return item
 
 
+def split_modalities(sensor_data, group_indices):
+    """Split [B, T, D] tensor into list of [B, T, Cm] per modality."""
+    return [sensor_data[:, :, indices] for indices in group_indices]
+
+
 def evaluate_model(
     encoder: nn.Module,
     decoder: nn.Module,
     data_loader: DataLoader,
     device: str = 'cuda',
+    group_indices: List = None,
 ) -> Dict[str, float]:
-    """Evaluate model on a dataset."""
+    """Evaluate model on a dataset with comprehensive metrics."""
     encoder.eval()
     decoder.eval()
 
@@ -656,6 +663,10 @@ def evaluate_model(
     total_tokens = 0
     total_sequences = 0
     correct_sequences = 0
+    all_preds = []
+    all_targets = []
+    all_pred_seqs = []
+    all_target_seqs = []
 
     with torch.no_grad():
         for batch in data_loader:
@@ -664,7 +675,10 @@ def evaluate_model(
             input_tokens = batch['input_tokens'].to(device)
             target_tokens = batch['target_tokens'].to(device)
 
-            encoder_out = encoder(sensor_data)
+            mods = split_modalities(sensor_data, group_indices)
+            sensor_lengths = torch.full((sensor_data.size(0),), sensor_data.size(1),
+                                        dtype=torch.long, device=device)
+            encoder_out = encoder(mods, sensor_lengths)
             sensor_memory = encoder_out['memory']
 
             outputs = decoder(
@@ -680,16 +694,35 @@ def evaluate_model(
             total_correct += ((preds == target_tokens) & pad_mask).sum().item()
             total_tokens += pad_mask.sum().item()
 
+            all_preds.append(preds)
+            all_targets.append(target_tokens)
+
             for i in range(preds.size(0)):
                 seq_mask = pad_mask[i]
+                if seq_mask.sum() > 0:
+                    all_pred_seqs.append(preds[i][seq_mask].cpu().tolist())
+                    all_target_seqs.append(target_tokens[i][seq_mask].cpu().tolist())
                 if (preds[i][seq_mask] == target_tokens[i][seq_mask]).all():
                     correct_sequences += 1
                 total_sequences += 1
 
-    return {
+    result = {
         'token_accuracy': total_correct / total_tokens if total_tokens > 0 else 0,
         'sequence_accuracy': correct_sequences / total_sequences if total_sequences > 0 else 0,
     }
+
+    # Comprehensive metrics
+    if all_preds:
+        all_preds_t = torch.cat(all_preds, dim=0)
+        all_targets_t = torch.cat(all_targets, dim=0)
+        comp = compute_comprehensive_metrics(
+            all_preds_t, all_targets_t,
+            all_pred_seqs, all_target_seqs,
+            pad_token=0,
+        )
+        result.update(comp)
+
+    return result
 
 
 def train_single_run(
@@ -706,6 +739,8 @@ def train_single_run(
     num_workers: int = 0,
     no_save_weights: bool = False,
     use_wandb: bool = False,
+    group_indices: List = None,
+    encoder_d_model: int = 256,
 ) -> Dict:
     """Train a single ablation run."""
     from torch.optim import AdamW
@@ -787,7 +822,7 @@ def train_single_run(
                 break
 
     decoder = SensorMultiHeadDecoder(
-        sensor_dim=128,
+        sensor_dim=encoder_d_model,
         d_model=d_model,
         n_heads=n_heads,
         n_layers=config['n_layers'],
@@ -838,7 +873,10 @@ def train_single_run(
             target_tokens = batch['target_tokens'].to(device)
 
             with torch.no_grad():
-                encoder_out = encoder(sensor_data)
+                mods = split_modalities(sensor_data, group_indices)
+                sensor_lengths = torch.full((sensor_data.size(0),), sensor_data.size(1),
+                                            dtype=torch.long, device=device)
+                encoder_out = encoder(mods, sensor_lengths)
                 sensor_memory = encoder_out['memory']
 
             optimizer.zero_grad()
@@ -866,7 +904,7 @@ def train_single_run(
         avg_loss = epoch_loss / max(n_batches, 1)
 
         # Validate
-        val_metrics = evaluate_model(encoder, decoder, val_loader, device)
+        val_metrics = evaluate_model(encoder, decoder, val_loader, device, group_indices)
         val_acc = val_metrics['token_accuracy']
 
         if wandb_run:
@@ -879,7 +917,7 @@ def train_single_run(
             })
 
         if epoch % 20 == 0:
-            print(f"  Epoch {epoch}: loss={avg_loss:.4f}, val_acc={val_acc:.4f}")
+            print(f"  Epoch {epoch}:  Loss: {avg_loss:.4f}  Token Acc: val={val_acc:.2%}")
 
         if val_acc > best_val_acc:
             best_val_acc = val_acc
@@ -903,7 +941,7 @@ def train_single_run(
         decoder.load_state_dict(
             torch.load(ckpt_path, weights_only=False)['model_state_dict']
         )
-    test_metrics = evaluate_model(encoder, decoder, test_loader, device)
+    test_metrics = evaluate_model(encoder, decoder, test_loader, device, group_indices)
 
     elapsed = time.time() - start_time
     results = {
@@ -917,6 +955,13 @@ def train_single_run(
         'best_val_token_acc': best_val_acc,
         'test_token_acc': test_metrics['token_accuracy'],
         'test_sequence_acc': test_metrics['sequence_accuracy'],
+        'test_precision_macro': test_metrics.get('precision_macro', 0),
+        'test_recall_macro': test_metrics.get('recall_macro', 0),
+        'test_f1_macro': test_metrics.get('f1_macro', 0),
+        'test_bleu_1': test_metrics.get('bleu_1', 0),
+        'test_bleu_4': test_metrics.get('bleu_4', 0),
+        'test_edit_distance': test_metrics.get('edit_distance', 0),
+        'test_exact_match': test_metrics.get('exact_match', 0),
         'features_active': active,
         'features_total': len(master_columns),
         'elapsed_seconds': elapsed,
@@ -928,18 +973,23 @@ def train_single_run(
 
     if wandb_run:
         import wandb
-        wandb.log({
+        wandb_metrics = {
             'test_token_acc': test_metrics['token_accuracy'],
             'test_seq_acc': test_metrics['sequence_accuracy'],
             'best_epoch': best_epoch,
-        })
+        }
+        for k in ['precision_macro', 'recall_macro', 'f1_macro', 'bleu_1', 'bleu_4',
+                   'edit_distance', 'exact_match']:
+            if k in test_metrics:
+                wandb_metrics[f'test_{k}'] = test_metrics[k]
+        wandb.log(wandb_metrics)
         wandb.finish()
 
     # Optionally delete weights
     if no_save_weights and ckpt_path.exists():
         ckpt_path.unlink()
 
-    print(f"  Done: val={best_val_acc:.4f}, test={test_metrics['token_accuracy']:.4f}, "
+    print(f"  Done: Token Acc: val={best_val_acc:.2%}  test={test_metrics['token_accuracy']:.2%}  "
           f"elapsed={elapsed:.0f}s")
 
     return results
@@ -1201,22 +1251,50 @@ def ray_worker(
         with open(vocab_path) as f:
             vocab = json.load(f)['vocab']
 
-        input_dim = len(master_columns)
-        encoder = EnhancedEncoder(
-            input_dim=input_dim,
-            hidden_dim=256,
-            latent_dim=128,
-            n_operations=9,
-            use_multiscale=True,
-            n_scales=4,
-            pooling_n_heads=config.get('pooling_n_heads', 8),
-            pooling_n_queries=config.get('pooling_n_queries', 16),
-        )
-        if os.path.exists(encoder_path):
-            ckpt = torch.load(encoder_path, map_location='cpu', weights_only=False)
-            encoder.load_state_dict(
-                ckpt.get('model_state_dict', ckpt), strict=False
-            )
+        # Build modality indices
+        metadata_path = Path(data_dir) / 'metadata.json'
+        with open(metadata_path) as f:
+            metadata = json.load(f)
+        columns = metadata['continuous_columns']
+        sensor_patterns = {
+            'accelerometer': ['Ax', 'Ay', 'Az'],
+            'gyroscope': ['Gx', 'Gy', 'Gz'],
+            'magnetometer': ['Mx', 'My', 'Mz'],
+            'environmental': ['Pressure', 'Temperature', 'Proximity'],
+            'color': ['ColorR', 'ColorG', 'ColorB', 'ColorA'],
+            'rms': ['RMS'],
+        }
+        groups = {name: [] for name in sensor_patterns}
+        groups['machine'] = []
+        for idx, col in enumerate(columns):
+            matched = False
+            if '.' in col:
+                _, feat = col.rsplit('.', 1)
+                for group_name, patterns in sensor_patterns.items():
+                    if feat in patterns:
+                        groups[group_name].append(idx)
+                        matched = True
+                        break
+            if not matched:
+                groups['machine'].append(idx)
+        group_names = list(groups.keys())
+        group_indices = [groups[name] for name in group_names]
+        sensor_dims = [len(groups[name]) for name in group_names]
+
+        # Load MM_DTAE_LSTM encoder
+        ckpt = torch.load(encoder_path, map_location='cpu', weights_only=False)
+        enc_config = ckpt['config']
+        if not isinstance(enc_config, ModelConfig):
+            enc_config = ModelConfig(**{k: v for k, v in enc_config.items()
+                                        if k in ModelConfig.__dataclass_fields__})
+        encoder = MM_DTAE_LSTM(enc_config)
+        sd = ckpt['model_state_dict']
+        if 'head_cls.weight' in sd:
+            n_cls = sd['head_cls.weight'].shape[0]
+            if encoder.head_cls.out_features != n_cls:
+                encoder.head_cls = nn.Linear(enc_config.d_model, n_cls)
+        encoder.load_state_dict(sd, strict=False)
+        encoder_d_model = enc_config.d_model
         encoder.to(device)
         encoder.eval()
 
@@ -1247,6 +1325,8 @@ def ray_worker(
             num_workers=num_workers,
             no_save_weights=no_save_weights,
             use_wandb=use_wandb,
+            group_indices=group_indices,
+            encoder_d_model=encoder_d_model,
         )
         return {'run_id': run_id, 'status': 'completed', 'result': result}
 
@@ -1503,26 +1583,48 @@ def main():
                 vocab_data = json.load(f)
             vocab = vocab_data['vocab']
 
-            # Load encoder (frozen)
-            input_dim = len(master_columns)
-            encoder = EnhancedEncoder(
-                input_dim=input_dim,
-                hidden_dim=256,
-                latent_dim=128,
-                n_operations=9,
-                use_multiscale=True,
-                n_scales=4,
-                pooling_n_heads=config.get('pooling_n_heads', 8),
-                pooling_n_queries=config.get('pooling_n_queries', 16),
-            )
-            if os.path.exists(args.encoder_path):
-                ckpt = torch.load(args.encoder_path, map_location='cpu', weights_only=False)
-                encoder.load_state_dict(
-                    ckpt.get('model_state_dict', ckpt), strict=False
-                )
+            # Build modality indices
+            _sensor_patterns = {
+                'accelerometer': ['Ax', 'Ay', 'Az'],
+                'gyroscope': ['Gx', 'Gy', 'Gz'],
+                'magnetometer': ['Mx', 'My', 'Mz'],
+                'environmental': ['Pressure', 'Temperature', 'Proximity'],
+                'color': ['ColorR', 'ColorG', 'ColorB', 'ColorA'],
+                'rms': ['RMS'],
+            }
+            _groups = {name: [] for name in _sensor_patterns}
+            _groups['machine'] = []
+            for idx, col in enumerate(master_columns):
+                matched = False
+                if '.' in col:
+                    _, feat = col.rsplit('.', 1)
+                    for gn, pats in _sensor_patterns.items():
+                        if feat in pats:
+                            _groups[gn].append(idx)
+                            matched = True
+                            break
+                if not matched:
+                    _groups['machine'].append(idx)
+            _group_names = list(_groups.keys())
+            group_indices = [_groups[name] for name in _group_names]
+
+            # Load MM_DTAE_LSTM encoder (frozen)
+            ckpt = torch.load(args.encoder_path, map_location='cpu', weights_only=False)
+            enc_config = ckpt['config']
+            if not isinstance(enc_config, ModelConfig):
+                enc_config = ModelConfig(**{k: v for k, v in enc_config.items()
+                                            if k in ModelConfig.__dataclass_fields__})
+            encoder = MM_DTAE_LSTM(enc_config)
+            sd = ckpt['model_state_dict']
+            if 'head_cls.weight' in sd:
+                n_cls = sd['head_cls.weight'].shape[0]
+                if encoder.head_cls.out_features != n_cls:
+                    encoder.head_cls = nn.Linear(enc_config.d_model, n_cls)
+            encoder.load_state_dict(sd, strict=False)
+            encoder_d_model = enc_config.d_model
             encoder.to(args.device)
             encoder.eval()
-            print("Encoder loaded and frozen")
+            print(f"MM_DTAE_LSTM encoder loaded and frozen (d_model={encoder_d_model})")
 
             # Load base datasets
             max_seq_len = config.get('max_seq_len', 32)
@@ -1582,6 +1684,8 @@ def main():
                         num_workers=args.num_workers,
                         no_save_weights=args.no_save_weights,
                         use_wandb=not args.no_wandb,
+                        group_indices=group_indices,
+                        encoder_d_model=encoder_d_model,
                     )
                     completed += 1
                 except RuntimeError as e:

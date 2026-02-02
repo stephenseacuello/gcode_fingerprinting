@@ -82,6 +82,7 @@ from miracle.model.model import (
 )
 from miracle.training.losses import FocalLoss, PositionWeightedCrossEntropy, PositionWeightedFocalLoss
 from miracle.training.grammar_constraints import GCodeGrammarConstraints
+from miracle.training.metrics import compute_comprehensive_metrics
 
 
 # ============================================================================
@@ -887,6 +888,12 @@ def train_epoch(encoder, decoder, train_loader, optimizer, loss_fn, curriculum,
     total_loss = 0
     metrics = defaultdict(float)
     n_batches = 0
+    op_correct = 0
+    op_total = 0
+    token_correct = 0
+    token_total = 0
+    seq_correct = 0
+    seq_total = 0
 
     pbar = tqdm(train_loader, desc=f"Epoch {epoch+1}")
     for batch_idx, batch in enumerate(pbar):
@@ -895,6 +902,7 @@ def train_epoch(encoder, decoder, train_loader, optimizer, loss_fn, curriculum,
         input_tokens = batch['input_tokens'].to(device)
         target_tokens = batch['target_tokens'].to(device)
         padding_mask = batch['padding_mask'].to(device)
+        gt_operation_type = batch['operation_type'].to(device)
 
         # Encoder forward - with or without gradients
         # Note: EnhancedEncoder.encode() returns (pooled_features, memory_sequence)
@@ -919,6 +927,10 @@ def train_epoch(encoder, decoder, train_loader, optimizer, loss_fn, curriculum,
                 classify_input = enc_out1 if enc_out1.dim() == 2 else enc_out1
                 op_logits, aux_outputs = encoder.classify(classify_input)
                 operation_type = op_logits.argmax(-1)
+
+        # Track encoder operation classification accuracy
+        op_correct += (operation_type == gt_operation_type).sum().item()
+        op_total += gt_operation_type.size(0)
 
         # Decoder forward (with scheduled sampling support)
         # Use AMP autocast context if enabled
@@ -966,6 +978,12 @@ def train_epoch(encoder, decoder, train_loader, optimizer, loss_fn, curriculum,
                 loss_dict['auxiliary'] = aux_loss.item() if torch.is_tensor(aux_loss) else aux_loss
                 for k, v in aux_loss_dict.items():
                     loss_dict[f'aux_{k}'] = v.item() if torch.is_tensor(v) else v
+
+            # Add encoder operation classification loss
+            if encoder_unfrozen and args.op_loss_weight > 0:
+                op_cls_loss = nn.functional.cross_entropy(op_logits, gt_operation_type)
+                loss = loss + args.op_loss_weight * op_cls_loss
+                loss_dict['op_cls'] = op_cls_loss.item()
 
             # Add grammar constraint loss if enabled
             if grammar_constraints is not None and args.grammar_weight > 0:
@@ -1017,6 +1035,21 @@ def train_epoch(encoder, decoder, train_loader, optimizer, loss_fn, curriculum,
                 metrics[k] += v
         n_batches += 1
 
+        # Track token and sequence accuracy
+        with torch.no_grad():
+            logits = outputs['legacy_logits']
+            preds = logits.argmax(dim=-1)
+            mask = (target_tokens != 0)  # ignore PAD
+            token_correct += ((preds == target_tokens) & mask).sum().item()
+            token_total += mask.sum().item()
+            B = target_tokens.size(0)
+            for b in range(B):
+                m = mask[b]
+                if m.sum() > 0:
+                    if (preds[b][m] == target_tokens[b][m]).all():
+                        seq_correct += 1
+                    seq_total += 1
+
         # Update progress bar
         pbar.set_postfix({
             'loss': f"{loss.item() * args.accumulation_steps:.4f}",
@@ -1025,12 +1058,15 @@ def train_epoch(encoder, decoder, train_loader, optimizer, loss_fn, curriculum,
 
     return {
         'loss': total_loss / n_batches,
+        'token': token_correct / token_total if token_total > 0 else 0,
+        'sequence': seq_correct / seq_total if seq_total > 0 else 0,
+        'encoder_op_acc': op_correct / op_total if op_total > 0 else 0,
         **{k: v / n_batches for k, v in metrics.items()}
     }
 
 
-def validate(encoder, decoder, val_loader, loss_fn, args, device):
-    """Validate model."""
+def validate(encoder, decoder, val_loader, loss_fn, args, device, comprehensive=False):
+    """Validate model. If comprehensive=True, also compute precision/recall/F1/BLEU/ED."""
     decoder.eval()
     encoder.eval()
 
@@ -1040,6 +1076,12 @@ def validate(encoder, decoder, val_loader, loss_fn, args, device):
     seq_correct = 0
     seq_total = 0
     n_batches = 0
+    op_correct = 0
+    op_total = 0
+    all_preds_list = []
+    all_targets_list = []
+    all_pred_seqs = []
+    all_target_seqs = []
 
     with torch.no_grad():
         for batch in tqdm(val_loader, desc="Validating"):
@@ -1047,19 +1089,18 @@ def validate(encoder, decoder, val_loader, loss_fn, args, device):
             input_tokens = batch['input_tokens'].to(device)
             target_tokens = batch['target_tokens'].to(device)
             padding_mask = batch['padding_mask'].to(device)
+            gt_operation_type = batch['operation_type'].to(device)
 
-            # Frozen encoder
-            # Note: EnhancedEncoder.encode() returns (pooled_features, memory_sequence)
-            #       MM_DTAE_LSTM.encode() returns (latent_sequence, hidden_state)
             enc_out1, enc_out2 = encoder.encode(sensor_features)
-            # EnhancedEncoder: out1 = pooled (2D), out2 = memory (3D) -> use out2
-            # MM_DTAE_LSTM: out1 = sequence (3D), out2 = hidden -> use out1
             sensor_emb = enc_out2 if enc_out1.dim() == 2 else enc_out1
             classify_input = enc_out1 if enc_out1.dim() == 2 else enc_out1
             op_logits, _ = encoder.classify(classify_input)
             operation_type = op_logits.argmax(-1)
 
-            # Decoder forward
+            # Track encoder operation classification accuracy
+            op_correct += (operation_type == gt_operation_type).sum().item()
+            op_total += gt_operation_type.size(0)
+
             outputs = decoder(
                 tokens=input_tokens,
                 sensor_embeddings=sensor_emb,
@@ -1067,47 +1108,40 @@ def validate(encoder, decoder, val_loader, loss_fn, args, device):
                 tgt_key_padding_mask=padding_mask,
             )
 
-            # Targets
             targets = {'target_tokens': target_tokens}
-
-            # Loss
             loss, _ = loss_fn(outputs, targets)
             total_loss += loss.item()
 
-            # Legacy token accuracy (main metric for now)
-            # Fixed: Only evaluate tokens up to and including first EOS in target
-            # This prevents penalizing model for predicting after EOS
-            # IMPORTANT: Use raw_legacy_logits for evaluation to avoid type constraint
-            # masking out correct tokens when type predictions are wrong.
-            # Type constraint should only be applied during final inference/deployment.
             if 'raw_legacy_logits' in outputs:
                 legacy_pred = outputs['raw_legacy_logits'].argmax(-1)
             else:
                 legacy_pred = outputs['legacy_logits'].argmax(-1)
             B, T = target_tokens.shape
 
+            if comprehensive:
+                all_preds_list.append(legacy_pred)
+                all_targets_list.append(target_tokens)
+
             for b in range(B):
-                # Find first EOS position in target (or end if no EOS)
                 eos_positions = (target_tokens[b] == EOS_TOKEN_ID).nonzero(as_tuple=True)[0]
                 if len(eos_positions) > 0:
-                    eos_pos = eos_positions[0].item() + 1  # Include the EOS token
+                    eos_pos = eos_positions[0].item() + 1
                 else:
-                    eos_pos = T  # No EOS found, use full length
+                    eos_pos = T
 
-                # Create mask: True for positions 0 to eos_pos (inclusive)
-                # and exclude PAD tokens
                 valid_positions = torch.zeros(T, dtype=torch.bool, device=target_tokens.device)
                 valid_positions[:eos_pos] = True
                 valid_mask_b = valid_positions & (target_tokens[b] != PAD_TOKEN_ID)
 
-                # Token accuracy
                 correct['token'] += (legacy_pred[b][valid_mask_b] == target_tokens[b][valid_mask_b]).sum().item()
                 total['token'] += valid_mask_b.sum().item()
 
-                # Sequence-level accuracy
                 if valid_mask_b.sum() > 0:
                     pred_seq = legacy_pred[b][valid_mask_b]
                     target_seq = target_tokens[b][valid_mask_b]
+                    if comprehensive:
+                        all_pred_seqs.append(pred_seq.cpu().tolist())
+                        all_target_seqs.append(target_seq.cpu().tolist())
                     if (pred_seq == target_seq).all():
                         seq_correct += 1
                     seq_total += 1
@@ -1117,11 +1151,24 @@ def validate(encoder, decoder, val_loader, loss_fn, args, device):
     accuracies = {k: correct[k] / max(total[k], 1) for k in correct}
     seq_accuracy = seq_correct / max(seq_total, 1)
 
-    return {
+    result = {
         'loss': total_loss / n_batches,
         'sequence': seq_accuracy,
+        'encoder_op_acc': op_correct / op_total if op_total > 0 else 0,
         **accuracies
     }
+
+    if comprehensive and all_preds_list:
+        all_preds_t = torch.cat(all_preds_list, dim=0)
+        all_targets_t = torch.cat(all_targets_list, dim=0)
+        comp_metrics = compute_comprehensive_metrics(
+            all_preds_t, all_targets_t,
+            all_pred_seqs, all_target_seqs,
+            pad_token=PAD_TOKEN_ID,
+        )
+        result['comprehensive'] = comp_metrics
+
+    return result
 
 
 # ============================================================================
@@ -1220,6 +1267,8 @@ def parse_args():
                         help='LR multiplier for unfrozen encoder layers (default: 0.1)')
     parser.add_argument('--use-auxiliary-heads', action='store_true',
                         help='Add auxiliary supervision heads to encoder')
+    parser.add_argument('--op-loss-weight', type=float, default=1.0,
+                        help='Weight for encoder operation classification loss (default: 1.0)')
     parser.add_argument('--auxiliary-loss-weight', type=float, default=0.3,
                         help='Weight for auxiliary losses (default: 0.3)')
     parser.add_argument('--auxiliary-motion-weight', type=float, default=1.0,
@@ -1246,7 +1295,8 @@ def parse_args():
     # ==================== DATA & PATHS ====================
     parser.add_argument('--split-dir', type=str, required=True)
     parser.add_argument('--vocab-path', type=str, required=True)
-    parser.add_argument('--encoder-path', type=str, required=True)
+    parser.add_argument('--encoder-path', type=str, default=None,
+                        help='Path to pretrained encoder (omit to train from scratch)')
     parser.add_argument('--output-dir', type=str, required=True)
     parser.add_argument('--config', type=str, default=None)
     parser.add_argument('--resume', type=str, default=None)
@@ -1811,7 +1861,9 @@ def main():
             print(f"  Loading pretrained weights from: {args.encoder_path}")
             checkpoint = torch.load(args.encoder_path, map_location=device, weights_only=False)
             # Handle checkpoint format
-            if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            if isinstance(checkpoint, dict) and 'encoder_state_dict' in checkpoint:
+                state_dict = checkpoint['encoder_state_dict']
+            elif isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
                 state_dict = checkpoint['model_state_dict']
             else:
                 state_dict = checkpoint
@@ -2124,10 +2176,17 @@ def main():
                     })
 
         # Logging
+        train_tok = train_metrics.get('token', train_metrics.get('acc', 0))
+        val_tok = val_metrics.get('token', 0)
+        val_seq = val_metrics.get('sequence', 0)
+        train_op = train_metrics.get('encoder_op_acc', 0)
+        val_op = val_metrics.get('encoder_op_acc', 0)
         print(f"\nEpoch {epoch+1}/{args.max_epochs}")
-        print(f"  Train Loss: {train_metrics['loss']:.4f}")
-        print(f"  Val Loss: {val_metrics['loss']:.4f}")
-        print(f"  Val Token Acc: {val_metrics.get('token', 0):.2%}")
+        print(f"  Loss:           train={train_metrics['loss']:.4f}  val={val_metrics['loss']:.4f}")
+        print(f"  Token Acc:      train={train_tok:.2%}  val={val_tok:.2%}")
+        train_seq = train_metrics.get('sequence', 0)
+        print(f"  Sequence Acc:   train={train_seq:.2%}  val={val_seq:.2%}")
+        print(f"  Encoder Op Acc: train={train_op:.2%}  val={val_op:.2%}")
         print(f"  LR: {optimizer.param_groups[0]['lr']:.2e}")
 
         # Update training history
@@ -2151,6 +2210,8 @@ def main():
                 'train/loss': train_metrics['loss'],
                 'val/loss': val_metrics['loss'],
                 'val/token_acc': val_metrics.get('token', 0),
+                'train/encoder_op_acc': train_metrics.get('encoder_op_acc', 0),
+                'val/encoder_op_acc': val_metrics.get('encoder_op_acc', 0),
                 'lr': optimizer.param_groups[0]['lr'],
             })
 
@@ -2270,18 +2331,28 @@ def main():
     checkpoint = torch.load(output_dir / 'best_model.pt', map_location=device, weights_only=False)
     decoder.load_state_dict(checkpoint['model_state_dict'])
 
-    test_metrics = validate(encoder, decoder, test_loader, loss_fn, args, device)
+    test_metrics = validate(encoder, decoder, test_loader, loss_fn, args, device, comprehensive=True)
 
     print(f"\nBest Model Test Results:")
     print(f"  Loss: {test_metrics['loss']:.4f}")
     print(f"  Token Acc: {test_metrics.get('token', 0):.2%}")
     print(f"  Sequence Acc: {test_metrics.get('sequence', 0):.2%}")
+    print(f"  Encoder Op Acc: {test_metrics.get('encoder_op_acc', 0):.2%}")
+    if 'comprehensive' in test_metrics:
+        cm = test_metrics['comprehensive']
+        print(f"  Precision: {cm.get('precision_macro', 0):.4f}")
+        print(f"  Recall: {cm.get('recall_macro', 0):.4f}")
+        print(f"  F1: {cm.get('f1_macro', 0):.4f}")
+        print(f"  BLEU-1: {cm.get('bleu_1', 0):.4f}")
+        print(f"  BLEU-4: {cm.get('bleu_4', 0):.4f}")
+        print(f"  Edit Distance: {cm.get('edit_distance', 0):.4f}")
+        print(f"  Exact Match: {cm.get('exact_match', 0):.2%}")
 
     # Also evaluate SWA model on test set if available
     swa_test_metrics = None
     if args.use_swa and swa_n_updates > 0:
         print(f"\nSWA Model Test Results:")
-        swa_test_metrics = validate(encoder, swa_model.module, test_loader, loss_fn, args, device)
+        swa_test_metrics = validate(encoder, swa_model.module, test_loader, loss_fn, args, device, comprehensive=True)
         print(f"  Loss: {swa_test_metrics['loss']:.4f}")
         print(f"  Token Acc: {swa_test_metrics.get('token', 0):.2%}")
         print(f"  Sequence Acc: {swa_test_metrics.get('sequence', 0):.2%}")
@@ -2303,6 +2374,8 @@ def main():
             'loss': test_metrics['loss'],
             'token_acc': test_metrics.get('token', 0),
             'sequence_acc': test_metrics.get('sequence', 0),
+            'encoder_op_acc': test_metrics.get('encoder_op_acc', 0),
+            **(test_metrics.get('comprehensive', {})),
         },
         'args': vars(args),
     }
@@ -2313,6 +2386,7 @@ def main():
             'token_acc': swa_test_metrics.get('token', 0),
             'sequence_acc': swa_test_metrics.get('sequence', 0),
             'n_updates': swa_n_updates,
+            **(swa_test_metrics.get('comprehensive', {})),
         }
 
     with open(output_dir / 'results.json', 'w') as f:
@@ -2324,17 +2398,23 @@ def main():
     print(f"\nTraining history saved to {output_dir / 'history.json'}")
 
     if args.use_wandb and WANDB_AVAILABLE:
-        wandb.log({
+        test_log = {
             'test/loss': test_metrics['loss'],
             'test/token_acc': test_metrics.get('token', 0),
             'test/sequence_acc': test_metrics.get('sequence', 0),
-        })
+        }
+        for k, v in test_metrics.get('comprehensive', {}).items():
+            test_log[f'test/{k}'] = v
+        wandb.log(test_log)
         if swa_test_metrics is not None:
-            wandb.log({
+            swa_log = {
                 'swa/test_loss': swa_test_metrics['loss'],
                 'swa/test_token_acc': swa_test_metrics.get('token', 0),
                 'swa/test_sequence_acc': swa_test_metrics.get('sequence', 0),
-            })
+            }
+            for k, v in swa_test_metrics.get('comprehensive', {}).items():
+                swa_log[f'swa/test_{k}'] = v
+            wandb.log(swa_log)
         wandb.finish()
 
     print(f"\nTraining complete! Results saved to {output_dir}")

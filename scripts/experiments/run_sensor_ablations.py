@@ -265,7 +265,7 @@ def train_ablation_model(
     # Load pretrained encoder (load to CPU first to avoid device compatibility issues)
     if os.path.exists(encoder_path):
         ckpt = torch.load(encoder_path, map_location='cpu', weights_only=False)
-        encoder.load_state_dict(ckpt.get('model_state_dict', ckpt), strict=False)
+        encoder.load_state_dict(ckpt.get('encoder_state_dict', ckpt.get('model_state_dict', ckpt)), strict=False)
     encoder.to(device)
     encoder.eval()
 
