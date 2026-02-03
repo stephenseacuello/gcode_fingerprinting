@@ -19,7 +19,7 @@ python scripts/training/ray_tune_final.py \
     --data-dir outputs/jan30/encoder_pipeline/data \
     --encoder-path outputs/jan30/encoder_pipeline/encoder_checkpoint/best_model.pt \
     --vocab-path data/vocabulary_4digit_full.json \
-    --output-dir outputs/jan30/ray_sweep \
+    --output-dir /home/seacuello/Documents/gcode_fingerprinting/outputs/jan30/ray_sweep \
     --num-samples 300 --max-concurrent 2
 ```
 
@@ -232,7 +232,7 @@ open corrected_main_v22.pdf
 
 | Phase | Experiment | Runs | Status |
 |-------|-----------|------|--------|
-| 1 | Ray Hyperparameter Sweep | 300 | Pending |
+| 1 | Ray Hyperparameter Sweep | 300 | Running |
 | 2 | Comprehensive Ablation (conference) | 501 | Pending |
 | 2.5 | Comprehensive Ablation (full) | 2,403 | Optional |
 | 3a | Sensor ANOVA | 39 | Pending |
