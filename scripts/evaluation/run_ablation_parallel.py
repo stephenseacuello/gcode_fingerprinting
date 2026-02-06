@@ -200,7 +200,14 @@ def run_with_ray(experiments, data_dir, output_dir, num_gpus):
 
     # Initialize Ray
     if not ray.is_initialized():
-        ray.init(num_gpus=num_gpus)
+        # Try to connect to existing cluster first
+        try:
+            ray.init(address='auto')
+            print("Connected to existing Ray cluster")
+        except ConnectionError:
+            # No existing cluster, start a new one
+            ray.init(num_gpus=num_gpus)
+            print(f"Started new Ray cluster with {num_gpus} GPUs")
 
     print(f"Running {len(experiments)} experiments with Ray ({num_gpus} GPUs)")
 
