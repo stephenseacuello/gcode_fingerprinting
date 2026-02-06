@@ -238,9 +238,9 @@ def run_with_ray(experiments, data_dir, output_dir, num_gpus):
     return results
 
 
-def run_with_threads(experiments, data_dir, output_dir, num_workers):
+def run_with_threads(experiments, data_dir, output_dir, num_workers, num_physical_gpus=2):
     """Run experiments in parallel using ThreadPoolExecutor."""
-    print(f"Running {len(experiments)} experiments with {num_workers} threads")
+    print(f"Running {len(experiments)} experiments with {num_workers} threads ({num_physical_gpus} physical GPUs)")
 
     results = []
     completed = 0
@@ -248,7 +248,7 @@ def run_with_threads(experiments, data_dir, output_dir, num_workers):
 
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
         futures = {
-            executor.submit(run_experiment_subprocess, exp, data_dir, output_dir, i % num_workers): exp
+            executor.submit(run_experiment_subprocess, exp, data_dir, output_dir, i % num_physical_gpus): exp
             for i, exp in enumerate(experiments)
         }
 
@@ -292,7 +292,9 @@ def main():
     parser.add_argument('--output-dir', type=str, default=None,
                         help='Output directory')
     parser.add_argument('--num-gpus', type=int, default=1,
-                        help='Number of GPUs to use')
+                        help='Number of parallel workers')
+    parser.add_argument('--num-physical-gpus', type=int, default=2,
+                        help='Number of physical GPUs on the system (for thread backend)')
     parser.add_argument('--studies', type=str, default=None,
                         help='Comma-separated list of studies to run (default: all)')
     parser.add_argument('--resume', action='store_true',
@@ -357,7 +359,7 @@ def main():
     if args.backend == 'ray':
         results = run_with_ray(experiments, args.data_dir, args.output_dir, args.num_gpus)
     else:
-        results = run_with_threads(experiments, args.data_dir, args.output_dir, args.num_gpus)
+        results = run_with_threads(experiments, args.data_dir, args.output_dir, args.num_gpus, args.num_physical_gpus)
 
     total_time = time.time() - start_time
 
