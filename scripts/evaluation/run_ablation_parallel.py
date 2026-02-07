@@ -63,31 +63,42 @@ def build_command(experiment, data_dir, output_dir):
     cmd.extend(['--iteration', f"{config_name}_ds{ds_seed}_ms{ms_seed}"])
 
     # Add ablation-specific arguments
-    if study in ['modality_grouped', 'modality_individual', 'sensor_individual', 'sensor_group']:
+    # Support original studies + crossed ablation studies
+    ablation_studies = [
+        'modality_grouped', 'modality_individual', 'sensor_individual', 'sensor_group',
+        'crossed_L1_sensor_modality', 'crossed_L2_group_modality',
+        'crossed_L3_sensor_pairs', 'crossed_L4_modality_combos',
+    ]
+    if study in ablation_studies or study.startswith('crossed_'):
         ablation_config = experiment.get('ablation_config', {})
+        needs_modality_dropout_off = False
 
         if 'exclude_modalities' in ablation_config:
             cmd.extend(['--exclude-modalities', ','.join(ablation_config['exclude_modalities'])])
         if 'include_only_modalities' in ablation_config:
             cmd.extend(['--include-only-modalities', ','.join(ablation_config['include_only_modalities'])])
-            cmd.extend(['--modality_dropout', '0.0'])  # Disable modality dropout for LOI
+            needs_modality_dropout_off = True
 
         if 'exclude_components' in ablation_config:
             cmd.extend(['--exclude-components', ','.join(ablation_config['exclude_components'])])
         if 'include_only_components' in ablation_config:
             cmd.extend(['--include-only-components', ','.join(ablation_config['include_only_components'])])
-            cmd.extend(['--modality_dropout', '0.0'])
+            needs_modality_dropout_off = True
 
         if 'exclude_sensors' in ablation_config:
             cmd.extend(['--exclude-sensors', ','.join(ablation_config['exclude_sensors'])])
         if 'include_only_sensors' in ablation_config:
             cmd.extend(['--include-only-sensors', ','.join(ablation_config['include_only_sensors'])])
-            cmd.extend(['--modality_dropout', '0.0'])
+            needs_modality_dropout_off = True
 
         if 'exclude_sensor_groups' in ablation_config:
             cmd.extend(['--exclude-sensor-groups', ','.join(ablation_config['exclude_sensor_groups'])])
         if 'include_only_sensor_groups' in ablation_config:
             cmd.extend(['--include-only-sensor-groups', ','.join(ablation_config['include_only_sensor_groups'])])
+            needs_modality_dropout_off = True
+
+        # Disable modality dropout for "leave only in" experiments (added once)
+        if needs_modality_dropout_off:
             cmd.extend(['--modality_dropout', '0.0'])
 
     elif study == 'architecture':
@@ -306,11 +317,14 @@ def main():
 
     args = parser.parse_args()
 
-    # Load manifest
+    # Load manifest (supports both dict with 'experiments' key and flat list)
     with open(args.manifest) as f:
         manifest = json.load(f)
 
-    experiments = manifest['experiments']
+    if isinstance(manifest, list):
+        experiments = manifest
+    else:
+        experiments = manifest.get('experiments', [])
     print(f"Loaded manifest: {len(experiments)} experiments")
 
     # Filter by studies if specified

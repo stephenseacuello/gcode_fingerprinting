@@ -31,7 +31,10 @@ DATA_DIR = "outputs/7class_cascade_to_9class/9class_moddropout_final/data"
 OUTPUT_BASE = "outputs/ablation_study_2026_02_06/baseline"
 SCRIPT = "scripts/evaluation/run_baseline_models.py"
 
-ML_MODELS = ['xgboost', 'random_forest', 'svm_rbf', 'logistic_regression', 'knn']
+# Note: svm_rbf removed due to timeout issues (>30 min per run)
+# Use svm_linear instead or document as computationally intractable
+ML_MODELS = ['xgboost', 'random_forest', 'logistic_regression', 'knn']
+# ML_MODELS_WITH_SVM = ['xgboost', 'random_forest', 'svm_rbf', 'logistic_regression', 'knn']
 NN_MODELS = ['mlp', 'cnn_1d', 'lstm_simple', 'transformer', 'tcn']
 SEEDS = [42, 123, 456]
 
