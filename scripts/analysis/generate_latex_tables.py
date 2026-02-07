@@ -24,7 +24,57 @@ def load_results(results_dir: Path) -> dict:
 
     csv_path = results_dir / 'all_results.csv'
     if csv_path.exists():
-        results['df'] = pd.read_csv(csv_path)
+        df = pd.read_csv(csv_path)
+
+        # Parse config_name to extract ablation_type, removed, included, model
+        def parse_config(row):
+            config = row.get('config_name', '')
+            if pd.isna(config):
+                config = ''
+            config = str(config)
+
+            if config.startswith('loo_'):
+                return pd.Series({
+                    'ablation_type': 'loo',
+                    'removed': config[4:],  # Remove 'loo_' prefix
+                    'included': None,
+                    'model': None
+                })
+            elif config.startswith('loi_'):
+                return pd.Series({
+                    'ablation_type': 'loi',
+                    'removed': None,
+                    'included': config[4:],  # Remove 'loi_' prefix
+                    'model': None
+                })
+            elif config == 'baseline':
+                return pd.Series({
+                    'ablation_type': 'baseline',
+                    'removed': None,
+                    'included': None,
+                    'model': None
+                })
+            elif row.get('study') == 'baseline':
+                # For baseline study, config_name IS the model name
+                return pd.Series({
+                    'ablation_type': 'model',
+                    'removed': None,
+                    'included': None,
+                    'model': config
+                })
+            else:
+                # Architecture or other configs
+                return pd.Series({
+                    'ablation_type': 'config',
+                    'removed': None,
+                    'included': None,
+                    'model': None
+                })
+
+        # Apply parsing
+        parsed = df.apply(parse_config, axis=1)
+        df = pd.concat([df, parsed], axis=1)
+        results['df'] = df
 
     anova_path = results_dir / 'anova_results.json'
     if anova_path.exists():
@@ -217,12 +267,16 @@ def generate_architecture_table(df: pd.DataFrame) -> str:
 
 def generate_baseline_table(df: pd.DataFrame) -> str:
     """Generate LaTeX table for baseline comparison."""
-    baseline_df = df[df['study'] == 'baseline']
+    baseline_df = df[df['study'] == 'baseline'].copy()
 
     if baseline_df.empty:
         return "% No baseline data available\n"
 
-    stats = baseline_df.groupby('model')['test_accuracy'].agg(['mean', 'std']).reset_index()
+    # Use 'model' column if available, otherwise use 'config_name'
+    model_col = 'model' if 'model' in baseline_df.columns and baseline_df['model'].notna().any() else 'config_name'
+
+    stats = baseline_df.groupby(model_col)['test_accuracy'].agg(['mean', 'std']).reset_index()
+    stats = stats.rename(columns={model_col: 'model'})
     stats = stats.sort_values('mean', ascending=False)
 
     ml_models = ['xgboost', 'random_forest', 'svm_rbf', 'logistic_regression', 'knn']
@@ -292,10 +346,29 @@ def generate_anova_table(anova_results: dict) -> str:
     ]
 
     for study, results in anova_results.items():
+        if not isinstance(results, dict):
+            continue
+
         study_name = study.replace('_', '\\_')
-        f_val = f"{results.get('f_value', 0):.2f}"
-        p_val = format_pvalue(results.get('p_value', 1.0))
-        eta = f"{results.get('eta_squared', 0):.3f}"
+
+        # Handle different ANOVA result structures
+        if 'oneway_anova' in results:
+            f_val = f"{results['oneway_anova'].get('f_statistic', 0):.2f}"
+            p_val = format_pvalue(results['oneway_anova'].get('p_value', 1.0))
+        elif 'twoway_anova' in results:
+            config_effect = results['twoway_anova'].get('config_effect', {})
+            f_val = f"{config_effect.get('f_value', 0):.2f}"
+            p_val = format_pvalue(config_effect.get('p_value', 1.0))
+        else:
+            f_val = f"{results.get('f_value', results.get('f_statistic', 0)):.2f}"
+            p_val = format_pvalue(results.get('p_value', 1.0))
+
+        # Handle effect size
+        if 'effect_size' in results:
+            eta = f"{results['effect_size'].get('eta_squared', 0):.3f}"
+        else:
+            eta = f"{results.get('eta_squared', 0):.3f}"
+
         lines.append(f"{study_name} & {f_val} & {p_val} & {eta} \\\\")
 
     lines.extend([

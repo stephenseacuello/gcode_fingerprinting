@@ -52,7 +52,57 @@ def load_results(results_dir: Path) -> dict:
     # Load main results CSV
     csv_path = results_dir / 'all_results.csv'
     if csv_path.exists():
-        results['df'] = pd.read_csv(csv_path)
+        df = pd.read_csv(csv_path)
+
+        # Parse config_name to extract ablation_type, removed, included, model
+        def parse_config(row):
+            config = row.get('config_name', '')
+            if pd.isna(config):
+                config = ''
+            config = str(config)
+
+            if config.startswith('loo_'):
+                return pd.Series({
+                    'ablation_type': 'loo',
+                    'removed': config[4:],  # Remove 'loo_' prefix
+                    'included': None,
+                    'model': None
+                })
+            elif config.startswith('loi_'):
+                return pd.Series({
+                    'ablation_type': 'loi',
+                    'removed': None,
+                    'included': config[4:],  # Remove 'loi_' prefix
+                    'model': None
+                })
+            elif config == 'baseline':
+                return pd.Series({
+                    'ablation_type': 'baseline',
+                    'removed': None,
+                    'included': None,
+                    'model': None
+                })
+            elif row.get('study') == 'baseline':
+                # For baseline study, config_name IS the model name
+                return pd.Series({
+                    'ablation_type': 'model',
+                    'removed': None,
+                    'included': None,
+                    'model': config
+                })
+            else:
+                # Architecture or other configs
+                return pd.Series({
+                    'ablation_type': 'config',
+                    'removed': None,
+                    'included': None,
+                    'model': None
+                })
+
+        # Apply parsing
+        parsed = df.apply(parse_config, axis=1)
+        df = pd.concat([df, parsed], axis=1)
+        results['df'] = df
 
     # Load ANOVA results
     anova_path = results_dir / 'anova_results.json'
@@ -301,14 +351,18 @@ def plot_architecture_comparison(df: pd.DataFrame, output_dir: Path):
 def plot_baseline_comparison(df: pd.DataFrame, output_dir: Path):
     """Bar chart comparing all baseline models."""
     # Filter to baseline experiments
-    baseline_df = df[df['study'] == 'baseline']
+    baseline_df = df[df['study'] == 'baseline'].copy()
 
     if baseline_df.empty:
         print("No baseline data found, skipping figure")
         return
 
+    # Use 'model' column if available, otherwise use 'config_name'
+    model_col = 'model' if 'model' in baseline_df.columns and baseline_df['model'].notna().any() else 'config_name'
+
     # Calculate mean and std per model
-    stats = baseline_df.groupby('model')['test_accuracy'].agg(['mean', 'std']).reset_index()
+    stats = baseline_df.groupby(model_col)['test_accuracy'].agg(['mean', 'std']).reset_index()
+    stats = stats.rename(columns={model_col: 'model'})
     stats = stats.sort_values('mean', ascending=True)
 
     # Define model types
