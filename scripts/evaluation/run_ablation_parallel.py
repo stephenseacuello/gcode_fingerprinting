@@ -26,6 +26,13 @@ Usage:
     python scripts/evaluation/run_ablation_parallel.py \
         --manifest outputs/ablation_study_2026_02_06/manifest.json \
         --dry-run
+
+    # Multi-split mode: route each data_split_seed to its own split directory
+    python scripts/evaluation/run_ablation_parallel.py \
+        --manifest outputs/ablation_study_2026_02_06/manifest.json \
+        --split-dir outputs/ablation_study_2026_02_06/data_splits \
+        --output-dir outputs/ablation_study_2026_02_06 \
+        --num-gpus 8
 """
 import os
 import sys
@@ -44,8 +51,17 @@ except ImportError:
     HAS_RAY = False
 
 
-def build_command(experiment, data_dir, output_dir):
-    """Build command line for an experiment."""
+def build_command(experiment, data_dir, output_dir, split_dir=None):
+    """Build command line for an experiment.
+
+    Args:
+        experiment: Experiment dict from manifest.
+        data_dir: Default data directory (used when split_dir is None).
+        output_dir: Base output directory.
+        split_dir: Base directory containing split_42/, split_123/, split_456/ subdirs.
+                   When provided, routes each experiment to the correct split based on
+                   its data_split_seed.
+    """
     script = experiment['script']
     study = experiment['study']
     config_name = experiment['config_name']
@@ -54,13 +70,26 @@ def build_command(experiment, data_dir, output_dir):
     output_subdir = experiment['output_subdir']
 
     exp_output_dir = Path(output_dir) / output_subdir
-    exp_data_dir = Path(data_dir)  # Use same data for now (TODO: support multi-split)
 
-    cmd = ['python', script]
+    if split_dir:
+        exp_data_dir = Path(split_dir) / f'split_{ds_seed}'
+        if not exp_data_dir.exists():
+            raise FileNotFoundError(
+                f"Split directory not found: {exp_data_dir}\n"
+                f"Create it with: python scripts/data/create_data_splits.py "
+                f"--source-dir <original_data> --output-base {split_dir} --seeds {ds_seed}"
+            )
+    else:
+        exp_data_dir = Path(data_dir)
+
+    cmd = [sys.executable, script]
     cmd.extend(['--data-dir', str(exp_data_dir)])
     cmd.extend(['--output-dir', str(exp_output_dir)])
     cmd.extend(['--seed', str(ms_seed)])
-    cmd.extend(['--iteration', f"{config_name}_ds{ds_seed}_ms{ms_seed}"])
+
+    # --iteration is only supported by run_9class_direct.py, not baseline models
+    if study != 'baseline':
+        cmd.extend(['--iteration', f"{config_name}_ds{ds_seed}_ms{ms_seed}"])
 
     # Add ablation-specific arguments
     # Support original studies + crossed ablation studies
@@ -115,9 +144,9 @@ def build_command(experiment, data_dir, output_dir):
     return cmd
 
 
-def run_experiment_subprocess(experiment, data_dir, output_dir, gpu_id=None):
+def run_experiment_subprocess(experiment, data_dir, output_dir, gpu_id=None, split_dir=None):
     """Run a single experiment as subprocess."""
-    cmd = build_command(experiment, data_dir, output_dir)
+    cmd = build_command(experiment, data_dir, output_dir, split_dir=split_dir)
     exp_id = experiment['experiment_id']
 
     env = os.environ.copy()
@@ -162,11 +191,11 @@ def run_experiment_subprocess(experiment, data_dir, output_dir, gpu_id=None):
 
 if HAS_RAY:
     @ray.remote(num_gpus=1)
-    def run_experiment_ray(experiment, data_dir, output_dir):
+    def run_experiment_ray(experiment, data_dir, output_dir, split_dir=None):
         """Run a single experiment with Ray (GPU allocated)."""
         # Ray sets CUDA_VISIBLE_DEVICES to a single GPU (e.g., "0")
         # Use cuda:0 since that's what's visible to this worker
-        cmd = build_command(experiment, data_dir, output_dir)
+        cmd = build_command(experiment, data_dir, output_dir, split_dir=split_dir)
         exp_id = experiment['experiment_id']
 
         start_time = time.time()
@@ -204,7 +233,7 @@ if HAS_RAY:
             }
 
 
-def run_with_ray(experiments, data_dir, output_dir, num_gpus):
+def run_with_ray(experiments, data_dir, output_dir, num_gpus, split_dir=None):
     """Run experiments in parallel using Ray."""
     if not HAS_RAY:
         raise ImportError("Ray not installed. Install with: pip install ray")
@@ -221,11 +250,13 @@ def run_with_ray(experiments, data_dir, output_dir, num_gpus):
             print(f"Started new Ray cluster with {num_gpus} GPUs")
 
     print(f"Running {len(experiments)} experiments with Ray ({num_gpus} GPUs)")
+    if split_dir:
+        print(f"Using multi-split data from: {split_dir}")
 
     # Submit all tasks
     futures = []
     for exp in experiments:
-        future = run_experiment_ray.remote(exp, data_dir, output_dir)
+        future = run_experiment_ray.remote(exp, data_dir, output_dir, split_dir=split_dir)
         futures.append(future)
 
     # Collect results with progress
@@ -249,9 +280,11 @@ def run_with_ray(experiments, data_dir, output_dir, num_gpus):
     return results
 
 
-def run_with_threads(experiments, data_dir, output_dir, num_workers, num_physical_gpus=2):
+def run_with_threads(experiments, data_dir, output_dir, num_workers, num_physical_gpus=2, split_dir=None):
     """Run experiments in parallel using ThreadPoolExecutor."""
     print(f"Running {len(experiments)} experiments with {num_workers} threads ({num_physical_gpus} physical GPUs)")
+    if split_dir:
+        print(f"Using multi-split data from: {split_dir}")
 
     results = []
     completed = 0
@@ -259,7 +292,7 @@ def run_with_threads(experiments, data_dir, output_dir, num_workers, num_physica
 
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
         futures = {
-            executor.submit(run_experiment_subprocess, exp, data_dir, output_dir, i % num_physical_gpus): exp
+            executor.submit(run_experiment_subprocess, exp, data_dir, output_dir, i % num_physical_gpus, split_dir=split_dir): exp
             for i, exp in enumerate(experiments)
         }
 
@@ -314,6 +347,10 @@ def main():
                         help='Print commands without executing')
     parser.add_argument('--backend', type=str, default='ray', choices=['ray', 'threads'],
                         help='Parallelization backend')
+    parser.add_argument('--split-dir', type=str, default=None,
+                        help='Base directory with split_<seed>/ subdirs for multi-split ANOVA. '
+                             'When set, each experiment routes to split_<data_split_seed>/ '
+                             'instead of using --data-dir for all experiments.')
 
     args = parser.parse_args()
 
@@ -346,8 +383,11 @@ def main():
     # Dry run: just print commands
     if args.dry_run:
         print("\nDry run - commands that would be executed:\n")
+        if args.split_dir:
+            print(f"Using multi-split data from: {args.split_dir}\n")
         for exp in experiments[:10]:  # Show first 10
-            cmd = build_command(exp, args.data_dir or '/data', args.output_dir or '/output')
+            cmd = build_command(exp, args.data_dir or '/data', args.output_dir or '/output',
+                                split_dir=args.split_dir)
             print(f"# {exp['experiment_id']}")
             print(' '.join(cmd))
             print()
@@ -356,8 +396,8 @@ def main():
         return
 
     # Validate required args
-    if not args.data_dir:
-        print("ERROR: --data-dir required")
+    if not args.data_dir and not args.split_dir:
+        print("ERROR: --data-dir or --split-dir required")
         return
     if not args.output_dir:
         print("ERROR: --output-dir required")
@@ -371,9 +411,11 @@ def main():
     start_time = time.time()
 
     if args.backend == 'ray':
-        results = run_with_ray(experiments, args.data_dir, args.output_dir, args.num_gpus)
+        results = run_with_ray(experiments, args.data_dir, args.output_dir, args.num_gpus,
+                               split_dir=args.split_dir)
     else:
-        results = run_with_threads(experiments, args.data_dir, args.output_dir, args.num_gpus, args.num_physical_gpus)
+        results = run_with_threads(experiments, args.data_dir, args.output_dir, args.num_gpus,
+                                   args.num_physical_gpus, split_dir=args.split_dir)
 
     total_time = time.time() - start_time
 

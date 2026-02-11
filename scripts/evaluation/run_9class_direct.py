@@ -131,7 +131,12 @@ def prepare_data_9class(source_dir, output_data_dir, include_sensors=None, exclu
         filtered_indices = []
         for i, col in enumerate(keep_columns):
             if '.' not in col:
-                continue  # Skip non-sensor columns
+                # Non-sensor columns (electrical: spindle, spindle_A, x_motor, etc.)
+                # Include if the exact column name is in include_modalities,
+                # otherwise skip when any filter is active
+                if include_modalities is not None and col in include_modalities:
+                    filtered_indices.append(i)
+                continue
 
             sensor_id, modality = col.rsplit('.', 1)
 

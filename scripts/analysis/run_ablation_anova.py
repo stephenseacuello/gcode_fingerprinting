@@ -66,7 +66,21 @@ def collect_results(results_dir, studies=None):
             parts = rel_path.parts
 
             # Parse directory structure
-            if 'modality' in parts:
+            if 'crossed' in parts:
+                # Crossed factorial studies (L1-L5)
+                if 'L1_sensor_modality' in parts:
+                    study = 'crossed_L1_sensor_modality'
+                elif 'L2_group_modality' in parts:
+                    study = 'crossed_L2_group_modality'
+                elif 'L3_sensor_pairs' in parts:
+                    study = 'crossed_L3_sensor_pairs'
+                elif 'L4_modality_combos' in parts:
+                    study = 'crossed_L4_modality_combos'
+                elif 'L5_sensor_channel' in parts:
+                    study = 'crossed_L5_sensor_channel'
+                else:
+                    continue
+            elif 'modality' in parts:
                 if 'grouped' in parts:
                     study = 'modality_grouped'
                 else:
@@ -330,6 +344,98 @@ def compute_importance_rankings(df, study_name):
     }
 
 
+def run_l5_threeway_anova(df):
+    """Run three-way ANOVA for L5: sensor × channel × data_split.
+
+    Decomposes the config_name into sensor and channel factors for
+    the 272 sensor×channel configs (excluding 8 electrical).
+    """
+    l5_df = df[df['study'] == 'crossed_L5_sensor_channel'].copy()
+    if len(l5_df) == 0:
+        return None
+
+    # All 16 sensors and 17 channels
+    ALL_SENSORS = [
+        'frame_b1', 'frame_b2', 'frame_l1', 'frame_l2', 'frame_l3', 'frame_r1', 'frame_r2',
+        'spindle1', 'spindle2', 'y_bed_1', 'y_bed_2', 'y_bed_3', 'y_bed_4',
+        'z_gant_1', 'z_gant_2', 'xa_motor',
+    ]
+    ALL_CHANNELS = ['Ax', 'Ay', 'Az', 'Gx', 'Gy', 'Gz', 'Mx', 'My', 'Mz',
+                    'Pressure', 'Temperature', 'Proximity',
+                    'ColorR', 'ColorG', 'ColorB', 'ColorA', 'RMS']
+
+    # Parse config_name into sensor and channel
+    def parse_config(config_name):
+        if config_name.startswith('electrical_'):
+            return None, None
+        for sensor in sorted(ALL_SENSORS, key=len, reverse=True):
+            if config_name.startswith(sensor + '_'):
+                channel = config_name[len(sensor) + 1:]
+                if channel in ALL_CHANNELS:
+                    return sensor, channel
+        return None, None
+
+    parsed = l5_df['config_name'].apply(lambda c: pd.Series(parse_config(c), index=['sensor', 'channel']))
+    l5_df = pd.concat([l5_df, parsed], axis=1)
+
+    # Separate sensor×channel from electrical
+    sc_df = l5_df[l5_df['sensor'].notna()].copy()
+    elec_df = l5_df[l5_df['sensor'].isna()].copy()
+
+    results = {
+        'n_sensor_channel': len(sc_df),
+        'n_electrical': len(elec_df),
+        'n_unique_sensor_channel_configs': sc_df['config_name'].nunique(),
+        'n_unique_electrical_configs': elec_df['config_name'].nunique(),
+    }
+
+    # Three-way ANOVA on sensor×channel subset
+    if HAS_STATSMODELS and len(sc_df) > 10:
+        try:
+            model = ols('test_accuracy ~ C(sensor) * C(channel) + C(data_split_seed)',
+                       data=sc_df).fit()
+            anova_table = anova_lm(model, typ=2)
+
+            results['threeway_anova'] = {}
+            for factor in ['C(sensor)', 'C(channel)', 'C(sensor):C(channel)', 'C(data_split_seed)']:
+                if factor in anova_table.index:
+                    results['threeway_anova'][factor] = {
+                        'sum_sq': float(anova_table.loc[factor, 'sum_sq']),
+                        'df': float(anova_table.loc[factor, 'df']),
+                        'F': float(anova_table.loc[factor, 'F']),
+                        'p_value': float(anova_table.loc[factor, 'PR(>F)']),
+                    }
+
+            # Partial eta-squared for each factor
+            ss_error = float(anova_table.loc['Residual', 'sum_sq'])
+            for factor in results['threeway_anova']:
+                ss_factor = results['threeway_anova'][factor]['sum_sq']
+                eta_sq = ss_factor / (ss_factor + ss_error)
+                results['threeway_anova'][factor]['partial_eta_squared'] = eta_sq
+
+        except Exception as e:
+            results['threeway_anova_error'] = str(e)
+
+    # Marginal means
+    if len(sc_df) > 0:
+        sensor_means = sc_df.groupby('sensor')['test_accuracy'].agg(['mean', 'std']).to_dict()
+        channel_means = sc_df.groupby('channel')['test_accuracy'].agg(['mean', 'std']).to_dict()
+        results['sensor_marginal_means'] = sensor_means
+        results['channel_marginal_means'] = channel_means
+
+    # Electrical results
+    if len(elec_df) > 0:
+        elec_stats = elec_df.groupby('config_name')['test_accuracy'].agg(['mean', 'std']).to_dict()
+        results['electrical_stats'] = elec_stats
+
+    # Top-20 configs
+    config_means = l5_df.groupby('config_name')['test_accuracy'].agg(['mean', 'std', 'count'])
+    config_means = config_means.sort_values('mean', ascending=False)
+    results['top_20'] = config_means.head(20).to_dict()
+
+    return results
+
+
 def generate_visualizations(df, anova_results, importance_rankings, output_dir):
     """Generate visualization plots."""
     output_dir = Path(output_dir)
@@ -526,6 +632,22 @@ def main():
     # Save importance rankings
     with open(output_dir / 'importance_rankings.json', 'w') as f:
         json.dump(importance_rankings, f, indent=2)
+
+    # L5 three-way ANOVA
+    if 'crossed_L5_sensor_channel' in df['study'].values:
+        print("\nRunning L5 three-way ANOVA (sensor × channel × data_split)...")
+        l5_anova = run_l5_threeway_anova(df)
+        if l5_anova:
+            anova_results['crossed_L5_threeway'] = l5_anova
+            with open(output_dir / 'l5_threeway_anova.json', 'w') as f:
+                json.dump(l5_anova, f, indent=2, default=str)
+            print(f"  Saved L5 three-way ANOVA to: {output_dir / 'l5_threeway_anova.json'}")
+
+            if 'threeway_anova' in l5_anova:
+                for factor, stats in l5_anova['threeway_anova'].items():
+                    sig = '***' if stats['p_value'] < 0.001 else ('**' if stats['p_value'] < 0.01 else '*')
+                    print(f"  {factor}: F={stats['F']:.2f}, p={stats['p_value']:.4e}, "
+                          f"η²p={stats.get('partial_eta_squared', 0):.3f} {sig}")
 
     # Generate visualizations
     print("\nGenerating visualizations...")

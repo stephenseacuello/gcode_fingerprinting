@@ -63,27 +63,27 @@ import numpy as np
 # CONSTANTS
 # =============================================================================
 
-# All 16 sensors
+# All 16 sensors (verified against metadata.json continuous_columns)
 ALL_SENSORS = [
-    # Frame (5)
-    'frame_r1', 'frame_r2', 'frame_l1', 'frame_l2', 'frame_b1',
+    # Frame (7)
+    'frame_r1', 'frame_r2', 'frame_l1', 'frame_l2', 'frame_l3', 'frame_b1', 'frame_b2',
     # Spindle (2)
     'spindle1', 'spindle2',
     # Bed (4)
     'y_bed_1', 'y_bed_2', 'y_bed_3', 'y_bed_4',
-    # Gantry (3)
-    'z_gant_1', 'z_gant_2', 'x_gant_1',
-    # Motor (2)
-    'x_motor', 'y_motor',
+    # Gantry (2)
+    'z_gant_1', 'z_gant_2',
+    # Motor (1)
+    'xa_motor',
 ]
 
 # Sensor groups by location
 SENSOR_GROUPS = {
-    'frame': ['frame_r1', 'frame_r2', 'frame_l1', 'frame_l2', 'frame_b1'],
+    'frame': ['frame_r1', 'frame_r2', 'frame_l1', 'frame_l2', 'frame_l3', 'frame_b1', 'frame_b2'],
     'spindle': ['spindle1', 'spindle2'],
     'bed': ['y_bed_1', 'y_bed_2', 'y_bed_3', 'y_bed_4'],
-    'gantry': ['z_gant_1', 'z_gant_2', 'x_gant_1'],
-    'motor': ['x_motor', 'y_motor'],
+    'gantry': ['z_gant_1', 'z_gant_2'],
+    'motor': ['xa_motor'],
 }
 
 # Sensor name normalization (metadata may have different naming)
@@ -92,7 +92,6 @@ SENSOR_ALIASES = {
     'y_bed_2': 'y_bed__2',
     'y_bed_3': 'y_bed__3',
     'y_bed_4': 'y_bed__4',
-    'x_motor': 'xa_motor',
 }
 
 # 6 sensor modalities (grouped from individual channels)

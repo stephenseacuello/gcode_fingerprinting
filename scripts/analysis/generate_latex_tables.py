@@ -86,6 +86,11 @@ def load_results(results_dir: Path) -> dict:
         with open(importance_path) as f:
             results['importance'] = json.load(f)
 
+    l5_path = results_dir / 'l5_threeway_anova.json'
+    if l5_path.exists():
+        with open(l5_path) as f:
+            results['l5_anova'] = json.load(f)
+
     return results
 
 
@@ -380,6 +385,93 @@ def generate_anova_table(anova_results: dict) -> str:
     return '\n'.join(lines)
 
 
+def generate_l5_table(df: pd.DataFrame, l5_anova: dict = None) -> str:
+    """Generate LaTeX table for L5 sensor × channel top configs."""
+    l5_df = df[df['study'] == 'crossed_L5_sensor_channel']
+
+    if l5_df.empty and not l5_anova:
+        return "% No L5 sensor×channel data available\n"
+
+    # Use L5 ANOVA top_20 if available, otherwise compute from df
+    if l5_anova and 'top_20' in l5_anova:
+        top20 = l5_anova['top_20']
+        configs = list(top20['mean'].keys())
+        rows = []
+        for config in configs:
+            rows.append({
+                'config_name': config,
+                'mean': top20['mean'][config],
+                'std': top20['std'].get(config, 0),
+                'count': top20['count'].get(config, 0),
+            })
+        top_stats = pd.DataFrame(rows)
+    else:
+        top_stats = l5_df.groupby('config_name')['test_accuracy'].agg(['mean', 'std', 'count']).reset_index()
+        top_stats = top_stats.sort_values('mean', ascending=False).head(20)
+
+    lines = [
+        "\\begin{table}[h]",
+        "\\centering",
+        "\\caption{Top-20 Sensor $\\times$ Channel Configurations (L5)}",
+        "\\label{tab:l5_top_configs}",
+        "\\begin{tabular}{rlcc}",
+        "\\toprule",
+        "\\textbf{Rank} & \\textbf{Sensor -- Channel} & \\textbf{Test Acc (\\%)} & \\textbf{$n$} \\\\",
+        "\\midrule",
+    ]
+
+    for rank, (_, row) in enumerate(top_stats.iterrows(), 1):
+        config = str(row['config_name']).replace('_', '\\_')
+        acc = f"{row['mean']*100:.2f} $\\pm$ {row['std']*100:.2f}"
+        n = int(row['count'])
+        lines.append(f"{rank} & {config} & {acc} & {n} \\\\")
+
+    lines.extend([
+        "\\bottomrule",
+        "\\end{tabular}",
+        "\\end{table}",
+    ])
+
+    # Add L5 three-way ANOVA summary table if available
+    if l5_anova and 'threeway_anova' in l5_anova:
+        anova_data = l5_anova['threeway_anova']
+        lines.extend([
+            "",
+            "\\begin{table}[h]",
+            "\\centering",
+            "\\caption{L5 Three-Way ANOVA: Sensor $\\times$ Channel $\\times$ Data Split}",
+            "\\label{tab:l5_anova}",
+            "\\begin{tabular}{lcccc}",
+            "\\toprule",
+            "\\textbf{Factor} & \\textbf{df} & \\textbf{$F$} & \\textbf{$p$-value} & \\textbf{$\\eta^2_p$} \\\\",
+            "\\midrule",
+        ])
+
+        factor_labels = {
+            'C(sensor)': 'Sensor',
+            'C(channel)': 'Channel',
+            'C(sensor):C(channel)': 'Sensor $\\times$ Channel',
+            'C(data_split_seed)': 'Data Split',
+        }
+
+        for factor_key, label in factor_labels.items():
+            if factor_key in anova_data:
+                fdata = anova_data[factor_key]
+                df_val = int(fdata['df'])
+                f_val = f"{fdata['F']:.2f}"
+                p_val = format_pvalue(fdata['p_value'])
+                eta = f"{fdata.get('partial_eta_squared', 0):.3f}"
+                lines.append(f"{label} & {df_val} & {f_val} & {p_val} & {eta} \\\\")
+
+        lines.extend([
+            "\\bottomrule",
+            "\\end{tabular}",
+            "\\end{table}",
+        ])
+
+    return '\n'.join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Generate LaTeX tables')
     parser.add_argument('--results-dir', type=str, required=True,
@@ -400,6 +492,7 @@ def main():
 
     df = results['df']
     anova = results.get('anova', {})
+    l5_anova = results.get('l5_anova', None)
     print(f"Loaded {len(df)} experiment results")
 
     # Generate all tables
@@ -410,6 +503,7 @@ def main():
         'table_architecture.tex': generate_architecture_table(df),
         'table_baselines.tex': generate_baseline_table(df),
         'table_anova.tex': generate_anova_table(anova),
+        'table_l5_top_configs.tex': generate_l5_table(df, l5_anova),
     }
 
     # Save all tables
