@@ -119,7 +119,7 @@ class DTAE(nn.Module):
         tgt_len: Optional[int] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         B, T, D = x.shape
-        x_noisy = self.add_noise(x)
+        x_noisy = self.add_noise(x) if self.training else x
         z = self.encoder(self.pos(self.dropout(x_noisy)), src_key_padding_mask=src_key_padding_mask)
         L = int(tgt_len or T)
         tgt = torch.zeros(B, L, D, device=x.device)

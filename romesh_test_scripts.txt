@@ -1,0 +1,17 @@
+python scripts/evaluation/run_9class_direct.py \
+    --data-dir <their-split-dir> \
+    --output-dir <their-output-dir> \
+    --iteration <name> \
+    --seed 42
+
+
+run_9class_direct.py itself — in the prepare_data_9class function (lines 95-243). It:
+Loads the .npz splits
+Removes machine controller features (keeps 28 sensor features)
+Inverse-transforms back to raw values
+Fits StandardScaler on train only
+Transforms all splits
+Saves new .npz files
+So there's no separate preprocessing script — it's all baked into run_9class_direct.py. Both scripts are already tracked and pushed:
+create_multilabel_stratified_splits.py — makes the train/val/test splits
+run_9class_direct.py — does the StandardScaler normalization + trains the encoder

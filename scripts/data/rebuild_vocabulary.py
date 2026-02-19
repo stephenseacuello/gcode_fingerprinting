@@ -29,7 +29,7 @@ import json
 import pandas as pd
 import argparse
 from collections import Counter
-from miracle.utilities.gcode_tokenizer import GCodeTokenizer, TokenizerConfig
+from src.miracle.utilities.gcode_tokenizer import GCodeTokenizer, TokenizerConfig
 
 
 def extract_gcode_from_csvs(data_dir: Path):
