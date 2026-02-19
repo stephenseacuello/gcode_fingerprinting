@@ -43,6 +43,7 @@ import argparse
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -531,7 +532,7 @@ def generate_learning_curves(history, checkpoint_dir, val_best_epoch, test_best_
 def train_encoder(data_dir, checkpoint_dir, sensor_dims, group_names, group_indices, device,
                   n_classes=9, d_model=256, n_heads=4, lstm_layers=2, dropout=0.2,
                   max_epochs=200, patience=40, lr=1e-3, batch_size=32, seed=42,
-                  label_smoothing=0.1, modality_dropout=0.1):
+                  label_smoothing=0.1, modality_dropout=0.1, recon_weight=0.1):
     """Train MM_DTAE_LSTM encoder for 9-class classification."""
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -669,7 +670,9 @@ def train_encoder(data_dir, checkpoint_dir, sensor_dims, group_names, group_indi
 
             optimizer.zero_grad()
             out = model(mods, lengths, modality_dropout_p=modality_dropout)
-            loss = criterion(out['cls'], operations)
+            cls_loss = criterion(out['cls'], operations)
+            recon_loss = F.mse_loss(out['recon'], out['fused_target'])
+            loss = cls_loss + recon_weight * recon_loss
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()

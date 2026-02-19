@@ -485,6 +485,7 @@ class MM_DTAE_LSTM(nn.Module):
 
         out: Dict[str, torch.Tensor] = {
             "recon": rec,
+            "fused_target": fused,
             "cls": self.head_cls(cls_features),
             "reg": self.head_reg(last),
             "anom": self.head_anom(last),  # logits
