@@ -17,14 +17,14 @@ from sklearn.model_selection import train_test_split
 import argparse
 
 # Import the advanced tokenizer
-from miracle.utilities.gcode_tokenizer import (
+from src.miracle.utilities.gcode_tokenizer import (
     GCodeTokenizer as AdvancedGCodeTokenizer,
     TokenizerConfig,
 )
 
 # Import configuration and utilities
-from miracle.config.preprocessing_config import PreprocessingConfig, get_default_config
-from miracle.dataset.preprocessing_utils import (
+from src.miracle.config.preprocessing_config import PreprocessingConfig, get_default_config
+from src.miracle.dataset.preprocessing_utils import (
     get_scaler,
     handle_missing_values,
     clip_outliers,
