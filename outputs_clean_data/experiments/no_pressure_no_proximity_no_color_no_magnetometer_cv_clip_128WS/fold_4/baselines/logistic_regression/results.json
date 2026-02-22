@@ -1,0 +1,50 @@
+{
+  "config": {
+    "model": "logistic_regression",
+    "model_type": "ml",
+    "seed": 42
+  },
+  "train_time_seconds": 2.2743375301361084,
+  "train": {
+    "accuracy": 1.0,
+    "per_class": {
+      "adaptive": 1.0,
+      "adaptive150025": 1.0,
+      "face": 1.0,
+      "face150025": 1.0,
+      "pocket": 1.0,
+      "pocket150025": 1.0,
+      "damageadaptive": 1.0,
+      "damageface": 1.0,
+      "damagepocket": 1.0
+    }
+  },
+  "val": {
+    "accuracy": 0.7887596899224806,
+    "per_class": {
+      "adaptive": 0.9642857142857143,
+      "adaptive150025": 0.6805555555555556,
+      "face": 0.6585365853658537,
+      "face150025": 0.6190476190476191,
+      "pocket": 0.9090909090909091,
+      "pocket150025": 1.0,
+      "damageadaptive": 1.0,
+      "damageface": 0.0,
+      "damagepocket": 0.7741935483870968
+    }
+  },
+  "test": {
+    "accuracy": 0.9146757679180887,
+    "per_class": {
+      "adaptive": 0.9107142857142857,
+      "adaptive150025": 1.0,
+      "face": 0.8943089430894309,
+      "face150025": 0.9880952380952381,
+      "pocket": 1.0,
+      "pocket150025": 0.7741935483870968,
+      "damageadaptive": 1.0,
+      "damageface": 0.8928571428571429,
+      "damagepocket": 1.0
+    }
+  }
+}

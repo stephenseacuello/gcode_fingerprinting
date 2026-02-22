@@ -1,0 +1,3211 @@
+{
+  "total_files": 120,
+  "sensors": {
+    "frame_l2": {
+      "presence_count": 120,
+      "presence_percentage": 100.0,
+      "activity_count": 120,
+      "activity_percentage": 100.0,
+      "channels": [
+        "Ax",
+        "Ay",
+        "Az",
+        "ColorA",
+        "ColorB",
+        "ColorG",
+        "ColorR",
+        "Gx",
+        "Gy",
+        "Gz",
+        "Mx",
+        "My",
+        "Mz",
+        "Pressure",
+        "Proximity",
+        "RMS",
+        "Temperature"
+      ],
+      "num_channels": 17
+    },
+    "frame_l3": {
+      "presence_count": 120,
+      "presence_percentage": 100.0,
+      "activity_count": 120,
+      "activity_percentage": 100.0,
+      "channels": [
+        "Ax",
+        "Ay",
+        "Az",
+        "ColorA",
+        "ColorB",
+        "ColorG",
+        "ColorR",
+        "Gx",
+        "Gy",
+        "Gz",
+        "Mx",
+        "My",
+        "Mz",
+        "Pressure",
+        "Proximity",
+        "RMS",
+        "Temperature"
+      ],
+      "num_channels": 17
+    },
+    "frame_r2": {
+      "presence_count": 120,
+      "presence_percentage": 100.0,
+      "activity_count": 120,
+      "activity_percentage": 100.0,
+      "channels": [
+        "Ax",
+        "Ay",
+        "Az",
+        "ColorA",
+        "ColorB",
+        "ColorG",
+        "ColorR",
+        "Gx",
+        "Gy",
+        "Gz",
+        "Mx",
+        "My",
+        "Mz",
+        "Pressure",
+        "Proximity",
+        "RMS",
+        "Temperature"
+      ],
+      "num_channels": 17
+    },
+    "spindle2": {
+      "presence_count": 120,
+      "presence_percentage": 100.0,
+      "activity_count": 120,
+      "activity_percentage": 100.0,
+      "channels": [
+        "Ax",
+        "Ay",
+        "Az",
+        "ColorA",
+        "ColorB",
+        "ColorG",
+        "ColorR",
+        "Gx",
+        "Gy",
+        "Gz",
+        "Mx",
+        "My",
+        "Mz",
+        "Pressure",
+        "Proximity",
+        "RMS",
+        "Temperature"
+      ],
+      "num_channels": 17
+    },
+    "y_bed__3": {
+      "presence_count": 120,
+      "presence_percentage": 100.0,
+      "activity_count": 120,
+      "activity_percentage": 100.0,
+      "channels": [
+        "Ax",
+        "Ay",
+        "Az",
+        "ColorA",
+        "ColorB",
+        "ColorG",
+        "ColorR",
+        "Gx",
+        "Gy",
+        "Gz",
+        "Mx",
+        "My",
+        "Mz",
+        "Pressure",
+        "Proximity",
+        "RMS",
+        "Temperature"
+      ],
+      "num_channels": 17
+    },
+    "y_bed__4": {
+      "presence_count": 120,
+      "presence_percentage": 100.0,
+      "activity_count": 120,
+      "activity_percentage": 100.0,
+      "channels": [
+        "Ax",
+        "Ay",
+        "Az",
+        "ColorA",
+        "ColorB",
+        "ColorG",
+        "ColorR",
+        "Gx",
+        "Gy",
+        "Gz",
+        "Mx",
+        "My",
+        "Mz",
+        "Pressure",
+        "Proximity",
+        "RMS",
+        "Temperature"
+      ],
+      "num_channels": 17
+    }
+  },
+  "statistics": {
+    "min_sensors_per_file": 6,
+    "max_sensors_per_file": 6,
+    "mean_sensors_per_file": 6.0
+  },
+  "classes": {
+    "adaptive": {
+      "total_files": 20,
+      "sensors": {
+        "frame_l2": {
+          "presence_count": 20,
+          "presence_percentage": 100.0,
+          "activity_count": 20,
+          "activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "presence_count": 20,
+          "presence_percentage": 100.0,
+          "activity_count": 20,
+          "activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "presence_count": 20,
+          "presence_percentage": 100.0,
+          "activity_count": 20,
+          "activity_percentage": 100.0
+        },
+        "spindle2": {
+          "presence_count": 20,
+          "presence_percentage": 100.0,
+          "activity_count": 20,
+          "activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "presence_count": 20,
+          "presence_percentage": 100.0,
+          "activity_count": 20,
+          "activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "presence_count": 20,
+          "presence_percentage": 100.0,
+          "activity_count": 20,
+          "activity_percentage": 100.0
+        }
+      }
+    },
+    "adaptive150025": {
+      "total_files": 17,
+      "sensors": {
+        "frame_l2": {
+          "presence_count": 17,
+          "presence_percentage": 100.0,
+          "activity_count": 17,
+          "activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "presence_count": 17,
+          "presence_percentage": 100.0,
+          "activity_count": 17,
+          "activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "presence_count": 17,
+          "presence_percentage": 100.0,
+          "activity_count": 17,
+          "activity_percentage": 100.0
+        },
+        "spindle2": {
+          "presence_count": 17,
+          "presence_percentage": 100.0,
+          "activity_count": 17,
+          "activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "presence_count": 17,
+          "presence_percentage": 100.0,
+          "activity_count": 17,
+          "activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "presence_count": 17,
+          "presence_percentage": 100.0,
+          "activity_count": 17,
+          "activity_percentage": 100.0
+        }
+      }
+    },
+    "damageadaptive": {
+      "total_files": 5,
+      "sensors": {
+        "frame_l2": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "spindle2": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        }
+      }
+    },
+    "damageface": {
+      "total_files": 4,
+      "sensors": {
+        "frame_l2": {
+          "presence_count": 4,
+          "presence_percentage": 100.0,
+          "activity_count": 4,
+          "activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "presence_count": 4,
+          "presence_percentage": 100.0,
+          "activity_count": 4,
+          "activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "presence_count": 4,
+          "presence_percentage": 100.0,
+          "activity_count": 4,
+          "activity_percentage": 100.0
+        },
+        "spindle2": {
+          "presence_count": 4,
+          "presence_percentage": 100.0,
+          "activity_count": 4,
+          "activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "presence_count": 4,
+          "presence_percentage": 100.0,
+          "activity_count": 4,
+          "activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "presence_count": 4,
+          "presence_percentage": 100.0,
+          "activity_count": 4,
+          "activity_percentage": 100.0
+        }
+      }
+    },
+    "damagepocket": {
+      "total_files": 5,
+      "sensors": {
+        "frame_l2": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "spindle2": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "presence_count": 5,
+          "presence_percentage": 100.0,
+          "activity_count": 5,
+          "activity_percentage": 100.0
+        }
+      }
+    },
+    "face": {
+      "total_files": 16,
+      "sensors": {
+        "frame_l2": {
+          "presence_count": 16,
+          "presence_percentage": 100.0,
+          "activity_count": 16,
+          "activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "presence_count": 16,
+          "presence_percentage": 100.0,
+          "activity_count": 16,
+          "activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "presence_count": 16,
+          "presence_percentage": 100.0,
+          "activity_count": 16,
+          "activity_percentage": 100.0
+        },
+        "spindle2": {
+          "presence_count": 16,
+          "presence_percentage": 100.0,
+          "activity_count": 16,
+          "activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "presence_count": 16,
+          "presence_percentage": 100.0,
+          "activity_count": 16,
+          "activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "presence_count": 16,
+          "presence_percentage": 100.0,
+          "activity_count": 16,
+          "activity_percentage": 100.0
+        }
+      }
+    },
+    "face150025": {
+      "total_files": 15,
+      "sensors": {
+        "frame_l2": {
+          "presence_count": 15,
+          "presence_percentage": 100.0,
+          "activity_count": 15,
+          "activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "presence_count": 15,
+          "presence_percentage": 100.0,
+          "activity_count": 15,
+          "activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "presence_count": 15,
+          "presence_percentage": 100.0,
+          "activity_count": 15,
+          "activity_percentage": 100.0
+        },
+        "spindle2": {
+          "presence_count": 15,
+          "presence_percentage": 100.0,
+          "activity_count": 15,
+          "activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "presence_count": 15,
+          "presence_percentage": 100.0,
+          "activity_count": 15,
+          "activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "presence_count": 15,
+          "presence_percentage": 100.0,
+          "activity_count": 15,
+          "activity_percentage": 100.0
+        }
+      }
+    },
+    "pocket": {
+      "total_files": 19,
+      "sensors": {
+        "frame_l2": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "spindle2": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        }
+      }
+    },
+    "pocket150025": {
+      "total_files": 19,
+      "sensors": {
+        "frame_l2": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "spindle2": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "presence_count": 19,
+          "presence_percentage": 100.0,
+          "activity_count": 19,
+          "activity_percentage": 100.0
+        }
+      }
+    }
+  },
+  "sensor_types": {
+    "Accelerometer": {
+      "positions": {
+        "frame_l2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "spindle2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        }
+      },
+      "classes": {
+        "adaptive": {
+          "activity_percentage": 100.0
+        },
+        "adaptive150025": {
+          "activity_percentage": 100.0
+        },
+        "damageadaptive": {
+          "activity_percentage": 100.0
+        },
+        "damageface": {
+          "activity_percentage": 100.0
+        },
+        "damagepocket": {
+          "activity_percentage": 100.0
+        },
+        "face": {
+          "activity_percentage": 100.0
+        },
+        "face150025": {
+          "activity_percentage": 100.0
+        },
+        "pocket": {
+          "activity_percentage": 100.0
+        },
+        "pocket150025": {
+          "activity_percentage": 100.0
+        }
+      },
+      "overall_activity_percentage": 100.0
+    },
+    "Color": {
+      "positions": {
+        "frame_l2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "spindle2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        }
+      },
+      "classes": {
+        "adaptive": {
+          "activity_percentage": 100.0
+        },
+        "adaptive150025": {
+          "activity_percentage": 100.0
+        },
+        "damageadaptive": {
+          "activity_percentage": 100.0
+        },
+        "damageface": {
+          "activity_percentage": 100.0
+        },
+        "damagepocket": {
+          "activity_percentage": 100.0
+        },
+        "face": {
+          "activity_percentage": 100.0
+        },
+        "face150025": {
+          "activity_percentage": 100.0
+        },
+        "pocket": {
+          "activity_percentage": 100.0
+        },
+        "pocket150025": {
+          "activity_percentage": 100.0
+        }
+      },
+      "overall_activity_percentage": 100.0
+    },
+    "Gyroscope": {
+      "positions": {
+        "frame_l2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "spindle2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        }
+      },
+      "classes": {
+        "adaptive": {
+          "activity_percentage": 100.0
+        },
+        "adaptive150025": {
+          "activity_percentage": 100.0
+        },
+        "damageadaptive": {
+          "activity_percentage": 100.0
+        },
+        "damageface": {
+          "activity_percentage": 100.0
+        },
+        "damagepocket": {
+          "activity_percentage": 100.0
+        },
+        "face": {
+          "activity_percentage": 100.0
+        },
+        "face150025": {
+          "activity_percentage": 100.0
+        },
+        "pocket": {
+          "activity_percentage": 100.0
+        },
+        "pocket150025": {
+          "activity_percentage": 100.0
+        }
+      },
+      "overall_activity_percentage": 100.0
+    },
+    "Magnetometer": {
+      "positions": {
+        "frame_l2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "spindle2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        }
+      },
+      "classes": {
+        "adaptive": {
+          "activity_percentage": 100.0
+        },
+        "adaptive150025": {
+          "activity_percentage": 100.0
+        },
+        "damageadaptive": {
+          "activity_percentage": 100.0
+        },
+        "damageface": {
+          "activity_percentage": 100.0
+        },
+        "damagepocket": {
+          "activity_percentage": 100.0
+        },
+        "face": {
+          "activity_percentage": 100.0
+        },
+        "face150025": {
+          "activity_percentage": 100.0
+        },
+        "pocket": {
+          "activity_percentage": 100.0
+        },
+        "pocket150025": {
+          "activity_percentage": 100.0
+        }
+      },
+      "overall_activity_percentage": 100.0
+    },
+    "Pressure": {
+      "positions": {
+        "frame_l2": {
+          "classes": {
+            "adaptive": {
+              "active": 8,
+              "total": 20,
+              "activity_percentage": 40.0
+            },
+            "adaptive150025": {
+              "active": 6,
+              "total": 17,
+              "activity_percentage": 35.294117647058826
+            },
+            "damageadaptive": {
+              "active": 0,
+              "total": 5,
+              "activity_percentage": 0.0
+            },
+            "damageface": {
+              "active": 0,
+              "total": 4,
+              "activity_percentage": 0.0
+            },
+            "damagepocket": {
+              "active": 0,
+              "total": 5,
+              "activity_percentage": 0.0
+            },
+            "face": {
+              "active": 6,
+              "total": 16,
+              "activity_percentage": 37.5
+            },
+            "face150025": {
+              "active": 1,
+              "total": 15,
+              "activity_percentage": 6.666666666666667
+            },
+            "pocket": {
+              "active": 14,
+              "total": 19,
+              "activity_percentage": 73.68421052631578
+            },
+            "pocket150025": {
+              "active": 4,
+              "total": 19,
+              "activity_percentage": 21.052631578947366
+            }
+          },
+          "mean_activity_percentage": 32.5
+        },
+        "frame_l3": {
+          "classes": {
+            "adaptive": {
+              "active": 9,
+              "total": 20,
+              "activity_percentage": 45.0
+            },
+            "adaptive150025": {
+              "active": 2,
+              "total": 17,
+              "activity_percentage": 11.76470588235294
+            },
+            "damageadaptive": {
+              "active": 3,
+              "total": 5,
+              "activity_percentage": 60.0
+            },
+            "damageface": {
+              "active": 2,
+              "total": 4,
+              "activity_percentage": 50.0
+            },
+            "damagepocket": {
+              "active": 0,
+              "total": 5,
+              "activity_percentage": 0.0
+            },
+            "face": {
+              "active": 4,
+              "total": 16,
+              "activity_percentage": 25.0
+            },
+            "face150025": {
+              "active": 3,
+              "total": 15,
+              "activity_percentage": 20.0
+            },
+            "pocket": {
+              "active": 14,
+              "total": 19,
+              "activity_percentage": 73.68421052631578
+            },
+            "pocket150025": {
+              "active": 2,
+              "total": 19,
+              "activity_percentage": 10.526315789473683
+            }
+          },
+          "mean_activity_percentage": 32.5
+        },
+        "frame_r2": {
+          "classes": {
+            "adaptive": {
+              "active": 12,
+              "total": 20,
+              "activity_percentage": 60.0
+            },
+            "adaptive150025": {
+              "active": 9,
+              "total": 17,
+              "activity_percentage": 52.94117647058824
+            },
+            "damageadaptive": {
+              "active": 0,
+              "total": 5,
+              "activity_percentage": 0.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 1,
+              "total": 5,
+              "activity_percentage": 20.0
+            },
+            "face": {
+              "active": 9,
+              "total": 16,
+              "activity_percentage": 56.25
+            },
+            "face150025": {
+              "active": 3,
+              "total": 15,
+              "activity_percentage": 20.0
+            },
+            "pocket": {
+              "active": 15,
+              "total": 19,
+              "activity_percentage": 78.94736842105263
+            },
+            "pocket150025": {
+              "active": 3,
+              "total": 19,
+              "activity_percentage": 15.789473684210526
+            }
+          },
+          "mean_activity_percentage": 46.666666666666664
+        },
+        "spindle2": {
+          "classes": {
+            "adaptive": {
+              "active": 1,
+              "total": 20,
+              "activity_percentage": 5.0
+            },
+            "adaptive150025": {
+              "active": 6,
+              "total": 17,
+              "activity_percentage": 35.294117647058826
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 0,
+              "total": 4,
+              "activity_percentage": 0.0
+            },
+            "damagepocket": {
+              "active": 1,
+              "total": 5,
+              "activity_percentage": 20.0
+            },
+            "face": {
+              "active": 6,
+              "total": 16,
+              "activity_percentage": 37.5
+            },
+            "face150025": {
+              "active": 6,
+              "total": 15,
+              "activity_percentage": 40.0
+            },
+            "pocket": {
+              "active": 3,
+              "total": 19,
+              "activity_percentage": 15.789473684210526
+            },
+            "pocket150025": {
+              "active": 10,
+              "total": 19,
+              "activity_percentage": 52.63157894736842
+            }
+          },
+          "mean_activity_percentage": 31.666666666666664
+        },
+        "y_bed__3": {
+          "classes": {
+            "adaptive": {
+              "active": 9,
+              "total": 20,
+              "activity_percentage": 45.0
+            },
+            "adaptive150025": {
+              "active": 6,
+              "total": 17,
+              "activity_percentage": 35.294117647058826
+            },
+            "damageadaptive": {
+              "active": 3,
+              "total": 5,
+              "activity_percentage": 60.0
+            },
+            "damageface": {
+              "active": 0,
+              "total": 4,
+              "activity_percentage": 0.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 9,
+              "total": 16,
+              "activity_percentage": 56.25
+            },
+            "face150025": {
+              "active": 9,
+              "total": 15,
+              "activity_percentage": 60.0
+            },
+            "pocket": {
+              "active": 6,
+              "total": 19,
+              "activity_percentage": 31.57894736842105
+            },
+            "pocket150025": {
+              "active": 7,
+              "total": 19,
+              "activity_percentage": 36.84210526315789
+            }
+          },
+          "mean_activity_percentage": 45.0
+        },
+        "y_bed__4": {
+          "classes": {
+            "adaptive": {
+              "active": 2,
+              "total": 20,
+              "activity_percentage": 10.0
+            },
+            "adaptive150025": {
+              "active": 5,
+              "total": 17,
+              "activity_percentage": 29.411764705882355
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 0,
+              "total": 4,
+              "activity_percentage": 0.0
+            },
+            "damagepocket": {
+              "active": 0,
+              "total": 5,
+              "activity_percentage": 0.0
+            },
+            "face": {
+              "active": 6,
+              "total": 16,
+              "activity_percentage": 37.5
+            },
+            "face150025": {
+              "active": 6,
+              "total": 15,
+              "activity_percentage": 40.0
+            },
+            "pocket": {
+              "active": 3,
+              "total": 19,
+              "activity_percentage": 15.789473684210526
+            },
+            "pocket150025": {
+              "active": 8,
+              "total": 19,
+              "activity_percentage": 42.10526315789473
+            }
+          },
+          "mean_activity_percentage": 29.166666666666668
+        }
+      },
+      "classes": {
+        "adaptive": {
+          "activity_percentage": 34.166666666666664
+        },
+        "adaptive150025": {
+          "activity_percentage": 33.33333333333333
+        },
+        "damageadaptive": {
+          "activity_percentage": 53.333333333333336
+        },
+        "damageface": {
+          "activity_percentage": 25.0
+        },
+        "damagepocket": {
+          "activity_percentage": 23.333333333333332
+        },
+        "face": {
+          "activity_percentage": 41.66666666666667
+        },
+        "face150025": {
+          "activity_percentage": 31.11111111111111
+        },
+        "pocket": {
+          "activity_percentage": 48.24561403508772
+        },
+        "pocket150025": {
+          "activity_percentage": 29.82456140350877
+        }
+      },
+      "overall_activity_percentage": 36.25
+    },
+    "Proximity": {
+      "positions": {
+        "frame_l2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 4,
+              "total": 5,
+              "activity_percentage": 80.0
+            },
+            "damageface": {
+              "active": 0,
+              "total": 4,
+              "activity_percentage": 0.0
+            },
+            "damagepocket": {
+              "active": 3,
+              "total": 5,
+              "activity_percentage": 60.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 16,
+              "total": 19,
+              "activity_percentage": 84.21052631578947
+            }
+          },
+          "mean_activity_percentage": 91.66666666666666
+        },
+        "frame_l3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 9,
+              "total": 17,
+              "activity_percentage": 52.94117647058824
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 12,
+              "total": 19,
+              "activity_percentage": 63.1578947368421
+            }
+          },
+          "mean_activity_percentage": 87.5
+        },
+        "frame_r2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 8,
+              "total": 17,
+              "activity_percentage": 47.05882352941176
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 2,
+              "total": 15,
+              "activity_percentage": 13.333333333333334
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 8,
+              "total": 19,
+              "activity_percentage": 42.10526315789473
+            }
+          },
+          "mean_activity_percentage": 72.5
+        },
+        "spindle2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 2,
+              "total": 15,
+              "activity_percentage": 13.333333333333334
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 17,
+              "total": 19,
+              "activity_percentage": 89.47368421052632
+            }
+          },
+          "mean_activity_percentage": 87.5
+        },
+        "y_bed__3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 8,
+              "total": 17,
+              "activity_percentage": 47.05882352941176
+            },
+            "damageadaptive": {
+              "active": 0,
+              "total": 5,
+              "activity_percentage": 0.0
+            },
+            "damageface": {
+              "active": 0,
+              "total": 4,
+              "activity_percentage": 0.0
+            },
+            "damagepocket": {
+              "active": 0,
+              "total": 5,
+              "activity_percentage": 0.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 2,
+              "total": 15,
+              "activity_percentage": 13.333333333333334
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 0,
+              "total": 19,
+              "activity_percentage": 0.0
+            }
+          },
+          "mean_activity_percentage": 54.166666666666664
+        },
+        "y_bed__4": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 7,
+              "total": 17,
+              "activity_percentage": 41.17647058823529
+            },
+            "damageadaptive": {
+              "active": 0,
+              "total": 5,
+              "activity_percentage": 0.0
+            },
+            "damageface": {
+              "active": 0,
+              "total": 4,
+              "activity_percentage": 0.0
+            },
+            "damagepocket": {
+              "active": 0,
+              "total": 5,
+              "activity_percentage": 0.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 6,
+              "total": 15,
+              "activity_percentage": 40.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 5,
+              "total": 19,
+              "activity_percentage": 26.31578947368421
+            }
+          },
+          "mean_activity_percentage": 60.83333333333333
+        }
+      },
+      "classes": {
+        "adaptive": {
+          "activity_percentage": 100.0
+        },
+        "adaptive150025": {
+          "activity_percentage": 64.70588235294117
+        },
+        "damageadaptive": {
+          "activity_percentage": 63.33333333333333
+        },
+        "damageface": {
+          "activity_percentage": 50.0
+        },
+        "damagepocket": {
+          "activity_percentage": 60.0
+        },
+        "face": {
+          "activity_percentage": 100.0
+        },
+        "face150025": {
+          "activity_percentage": 46.666666666666664
+        },
+        "pocket": {
+          "activity_percentage": 100.0
+        },
+        "pocket150025": {
+          "activity_percentage": 50.877192982456144
+        }
+      },
+      "overall_activity_percentage": 75.69444444444444
+    },
+    "RMS": {
+      "positions": {
+        "frame_l2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_r2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "spindle2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        }
+      },
+      "classes": {
+        "adaptive": {
+          "activity_percentage": 100.0
+        },
+        "adaptive150025": {
+          "activity_percentage": 100.0
+        },
+        "damageadaptive": {
+          "activity_percentage": 100.0
+        },
+        "damageface": {
+          "activity_percentage": 100.0
+        },
+        "damagepocket": {
+          "activity_percentage": 100.0
+        },
+        "face": {
+          "activity_percentage": 100.0
+        },
+        "face150025": {
+          "activity_percentage": 100.0
+        },
+        "pocket": {
+          "activity_percentage": 100.0
+        },
+        "pocket150025": {
+          "activity_percentage": 100.0
+        }
+      },
+      "overall_activity_percentage": 100.0
+    },
+    "Temperature": {
+      "positions": {
+        "frame_l2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "frame_l3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 14,
+              "total": 17,
+              "activity_percentage": 82.35294117647058
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 3,
+              "total": 4,
+              "activity_percentage": 75.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 11,
+              "total": 16,
+              "activity_percentage": 68.75
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 92.5
+        },
+        "frame_r2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "spindle2": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__3": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        },
+        "y_bed__4": {
+          "classes": {
+            "adaptive": {
+              "active": 20,
+              "total": 20,
+              "activity_percentage": 100.0
+            },
+            "adaptive150025": {
+              "active": 17,
+              "total": 17,
+              "activity_percentage": 100.0
+            },
+            "damageadaptive": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "damageface": {
+              "active": 4,
+              "total": 4,
+              "activity_percentage": 100.0
+            },
+            "damagepocket": {
+              "active": 5,
+              "total": 5,
+              "activity_percentage": 100.0
+            },
+            "face": {
+              "active": 16,
+              "total": 16,
+              "activity_percentage": 100.0
+            },
+            "face150025": {
+              "active": 15,
+              "total": 15,
+              "activity_percentage": 100.0
+            },
+            "pocket": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            },
+            "pocket150025": {
+              "active": 19,
+              "total": 19,
+              "activity_percentage": 100.0
+            }
+          },
+          "mean_activity_percentage": 100.0
+        }
+      },
+      "classes": {
+        "adaptive": {
+          "activity_percentage": 100.0
+        },
+        "adaptive150025": {
+          "activity_percentage": 97.05882352941177
+        },
+        "damageadaptive": {
+          "activity_percentage": 100.0
+        },
+        "damageface": {
+          "activity_percentage": 95.83333333333334
+        },
+        "damagepocket": {
+          "activity_percentage": 100.0
+        },
+        "face": {
+          "activity_percentage": 94.79166666666666
+        },
+        "face150025": {
+          "activity_percentage": 100.0
+        },
+        "pocket": {
+          "activity_percentage": 100.0
+        },
+        "pocket150025": {
+          "activity_percentage": 100.0
+        }
+      },
+      "overall_activity_percentage": 98.75
+    }
+  }
+}

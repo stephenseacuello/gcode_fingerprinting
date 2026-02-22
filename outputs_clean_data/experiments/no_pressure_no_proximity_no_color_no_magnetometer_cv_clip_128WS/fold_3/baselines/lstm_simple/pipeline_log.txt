@@ -1,0 +1,60 @@
+Baseline Model: lstm_simple
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS/fold_3/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS/fold_3/baselines/lstm_simple
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (2001, 128, 56)
+  val: (586, 128, 56)
+  test: (586, 128, 56)
+
+======================================================================
+TRAINING LSTM_SIMPLE
+======================================================================
+  Model params: 850,185
+  Epoch   1/200 | train=69.96% val=82.94% test=83.28% ** BEST **
+  Epoch   2/200 | train=95.56% val=90.61% test=88.57% ** BEST **
+  Epoch   3/200 | train=96.77% val=94.20% test=92.66% ** BEST **
+  Epoch   4/200 | train=96.42% val=96.42% test=88.05% ** BEST **
+  Epoch   5/200 | train=98.64% val=95.05% test=88.40%
+  Epoch   6/200 | train=98.49% val=97.78% test=90.27% ** BEST **
+  Epoch   8/200 | train=98.59% val=97.95% test=92.49% ** BEST **
+  Epoch  10/200 | train=99.40% val=98.29% test=92.32% ** BEST **
+  Epoch  12/200 | train=99.45% val=98.46% test=93.69% ** BEST **
+  Epoch  14/200 | train=99.95% val=98.81% test=93.69% ** BEST **
+  Epoch  15/200 | train=100.00% val=99.32% test=93.69% ** BEST **
+  Epoch  20/200 | train=100.00% val=99.32% test=93.86%
+  Epoch  23/200 | train=100.00% val=99.49% test=94.20% ** BEST **
+  Epoch  28/200 | train=100.00% val=99.66% test=93.52% ** BEST **
+  Epoch  40/200 | train=100.00% val=99.83% test=93.69% ** BEST **
+  Epoch  43/200 | train=100.00% val=100.00% test=93.69% ** BEST **
+  Epoch  60/200 | train=100.00% val=99.49% test=93.00%
+  Epoch  80/200 | train=100.00% val=97.95% test=92.66%
+  Early stopping at epoch 83
+  Training time: 52.4s
+  Best val epoch: 43, val_acc=100.00%
+  Final: train=100.00% val=100.00% test=93.69%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 93.69%
+    adaptive: 100.00%
+    adaptive150025: 98.61%
+    face: 100.00%
+    face150025: 100.00%
+    pocket: 97.73%
+    pocket150025: 97.58%
+    damageadaptive: 100.00%
+    damageface: 96.43%
+    damagepocket: 0.00%
+
+======================================================================
+COMPLETE in 0.9 minutes
+======================================================================

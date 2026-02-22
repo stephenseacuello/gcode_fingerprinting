@@ -1,0 +1,53 @@
+Baseline Model: lstm_simple
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride_nan_removed/fold_2/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride_nan_removed/fold_2/baselines/lstm_simple
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (472, 128, 56)
+  val: (153, 128, 56)
+  test: (160, 128, 56)
+
+======================================================================
+TRAINING LSTM_SIMPLE
+======================================================================
+  Model params: 850,185
+  Epoch   1/200 | train=49.11% val=65.36% test=59.38% ** BEST **
+  Epoch   2/200 | train=71.88% val=78.43% test=76.25% ** BEST **
+  Epoch   3/200 | train=79.69% val=78.43% test=82.50%
+  Epoch   4/200 | train=81.92% val=75.82% test=80.62%
+  Epoch   5/200 | train=85.94% val=86.93% test=85.62% ** BEST **
+  Epoch   6/200 | train=88.17% val=88.24% test=92.50% ** BEST **
+  Epoch  15/200 | train=97.77% val=90.20% test=93.75% ** BEST **
+  Epoch  20/200 | train=97.32% val=94.12% test=96.25% ** BEST **
+  Epoch  22/200 | train=100.00% val=94.77% test=98.75% ** BEST **
+  Epoch  40/200 | train=100.00% val=94.77% test=98.12%
+  Epoch  60/200 | train=100.00% val=94.12% test=98.12%
+  Early stopping at epoch 62
+  Training time: 11.4s
+  Best val epoch: 22, val_acc=94.77%
+  Final: train=99.78% val=94.77% test=98.75%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 98.75%
+    adaptive: 100.00%
+    adaptive150025: 100.00%
+    face: 100.00%
+    face150025: 100.00%
+    pocket: 100.00%
+    pocket150025: 96.88%
+    damageadaptive: 100.00%
+    damageface: 85.71%
+    damagepocket: 100.00%
+
+======================================================================
+COMPLETE in 0.2 minutes
+======================================================================

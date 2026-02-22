@@ -1,0 +1,42 @@
+Baseline Model: logistic_regression
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_cv_clip/fold_5/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_cv_clip/fold_5/baselines/logistic_regression
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 98
+  Kept features: 98
+  train: (2075, 64, 98)
+  val: (978, 64, 98)
+  test: (600, 64, 98)
+
+======================================================================
+TRAINING LOGISTIC_REGRESSION
+======================================================================
+  Flattened shape: (2075, 6272)
+  Training time: 2.2s
+  train: 100.00%
+  val: 58.79%
+  test: 92.00%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 92.00%
+    adaptive: 100.00%
+    adaptive150025: 100.00%
+    face: 87.41%
+    face150025: 67.71%
+    pocket: 100.00%
+    pocket150025: 100.00%
+    damageadaptive: 100.00%
+    damageface: 0.00%
+    damagepocket: 100.00%
+
+======================================================================
+COMPLETE in 0.0 minutes
+======================================================================

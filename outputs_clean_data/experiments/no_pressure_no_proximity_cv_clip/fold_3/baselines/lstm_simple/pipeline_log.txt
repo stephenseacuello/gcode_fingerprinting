@@ -1,0 +1,51 @@
+Baseline Model: lstm_simple
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_cv_clip/fold_3/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_cv_clip/fold_3/baselines/lstm_simple
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 98
+  Kept features: 98
+  train: (2289, 64, 98)
+  val: (682, 64, 98)
+  test: (682, 64, 98)
+
+======================================================================
+TRAINING LSTM_SIMPLE
+======================================================================
+  Model params: 893,193
+  Epoch   1/200 | train=82.22% val=98.83% test=98.53% ** BEST **
+  Epoch   2/200 | train=99.03% val=95.60% test=96.19%
+  Epoch   3/200 | train=99.74% val=98.53% test=95.01%
+  Epoch   4/200 | train=100.00% val=99.41% test=95.01% ** BEST **
+  Epoch   5/200 | train=100.00% val=99.41% test=95.45%
+  Epoch   7/200 | train=100.00% val=99.56% test=96.33% ** BEST **
+  Epoch   9/200 | train=100.00% val=99.71% test=96.77% ** BEST **
+  Epoch  20/200 | train=100.00% val=99.12% test=98.09%
+  Epoch  40/200 | train=100.00% val=99.27% test=98.68%
+  Early stopping at epoch 49
+  Training time: 26.8s
+  Best val epoch: 9, val_acc=99.71%
+  Final: train=100.00% val=99.71% test=96.77%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 96.77%
+    adaptive: 100.00%
+    adaptive150025: 85.71%
+    face: 100.00%
+    face150025: 100.00%
+    pocket: 100.00%
+    pocket150025: 99.29%
+    damageadaptive: 100.00%
+    damageface: 100.00%
+    damagepocket: 74.29%
+
+======================================================================
+COMPLETE in 0.5 minutes
+======================================================================

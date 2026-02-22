@@ -1,0 +1,51 @@
+Baseline Model: mlp
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride/fold_1/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride/fold_1/baselines/mlp
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (441, 128, 56)
+  val: (160, 128, 56)
+  test: (227, 128, 56)
+
+======================================================================
+TRAINING MLP
+======================================================================
+  Model params: 3,837,705
+  Epoch   1/200 | train=58.89% val=76.88% test=51.54% ** BEST **
+  Epoch   2/200 | train=82.21% val=88.75% test=50.66% ** BEST **
+  Epoch   3/200 | train=90.87% val=88.75% test=49.78%
+  Epoch   4/200 | train=96.63% val=91.88% test=54.19% ** BEST **
+  Epoch   5/200 | train=98.80% val=89.38% test=48.02%
+  Epoch   7/200 | train=97.84% val=92.50% test=55.07% ** BEST **
+  Epoch  12/200 | train=100.00% val=93.75% test=53.74% ** BEST **
+  Epoch  20/200 | train=100.00% val=93.75% test=53.30%
+  Epoch  40/200 | train=100.00% val=92.50% test=54.63%
+  Early stopping at epoch 52
+  Training time: 2.6s
+  Best val epoch: 12, val_acc=93.75%
+  Final: train=100.00% val=93.75% test=53.74%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 53.74%
+    adaptive: 75.00%
+    adaptive150025: 100.00%
+    face: 88.64%
+    face150025: 22.06%
+    pocket: 91.67%
+    pocket150025: 19.05%
+    damageadaptive: 100.00%
+    damageface: 100.00%
+    damagepocket: 0.00%
+
+======================================================================
+COMPLETE in 0.1 minutes
+======================================================================

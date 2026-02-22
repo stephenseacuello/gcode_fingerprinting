@@ -1,0 +1,42 @@
+Baseline Model: xgboost
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip/fold_4/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip/fold_4/baselines/xgboost
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (2371, 64, 56)
+  val: (600, 64, 56)
+  test: (682, 64, 56)
+
+======================================================================
+TRAINING XGBOOST
+======================================================================
+  Flattened shape: (2371, 3584)
+  Training time: 51.3s
+  train: 100.00%
+  val: 80.17%
+  test: 82.84%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 82.84%
+    adaptive: 87.50%
+    adaptive150025: 100.00%
+    face: 82.22%
+    face150025: 94.79%
+    pocket: 100.00%
+    pocket150025: 89.29%
+    damageadaptive: 100.00%
+    damageface: 9.38%
+    damagepocket: 0.00%
+
+======================================================================
+COMPLETE in 0.9 minutes
+======================================================================

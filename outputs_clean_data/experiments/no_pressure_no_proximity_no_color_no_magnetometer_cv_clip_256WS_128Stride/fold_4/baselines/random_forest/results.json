@@ -1,0 +1,50 @@
+{
+  "config": {
+    "model": "random_forest",
+    "model_type": "ml",
+    "seed": 42
+  },
+  "train_time_seconds": 0.2810850143432617,
+  "train": {
+    "accuracy": 1.0,
+    "per_class": {
+      "adaptive": 1.0,
+      "adaptive150025": 1.0,
+      "face": 1.0,
+      "face150025": 1.0,
+      "pocket": 1.0,
+      "pocket150025": 1.0,
+      "damageadaptive": 1.0,
+      "damageface": 1.0,
+      "damagepocket": 1.0
+    }
+  },
+  "val": {
+    "accuracy": 0.7843137254901961,
+    "per_class": {
+      "adaptive": 0.75,
+      "adaptive150025": 1.0,
+      "face": 1.0,
+      "face150025": 0.3333333333333333,
+      "pocket": 0.6666666666666666,
+      "pocket150025": 1.0,
+      "damageadaptive": 0.0,
+      "damageface": 0.0,
+      "damagepocket": 0.6666666666666666
+    }
+  },
+  "test": {
+    "accuracy": 0.896551724137931,
+    "per_class": {
+      "adaptive": 0.75,
+      "adaptive150025": 1.0,
+      "face": 1.0,
+      "face150025": 0.8888888888888888,
+      "pocket": 1.0,
+      "pocket150025": 0.9166666666666666,
+      "damageadaptive": 0.0,
+      "damageface": 0.6666666666666666,
+      "damagepocket": 1.0
+    }
+  }
+}

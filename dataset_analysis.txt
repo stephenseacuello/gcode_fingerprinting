@@ -1,0 +1,480 @@
+Found 120 CSV files in data_clean/
+Analyzing files: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 120/120 [00:01<00:00, 76.27it/s]
+
+================================================================================
+SENSOR AVAILABILITY MATRIX
+  Cell = runs present / total runs for that class.
+  When a position is present → all 8 sensor types are available (17 channels).
+================================================================================
+
+Position               adaptive  adaptive150025  damageadaptive      damageface    damagepocket            face      face150025          pocket    pocket150025     TOTAL
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+frame_l2                  20/20           17/17             5/5             4/4             5/5           16/16           15/15           19/19           19/19  120/120 
+frame_l3                  20/20           17/17             5/5             4/4             5/5           16/16           15/15           19/19           19/19  120/120 
+frame_r2                  20/20           17/17             5/5             4/4             5/5           16/16           15/15           19/19           19/19  120/120 
+spindle2                  20/20           17/17             5/5             4/4             5/5           16/16           15/15           19/19           19/19  120/120 
+y_bed__3                  20/20           17/17             5/5             4/4             5/5           16/16           15/15           19/19           19/19  120/120 
+y_bed__4                  20/20           17/17             5/5             4/4             5/5           16/16           15/15           19/19           19/19  120/120 
+
+--------------------------------------------------------------------------------
+SUMMARY
+--------------------------------------------------------------------------------
+
+  SAFE — present in every run of every class (6 positions):
+    • frame_l2  →  17 channels always available
+    • frame_l3  →  17 channels always available
+    • frame_r2  →  17 channels always available
+    • spindle2  →  17 channels always available
+    • y_bed__3  →  17 channels always available
+    • y_bed__4  →  17 channels always available
+
+    Combined: 6 × 17 = 102 channels
+
+================================================================================
+
+
+================================================================================
+SENSOR TYPE COVERAGE  (positions with ≥100/120 runs present)
+  Cell = active_runs / present_runs  (summed across all 9 classes).
+  'ALL?' = sensor type is reliably active at EVERY selected position.
+================================================================================
+
+  6 selected positions:
+    • frame_l2         120/120 runs
+    • frame_l3         120/120 runs
+    • frame_r2         120/120 runs
+    • spindle2         120/120 runs
+    • y_bed__3         120/120 runs
+    • y_bed__4         120/120 runs
+
+  Sensor Type          frame_l2      frame_l3      frame_r2      spindle2      y_bed__3      y_bed__4  ALL?
+  -----------------------------------------------------------------------------------------------------------
+  Accelerometer         120/120       120/120       120/120       120/120       120/120       120/120  ✓
+  Color                 120/120       120/120       120/120       120/120       120/120       120/120  ✓
+  Gyroscope             120/120       120/120       120/120       120/120       120/120       120/120  ✓
+  Magnetometer          120/120       120/120       120/120       120/120       120/120       120/120  ✓
+  RMS                   120/120       120/120       120/120       120/120       120/120       120/120  ✓
+  Temperature           120/120       111/120       120/120       120/120       120/120       120/120  ✓
+  Proximity             110/120       105/120        87/120       105/120        65/120        73/120  ✗
+  Pressure               39/120        39/120        56/120        38/120        54/120        35/120  ✗
+
+--------------------------------------------------------------------------------
+RECOMMENDATION  (threshold: ≥90% active when present)
+--------------------------------------------------------------------------------
+
+  USE — reliable at all 6 positions:
+
+    ✓ Accelerometer    3 ch × 6 positions =   18 features
+    ✓ Color            4 ch × 6 positions =   24 features
+    ✓ Gyroscope        3 ch × 6 positions =   18 features
+    ✓ Magnetometer     3 ch × 6 positions =   18 features
+    ✓ RMS              1 ch × 6 positions =    6 features
+    ✓ Temperature      1 ch × 6 positions =    6 features
+
+    Subtotal: 90 sensor features
+    + electrical/environment signals if included
+
+  AVOID — not reliable across all selected positions:
+
+    ✗ Proximity        weak at: frame_l3(105/120), frame_r2(87/120), spindle2(105/120), y_bed__3(65/120), y_bed__4(73/120)
+    ✗ Pressure         weak at: frame_l2(39/120), frame_l3(39/120), frame_r2(56/120), spindle2(38/120), y_bed__3(54/120), y_bed__4(35/120)
+
+================================================================================
+
+
+================================================================================
+SENSOR CONSISTENCY ANALYSIS
+================================================================================
+
+Total files analyzed: 120
+Sensors per file: 6 - 6 (mean: 6.0)
+
+--------------------------------------------------------------------------------
+ALL SENSORS (sorted by activity %)
+--------------------------------------------------------------------------------
+Sensor           Present  Pres%   Active   Act% Channels
+--------------------------------------------------------------------------------
+frame_l2             120 100.0%      120 100.0%       17
+frame_l3             120 100.0%      120 100.0%       17
+frame_r2             120 100.0%      120 100.0%       17
+spindle2             120 100.0%      120 100.0%       17
+y_bed__3             120 100.0%      120 100.0%       17
+y_bed__4             120 100.0%      120 100.0%       17
+
+================================================================================
+CONSISTENT SENSORS (≥95.0% activity)
+================================================================================
+
+Found 6 sensors with ≥95.0% activity:
+
+  • frame_l2        - 100.0% active (17 channels)
+  • frame_l3        - 100.0% active (17 channels)
+  • frame_r2        - 100.0% active (17 channels)
+  • spindle2        - 100.0% active (17 channels)
+  • y_bed__3        - 100.0% active (17 channels)
+  • y_bed__4        - 100.0% active (17 channels)
+
+Total features from consistent sensors:
+  • Sensor features: 102
+  • Electrical features: 8
+  • TOTAL: 110 features
+
+✅ These 6 sensors can be used WITHOUT zero-padding!
+   All files have active signal from these sensors.
+
+
+================================================================================
+
+
+================================================================================
+SENSOR PRESENCE ANALYSIS  (which Arduinos were physically logging)
+================================================================================
+  'Present' = sensor columns exist in the CSV file, regardless of signal quality.
+  'Active'  = present AND producing non-constant signal (shown in activity tables).
+
+--------------------------------------------------------------------------------
+SENSOR × CLASS PRESENCE MATRIX  (% of runs where sensor was logging)
+--------------------------------------------------------------------------------
+Sensor           adaptiveadaptive150025damageadaptivedamagefacedamagepocket      faceface150025    pocketpocket150025    GLOBAL
+-------------------------------------------------------------------------------------------------------------------------------
+frame_l2           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+frame_l3           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+frame_r2           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+spindle2           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+y_bed__3           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+y_bed__4           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+
+--------------------------------------------------------------------------------
+SENSORS PRESENT IN ALL CLASSES  (≥95.0% presence in every class)
+--------------------------------------------------------------------------------
+
+  Reliably present everywhere (6 sensors):
+
+    • frame_l2         min across classes: 100.0%
+    • frame_l3         min across classes: 100.0%
+    • frame_r2         min across classes: 100.0%
+    • spindle2         min across classes: 100.0%
+    • y_bed__3         min across classes: 100.0%
+    • y_bed__4         min across classes: 100.0%
+
+--------------------------------------------------------------------------------
+PER-CLASS PRESENCE SUMMARY  (how many sensors were logging per class)
+--------------------------------------------------------------------------------
+
+  [adaptive]  (20 runs,  6 sensors seen)
+    Always present (100%):  6  — frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+
+  [adaptive150025]  (17 runs,  6 sensors seen)
+    Always present (100%):  6  — frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+
+  [damageadaptive]  (5 runs,  6 sensors seen)
+    Always present (100%):  6  — frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+
+  [damageface]  (4 runs,  6 sensors seen)
+    Always present (100%):  6  — frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+
+  [damagepocket]  (5 runs,  6 sensors seen)
+    Always present (100%):  6  — frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+
+  [face]  (16 runs,  6 sensors seen)
+    Always present (100%):  6  — frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+
+  [face150025]  (15 runs,  6 sensors seen)
+    Always present (100%):  6  — frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+
+  [pocket]  (19 runs,  6 sensors seen)
+    Always present (100%):  6  — frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+
+  [pocket150025]  (19 runs,  6 sensors seen)
+    Always present (100%):  6  — frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+
+================================================================================
+
+
+================================================================================
+PER-CLASS SENSOR ACTIVITY ANALYSIS
+================================================================================
+
+--------------------------------------------------------------------------------
+SENSOR × CLASS ACTIVITY MATRIX  (activity %)
+--------------------------------------------------------------------------------
+Sensor           adaptiveadaptive150025damageadaptivedamagefacedamagepocket      faceface150025    pocketpocket150025    GLOBAL
+-------------------------------------------------------------------------------------------------------------------------------
+frame_l2           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+frame_l3           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+frame_r2           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+spindle2           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+y_bed__3           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+y_bed__4           100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%    100.0%
+
+--------------------------------------------------------------------------------
+CROSS-CLASS CONSISTENT SENSORS  (≥95.0% active in EVERY class)
+--------------------------------------------------------------------------------
+
+Found 6 sensors active in ALL 9 classes:
+
+  • frame_l2         [adaptive: 100.0%, adaptive150025: 100.0%, damageadaptive: 100.0%, damageface: 100.0%, damagepocket: 100.0%, face: 100.0%, face150025: 100.0%, pocket: 100.0%, pocket150025: 100.0%]
+  • frame_l3         [adaptive: 100.0%, adaptive150025: 100.0%, damageadaptive: 100.0%, damageface: 100.0%, damagepocket: 100.0%, face: 100.0%, face150025: 100.0%, pocket: 100.0%, pocket150025: 100.0%]
+  • frame_r2         [adaptive: 100.0%, adaptive150025: 100.0%, damageadaptive: 100.0%, damageface: 100.0%, damagepocket: 100.0%, face: 100.0%, face150025: 100.0%, pocket: 100.0%, pocket150025: 100.0%]
+  • spindle2         [adaptive: 100.0%, adaptive150025: 100.0%, damageadaptive: 100.0%, damageface: 100.0%, damagepocket: 100.0%, face: 100.0%, face150025: 100.0%, pocket: 100.0%, pocket150025: 100.0%]
+  • y_bed__3         [adaptive: 100.0%, adaptive150025: 100.0%, damageadaptive: 100.0%, damageface: 100.0%, damagepocket: 100.0%, face: 100.0%, face150025: 100.0%, pocket: 100.0%, pocket150025: 100.0%]
+  • y_bed__4         [adaptive: 100.0%, adaptive150025: 100.0%, damageadaptive: 100.0%, damageface: 100.0%, damagepocket: 100.0%, face: 100.0%, face150025: 100.0%, pocket: 100.0%, pocket150025: 100.0%]
+
+--------------------------------------------------------------------------------
+PER-CLASS SENSOR RANKING  (sorted by activity %)
+--------------------------------------------------------------------------------
+
+  [adaptive]  (20 runs)
+  Rank   Sensor            Active    Act%
+  ----------------------------------------
+  1      frame_l2          20/20  100.0%  ████████████████████
+  2      frame_l3          20/20  100.0%  ████████████████████
+  3      frame_r2          20/20  100.0%  ████████████████████
+  4      spindle2          20/20  100.0%  ████████████████████
+  5      y_bed__3          20/20  100.0%  ████████████████████
+  6      y_bed__4          20/20  100.0%  ████████████████████
+
+  [adaptive150025]  (17 runs)
+  Rank   Sensor            Active    Act%
+  ----------------------------------------
+  1      frame_l2          17/17  100.0%  ████████████████████
+  2      frame_l3          17/17  100.0%  ████████████████████
+  3      frame_r2          17/17  100.0%  ████████████████████
+  4      spindle2          17/17  100.0%  ████████████████████
+  5      y_bed__3          17/17  100.0%  ████████████████████
+  6      y_bed__4          17/17  100.0%  ████████████████████
+
+  [damageadaptive]  (5 runs)
+  Rank   Sensor            Active    Act%
+  ----------------------------------------
+  1      frame_l2           5/5   100.0%  ████████████████████
+  2      frame_l3           5/5   100.0%  ████████████████████
+  3      frame_r2           5/5   100.0%  ████████████████████
+  4      spindle2           5/5   100.0%  ████████████████████
+  5      y_bed__3           5/5   100.0%  ████████████████████
+  6      y_bed__4           5/5   100.0%  ████████████████████
+
+  [damageface]  (4 runs)
+  Rank   Sensor            Active    Act%
+  ----------------------------------------
+  1      frame_l2           4/4   100.0%  ████████████████████
+  2      frame_l3           4/4   100.0%  ████████████████████
+  3      frame_r2           4/4   100.0%  ████████████████████
+  4      spindle2           4/4   100.0%  ████████████████████
+  5      y_bed__3           4/4   100.0%  ████████████████████
+  6      y_bed__4           4/4   100.0%  ████████████████████
+
+  [damagepocket]  (5 runs)
+  Rank   Sensor            Active    Act%
+  ----------------------------------------
+  1      frame_l2           5/5   100.0%  ████████████████████
+  2      frame_l3           5/5   100.0%  ████████████████████
+  3      frame_r2           5/5   100.0%  ████████████████████
+  4      spindle2           5/5   100.0%  ████████████████████
+  5      y_bed__3           5/5   100.0%  ████████████████████
+  6      y_bed__4           5/5   100.0%  ████████████████████
+
+  [face]  (16 runs)
+  Rank   Sensor            Active    Act%
+  ----------------------------------------
+  1      frame_l2          16/16  100.0%  ████████████████████
+  2      frame_l3          16/16  100.0%  ████████████████████
+  3      frame_r2          16/16  100.0%  ████████████████████
+  4      spindle2          16/16  100.0%  ████████████████████
+  5      y_bed__3          16/16  100.0%  ████████████████████
+  6      y_bed__4          16/16  100.0%  ████████████████████
+
+  [face150025]  (15 runs)
+  Rank   Sensor            Active    Act%
+  ----------------------------------------
+  1      frame_l2          15/15  100.0%  ████████████████████
+  2      frame_l3          15/15  100.0%  ████████████████████
+  3      frame_r2          15/15  100.0%  ████████████████████
+  4      spindle2          15/15  100.0%  ████████████████████
+  5      y_bed__3          15/15  100.0%  ████████████████████
+  6      y_bed__4          15/15  100.0%  ████████████████████
+
+  [pocket]  (19 runs)
+  Rank   Sensor            Active    Act%
+  ----------------------------------------
+  1      frame_l2          19/19  100.0%  ████████████████████
+  2      frame_l3          19/19  100.0%  ████████████████████
+  3      frame_r2          19/19  100.0%  ████████████████████
+  4      spindle2          19/19  100.0%  ████████████████████
+  5      y_bed__3          19/19  100.0%  ████████████████████
+  6      y_bed__4          19/19  100.0%  ████████████████████
+
+  [pocket150025]  (19 runs)
+  Rank   Sensor            Active    Act%
+  ----------------------------------------
+  1      frame_l2          19/19  100.0%  ████████████████████
+  2      frame_l3          19/19  100.0%  ████████████████████
+  3      frame_r2          19/19  100.0%  ████████████████████
+  4      spindle2          19/19  100.0%  ████████████████████
+  5      y_bed__3          19/19  100.0%  ████████████████████
+  6      y_bed__4          19/19  100.0%  ████████████████████
+
+================================================================================
+
+
+================================================================================
+SENSOR TYPE ANALYSIS  (across positions & classes)
+================================================================================
+
+--------------------------------------------------------------------------------
+OVERALL SENSOR TYPE RANKING  (activity % across all positions × classes)
+--------------------------------------------------------------------------------
+  Rank  Sensor Type      Activity  Bar
+  -------------------------------------------------------
+  1     Accelerometer      100.0%  ████████████████████
+  2     Color              100.0%  ████████████████████
+  3     Gyroscope          100.0%  ████████████████████
+  4     Magnetometer       100.0%  ████████████████████
+  5     RMS                100.0%  ████████████████████
+  6     Temperature         98.8%  ███████████████████
+  7     Proximity           75.7%  ███████████████
+  8     Pressure            36.2%  ███████
+
+--------------------------------------------------------------------------------
+SENSOR TYPE × CLASS MATRIX  (activity % averaged across positions)
+--------------------------------------------------------------------------------
+  Sensor Type       adaptiveadaptive150025damageadaptive damagefacedamagepocket       face face150025     pocketpocket150025       MEAN
+  -------------------------------------------------------------------------------------------------------------------------------------
+  Accelerometer       100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%
+  Color               100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%
+  Gyroscope           100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%
+  Magnetometer        100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%
+  RMS                 100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%     100.0%
+  Temperature         100.0%      97.1%     100.0%      95.8%     100.0%      94.8%     100.0%     100.0%     100.0%      98.8%
+  Proximity           100.0%      64.7%      63.3%      50.0%      60.0%     100.0%      46.7%     100.0%      50.9%      75.7%
+  Pressure             34.2%      33.3%      53.3%      25.0%      23.3%      41.7%      31.1%      48.2%      29.8%      36.2%
+
+--------------------------------------------------------------------------------
+SENSOR TYPE × POSITION MATRIX  (mean activity % across classes)
+--------------------------------------------------------------------------------
+  Sensor Type        frame_l2    frame_l3    frame_r2    spindle2    y_bed__3    y_bed__4
+  ---------------------------------------------------------------------------------------
+  Accelerometer        100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  Color                100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  Gyroscope            100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  Magnetometer         100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  RMS                  100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  Temperature          100.0%       92.5%      100.0%      100.0%      100.0%      100.0%
+  Proximity             91.7%       87.5%       72.5%       87.5%       54.2%       60.8%
+  Pressure              32.5%       32.5%       46.7%       31.7%       45.0%       29.2%
+
+--------------------------------------------------------------------------------
+COMMON SENSOR TYPES  (≥95.0% in EVERY class AND EVERY position)
+--------------------------------------------------------------------------------
+
+  Universally reliable (5 types — safe for all classes & positions):
+    • Accelerometer    overall: 100.0%
+    • Color            overall: 100.0%
+    • Gyroscope        overall: 100.0%
+    • Magnetometer     overall: 100.0%
+    • RMS              overall: 100.0%
+
+================================================================================
+
+
+================================================================================
+SENSOR TYPE × POSITION RELIABILITY
+  Each cell = MINIMUM activity % across all 9 classes.
+  0% means that combination is unavailable in at least one class.
+================================================================================
+
+--------------------------------------------------------------------------------
+RELIABILITY MATRIX  (min activity % across all 9 classes)
+--------------------------------------------------------------------------------
+  Sensor Type        frame_l2    frame_l3    frame_r2    spindle2    y_bed__3    y_bed__4
+  ---------------------------------------------------------------------------------------
+  Accelerometer        100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  Color                100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  Gyroscope            100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  Magnetometer         100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  RMS                  100.0%      100.0%      100.0%      100.0%      100.0%      100.0%
+  Temperature          100.0%       68.8%      100.0%      100.0%      100.0%      100.0%
+  Proximity              ✗ 0%       52.9%       13.3%       13.3%        ✗ 0%        ✗ 0%
+  Pressure               ✗ 0%        ✗ 0%        ✗ 0%        ✗ 0%        ✗ 0%        ✗ 0%
+
+  Legend:  ✗ 0% = unavailable in ≥1 class   —  = position never seen with this type
+
+--------------------------------------------------------------------------------
+RECOMMENDED (type, position) COMBINATIONS  (≥95.0% in ALL 9 classes)
+--------------------------------------------------------------------------------
+
+  These feature combinations have ≥95.0% signal in every class:
+
+    Accelerometer   → 6 positions × 3 ch = 18 features
+        • frame_l2         (min: 100.0%)
+        • frame_l3         (min: 100.0%)
+        • frame_r2         (min: 100.0%)
+        • spindle2         (min: 100.0%)
+        • y_bed__3         (min: 100.0%)
+        • y_bed__4         (min: 100.0%)
+    Color           → 6 positions × 4 ch = 24 features
+        • frame_l2         (min: 100.0%)
+        • frame_l3         (min: 100.0%)
+        • frame_r2         (min: 100.0%)
+        • spindle2         (min: 100.0%)
+        • y_bed__3         (min: 100.0%)
+        • y_bed__4         (min: 100.0%)
+    Gyroscope       → 6 positions × 3 ch = 18 features
+        • frame_l2         (min: 100.0%)
+        • frame_l3         (min: 100.0%)
+        • frame_r2         (min: 100.0%)
+        • spindle2         (min: 100.0%)
+        • y_bed__3         (min: 100.0%)
+        • y_bed__4         (min: 100.0%)
+    Magnetometer    → 6 positions × 3 ch = 18 features
+        • frame_l2         (min: 100.0%)
+        • frame_l3         (min: 100.0%)
+        • frame_r2         (min: 100.0%)
+        • spindle2         (min: 100.0%)
+        • y_bed__3         (min: 100.0%)
+        • y_bed__4         (min: 100.0%)
+    RMS             → 6 positions × 1 ch = 6 features
+        • frame_l2         (min: 100.0%)
+        • frame_l3         (min: 100.0%)
+        • frame_r2         (min: 100.0%)
+        • spindle2         (min: 100.0%)
+        • y_bed__3         (min: 100.0%)
+        • y_bed__4         (min: 100.0%)
+    Temperature     → 5 positions × 1 ch = 5 features
+        • frame_l2         (min: 100.0%)
+        • frame_r2         (min: 100.0%)
+        • spindle2         (min: 100.0%)
+        • y_bed__3         (min: 100.0%)
+        • y_bed__4         (min: 100.0%)
+
+--------------------------------------------------------------------------------
+SENSOR TYPE RANKING BY POSITION COVERAGE  (how many positions meet ≥95.0%)
+--------------------------------------------------------------------------------
+
+  Rank  Sensor Type       Reliable positions  Positions
+  ----------------------------------------------------------------------
+  1     Accelerometer                      6  ██████  frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+  2     Color                              6  ██████  frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+  3     Gyroscope                          6  ██████  frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+  4     Magnetometer                       6  ██████  frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+  5     RMS                                6  ██████  frame_l2, frame_l3, frame_r2, spindle2, y_bed__3, y_bed__4
+  6     Temperature                        5  █████  frame_l2, frame_r2, spindle2, y_bed__3, y_bed__4
+  7     Proximity                          0    —
+  8     Pressure                           0    —
+
+  Total reliable features across all types: 89 channels
+  (before adding electrical/environment signals)
+
+================================================================================
+
+Results saved to: outputs/sensor_consistency_report.json
+RECOMMENDATION:
+================================================================================
+
+For preprocessing without zero-padding, use these sensors:
+
+SENSORS = ['frame_l2', 'frame_l3', 'frame_r2', 'spindle2', 'y_bed__3', 'y_bed__4']
+
+# This gives 102 sensor features + 8 electrical = 110 total features
+
+All files have active signal from these sensors, eliminating the need for padding.

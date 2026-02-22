@@ -1,0 +1,51 @@
+Baseline Model: lstm_simple
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_64WS_16Stride_nan_removed/fold_3/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_64WS_16Stride_nan_removed/fold_3/baselines/lstm_simple
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (2115, 64, 56)
+  val: (682, 64, 56)
+  test: (682, 64, 56)
+
+======================================================================
+TRAINING LSTM_SIMPLE
+======================================================================
+  Model params: 850,185
+  Epoch   1/200 | train=69.84% val=90.76% test=90.91% ** BEST **
+  Epoch   2/200 | train=95.17% val=93.55% test=86.22% ** BEST **
+  Epoch   3/200 | train=97.49% val=90.03% test=93.99%
+  Epoch   4/200 | train=98.34% val=95.89% test=89.15% ** BEST **
+  Epoch   5/200 | train=98.25% val=90.32% test=85.78%
+  Epoch  20/200 | train=100.00% val=94.28% test=89.30%
+  Epoch  34/200 | train=99.20% val=98.24% test=92.52% ** BEST **
+  Epoch  40/200 | train=100.00% val=95.31% test=93.40%
+  Epoch  60/200 | train=99.86% val=96.77% test=93.99%
+  Early stopping at epoch 74
+  Training time: 37.4s
+  Best val epoch: 34, val_acc=98.24%
+  Final: train=99.34% val=98.24% test=92.52%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 92.52%
+    adaptive: 95.83%
+    adaptive150025: 95.24%
+    face: 100.00%
+    face150025: 96.88%
+    pocket: 96.67%
+    pocket150025: 97.14%
+    damageadaptive: 100.00%
+    damageface: 100.00%
+    damagepocket: 0.00%
+
+======================================================================
+COMPLETE in 0.6 minutes
+======================================================================

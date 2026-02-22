@@ -1,0 +1,53 @@
+Baseline Model: lstm_simple
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip/fold_3/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip/fold_3/baselines/lstm_simple
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (2289, 64, 56)
+  val: (682, 64, 56)
+  test: (682, 64, 56)
+
+======================================================================
+TRAINING LSTM_SIMPLE
+======================================================================
+  Model params: 850,185
+  Epoch   1/200 | train=68.75% val=91.35% test=89.59% ** BEST **
+  Epoch   2/200 | train=97.18% val=80.65% test=85.04%
+  Epoch   3/200 | train=97.58% val=92.38% test=89.74% ** BEST **
+  Epoch   4/200 | train=97.58% val=89.44% test=93.55%
+  Epoch   5/200 | train=98.86% val=96.92% test=92.38% ** BEST **
+  Epoch  15/200 | train=99.91% val=97.07% test=94.28% ** BEST **
+  Epoch  20/200 | train=99.08% val=92.23% test=91.64%
+  Epoch  21/200 | train=99.12% val=98.09% test=93.55% ** BEST **
+  Epoch  27/200 | train=99.78% val=98.39% test=93.55% ** BEST **
+  Epoch  40/200 | train=100.00% val=95.16% test=90.76%
+  Epoch  60/200 | train=100.00% val=95.16% test=90.91%
+  Early stopping at epoch 67
+  Training time: 23.9s
+  Best val epoch: 27, val_acc=98.39%
+  Final: train=99.74% val=98.39% test=93.55%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 93.55%
+    adaptive: 88.89%
+    adaptive150025: 100.00%
+    face: 100.00%
+    face150025: 100.00%
+    pocket: 100.00%
+    pocket150025: 100.00%
+    damageadaptive: 100.00%
+    damageface: 96.88%
+    damagepocket: 0.00%
+
+======================================================================
+COMPLETE in 0.4 minutes
+======================================================================

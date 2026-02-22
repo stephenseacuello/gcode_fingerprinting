@@ -1,0 +1,42 @@
+Baseline Model: random_forest
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_96Stride/fold_2/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_96Stride/fold_2/baselines/random_forest
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (356, 128, 56)
+  val: (107, 128, 56)
+  test: (111, 128, 56)
+
+======================================================================
+TRAINING RANDOM_FOREST
+======================================================================
+  Flattened shape: (356, 7168)
+  Training time: 0.3s
+  train: 100.00%
+  val: 100.00%
+  test: 96.40%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 96.40%
+    adaptive: 100.00%
+    adaptive150025: 100.00%
+    face: 95.24%
+    face150025: 100.00%
+    pocket: 100.00%
+    pocket150025: 87.50%
+    damageadaptive: 100.00%
+    damageface: 100.00%
+    damagepocket: 100.00%
+
+======================================================================
+COMPLETE in 0.0 minutes
+======================================================================

@@ -1,0 +1,53 @@
+Baseline Model: mlp
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip/fold_4/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip/fold_4/baselines/mlp
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (2371, 64, 56)
+  val: (600, 64, 56)
+  test: (682, 64, 56)
+
+======================================================================
+TRAINING MLP
+======================================================================
+  Model params: 2,002,697
+  Epoch   1/200 | train=78.59% val=79.83% test=87.98% ** BEST **
+  Epoch   2/200 | train=95.65% val=81.67% test=93.84% ** BEST **
+  Epoch   3/200 | train=98.78% val=76.50% test=87.10%
+  Epoch   4/200 | train=99.03% val=86.33% test=96.33% ** BEST **
+  Epoch   5/200 | train=99.66% val=82.17% test=93.11%
+  Epoch  13/200 | train=99.96% val=87.83% test=94.28% ** BEST **
+  Epoch  20/200 | train=100.00% val=85.50% test=94.57%
+  Epoch  28/200 | train=99.96% val=88.50% test=95.45% ** BEST **
+  Epoch  32/200 | train=99.87% val=90.67% test=96.33% ** BEST **
+  Epoch  40/200 | train=100.00% val=87.00% test=94.28%
+  Epoch  60/200 | train=99.96% val=90.00% test=95.60%
+  Early stopping at epoch 72
+  Training time: 12.9s
+  Best val epoch: 32, val_acc=90.67%
+  Final: train=100.00% val=90.67% test=96.33%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 96.33%
+    adaptive: 69.44%
+    adaptive150025: 100.00%
+    face: 99.26%
+    face150025: 100.00%
+    pocket: 100.00%
+    pocket150025: 98.57%
+    damageadaptive: 100.00%
+    damageface: 100.00%
+    damagepocket: 100.00%
+
+======================================================================
+COMPLETE in 0.2 minutes
+======================================================================

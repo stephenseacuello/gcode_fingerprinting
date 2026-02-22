@@ -1,0 +1,54 @@
+{
+  "config": {
+    "model": "lstm_simple",
+    "model_type": "nn",
+    "seed": 42
+  },
+  "train_time_seconds": 6.3828489780426025,
+  "train": {
+    "accuracy": 0.9602272727272727,
+    "per_class": {
+      "adaptive": 1.0,
+      "adaptive150025": 1.0,
+      "face": 0.8260869565217391,
+      "face150025": 1.0,
+      "pocket": 1.0,
+      "pocket150025": 0.972972972972973,
+      "damageadaptive": 1.0,
+      "damageface": 1.0,
+      "damagepocket": 1.0
+    }
+  },
+  "val": {
+    "accuracy": 0.8404255319148937,
+    "per_class": {
+      "adaptive": 1.0,
+      "adaptive150025": 1.0,
+      "face": 0.5714285714285714,
+      "face150025": 0.6,
+      "pocket": 1.0,
+      "pocket150025": 1.0,
+      "damageadaptive": 1.0,
+      "damageface": 0.0,
+      "damagepocket": 1.0
+    }
+  },
+  "test": {
+    "accuracy": 0.9158878504672897,
+    "per_class": {
+      "adaptive": 1.0,
+      "adaptive150025": 1.0,
+      "face": 0.6666666666666666,
+      "face150025": 1.0,
+      "pocket": 1.0,
+      "pocket150025": 0.9583333333333334,
+      "damageadaptive": 1.0,
+      "damageface": 0.8,
+      "damagepocket": 1.0
+    }
+  },
+  "checkpoint_info": {
+    "val_best_epoch": 6,
+    "val_best_val_acc": 0.8404255319148937
+  }
+}

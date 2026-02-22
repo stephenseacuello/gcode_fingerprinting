@@ -16,15 +16,17 @@
 #   Damage classes (5 files):  1 test, 1 val,  3 train
 #
 # Usage:
-#   ./run_crossval_experiment.sh                                   # 93 features
-#   ./run_crossval_experiment.sh --no-proximity                    # 88 features
-#   ./run_crossval_experiment.sh --no-proximity --no-color         # 68 features
-#   ./run_crossval_experiment.sh --no-proximity --no-color --no-magnetometer  # 53 features
+#   ./run_crossval_experiment.sh                                                           # 110 features
+#   ./run_crossval_experiment.sh --no-pressure                                             # 104 features
+#   ./run_crossval_experiment.sh --no-pressure --no-proximity                              #  98 features
+#   ./run_crossval_experiment.sh --no-pressure --no-proximity --no-color                   #  74 features
+#   ./run_crossval_experiment.sh --no-pressure --no-proximity --no-color --no-magnetometer #  56 features
 ################################################################################
 
 set -e
 
 # ── Parse arguments ──────────────────────────────────────────────────────────
+EXCLUDE_PRESSURE=false
 EXCLUDE_PROXIMITY=false
 EXCLUDE_COLOR=false
 EXCLUDE_MAGNETOMETER=false
@@ -32,15 +34,17 @@ N_FOLDS=5
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --no-pressure)     EXCLUDE_PRESSURE=true;     shift ;;
         --no-proximity)    EXCLUDE_PROXIMITY=true;    shift ;;
         --no-color)        EXCLUDE_COLOR=true;        shift ;;
         --no-magnetometer) EXCLUDE_MAGNETOMETER=true; shift ;;
-        *) echo "Unknown option: $1"; echo "Usage: $0 [--no-proximity] [--no-color] [--no-magnetometer]"; exit 1 ;;
+        *) echo "Unknown option: $1"; echo "Usage: $0 [--no-pressure] [--no-proximity] [--no-color] [--no-magnetometer]"; exit 1 ;;
     esac
 done
 
 # ── Experiment name & output base ─────────────────────────────────────────────
 DIR_PARTS=()
+[ "$EXCLUDE_PRESSURE"     = true ] && DIR_PARTS+=("no_pressure")
 [ "$EXCLUDE_PROXIMITY"    = true ] && DIR_PARTS+=("no_proximity")
 [ "$EXCLUDE_COLOR"        = true ] && DIR_PARTS+=("no_color")
 [ "$EXCLUDE_MAGNETOMETER" = true ] && DIR_PARTS+=("no_magnetometer")
@@ -48,13 +52,13 @@ DIR_PARTS=()
 if [ ${#DIR_PARTS[@]} -eq 0 ]; then
     EXP_NAME="file_level_cv_clip"
 else
-    IFS='_'; EXP_NAME="${DIR_PARTS[*]}_cv_clip"; unset IFS
+    IFS='_'; EXP_NAME="${DIR_PARTS[*]}_cv_clip_64WS_16Stride_nan_removed"; unset IFS
 fi
 
-OUTPUT_BASE="outputs/experiments/${EXP_NAME}"
-DATA_DIR="data"
+OUTPUT_BASE="outputs_clean_data/experiments/${EXP_NAME}"
+DATA_DIR="data_clean"
 VOCAB_PATH="outputs/vocabulary/gcode_vocabulary_v2.json"
-SENSOR_REPORT="outputs/sensor_consistency_report.json"
+SENSOR_REPORT="outputs_clean_data/sensor_consistency_report_clean.json"
 SEED=42
 
 mkdir -p "$OUTPUT_BASE"
@@ -67,6 +71,7 @@ echo "==========================================================================
 echo "Started at: $(date)"
 echo "Output base: $OUTPUT_BASE"
 echo ""
+[ "$EXCLUDE_PRESSURE"     = true ] && echo "  Excluding: Pressure channels"
 [ "$EXCLUDE_PROXIMITY"    = true ] && echo "  Excluding: Proximity channels"
 [ "$EXCLUDE_COLOR"        = true ] && echo "  Excluding: Color (RGBA) channels"
 [ "$EXCLUDE_MAGNETOMETER" = true ] && echo "  Excluding: Magnetometer channels"
@@ -74,6 +79,7 @@ echo ""
 
 # ── Build exclusion flags for Python scripts ───────────────────────────────────
 EXCLUDE_FLAGS=""
+[ "$EXCLUDE_PRESSURE"     = true ] && EXCLUDE_FLAGS="$EXCLUDE_FLAGS --exclude-pressure"
 [ "$EXCLUDE_PROXIMITY"    = true ] && EXCLUDE_FLAGS="$EXCLUDE_FLAGS --exclude-proximity"
 [ "$EXCLUDE_COLOR"        = true ] && EXCLUDE_FLAGS="$EXCLUDE_FLAGS --exclude-color"
 [ "$EXCLUDE_MAGNETOMETER" = true ] && EXCLUDE_FLAGS="$EXCLUDE_FLAGS --exclude-magnetometer"

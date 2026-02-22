@@ -1,0 +1,52 @@
+Baseline Model: mlp
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_cv_clip/fold_1/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_cv_clip/fold_1/baselines/mlp
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 98
+  Kept features: 98
+  train: (1964, 64, 98)
+  val: (711, 64, 98)
+  test: (978, 64, 98)
+
+======================================================================
+TRAINING MLP
+======================================================================
+  Model params: 3,378,953
+  Epoch   1/200 | train=86.94% val=93.81% test=58.28% ** BEST **
+  Epoch   2/200 | train=99.18% val=94.23% test=60.84% ** BEST **
+  Epoch   3/200 | train=99.39% val=93.95% test=62.68%
+  Epoch   4/200 | train=99.69% val=92.55% test=58.69%
+  Epoch   5/200 | train=99.08% val=94.37% test=58.28% ** BEST **
+  Epoch   6/200 | train=99.95% val=94.66% test=57.98% ** BEST **
+  Epoch   7/200 | train=99.95% val=94.94% test=58.38% ** BEST **
+  Epoch  12/200 | train=100.00% val=95.08% test=59.51% ** BEST **
+  Epoch  20/200 | train=100.00% val=94.80% test=58.28%
+  Epoch  40/200 | train=99.90% val=94.94% test=60.43%
+  Early stopping at epoch 52
+  Training time: 11.8s
+  Best val epoch: 12, val_acc=95.08%
+  Final: train=100.00% val=95.08% test=59.51%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 59.51%
+    adaptive: 100.00%
+    adaptive150025: 92.86%
+    face: 98.89%
+    face150025: 22.42%
+    pocket: 100.00%
+    pocket150025: 19.66%
+    damageadaptive: 100.00%
+    damageface: 100.00%
+    damagepocket: 28.57%
+
+======================================================================
+COMPLETE in 0.2 minutes
+======================================================================

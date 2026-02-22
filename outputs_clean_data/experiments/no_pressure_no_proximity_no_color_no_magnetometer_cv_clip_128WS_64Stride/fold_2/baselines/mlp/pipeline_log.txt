@@ -1,0 +1,54 @@
+Baseline Model: mlp
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride/fold_2/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride/fold_2/baselines/mlp
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (515, 128, 56)
+  val: (153, 128, 56)
+  test: (160, 128, 56)
+
+======================================================================
+TRAINING MLP
+======================================================================
+  Model params: 3,837,705
+  Epoch   1/200 | train=55.27% val=82.35% test=77.50% ** BEST **
+  Epoch   2/200 | train=83.20% val=91.50% test=91.88% ** BEST **
+  Epoch   3/200 | train=90.62% val=92.81% test=90.00% ** BEST **
+  Epoch   4/200 | train=94.92% val=96.08% test=96.88% ** BEST **
+  Epoch   5/200 | train=97.66% val=92.81% test=94.38%
+  Epoch   7/200 | train=99.41% val=97.39% test=93.75% ** BEST **
+  Epoch  20/200 | train=99.80% val=92.81% test=95.00%
+  Epoch  33/200 | train=100.00% val=98.04% test=96.25% ** BEST **
+  Epoch  40/200 | train=99.61% val=92.16% test=96.88%
+  Epoch  41/200 | train=100.00% val=98.69% test=98.75% ** BEST **
+  Epoch  60/200 | train=100.00% val=92.81% test=95.62%
+  Epoch  80/200 | train=100.00% val=98.04% test=95.62%
+  Early stopping at epoch 81
+  Training time: 3.9s
+  Best val epoch: 41, val_acc=98.69%
+  Final: train=100.00% val=98.69% test=98.75%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 98.75%
+    adaptive: 100.00%
+    adaptive150025: 95.83%
+    face: 100.00%
+    face150025: 100.00%
+    pocket: 100.00%
+    pocket150025: 100.00%
+    damageadaptive: 100.00%
+    damageface: 85.71%
+    damagepocket: 100.00%
+
+======================================================================
+COMPLETE in 0.1 minutes
+======================================================================

@@ -1,0 +1,50 @@
+{
+  "config": {
+    "iteration": "cv_fold_1",
+    "seed": 42,
+    "n_classes": 9,
+    "d_model": 256,
+    "dropout": 0.2,
+    "max_epochs": 100,
+    "patience": 40,
+    "lr": 0.001,
+    "label_smoothing": 0.1,
+    "modality_dropout": 0.1
+  },
+  "checkpoint_info": {
+    "val_best_epoch": 9,
+    "val_best_val_acc": 0.9918166939443536,
+    "val_best_test_acc": 0.597254004576659,
+    "test_best_epoch": 19,
+    "test_best_test_acc": 0.6338672768878718,
+    "test_best_val_acc": 0.9574468085106383
+  },
+  "val_best_test": {
+    "accuracy": 0.597254004576659,
+    "per_class": {
+      "adaptive": 0.75,
+      "adaptive150025": 0.8854166666666666,
+      "face": 0.9329268292682927,
+      "face150025": 0.137546468401487,
+      "pocket": 1.0,
+      "pocket150025": 0.7098765432098766,
+      "damageadaptive": 0.75,
+      "damageface": 1.0,
+      "damagepocket": 0.0
+    }
+  },
+  "test_best_test": {
+    "accuracy": 0.6338672768878718,
+    "per_class": {
+      "adaptive": 1.0,
+      "adaptive150025": 1.0,
+      "face": 0.9817073170731707,
+      "face150025": 0.20446096654275092,
+      "pocket": 1.0,
+      "pocket150025": 0.5679012345679012,
+      "damageadaptive": 1.0,
+      "damageface": 0.8571428571428571,
+      "damagepocket": 0.06451612903225806
+    }
+  }
+}

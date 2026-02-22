@@ -1,0 +1,50 @@
+{
+  "config": {
+    "iteration": "cv_fold_5",
+    "seed": 42,
+    "n_classes": 9,
+    "d_model": 256,
+    "dropout": 0.2,
+    "max_epochs": 100,
+    "patience": 40,
+    "lr": 0.001,
+    "label_smoothing": 0.1,
+    "modality_dropout": 0.1
+  },
+  "checkpoint_info": {
+    "val_best_epoch": 68,
+    "val_best_val_acc": 0.5806451612903226,
+    "val_best_test_acc": 0.9215686274509803,
+    "test_best_epoch": 43,
+    "test_best_test_acc": 0.9411764705882353,
+    "test_best_val_acc": 0.5483870967741935
+  },
+  "val_best_test": {
+    "accuracy": 0.9215686274509803,
+    "per_class": {
+      "adaptive": 1.0,
+      "adaptive150025": 1.0,
+      "face": 0.9333333333333333,
+      "face150025": 0.6666666666666666,
+      "pocket": 1.0,
+      "pocket150025": 1.0,
+      "damageadaptive": 1.0,
+      "damageface": 0.0,
+      "damagepocket": 1.0
+    }
+  },
+  "test_best_test": {
+    "accuracy": 0.9411764705882353,
+    "per_class": {
+      "adaptive": 1.0,
+      "adaptive150025": 1.0,
+      "face": 1.0,
+      "face150025": 0.6666666666666666,
+      "pocket": 1.0,
+      "pocket150025": 1.0,
+      "damageadaptive": 1.0,
+      "damageface": 0.0,
+      "damagepocket": 1.0
+    }
+  }
+}

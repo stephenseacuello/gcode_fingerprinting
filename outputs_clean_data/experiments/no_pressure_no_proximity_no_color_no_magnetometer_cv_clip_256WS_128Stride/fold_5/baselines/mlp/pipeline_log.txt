@@ -1,0 +1,53 @@
+Baseline Model: mlp
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_256WS_128Stride/fold_5/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_256WS_128Stride/fold_5/baselines/mlp
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (176, 256, 56)
+  val: (93, 256, 56)
+  test: (51, 256, 56)
+
+======================================================================
+TRAINING MLP
+======================================================================
+  Model params: 7,507,721
+  Epoch   1/200 | train=37.50% val=41.94% test=70.59% ** BEST **
+  Epoch   2/200 | train=75.00% val=44.09% test=72.55% ** BEST **
+  Epoch   3/200 | train=80.00% val=46.24% test=72.55% ** BEST **
+  Epoch   4/200 | train=91.88% val=45.16% test=72.55%
+  Epoch   5/200 | train=94.38% val=46.24% test=76.47%
+  Epoch   8/200 | train=98.12% val=50.54% test=80.39% ** BEST **
+  Epoch   9/200 | train=98.12% val=52.69% test=84.31% ** BEST **
+  Epoch  20/200 | train=100.00% val=51.61% test=78.43%
+  Epoch  21/200 | train=100.00% val=53.76% test=84.31% ** BEST **
+  Epoch  40/200 | train=100.00% val=50.54% test=80.39%
+  Epoch  60/200 | train=100.00% val=53.76% test=82.35%
+  Early stopping at epoch 61
+  Training time: 1.8s
+  Best val epoch: 21, val_acc=53.76%
+  Final: train=100.00% val=53.76% test=84.31%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 84.31%
+    adaptive: 100.00%
+    adaptive150025: 100.00%
+    face: 73.33%
+    face150025: 66.67%
+    pocket: 66.67%
+    pocket150025: 100.00%
+    damageadaptive: 100.00%
+    damageface: 0.00%
+    damagepocket: 100.00%
+
+======================================================================
+COMPLETE in 0.1 minutes
+======================================================================

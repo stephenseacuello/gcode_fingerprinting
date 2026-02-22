@@ -1,0 +1,50 @@
+Baseline Model: lstm_simple
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_64WS_16Stride_nan_removed/fold_2/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_64WS_16Stride_nan_removed/fold_2/baselines/lstm_simple
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (2086, 64, 56)
+  val: (682, 64, 56)
+  test: (711, 64, 56)
+
+======================================================================
+TRAINING LSTM_SIMPLE
+======================================================================
+  Model params: 850,185
+  Epoch   1/200 | train=70.19% val=77.86% test=84.81% ** BEST **
+  Epoch   2/200 | train=90.05% val=93.84% test=97.05% ** BEST **
+  Epoch   3/200 | train=96.54% val=92.38% test=97.47%
+  Epoch   4/200 | train=98.37% val=91.50% test=97.33%
+  Epoch   5/200 | train=98.70% val=90.76% test=96.48%
+  Epoch   7/200 | train=98.22% val=94.72% test=93.81% ** BEST **
+  Epoch  20/200 | train=100.00% val=92.96% test=97.89%
+  Epoch  40/200 | train=100.00% val=92.38% test=97.61%
+  Early stopping at epoch 47
+  Training time: 22.0s
+  Best val epoch: 7, val_acc=94.72%
+  Final: train=97.88% val=94.72% test=93.81%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 93.81%
+    adaptive: 98.61%
+    adaptive150025: 99.11%
+    face: 98.52%
+    face150025: 96.91%
+    pocket: 100.00%
+    pocket150025: 97.14%
+    damageadaptive: 100.00%
+    damageface: 0.00%
+    damagepocket: 97.14%
+
+======================================================================
+COMPLETE in 0.4 minutes
+======================================================================

@@ -1,0 +1,50 @@
+Baseline Model: mlp
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride/fold_4/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride/fold_4/baselines/mlp
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (540, 128, 56)
+  val: (135, 128, 56)
+  test: (153, 128, 56)
+
+======================================================================
+TRAINING MLP
+======================================================================
+  Model params: 3,837,705
+  Epoch   1/200 | train=62.11% val=80.74% test=84.31% ** BEST **
+  Epoch   2/200 | train=83.59% val=77.04% test=79.08%
+  Epoch   3/200 | train=93.95% val=78.52% test=89.54%
+  Epoch   4/200 | train=97.85% val=80.00% test=89.54%
+  Epoch   5/200 | train=98.44% val=79.26% test=93.46%
+  Epoch  10/200 | train=99.80% val=82.96% test=93.46% ** BEST **
+  Epoch  20/200 | train=100.00% val=80.74% test=95.42%
+  Epoch  40/200 | train=100.00% val=80.74% test=90.85%
+  Early stopping at epoch 50
+  Training time: 2.8s
+  Best val epoch: 10, val_acc=82.96%
+  Final: train=100.00% val=82.96% test=93.46%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 93.46%
+    adaptive: 81.25%
+    adaptive150025: 100.00%
+    face: 96.97%
+    face150025: 95.24%
+    pocket: 100.00%
+    pocket150025: 87.50%
+    damageadaptive: 100.00%
+    damageface: 85.71%
+    damagepocket: 100.00%
+
+======================================================================
+COMPLETE in 0.1 minutes
+======================================================================

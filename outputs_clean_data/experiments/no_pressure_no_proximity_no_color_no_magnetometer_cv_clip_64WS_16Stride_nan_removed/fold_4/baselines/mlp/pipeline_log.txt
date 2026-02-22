@@ -1,0 +1,57 @@
+Baseline Model: mlp
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_64WS_16Stride_nan_removed/fold_4/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_64WS_16Stride_nan_removed/fold_4/baselines/mlp
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (2197, 64, 56)
+  val: (600, 64, 56)
+  test: (682, 64, 56)
+
+======================================================================
+TRAINING MLP
+======================================================================
+  Model params: 2,002,697
+  Epoch   1/200 | train=74.36% val=79.17% test=86.80% ** BEST **
+  Epoch   2/200 | train=95.31% val=79.17% test=87.54%
+  Epoch   3/200 | train=98.35% val=75.67% test=90.03%
+  Epoch   4/200 | train=98.81% val=80.83% test=90.03% ** BEST **
+  Epoch   5/200 | train=99.22% val=83.00% test=93.40% ** BEST **
+  Epoch  10/200 | train=99.45% val=83.67% test=95.75% ** BEST **
+  Epoch  13/200 | train=99.82% val=84.17% test=93.84% ** BEST **
+  Epoch  14/200 | train=99.72% val=86.67% test=94.87% ** BEST **
+  Epoch  19/200 | train=99.91% val=86.83% test=96.19% ** BEST **
+  Epoch  20/200 | train=100.00% val=87.33% test=94.43% ** BEST **
+  Epoch  24/200 | train=100.00% val=87.67% test=95.01% ** BEST **
+  Epoch  40/200 | train=100.00% val=83.67% test=93.99%
+  Epoch  46/200 | train=99.95% val=89.50% test=96.48% ** BEST **
+  Epoch  60/200 | train=99.95% val=85.50% test=94.57%
+  Epoch  80/200 | train=100.00% val=85.17% test=97.21%
+  Early stopping at epoch 86
+  Training time: 15.7s
+  Best val epoch: 46, val_acc=89.50%
+  Final: train=100.00% val=89.50% test=96.48%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 96.48%
+    adaptive: 93.06%
+    adaptive150025: 100.00%
+    face: 95.56%
+    face150025: 100.00%
+    pocket: 95.00%
+    pocket150025: 93.57%
+    damageadaptive: 100.00%
+    damageface: 96.88%
+    damagepocket: 100.00%
+
+======================================================================
+COMPLETE in 0.3 minutes
+======================================================================

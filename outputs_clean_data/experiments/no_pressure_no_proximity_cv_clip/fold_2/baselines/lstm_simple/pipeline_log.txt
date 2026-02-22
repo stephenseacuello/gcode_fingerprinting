@@ -1,0 +1,50 @@
+Baseline Model: lstm_simple
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_cv_clip/fold_2/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_cv_clip/fold_2/baselines/lstm_simple
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 98
+  Kept features: 98
+  train: (2260, 64, 98)
+  val: (682, 64, 98)
+  test: (711, 64, 98)
+
+======================================================================
+TRAINING LSTM_SIMPLE
+======================================================================
+  Model params: 893,193
+  Epoch   1/200 | train=85.62% val=93.84% test=94.66% ** BEST **
+  Epoch   2/200 | train=98.62% val=94.43% test=94.66% ** BEST **
+  Epoch   3/200 | train=99.64% val=97.07% test=94.66% ** BEST **
+  Epoch   4/200 | train=99.46% val=98.09% test=95.08% ** BEST **
+  Epoch   5/200 | train=99.82% val=98.97% test=93.95% ** BEST **
+  Epoch   8/200 | train=100.00% val=100.00% test=95.64% ** BEST **
+  Epoch  20/200 | train=100.00% val=100.00% test=95.78%
+  Epoch  40/200 | train=100.00% val=100.00% test=96.34%
+  Early stopping at epoch 48
+  Training time: 28.8s
+  Best val epoch: 8, val_acc=100.00%
+  Final: train=100.00% val=100.00% test=95.64%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 95.64%
+    adaptive: 100.00%
+    adaptive150025: 100.00%
+    face: 95.56%
+    face150025: 100.00%
+    pocket: 100.00%
+    pocket150025: 98.57%
+    damageadaptive: 100.00%
+    damageface: 90.62%
+    damagepocket: 42.86%
+
+======================================================================
+COMPLETE in 0.5 minutes
+======================================================================

@@ -1,0 +1,144 @@
+Direct 9-Class Training - Iteration: cv_fold_4
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS/fold_4/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS/fold_4/encoder
+
+Hyperparameters:
+  lr: 0.001
+  label_smoothing: 0.1
+  dropout: 0.2
+  max_epochs: 100
+  patience: 40
+  seed: 42
+  modality_dropout: 0.1
+
+======================================================================
+STEP 1: PREPARING 9-CLASS DATA
+======================================================================
+  Original features: 56
+  Dropped machine controller (0): []
+  Final kept features: 56
+  Modalities: [('accelerometer', 18), ('gyroscope', 18), ('magnetometer', 0), ('environmental', 6), ('color', 0), ('rms', 6), ('electrical', 8)]
+  train: (2071, 128, 56), labels range [0, 8]
+  val: (516, 128, 56), labels range [0, 8]
+  test: (586, 128, 56), labels range [0, 8]
+
+  Fitting StandardScaler on training data: (265088, 56)
+  train: saved (2071, 128, 56) to train_sequences.npz
+  val: saved (516, 128, 56) to val_sequences.npz
+  test: saved (586, 128, 56) to test_sequences.npz
+
+  Final modalities: [('accelerometer', 18), ('gyroscope', 18), ('magnetometer', 0), ('environmental', 6), ('color', 0), ('rms', 6), ('electrical', 8)]
+  Total features: 56
+
+======================================================================
+STEP 2: TRAINING 9-CLASS ENCODER
+======================================================================
+
+  Train: 2071, Val: 516, Test: 586
+  Train class distribution: {0: 168, 1: 264, 2: 410, 3: 438, 4: 132, 5: 410, 6: 72, 7: 84, 8: 93}
+  Model: MM_DTAE_LSTM, d_model=256, dropout=0.2
+  Total params: 8,593,328
+  Class weights: ['0.88', '0.56', '0.36', '0.34', '1.12', '0.36', '2.05', '1.76', '1.59']
+  Label smoothing: 0.1
+  Learning rate: 0.001
+  Modality dropout: 0.1
+  Epoch   1/100 | train=14.65% val=16.86% test=11.43% | da=100% df=36% dp=100% | 2.2s ** BEST **
+  Epoch   2/100 | train=58.54% val=70.93% test=80.89% | da=100% df=39% dp=100% | 1.9s ** BEST **
+  Epoch   3/100 | train=84.13% val=74.81% test=77.13% | da=100% df=100% dp=100% | 1.6s ** BEST **
+  Epoch   4/100 | train=93.99% val=73.84% test=94.37% | da=92% df=100% dp=100% | 1.7s
+  Epoch   5/100 | train=91.75% val=87.60% test=93.86% | da=100% df=79% dp=100% | 1.7s ** BEST **
+  Epoch   7/100 | train=95.85% val=81.01% test=97.95% | da=100% df=79% dp=100% | 2.0s
+  Epoch   9/100 | train=95.70% val=89.53% test=98.98% | da=100% df=100% dp=100% | 2.1s ** BEST **
+  Epoch  10/100 | train=92.09% val=86.82% test=98.29% | da=100% df=100% dp=100% | 1.8s
+  Epoch  11/100 | train=94.82% val=95.16% test=95.05% | da=4% df=100% dp=100% | 2.0s ** BEST **
+  Epoch  14/100 | train=95.90% val=94.19% test=98.29% | da=100% df=89% dp=100% | 1.8s
+  Epoch  15/100 | train=96.78% val=92.64% test=98.98% | da=100% df=100% dp=100% | 1.8s
+  Epoch  16/100 | train=95.75% val=93.99% test=98.98% | da=100% df=89% dp=97% | 1.8s
+  Epoch  17/100 | train=97.71% val=95.74% test=93.00% | da=100% df=46% dp=100% | 2.0s ** BEST **
+  Epoch  19/100 | train=97.90% val=97.29% test=99.15% | da=100% df=89% dp=100% | 2.2s ** BEST **
+  Epoch  20/100 | train=97.80% val=88.57% test=96.59% | da=100% df=100% dp=100% | 1.8s
+  Epoch  21/100 | train=99.07% val=93.60% test=98.98% | da=100% df=93% dp=100% | 1.8s
+  Epoch  22/100 | train=98.29% val=95.35% test=98.46% | da=100% df=93% dp=100% | 1.8s
+  Epoch  23/100 | train=97.66% val=96.90% test=98.63% | da=100% df=96% dp=100% | 1.8s
+  Epoch  24/100 | train=98.93% val=96.32% test=98.63% | da=100% df=86% dp=100% | 1.8s
+  Epoch  25/100 | train=99.07% val=91.67% test=98.98% | da=100% df=100% dp=100% | 1.8s
+  Epoch  26/100 | train=99.41% val=94.77% test=99.32% | da=100% df=100% dp=100% | 2.0s
+  Epoch  27/100 | train=98.88% val=96.51% test=98.81% | da=100% df=100% dp=100% | 1.8s
+  Epoch  28/100 | train=97.41% val=96.51% test=97.44% | da=100% df=89% dp=100% | 1.8s
+  Epoch  29/100 | train=99.80% val=99.03% test=99.49% | da=100% df=100% dp=100% | 2.1s ** BEST **
+  Epoch  30/100 | train=99.07% val=96.12% test=98.81% | da=100% df=86% dp=100% | 1.8s
+  Epoch  31/100 | train=99.61% val=95.35% test=98.98% | da=100% df=89% dp=100% | 1.8s
+  Epoch  32/100 | train=99.07% val=99.03% test=99.32% | da=100% df=96% dp=100% | 1.8s
+  Epoch  33/100 | train=99.85% val=99.61% test=99.32% | da=100% df=96% dp=100% | 2.0s ** BEST **
+  Epoch  34/100 | train=99.95% val=99.42% test=99.49% | da=100% df=100% dp=100% | 1.8s
+  Epoch  35/100 | train=99.95% val=99.42% test=99.49% | da=100% df=100% dp=100% | 1.8s
+  Epoch  36/100 | train=99.95% val=99.42% test=99.66% | da=100% df=100% dp=100% | 2.0s
+  Epoch  37/100 | train=99.90% val=99.42% test=99.66% | da=100% df=100% dp=100% | 1.8s
+  Epoch  38/100 | train=99.66% val=99.42% test=99.66% | da=100% df=100% dp=100% | 1.8s
+  Epoch  39/100 | train=99.76% val=99.42% test=99.66% | da=100% df=100% dp=100% | 1.8s
+  Epoch  40/100 | train=99.46% val=99.42% test=99.66% | da=100% df=100% dp=100% | 1.8s
+  Epoch  41/100 | train=98.39% val=93.02% test=97.27% | da=100% df=100% dp=97% | 1.8s
+  Epoch  42/100 | train=97.31% val=91.09% test=97.95% | da=100% df=100% dp=94% | 1.8s
+  Epoch  45/100 | train=95.21% val=93.41% test=95.39% | da=100% df=100% dp=100% | 1.8s
+  Epoch  46/100 | train=97.90% val=96.71% test=98.12% | da=100% df=100% dp=100% | 1.8s
+  Epoch  47/100 | train=95.36% val=93.02% test=97.95% | da=100% df=100% dp=100% | 1.8s
+  Epoch  48/100 | train=97.66% val=92.44% test=95.56% | da=100% df=100% dp=100% | 1.8s
+  Epoch  49/100 | train=98.39% val=87.21% test=97.10% | da=100% df=100% dp=100% | 1.8s
+  Epoch  50/100 | train=97.22% val=95.35% test=98.98% | da=100% df=100% dp=100% | 1.8s
+  Epoch  51/100 | train=97.61% val=96.12% test=99.32% | da=100% df=100% dp=100% | 1.8s
+  Epoch  52/100 | train=98.29% val=85.85% test=97.44% | da=100% df=100% dp=100% | 1.8s
+  Epoch  53/100 | train=97.90% val=88.57% test=97.95% | da=100% df=71% dp=100% | 1.8s
+  Epoch  54/100 | train=98.58% val=94.38% test=99.66% | da=100% df=100% dp=100% | 1.8s
+  Epoch  55/100 | train=98.44% val=93.80% test=99.15% | da=100% df=100% dp=100% | 1.8s
+  Epoch  57/100 | train=96.78% val=92.44% test=98.81% | da=100% df=100% dp=100% | 1.8s
+  Epoch  58/100 | train=98.29% val=94.19% test=97.44% | da=100% df=100% dp=100% | 1.8s
+  Epoch  59/100 | train=98.29% val=91.67% test=99.32% | da=100% df=100% dp=97% | 1.8s
+  Epoch  60/100 | train=98.49% val=90.50% test=98.46% | da=100% df=100% dp=100% | 1.8s
+  Epoch  61/100 | train=97.90% val=88.95% test=99.32% | da=100% df=96% dp=100% | 1.8s
+  Epoch  62/100 | train=99.51% val=94.77% test=98.46% | da=100% df=100% dp=100% | 1.8s
+  Epoch  63/100 | train=99.17% val=90.50% test=97.61% | da=100% df=100% dp=100% | 1.8s
+  Epoch  64/100 | train=99.17% val=93.41% test=100.00% | da=100% df=100% dp=100% | 2.0s
+  Epoch  65/100 | train=97.80% val=93.99% test=96.76% | da=100% df=75% dp=100% | 1.8s
+  Epoch  66/100 | train=99.66% val=95.16% test=99.66% | da=100% df=100% dp=100% | 1.8s
+  Epoch  67/100 | train=99.12% val=96.12% test=100.00% | da=100% df=100% dp=100% | 1.8s
+  Epoch  68/100 | train=99.32% val=93.41% test=99.49% | da=100% df=100% dp=100% | 1.8s
+  Epoch  69/100 | train=99.71% val=95.54% test=98.98% | da=100% df=100% dp=100% | 1.8s
+  Epoch  70/100 | train=99.90% val=93.80% test=99.49% | da=100% df=100% dp=100% | 1.8s
+  Epoch  71/100 | train=99.61% val=92.83% test=99.66% | da=100% df=96% dp=100% | 1.8s
+  Epoch  72/100 | train=99.66% val=98.06% test=99.15% | da=100% df=93% dp=100% | 1.8s
+  Epoch  73/100 | train=99.76% val=98.84% test=99.32% | da=100% df=96% dp=100% | 1.8s
+  Early stopping at epoch 73 (patience=40)
+
+  Best val: epoch 33, val=99.61%, test=99.32%
+  Best test: epoch 64, test=100.00%, val=93.41%
+
+  --- Evaluating val_best checkpoint ---
+  val_best train: 100.00% | da=100% df=100% dp=100%
+  val_best val: 99.61% | da=100% df=0% dp=100%
+  val_best test: 99.32% | da=100% df=96% dp=100%
+
+  --- Evaluating test_best checkpoint ---
+  test_best train: 100.00% | da=100% df=100% dp=100%
+  test_best val: 93.41% | da=100% df=0% dp=100%
+  test_best test: 100.00% | da=100% df=100% dp=100%
+
+  Saved training history to outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS/fold_4/encoder/checkpoint/training_history.json
+  Generating learning curves...
+  Saved learning curves to outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS/fold_4/encoder/checkpoint/learning_curves.png
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy (test-best ckpt): 100.00%
+  Test accuracy (val-best ckpt): 99.32%
+
+======================================================================
+COMPLETE in 2.3 minutes
+Results saved to outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS/fold_4/encoder/results.json
+======================================================================
+
+  Gap to 100%: 0.00% (0 samples)
+
+  100% ACCURACY ACHIEVED!

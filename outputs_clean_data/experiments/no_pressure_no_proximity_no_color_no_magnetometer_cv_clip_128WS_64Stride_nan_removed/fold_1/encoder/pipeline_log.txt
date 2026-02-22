@@ -1,0 +1,94 @@
+Direct 9-Class Training - Iteration: cv_fold_1
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride_nan_removed/fold_1/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride_nan_removed/fold_1/encoder
+
+Hyperparameters:
+  lr: 0.001
+  label_smoothing: 0.1
+  dropout: 0.2
+  max_epochs: 100
+  patience: 40
+  seed: 42
+  modality_dropout: 0.1
+
+======================================================================
+STEP 1: PREPARING 9-CLASS DATA
+======================================================================
+  Original features: 56
+  Dropped machine controller (0): []
+  Final kept features: 56
+  Modalities: [('accelerometer', 18), ('gyroscope', 18), ('magnetometer', 0), ('environmental', 6), ('color', 0), ('rms', 6), ('electrical', 8)]
+  train: (441, 128, 56), labels range [0, 8]
+  val: (160, 128, 56), labels range [0, 8]
+  test: (184, 128, 56), labels range [0, 8]
+
+  Fitting StandardScaler on training data: (56448, 56)
+  train: saved (441, 128, 56) to train_sequences.npz
+  val: saved (160, 128, 56) to val_sequences.npz
+  test: saved (184, 128, 56) to test_sequences.npz
+
+  Final modalities: [('accelerometer', 18), ('gyroscope', 18), ('magnetometer', 0), ('environmental', 6), ('color', 0), ('rms', 6), ('electrical', 8)]
+  Total features: 56
+
+======================================================================
+STEP 2: TRAINING 9-CLASS ENCODER
+======================================================================
+
+  Train: 441, Val: 160, Test: 184
+  Train class distribution: {0: 48, 1: 54, 2: 99, 3: 63, 4: 33, 5: 88, 6: 18, 7: 14, 8: 24}
+  Model: MM_DTAE_LSTM, d_model=256, dropout=0.2
+  Total params: 8,593,328
+  Class weights: ['0.68', '0.60', '0.33', '0.52', '0.99', '0.37', '1.81', '2.33', '1.36']
+  Label smoothing: 0.1
+  Learning rate: 0.001
+  Modality dropout: 0.1
+  Epoch   1/100 | train=12.26% val=7.50% test=8.70% | da=0% df=0% dp=0% | 1.1s ** BEST **
+  Epoch   2/100 | train=17.07% val=26.25% test=20.65% | da=100% df=0% dp=0% | 0.7s ** BEST **
+  Epoch   3/100 | train=38.94% val=30.00% test=20.11% | da=100% df=57% dp=0% | 0.6s ** BEST **
+  Epoch   4/100 | train=57.21% val=71.25% test=44.02% | da=100% df=0% dp=0% | 0.7s ** BEST **
+  Epoch   5/100 | train=71.39% val=66.88% test=50.00% | da=100% df=100% dp=0% | 0.6s
+  Epoch   6/100 | train=77.40% val=85.62% test=66.85% | da=100% df=100% dp=0% | 0.7s ** BEST **
+  Epoch   7/100 | train=84.62% val=88.75% test=71.20% | da=100% df=0% dp=0% | 0.7s ** BEST **
+  Epoch  10/100 | train=88.94% val=85.62% test=69.02% | da=100% df=86% dp=0% | 0.4s
+  Epoch  12/100 | train=89.42% val=89.38% test=64.67% | da=100% df=100% dp=0% | 0.6s ** BEST **
+  Epoch  16/100 | train=93.03% val=90.62% test=70.11% | da=100% df=100% dp=0% | 0.6s ** BEST **
+  Epoch  17/100 | train=95.91% val=94.38% test=77.17% | da=83% df=100% dp=0% | 0.7s ** BEST **
+  Epoch  20/100 | train=97.84% val=91.25% test=68.48% | da=100% df=86% dp=0% | 0.4s
+  Epoch  23/100 | train=95.19% val=96.25% test=69.02% | da=100% df=0% dp=0% | 0.6s ** BEST **
+  Epoch  30/100 | train=99.52% val=93.12% test=77.17% | da=100% df=86% dp=0% | 0.4s
+  Epoch  40/100 | train=100.00% val=94.38% test=77.72% | da=100% df=86% dp=0% | 0.4s
+  Epoch  50/100 | train=91.35% val=94.38% test=76.09% | da=100% df=86% dp=0% | 0.4s
+  Epoch  60/100 | train=93.03% val=91.88% test=77.72% | da=100% df=71% dp=0% | 0.4s
+  Early stopping at epoch 63 (patience=40)
+
+  Best val: epoch 23, val=96.25%, test=69.02%
+  Best test: epoch 55, test=83.15%, val=95.62%
+
+  --- Evaluating val_best checkpoint ---
+  val_best train: 100.00% | da=100% df=100% dp=100%
+  val_best val: 96.25% | da=100% df=100% dp=100%
+  val_best test: 69.02% | da=100% df=0% dp=0%
+
+  --- Evaluating test_best checkpoint ---
+  test_best train: 100.00% | da=100% df=100% dp=100%
+  test_best val: 95.62% | da=100% df=100% dp=100%
+  test_best test: 83.15% | da=83% df=100% dp=0%
+
+  Saved training history to outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride_nan_removed/fold_1/encoder/checkpoint/training_history.json
+  Generating learning curves...
+  Saved learning curves to outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride_nan_removed/fold_1/encoder/checkpoint/learning_curves.png
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy (test-best ckpt): 83.15%
+  Test accuracy (val-best ckpt): 69.02%
+
+======================================================================
+COMPLETE in 0.5 minutes
+Results saved to outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS_64Stride_nan_removed/fold_1/encoder/results.json
+======================================================================
+
+  Gap to 100%: 16.85% (30 samples)

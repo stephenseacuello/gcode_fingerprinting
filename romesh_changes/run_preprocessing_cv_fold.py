@@ -37,19 +37,24 @@ from src.miracle.dataset.preprocessing import GCodePreprocessor
 from src.miracle.config.preprocessing_config import PreprocessingConfig
 
 # Sensors with >=95% activity
-CONSISTENT_SENSORS = ['frame_l2', 'frame_r2', 'spindle2', 'y_bed__3', 'y_bed__4']
+CONSISTENT_SENSORS = ['frame_l2', 'frame_l3', 'frame_r2', 'spindle2', 'y_bed__3', 'y_bed__4']
 
 ELECTRICAL_FEATURES = [
     'spindle', 'x_motor', 'y_motor', 'z_motor',
     'spindle_A', 'x_motor_A', 'y_motor_A', 'z_motor_A'
 ]
 
+ALL_PRESSURE_CHANNELS = [
+    'frame_l2.Pressure', 'frame_l3.Pressure', 'frame_r2.Pressure', 'spindle2.Pressure',
+    'y_bed__3.Pressure', 'y_bed__4.Pressure',
+]
 ALL_PROXIMITY_CHANNELS = [
-    'frame_l2.Proximity', 'frame_r2.Proximity', 'spindle2.Proximity',
+    'frame_l2.Proximity', 'frame_l3.Proximity', 'frame_r2.Proximity', 'spindle2.Proximity',
     'y_bed__3.Proximity', 'y_bed__4.Proximity',
 ]
 ALL_COLOR_CHANNELS = [
     'frame_l2.ColorR', 'frame_l2.ColorG', 'frame_l2.ColorB', 'frame_l2.ColorA',
+    'frame_l3.ColorR', 'frame_l3.ColorG', 'frame_l3.ColorB', 'frame_l3.ColorA',
     'frame_r2.ColorR', 'frame_r2.ColorG', 'frame_r2.ColorB', 'frame_r2.ColorA',
     'spindle2.ColorR', 'spindle2.ColorG', 'spindle2.ColorB', 'spindle2.ColorA',
     'y_bed__3.ColorR', 'y_bed__3.ColorG', 'y_bed__3.ColorB', 'y_bed__3.ColorA',
@@ -57,6 +62,7 @@ ALL_COLOR_CHANNELS = [
 ]
 ALL_MAGNETOMETER_CHANNELS = [
     'frame_l2.Mx', 'frame_l2.My', 'frame_l2.Mz',
+    'frame_l3.Mx', 'frame_l3.My', 'frame_l3.Mz',
     'frame_r2.Mx', 'frame_r2.My', 'frame_r2.Mz',
     'spindle2.Mx', 'spindle2.My', 'spindle2.Mz',
     'y_bed__3.Mx', 'y_bed__3.My', 'y_bed__3.Mz',
@@ -153,6 +159,7 @@ def main():
     parser.add_argument('--n-folds',     type=int,   default=5)
     parser.add_argument('--window-size', type=int,   default=64)
     parser.add_argument('--stride',      type=int,   default=16)
+    parser.add_argument('--exclude-pressure',     action='store_true')
     parser.add_argument('--exclude-proximity',    action='store_true')
     parser.add_argument('--exclude-color',        action='store_true')
     parser.add_argument('--exclude-magnetometer', action='store_true')
@@ -167,6 +174,7 @@ def main():
 
     # Channels to exclude
     exclude_channels = []
+    if args.exclude_pressure:     exclude_channels.extend(ALL_PRESSURE_CHANNELS)
     if args.exclude_proximity:    exclude_channels.extend(ALL_PROXIMITY_CHANNELS)
     if args.exclude_color:        exclude_channels.extend(ALL_COLOR_CHANNELS)
     if args.exclude_magnetometer: exclude_channels.extend(ALL_MAGNETOMETER_CHANNELS)

@@ -1,0 +1,50 @@
+Baseline Model: lstm_simple
+======================================================================
+Device: cuda
+Data dir: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS/fold_5/preprocessed
+Output: outputs_clean_data/experiments/no_pressure_no_proximity_no_color_no_magnetometer_cv_clip_128WS/fold_5/baselines/lstm_simple
+Seed: 42
+
+======================================================================
+LOADING DATA
+======================================================================
+  Original features: 56
+  Kept features: 56
+  train: (1783, 128, 56)
+  val: (874, 128, 56)
+  test: (516, 128, 56)
+
+======================================================================
+TRAINING LSTM_SIMPLE
+======================================================================
+  Model params: 850,185
+  Epoch   1/200 | train=70.91% val=37.41% test=69.96% ** BEST **
+  Epoch   2/200 | train=93.92% val=53.32% test=85.66% ** BEST **
+  Epoch   3/200 | train=97.39% val=50.00% test=85.08%
+  Epoch   4/200 | train=94.32% val=47.83% test=81.40%
+  Epoch   5/200 | train=99.20% val=46.91% test=80.81%
+  Epoch  12/200 | train=99.55% val=55.03% test=88.95% ** BEST **
+  Epoch  20/200 | train=99.83% val=50.57% test=85.27%
+  Epoch  40/200 | train=100.00% val=53.66% test=88.37%
+  Early stopping at epoch 52
+  Training time: 33.8s
+  Best val epoch: 12, val_acc=55.03%
+  Final: train=100.00% val=55.03% test=88.95%
+
+======================================================================
+FINAL RESULTS
+======================================================================
+  Test accuracy: 88.95%
+    adaptive: 100.00%
+    adaptive150025: 100.00%
+    face: 88.62%
+    face150025: 66.67%
+    pocket: 100.00%
+    pocket150025: 100.00%
+    damageadaptive: 100.00%
+    damageface: 0.00%
+    damagepocket: 51.61%
+
+======================================================================
+COMPLETE in 0.6 minutes
+======================================================================

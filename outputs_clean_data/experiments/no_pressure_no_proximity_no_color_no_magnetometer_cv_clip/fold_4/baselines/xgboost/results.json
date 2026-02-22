@@ -1,0 +1,50 @@
+{
+  "config": {
+    "model": "xgboost",
+    "model_type": "ml",
+    "seed": 42
+  },
+  "train_time_seconds": 51.27687954902649,
+  "train": {
+    "accuracy": 1.0,
+    "per_class": {
+      "adaptive": 1.0,
+      "adaptive150025": 1.0,
+      "face": 1.0,
+      "face150025": 1.0,
+      "pocket": 1.0,
+      "pocket150025": 1.0,
+      "damageadaptive": 1.0,
+      "damageface": 1.0,
+      "damagepocket": 1.0
+    }
+  },
+  "val": {
+    "accuracy": 0.8016666666666666,
+    "per_class": {
+      "adaptive": 0.7777777777777778,
+      "adaptive150025": 1.0,
+      "face": 0.8148148148148148,
+      "face150025": 0.5625,
+      "pocket": 0.9777777777777777,
+      "pocket150025": 1.0,
+      "damageadaptive": 1.0,
+      "damageface": 0.0,
+      "damagepocket": 0.0
+    }
+  },
+  "test": {
+    "accuracy": 0.8284457478005866,
+    "per_class": {
+      "adaptive": 0.875,
+      "adaptive150025": 1.0,
+      "face": 0.8222222222222222,
+      "face150025": 0.9479166666666666,
+      "pocket": 1.0,
+      "pocket150025": 0.8928571428571429,
+      "damageadaptive": 1.0,
+      "damageface": 0.09375,
+      "damagepocket": 0.0
+    }
+  }
+}
