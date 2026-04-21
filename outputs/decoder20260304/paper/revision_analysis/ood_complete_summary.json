@@ -1,0 +1,108 @@
+{
+  "lookup_table_ood": {
+    "adaptive": {
+      "n_test": 128,
+      "n_lookup_miss": 128,
+      "seq_acc": 0.0,
+      "tok_acc": 0.0,
+      "cmd_acc": 0.0,
+      "param_acc": 0.0,
+      "num_acc": 0.0
+    },
+    "face": {
+      "n_test": 244,
+      "n_lookup_miss": 232,
+      "seq_acc": 0.0,
+      "tok_acc": 2.47,
+      "cmd_acc": 4.92,
+      "param_acc": 2.48,
+      "num_acc": 0.0
+    },
+    "pocket": {
+      "n_test": 173,
+      "n_lookup_miss": 35,
+      "seq_acc": 0.0,
+      "tok_acc": 36.43,
+      "cmd_acc": 80.23,
+      "param_acc": 33.53,
+      "num_acc": 0.0
+    }
+  },
+  "decoder_ood": {
+    "adaptive": {
+      "test": {
+        "token_accuracy": 16.41,
+        "sequence_accuracy": 0.0,
+        "type_accuracy": 45.23,
+        "command_accuracy": 0.0,
+        "param_type_accuracy": 55.05,
+        "numeric_accuracy": 0.0
+      },
+      "val": {
+        "token_accuracy": 94.69,
+        "sequence_accuracy": 80.95,
+        "type_accuracy": 99.41,
+        "command_accuracy": 100.0,
+        "param_type_accuracy": 96.39,
+        "numeric_accuracy": 87.95
+      },
+      "best_epoch": 144
+    },
+    "face": {
+      "test": {
+        "token_accuracy": 49.28,
+        "sequence_accuracy": 0.0,
+        "type_accuracy": 81.58,
+        "command_accuracy": 78.28,
+        "param_type_accuracy": 82.64,
+        "numeric_accuracy": 0.0
+      },
+      "val": {
+        "token_accuracy": 95.62,
+        "sequence_accuracy": 86.89,
+        "type_accuracy": 99.6,
+        "command_accuracy": 100.0,
+        "param_type_accuracy": 94.59,
+        "numeric_accuracy": 91.89
+      },
+      "best_epoch": 94
+    },
+    "pocket": {
+      "test": {
+        "token_accuracy": 50.07,
+        "sequence_accuracy": 0.0,
+        "type_accuracy": 87.9,
+        "command_accuracy": 89.53,
+        "param_type_accuracy": 59.54,
+        "numeric_accuracy": 0.0
+      },
+      "val": {
+        "token_accuracy": 97.68,
+        "sequence_accuracy": 92.0,
+        "type_accuracy": 99.67,
+        "command_accuracy": 100.0,
+        "param_type_accuracy": 98.28,
+        "numeric_accuracy": 95.4
+      },
+      "best_epoch": 95
+    }
+  },
+  "split_sizes": {
+    "heldout_adaptive": {
+      "train": 333,
+      "val": 84,
+      "test": 128
+    },
+    "heldout_face": {
+      "train": 240,
+      "val": 61,
+      "test": 244
+    },
+    "heldout_pocket": {
+      "train": 297,
+      "val": 75,
+      "test": 173
+    }
+  },
+  "encoder_note": "All three runs reuse fold-1 V7 encoder checkpoint; encoder was originally trained on 5-fold CV that included some files from each heldout toolpath. This is a conservative bias: any success despite encoder exposure is a real decoder-level transfer; any failure is a real decoder-level limitation."
+}

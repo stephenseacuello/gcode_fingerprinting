@@ -1,0 +1,39 @@
+{
+  "vocab_total": 712,
+  "special": 5,
+  "structural_non_num": [
+    "F",
+    "F22.",
+    "G0",
+    "G1",
+    "G2",
+    "G3",
+    "G53",
+    "M30",
+    "R",
+    "X",
+    "Y",
+    "Y0.",
+    "Z",
+    "Z0."
+  ],
+  "numeric_total": 693,
+  "numeric_by_axis": {
+    "Y": 258,
+    "X": 203,
+    "R": 7,
+    "Z": 224,
+    "F": 1
+  },
+  "active_total": 48,
+  "active_numeric_total": 40,
+  "active_numeric_by_axis": {
+    "Y": 20,
+    "X": 17,
+    "Z": 1,
+    "R": 2
+  },
+  "inactive_numeric_count": 653,
+  "inactive_numeric_pct": 94.2,
+  "unique_gcode_sequences_pooled": 34
+}

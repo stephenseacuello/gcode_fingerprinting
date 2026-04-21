@@ -1,0 +1,1877 @@
+{
+  "fold_1": {
+    "sequence_accuracy": 0.477273,
+    "correct": 63,
+    "total": 132,
+    "per_class": {
+      "adaptive": {
+        "correct": 4,
+        "total": 8,
+        "accuracy": 0.5
+      },
+      "adaptive150025": {
+        "correct": 0,
+        "total": 16,
+        "accuracy": 0.0
+      },
+      "damageadaptive": {
+        "correct": 2,
+        "total": 4,
+        "accuracy": 0.5
+      },
+      "damageface": {
+        "correct": 5,
+        "total": 5,
+        "accuracy": 1.0
+      },
+      "damagepocket": {
+        "correct": 2,
+        "total": 6,
+        "accuracy": 0.333333
+      },
+      "face": {
+        "correct": 36,
+        "total": 36,
+        "accuracy": 1.0
+      },
+      "face150025": {
+        "correct": 8,
+        "total": 19,
+        "accuracy": 0.421053
+      },
+      "pocket": {
+        "correct": 0,
+        "total": 4,
+        "accuracy": 0.0
+      },
+      "pocket150025": {
+        "correct": 6,
+        "total": 34,
+        "accuracy": 0.176471
+      }
+    }
+  },
+  "fold_2": {
+    "sequence_accuracy": 0.575221,
+    "correct": 65,
+    "total": 113,
+    "per_class": {
+      "adaptive": {
+        "correct": 4,
+        "total": 8,
+        "accuracy": 0.5
+      },
+      "adaptive150025": {
+        "correct": 3,
+        "total": 16,
+        "accuracy": 0.1875
+      },
+      "damageadaptive": {
+        "correct": 0,
+        "total": 4,
+        "accuracy": 0.0
+      },
+      "damageface": {
+        "correct": 3,
+        "total": 5,
+        "accuracy": 0.6
+      },
+      "damagepocket": {
+        "correct": 3,
+        "total": 6,
+        "accuracy": 0.5
+      },
+      "face": {
+        "correct": 27,
+        "total": 27,
+        "accuracy": 1.0
+      },
+      "face150025": {
+        "correct": 12,
+        "total": 19,
+        "accuracy": 0.631579
+      },
+      "pocket": {
+        "correct": 0,
+        "total": 4,
+        "accuracy": 0.0
+      },
+      "pocket150025": {
+        "correct": 13,
+        "total": 24,
+        "accuracy": 0.541667
+      }
+    }
+  },
+  "fold_3": {
+    "sequence_accuracy": 0.603774,
+    "correct": 64,
+    "total": 106,
+    "per_class": {
+      "adaptive": {
+        "correct": 0,
+        "total": 8,
+        "accuracy": 0.0
+      },
+      "adaptive150025": {
+        "correct": 9,
+        "total": 12,
+        "accuracy": 0.75
+      },
+      "damageadaptive": {
+        "correct": 3,
+        "total": 4,
+        "accuracy": 0.75
+      },
+      "damageface": {
+        "correct": 5,
+        "total": 5,
+        "accuracy": 1.0
+      },
+      "damagepocket": {
+        "correct": 0,
+        "total": 6,
+        "accuracy": 0.0
+      },
+      "face": {
+        "correct": 23,
+        "total": 27,
+        "accuracy": 0.851852
+      },
+      "face150025": {
+        "correct": 12,
+        "total": 16,
+        "accuracy": 0.75
+      },
+      "pocket": {
+        "correct": 0,
+        "total": 4,
+        "accuracy": 0.0
+      },
+      "pocket150025": {
+        "correct": 12,
+        "total": 24,
+        "accuracy": 0.5
+      }
+    }
+  },
+  "fold_4": {
+    "sequence_accuracy": 0.675926,
+    "correct": 73,
+    "total": 108,
+    "per_class": {
+      "adaptive": {
+        "correct": 8,
+        "total": 8,
+        "accuracy": 1.0
+      },
+      "adaptive150025": {
+        "correct": 6,
+        "total": 12,
+        "accuracy": 0.5
+      },
+      "damageadaptive": {
+        "correct": 2,
+        "total": 4,
+        "accuracy": 0.5
+      },
+      "damageface": {
+        "correct": 2,
+        "total": 5,
+        "accuracy": 0.4
+      },
+      "damagepocket": {
+        "correct": 4,
+        "total": 6,
+        "accuracy": 0.666667
+      },
+      "face": {
+        "correct": 27,
+        "total": 27,
+        "accuracy": 1.0
+      },
+      "face150025": {
+        "correct": 9,
+        "total": 18,
+        "accuracy": 0.5
+      },
+      "pocket": {
+        "correct": 0,
+        "total": 4,
+        "accuracy": 0.0
+      },
+      "pocket150025": {
+        "correct": 15,
+        "total": 24,
+        "accuracy": 0.625
+      }
+    }
+  },
+  "fold_5": {
+    "sequence_accuracy": 0.688172,
+    "correct": 64,
+    "total": 93,
+    "per_class": {
+      "adaptive": {
+        "correct": 8,
+        "total": 8,
+        "accuracy": 1.0
+      },
+      "adaptive150025": {
+        "correct": 3,
+        "total": 12,
+        "accuracy": 0.25
+      },
+      "damageadaptive": {
+        "correct": 1,
+        "total": 4,
+        "accuracy": 0.25
+      },
+      "damagepocket": {
+        "correct": 4,
+        "total": 6,
+        "accuracy": 0.666667
+      },
+      "face": {
+        "correct": 27,
+        "total": 27,
+        "accuracy": 1.0
+      },
+      "face150025": {
+        "correct": 11,
+        "total": 15,
+        "accuracy": 0.733333
+      },
+      "pocket": {
+        "correct": 0,
+        "total": 3,
+        "accuracy": 0.0
+      },
+      "pocket150025": {
+        "correct": 10,
+        "total": 18,
+        "accuracy": 0.555556
+      }
+    }
+  },
+  "aggregate": {
+    "sequence_accuracy": 0.596014,
+    "correct": 329,
+    "total": 552,
+    "per_class": {
+      "adaptive": {
+        "correct": 24,
+        "total": 40,
+        "accuracy": 0.6
+      },
+      "adaptive150025": {
+        "correct": 21,
+        "total": 68,
+        "accuracy": 0.308824
+      },
+      "damageadaptive": {
+        "correct": 8,
+        "total": 20,
+        "accuracy": 0.4
+      },
+      "damageface": {
+        "correct": 15,
+        "total": 20,
+        "accuracy": 0.75
+      },
+      "damagepocket": {
+        "correct": 13,
+        "total": 30,
+        "accuracy": 0.433333
+      },
+      "face": {
+        "correct": 140,
+        "total": 144,
+        "accuracy": 0.972222
+      },
+      "face150025": {
+        "correct": 52,
+        "total": 87,
+        "accuracy": 0.597701
+      },
+      "pocket": {
+        "correct": 0,
+        "total": 19,
+        "accuracy": 0.0
+      },
+      "pocket150025": {
+        "correct": 56,
+        "total": 124,
+        "accuracy": 0.451613
+      }
+    }
+  },
+  "confusion_records_mismatches": [
+    {
+      "fold": 1,
+      "true_op_class": "adaptive",
+      "true_gcode": "G0 X NUM_X_1492 Y NUM_Y_1485",
+      "predicted_gcode": "G1 X NUM_X_1492 Y NUM_Y_1485",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive",
+      "true_gcode": "G0 X NUM_X_1492 Y NUM_Y_1485",
+      "predicted_gcode": "G1 X NUM_X_1492 Y NUM_Y_1485",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "G1 NUM_Y_3032",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "X NUM_X_596",
+      "predicted_gcode": "G1 NUM_X_596",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y NUM_Y_3178",
+      "predicted_gcode": "G1 X NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 X NUM_X_3032",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_3535",
+      "predicted_gcode": "G1 Y NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_3535",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "M30",
+      "predicted_gcode": "G1 Y0.",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "M30",
+      "predicted_gcode": "G1 Y0.",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_3535",
+      "predicted_gcode": "G1 X NUM_X_3275",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket",
+      "true_gcode": "G0 X NUM_X_1472 Y NUM_Y_1678",
+      "predicted_gcode": "G1 X NUM_X_1472 Y NUM_Y_1678",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket",
+      "true_gcode": "G0 X NUM_X_1472 Y NUM_Y_1678",
+      "predicted_gcode": "G1 X NUM_X_1472 Y NUM_Y_1678",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket",
+      "true_gcode": "G0 X NUM_X_1472 Y NUM_Y_1678",
+      "predicted_gcode": "G1 X NUM_X_1472 Y NUM_Y_1678",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_86",
+      "predicted_gcode": "G1 X NUM_Y_86",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_3178",
+      "predicted_gcode": "G1 X NUM_Y_524",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3032",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_2886",
+      "predicted_gcode": "G1 X NUM_Y_524",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3178",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3032",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_524",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_670",
+      "predicted_gcode": "G1 X NUM_Y_86",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_3410",
+      "predicted_gcode": "G1 X NUM_Y_2886",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "X X NUM_X_1575",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_3410",
+      "predicted_gcode": "X X NUM_Y_2886",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_3324",
+      "predicted_gcode": "X X NUM_Y_2886 NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_3178",
+      "predicted_gcode": "X X NUM_Y_2886 NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_232",
+      "predicted_gcode": "X X NUM_Y_2886",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_378",
+      "predicted_gcode": "X X NUM_Y_2886 NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "X X NUM_Y_2886",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "X NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "X NUM_X_596",
+      "predicted_gcode": "G1 NUM_X_596",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "G1 NUM_Y_3032",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket",
+      "true_gcode": "G0 X NUM_X_1472 Y NUM_Y_1678",
+      "predicted_gcode": "G1 X NUM_X_1472 Y NUM_Y_1678",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive",
+      "true_gcode": "G0 X NUM_X_1492 Y NUM_Y_1485",
+      "predicted_gcode": "G1 X NUM_X_1492 Y NUM_Y_1485",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "adaptive",
+      "true_gcode": "G0 X NUM_X_1492 Y NUM_Y_1485",
+      "predicted_gcode": "G1 X NUM_X_1492 Y NUM_Y_1485",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "G1 Y NUM_X_3324",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 Y",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 Y NUM_Y_86",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "G1 Y NUM_X_3324",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 Y",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_378",
+      "predicted_gcode": "G1 X NUM_Y_3032",
+      "match": false
+    },
+    {
+      "fold": 1,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_2886",
+      "predicted_gcode": "G1 Y NUM_Y_86",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "G1 NUM_Y_449",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "X NUM_X_596",
+      "predicted_gcode": "G1 NUM_X_596",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "damageface",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "damageface",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_1575 Y NUM_Y_1456 Z NUM_Z_74",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_1575 Y NUM_Y_1660 Z NUM_Z_74",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_232",
+      "predicted_gcode": "G1 X NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_524",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_378",
+      "predicted_gcode": "G1 X NUM_Y_3032",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_2886",
+      "predicted_gcode": "G1 X NUM_Y_524",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_524",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "X NUM_X_596",
+      "predicted_gcode": "G1 NUM_X_596",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive",
+      "true_gcode": "X NUM_X_1575 Y NUM_Y_1456 R NUM_R_1188",
+      "predicted_gcode": "G1 NUM_X_1575 Y NUM_Y_1456 R NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_3178",
+      "predicted_gcode": "G1 X NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_524",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_1575 Y NUM_Y_1660 Z NUM_Z_74",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_1575 Y NUM_Y_1456 Z NUM_Z_74",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive",
+      "true_gcode": "X NUM_X_1575 Y NUM_Y_1456 R NUM_R_1188",
+      "predicted_gcode": "G1 NUM_X_1575 Y NUM_Y_1456 R NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive",
+      "true_gcode": "X NUM_X_1575 Y NUM_Y_1456 R NUM_R_1188",
+      "predicted_gcode": "G1 NUM_X_1575 Y NUM_Y_1456 R NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "G1 NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "G1 NUM_Y_449",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "G1 NUM_Y_449",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "adaptive",
+      "true_gcode": "X NUM_X_1575 Y NUM_Y_1456 R NUM_R_1188",
+      "predicted_gcode": "G1 NUM_X_1575 Y NUM_Y_1456 R NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_3535",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_3535",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "face150025",
+      "true_gcode": "M30",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "face150025",
+      "true_gcode": "M30",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y NUM_Y_3178",
+      "predicted_gcode": "G1 Y NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 2,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_524",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive",
+      "true_gcode": "G0 X NUM_X_1492 Y NUM_Y_1485",
+      "predicted_gcode": "G1 X NUM_X_1492 Y NUM_Y_1485",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive",
+      "true_gcode": "X NUM_X_1456 Y NUM_Y_1575 R NUM_R_1188",
+      "predicted_gcode": "G1 NUM_X_-125 Y NUM_Y_1575 NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive",
+      "true_gcode": "G0 X NUM_X_1492 Y NUM_Y_1485",
+      "predicted_gcode": "G1 X NUM_X_1492 NUM_Y_1485",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive",
+      "true_gcode": "X NUM_X_1456 Y NUM_Y_1575 R NUM_R_1188",
+      "predicted_gcode": "G1 NUM_X_-125 X NUM_Y_1575 NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "X NUM_X_596",
+      "predicted_gcode": "G1 NUM_X_1456",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y NUM_Y_86",
+      "predicted_gcode": "G1 X NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 X NUM_X_3178",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 X NUM_X_3032",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_378",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "face",
+      "true_gcode": "G1 X NUM_X_3275",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "face",
+      "true_gcode": "G1 X NUM_X_3275",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "face",
+      "true_gcode": "G1 X NUM_X_3275",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "face",
+      "true_gcode": "G1 X NUM_X_3275",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_3275 Y NUM_Y_175 Y0.",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_3275 Y NUM_Y_175 Y0.",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_3275 Y NUM_Y_175 Y0.",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_3275 Y NUM_Y_175 Y0.",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_378",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "G1 Y NUM_X_3324",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_378",
+      "predicted_gcode": "G1 X NUM_Y_378",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_2886",
+      "predicted_gcode": "G1 X NUM_Y_378",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "G1 Y NUM_X_3324",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_86",
+      "predicted_gcode": "G1 X NUM_Y_86",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_378",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3324",
+      "predicted_gcode": "G1 Y NUM_X_3324",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_378",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive",
+      "true_gcode": "G0 X NUM_X_1492 Y NUM_Y_1485",
+      "predicted_gcode": "G1 X NUM_X_1492 Y NUM_Y_1485",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive",
+      "true_gcode": "X NUM_X_1456 Y NUM_Y_1575 R NUM_R_1188",
+      "predicted_gcode": "G1 NUM_X_-125 Y NUM_Y_1575 NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive",
+      "true_gcode": "G0 X NUM_X_1492 Y NUM_Y_1485",
+      "predicted_gcode": "G1 X NUM_X_1492 Y NUM_Y_1485",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive",
+      "true_gcode": "X NUM_X_1456 Y NUM_Y_1575 R NUM_R_1188",
+      "predicted_gcode": "G1 NUM_X_-125 Y NUM_Y_1575 NUM_R_1188",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 3,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "Y NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "damageface",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3178",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "damageface",
+      "true_gcode": "G1 X NUM_X_3535",
+      "predicted_gcode": "G1 X NUM_X_3324",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "damageface",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket",
+      "true_gcode": "G0 X NUM_X_1472 Y NUM_Y_1678",
+      "predicted_gcode": "G1 X NUM_X_1492 F22.",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket",
+      "true_gcode": "G0 X NUM_X_1472 Y NUM_Y_1678",
+      "predicted_gcode": "G1 X NUM_X_1492 F22.",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3032",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_2913",
+      "predicted_gcode": "G1 NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3178",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3032",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_378",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket",
+      "true_gcode": "G0 X NUM_X_1472 Y NUM_Y_1678",
+      "predicted_gcode": "G1 X NUM_X_1492 F22.",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "face150025",
+      "true_gcode": "M30",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "face150025",
+      "true_gcode": "M30",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "pocket",
+      "true_gcode": "G0 X NUM_X_1472 Y NUM_Y_1678",
+      "predicted_gcode": "G1 X NUM_X_1492 F22.",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "X NUM_Y_175",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y NUM_Y_3178",
+      "predicted_gcode": "G1 X NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 4,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 X NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "X NUM_X_596",
+      "predicted_gcode": "Y NUM_X_596",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "damageadaptive",
+      "true_gcode": "X NUM_X_596",
+      "predicted_gcode": "Y NUM_X_596",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "damagepocket",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 Y NUM_Y_3178",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_3535",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "face150025",
+      "true_gcode": "G1 X NUM_X_-125",
+      "predicted_gcode": "G1 X NUM_X_3535",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_3275 Y NUM_Y_1660 Z NUM_Z_74",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_3275 Y NUM_Y_1660 Z NUM_Z_74",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket",
+      "true_gcode": "X NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "predicted_gcode": "G1 NUM_X_1448 Y NUM_Y_1660 Z NUM_Z_74",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 Y",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 Y NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 Y",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_3178",
+      "predicted_gcode": "G1 Y NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 Y NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y0.",
+      "predicted_gcode": "G1 X",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 X NUM_X_3032",
+      "predicted_gcode": "G1 X NUM_X_-125",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "pocket150025",
+      "true_gcode": "G1 Y NUM_Y_524",
+      "predicted_gcode": "G1 Y NUM_Y_232",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_175",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    },
+    {
+      "fold": 5,
+      "true_op_class": "adaptive150025",
+      "true_gcode": "Y NUM_Y_449",
+      "predicted_gcode": "Y NUM_Y_2913",
+      "match": false
+    }
+  ],
+  "confusion_records_summary": {
+    "total_windows": 552,
+    "total_matches": 329,
+    "total_mismatches": 223
+  }
+}

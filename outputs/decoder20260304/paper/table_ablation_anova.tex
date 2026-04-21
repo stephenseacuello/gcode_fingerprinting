@@ -1,0 +1,36 @@
+\begin{table}[t]
+\centering
+\caption{Decoder ablation study: two-way repeated-measures ANOVA and post-hoc comparisons against the full model.}
+\label{tab:ablation_anova}
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Condition & Seq.\ Acc.\ (\%) & $\Delta$ & $t$ & $p_{\text{corr}}$ & Cohen's $d$ \\
+\midrule
+Full model (base) & 86.1 $\pm$ 7.5 & --- & --- & --- & --- \\
+\midrule
+\multicolumn{6}{l}{\textit{Data augmentation}} \\
+\quad No window position & 62.3 $\pm$ 5.9 & -23.8 & -8.13 & 0.015 & -3.64 \\
+\quad No MWC neighbors & 83.2 $\pm$ 7.9 & -2.9 & -3.80 & 0.230 & -1.70 \\
+\quad No scheduled sampling & 84.4 $\pm$ 6.8 & -1.7 & -1.54 & 1.000 & -0.69 \\
+\quad All data aug.\ off & 61.6 $\pm$ 8.3 & -24.5 & -5.14 & 0.081 & -2.30 \\
+\midrule
+\multicolumn{6}{l}{\textit{Loss \& regularization}} \\
+\quad No MPE & 84.7 $\pm$ 7.4 & -1.4 & -2.24 & 1.000 & -1.00 \\
+\quad No sensor prior & 83.9 $\pm$ 7.5 & -2.2 & -2.40 & 0.895 & -1.07 \\
+\quad No focal loss & 84.8 $\pm$ 6.9 & -1.3 & -2.81 & 0.578 & -1.26 \\
+\quad No grammar mask & 85.1 $\pm$ 7.0 & -1.0 & -2.19 & 1.000 & -0.98 \\
+\quad No label smoothing & 85.2 $\pm$ 6.6 & -0.9 & -1.28 & 1.000 & -0.57 \\
+\midrule
+\multicolumn{6}{l}{\textit{Architecture}} \\
+\quad Shallow (1 layer) & 84.4 $\pm$ 7.6 & -1.7 & -2.05 & 1.000 & -0.92 \\
+\quad Narrow ($d{=}128$) & 84.7 $\pm$ 6.5 & -1.4 & -1.73 & 1.000 & -0.77 \\
+\quad Fewer heads (2) & 85.0 $\pm$ 7.1 & -1.1 & -2.09 & 1.000 & -0.93 \\
+\bottomrule
+\end{tabular}
+\vspace{2pt}
+\begin{minipage}{\linewidth}
+\footnotesize
+ANOVA main effect of condition: $F(12,48)=28.89$, $p=$<$0.001$, $\eta^2_p=0.878$. Main effect of fold: $F(4,48)=53.91$, $p=$<$0.001$, $\eta^2_p=0.818$. Post-hoc: Bonferroni-corrected paired $t$-tests ($k=12$). ${}^{*}p<.05$, ${}^{**}p<.01$, ${}^{***}p<.001$.
+\end{minipage}
+\end{table}

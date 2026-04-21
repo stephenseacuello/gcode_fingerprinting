@@ -1,0 +1,227 @@
+{
+  "n_files": 120,
+  "n_pooled_rows": 62403,
+  "pooled_correlations": {
+    "frame_r2.ColorR": {
+      "pearson_r": -0.015,
+      "spearman_r": 0.114
+    },
+    "frame_r2.ColorG": {
+      "pearson_r": -0.006,
+      "spearman_r": 0.106
+    },
+    "frame_r2.ColorB": {
+      "pearson_r": -0.012,
+      "spearman_r": 0.109
+    },
+    "frame_r2.ColorA": {
+      "pearson_r": -0.016,
+      "spearman_r": 0.111
+    },
+    "frame_l3.ColorR": {
+      "pearson_r": 0.048,
+      "spearman_r": 0.024
+    },
+    "frame_l3.ColorG": {
+      "pearson_r": 0.049,
+      "spearman_r": 0.029
+    },
+    "frame_l3.ColorB": {
+      "pearson_r": 0.046,
+      "spearman_r": 0.031
+    },
+    "frame_l3.ColorA": {
+      "pearson_r": 0.028,
+      "spearman_r": 0.028
+    },
+    "spindle2.ColorR": {
+      "pearson_r": -0.016,
+      "spearman_r": 0.005
+    },
+    "spindle2.ColorG": {
+      "pearson_r": -0.009,
+      "spearman_r": 0.002
+    },
+    "spindle2.ColorB": {
+      "pearson_r": 0.003,
+      "spearman_r": 0.005
+    },
+    "spindle2.ColorA": {
+      "pearson_r": -0.007,
+      "spearman_r": 0.007
+    },
+    "frame_l2.ColorR": {
+      "pearson_r": 0.034,
+      "spearman_r": -0.122
+    },
+    "frame_l2.ColorG": {
+      "pearson_r": 0.032,
+      "spearman_r": -0.075
+    },
+    "frame_l2.ColorB": {
+      "pearson_r": 0.037,
+      "spearman_r": -0.048
+    },
+    "frame_l2.ColorA": {
+      "pearson_r": 0.029,
+      "spearman_r": -0.054
+    },
+    "y_bed__3.ColorR": {
+      "pearson_r": -0.027,
+      "spearman_r": -0.032
+    },
+    "y_bed__3.ColorG": {
+      "pearson_r": -0.024,
+      "spearman_r": -0.034
+    },
+    "y_bed__3.ColorB": {
+      "pearson_r": -0.027,
+      "spearman_r": -0.039
+    },
+    "y_bed__3.ColorA": {
+      "pearson_r": -0.027,
+      "spearman_r": -0.034
+    },
+    "y_bed__4.ColorR": {
+      "pearson_r": -0.042,
+      "spearman_r": -0.059
+    },
+    "y_bed__4.ColorG": {
+      "pearson_r": -0.043,
+      "spearman_r": -0.052
+    },
+    "y_bed__4.ColorB": {
+      "pearson_r": -0.042,
+      "spearman_r": -0.054
+    },
+    "y_bed__4.ColorA": {
+      "pearson_r": -0.041,
+      "spearman_r": -0.057
+    }
+  },
+  "within_file_mean_abs_r": {
+    "frame_r2.ColorR": 0.072,
+    "frame_r2.ColorG": 0.07,
+    "frame_r2.ColorB": 0.076,
+    "frame_r2.ColorA": 0.077,
+    "frame_l3.ColorR": 0.122,
+    "frame_l3.ColorG": 0.117,
+    "frame_l3.ColorB": 0.111,
+    "frame_l3.ColorA": 0.109,
+    "spindle2.ColorR": 0.056,
+    "spindle2.ColorG": 0.054,
+    "spindle2.ColorB": 0.052,
+    "spindle2.ColorA": 0.053,
+    "frame_l2.ColorR": 0.08,
+    "frame_l2.ColorG": 0.064,
+    "frame_l2.ColorB": 0.073,
+    "frame_l2.ColorA": 0.068,
+    "y_bed__3.ColorR": 0.068,
+    "y_bed__3.ColorG": 0.065,
+    "y_bed__3.ColorB": 0.069,
+    "y_bed__3.ColorA": 0.066,
+    "y_bed__4.ColorR": 0.084,
+    "y_bed__4.ColorG": 0.081,
+    "y_bed__4.ColorB": 0.08,
+    "y_bed__4.ColorA": 0.082
+  },
+  "ranked_within_file": [
+    {
+      "channel": "frame_l3.ColorR",
+      "mean_abs_r": 0.122
+    },
+    {
+      "channel": "frame_l3.ColorG",
+      "mean_abs_r": 0.117
+    },
+    {
+      "channel": "frame_l3.ColorB",
+      "mean_abs_r": 0.111
+    },
+    {
+      "channel": "frame_l3.ColorA",
+      "mean_abs_r": 0.109
+    },
+    {
+      "channel": "y_bed__4.ColorR",
+      "mean_abs_r": 0.084
+    },
+    {
+      "channel": "y_bed__4.ColorA",
+      "mean_abs_r": 0.082
+    },
+    {
+      "channel": "y_bed__4.ColorG",
+      "mean_abs_r": 0.081
+    },
+    {
+      "channel": "frame_l2.ColorR",
+      "mean_abs_r": 0.08
+    },
+    {
+      "channel": "y_bed__4.ColorB",
+      "mean_abs_r": 0.08
+    },
+    {
+      "channel": "frame_r2.ColorA",
+      "mean_abs_r": 0.077
+    },
+    {
+      "channel": "frame_r2.ColorB",
+      "mean_abs_r": 0.076
+    },
+    {
+      "channel": "frame_l2.ColorB",
+      "mean_abs_r": 0.073
+    },
+    {
+      "channel": "frame_r2.ColorR",
+      "mean_abs_r": 0.072
+    },
+    {
+      "channel": "frame_r2.ColorG",
+      "mean_abs_r": 0.07
+    },
+    {
+      "channel": "y_bed__3.ColorB",
+      "mean_abs_r": 0.069
+    },
+    {
+      "channel": "y_bed__3.ColorR",
+      "mean_abs_r": 0.068
+    },
+    {
+      "channel": "frame_l2.ColorA",
+      "mean_abs_r": 0.068
+    },
+    {
+      "channel": "y_bed__3.ColorA",
+      "mean_abs_r": 0.066
+    },
+    {
+      "channel": "y_bed__3.ColorG",
+      "mean_abs_r": 0.065
+    },
+    {
+      "channel": "frame_l2.ColorG",
+      "mean_abs_r": 0.064
+    },
+    {
+      "channel": "spindle2.ColorR",
+      "mean_abs_r": 0.056
+    },
+    {
+      "channel": "spindle2.ColorG",
+      "mean_abs_r": 0.054
+    },
+    {
+      "channel": "spindle2.ColorA",
+      "mean_abs_r": 0.053
+    },
+    {
+      "channel": "spindle2.ColorB",
+      "mean_abs_r": 0.052
+    }
+  ],
+  "interpretation": "Tests the hypothesis that APDS-9960 RGBA readings correlate with Y-axis (lateral table) position. Pooled correlation mixes within-file spatial signal with between-file setup drift. Within-file mean |r| isolates the spatial signal. If within-file |r| is strong (>0.3), color provides a direct Y-axis spatial signal that explains its #2 reconstruction importance."
+}

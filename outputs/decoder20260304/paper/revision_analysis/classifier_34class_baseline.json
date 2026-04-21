@@ -1,0 +1,24 @@
+{
+  "n_classes": 34,
+  "results": {
+    "with_position": {
+      "1": 65.91,
+      "2": 73.45,
+      "3": 82.08,
+      "4": 78.7,
+      "5": 87.1,
+      "mean": 77.45,
+      "std": 8.14
+    },
+    "without_position": {
+      "1": 44.7,
+      "2": 53.98,
+      "3": 55.66,
+      "4": 47.22,
+      "5": 46.24,
+      "mean": 49.56,
+      "std": 4.92
+    }
+  },
+  "notes": "MLP(256\u2192256\u2192128\u219234) on mean-pooled V7 encoder memory (256-dim). With position: +window_index, +total_windows as 2 extra features. Trained per-fold with AdamW lr=3e-4, 200 epochs, best val acc as early stop. Compare to V7 decoder 86.1% and lookup table 90.4% (paper Table 5)."
+}

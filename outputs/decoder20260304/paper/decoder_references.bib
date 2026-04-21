@@ -1,0 +1,280 @@
+% ============================================================================
+% References for G-Code Decoder Paper
+% ============================================================================
+
+% -- NIST and digital twin --
+
+@techreport{nist2024fmnet,
+  author      = {Vogl, Gregory W. and others},
+  title       = {Research Needs for Cyberphysical Systems in Machining and Machine Tools: {FMNet} 2024 Report},
+  institution = {National Institute of Standards and Technology},
+  year        = {2024}
+}
+
+@article{kimmell2025cnc,
+  author    = {Kimmell, J. C. and Orlyanchik, V. and Sturm, L. and Dawson, J. and Taylor, C.},
+  title     = {Detecting Control Injection Attacks Using Energy Data Anomalies in Computer Numerical Control Machining},
+  journal   = {Critical Infrastructure Protection XVIII},
+  volume    = {725},
+  pages     = {43--63},
+  year      = {2025},
+  publisher = {Springer}
+}
+
+@article{stathatos2024cnn,
+  author  = {Stathatos, E. and Tzimas, E. and Benardos, P. and Vosniakos, G.-C.},
+  title   = {Convolutional Neural Networks for Raw Signal Classification in {CNC} Turning Process Monitoring},
+  journal = {Sensors},
+  volume  = {24},
+  number  = {5},
+  pages   = {1390},
+  year    = {2024}
+}
+
+@article{wang2024multisensor,
+  author  = {Wang, H. and Wang, S. and Sun, W. and Xiang, J.},
+  title   = {Multi-Sensor Signal Fusion for Tool Wear Condition Monitoring Using Denoising Transformer Auto-Encoder {ResNet}},
+  journal = {Journal of Manufacturing Processes},
+  volume  = {124},
+  pages   = {1227--1238},
+  year    = {2024}
+}
+
+% -- Our prior work --
+
+@article{encoder_paper,
+  author  = {Eacuello, Stephen S. and Prasad, Romesh S. and Sodhi, Manbir S.},
+  title   = {Multimodal Sensor-Fusion Deep Learning for {CNC} Toolpath and Condition Classification: A Cross-Validated Ablation Study},
+  journal = {Machines},
+  year    = {2026},
+  note    = {Under review}
+}
+
+@misc{grammar_paper,
+  author  = {Eacuello, Stephen S. and Prasad, Romesh S. and Sodhi, Manbir S.},
+  title   = {{G-Code} Grammar for {LLMs}: Hierarchical Tokenization of {CNC} Machine Instructions},
+  year    = {2026},
+  note    = {In preparation}
+}
+
+% -- CNC monitoring and manufacturing --
+
+@article{teti2010advanced,
+  author  = {Teti, Roberto and Jemielniak, Krzysztof and O'Donnell, Garret and Dornfeld, David},
+  title   = {Advanced monitoring of machining operations},
+  journal = {CIRP Annals},
+  volume  = {59},
+  number  = {2},
+  pages   = {717--739},
+  year    = {2010}
+}
+
+@article{serin2020tool,
+  author  = {Serin, G{\"o}khan and Sener, Bahadur and Ozbayoglu, A. Murat and Unver, Halil O.},
+  title   = {Review of tool condition monitoring in machining and opportunities for deep learning},
+  journal = {The International Journal of Advanced Manufacturing Technology},
+  volume  = {109},
+  pages   = {953--974},
+  year    = {2020}
+}
+
+@article{zhu2009wavelet,
+  author  = {Zhu, Kunpeng and Wong, Yoke San and Hong, Geok Soon},
+  title   = {Wavelet analysis of sensor signals for tool condition monitoring: A review and some new results},
+  journal = {International Journal of Machine Tools and Manufacture},
+  volume  = {49},
+  number  = {7--8},
+  pages   = {537--553},
+  year    = {2009}
+}
+
+% -- Deep learning foundations --
+
+@inproceedings{vaswani2017attention,
+  author    = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, {\L}ukasz and Polosukhin, Illia},
+  title     = {Attention is All You Need},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {30},
+  year      = {2017}
+}
+
+@inproceedings{sutskever2014sequence,
+  author    = {Sutskever, Ilya and Vinyals, Oriol and Le, Quoc V.},
+  title     = {Sequence to Sequence Learning with Neural Networks},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {27},
+  year      = {2014}
+}
+
+@inproceedings{graves2013speech,
+  author    = {Graves, Alex and Mohamed, Abdel-rahman and Hinton, Geoffrey},
+  title     = {Speech Recognition with Deep Recurrent Neural Networks},
+  booktitle = {IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  pages     = {6645--6649},
+  year      = {2013}
+}
+
+@inproceedings{focal_loss,
+  author    = {Lin, Tsung-Yi and Goyal, Priya and Girshick, Ross and He, Kaiming and Doll{\'a}r, Piotr},
+  title     = {Focal Loss for Dense Object Detection},
+  booktitle = {IEEE International Conference on Computer Vision (ICCV)},
+  pages     = {2980--2988},
+  year      = {2017}
+}
+
+@inproceedings{scheduled_sampling,
+  author    = {Bengio, Samy and Vinyals, Oriol and Jaitly, Navdeep and Shazeer, Noam},
+  title     = {Scheduled Sampling for Sequence Prediction with Recurrent Neural Networks},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  volume    = {28},
+  year      = {2015}
+}
+
+% -- Cybersecurity --
+
+@inproceedings{zonouz2014plc,
+  author    = {Zonouz, Saman and Rrushi, Julian and McLaughlin, Stephen},
+  title     = {Detecting Industrial Control Malware Using Automated {PLC} Code Analytics},
+  booktitle = {IEEE Symposium on Security and Privacy},
+  year      = {2014}
+}
+
+@techreport{nist2023sp80082,
+  author      = {{National Institute of Standards and Technology}},
+  title       = {Guide to Operational Technology ({OT}) Security},
+  number      = {SP 800-82 Rev. 3},
+  year        = {2023},
+  institution = {NIST}
+}
+
+% -- G-code and LLMs --
+
+@inproceedings{gllm,
+  author    = {Abdelaal, Mohamed and Lokadjaja, Samuel and Engert, Gilbert},
+  title     = {{GLLM}: Self-Corrective {G}-Code Generation using Large Language Models with User Feedback},
+  booktitle = {Proceedings of the 21st Conference on Database Systems for Business, Technology and Web (BTW), Industrial Track},
+  year      = {2025}
+}
+
+@article{gcode_foundational,
+  author  = {Jignasu, Anushrut and Marshall, Kelly and Ganapathysubramanian, Baskar and Balu, Aditya and Hegde, Chinmay and Krishnamurthy, Adarsh},
+  title   = {Towards Foundational {AI} Models for Additive Manufacturing: Language Models for {G}-Code Debugging, Manipulation, and Comprehension},
+  journal = {arXiv preprint arXiv:2309.02465},
+  year    = {2023}
+}
+
+@article{image2gcode,
+  author  = {Wang, Ziyue and Jadhav, Yayati and Pak, Peter and Barati Farimani, Amir},
+  title   = {{Image2Gcode}: Image-to-{G}-code Generation for Additive Manufacturing Using Diffusion-Transformer Model},
+  journal = {arXiv preprint arXiv:2511.20636},
+  year    = {2025}
+}
+
+@article{chatcnc,
+  author  = {Jeon, Jurim and Sim, Yuseop and Lee, Hojun and Han, Changheon and Yun, Dongjun and Kim, Eunseob and Nagendra, Shreya Laxmi and Jun, Martin B.G. and Kim, Yangjin and Lee, Sang Won and Lee, Jiho},
+  title   = {{ChatCNC}: Conversational machine monitoring via large language model and real-time data retrieval augmented generation},
+  journal = {Journal of Manufacturing Systems},
+  volume  = {79},
+  pages   = {504--514},
+  year    = {2025}
+}
+
+% -- Grammar-constrained decoding --
+
+@inproceedings{picard,
+  author    = {Scholak, Torsten and Schucher, Nathan and Bahdanau, Dzmitry},
+  title     = {{PICARD}: Parsing Incrementally for Constrained Auto-Regressive Decoding from Language Models},
+  booktitle = {Proceedings of EMNLP},
+  year      = {2021}
+}
+
+@article{outlines,
+  author  = {Willard, Brandon T. and Louf, R{\'e}mi},
+  title   = {Efficient Guided Generation for Large Language Models},
+  journal = {arXiv preprint arXiv:2307.09702},
+  year    = {2023}
+}
+
+@inproceedings{xgrammar,
+  author    = {Dong, Yixin and Ruan, Charlie F. and Cai, Yaxing and Lai, Ruihang and Xu, Ziyi and Zhao, Yilong and Chen, Tianqi},
+  title     = {{XGrammar}: Flexible and Efficient Structured Generation Engine for Large Language Models},
+  booktitle = {Proceedings of Machine Learning and Systems (MLSys)},
+  year      = {2025}
+}
+
+% -- Sequence-to-sequence in manufacturing --
+
+@inproceedings{robotics_s2s,
+  author    = {Liang, Jacky and Huang, Wenlong and Xia, Fei and Xu, Peng and Hausman, Karol and Ichter, Brian and Florence, Pete and Zeng, Andy},
+  title     = {Code as Policies: Language Model Programs for Embodied Control},
+  booktitle = {IEEE International Conference on Robotics and Automation (ICRA)},
+  pages     = {9493--9500},
+  year      = {2023}
+}
+
+@article{process_planning_dl,
+  author  = {Zheng, Pai and Wang, Honghui and Sang, Zhiqian and Zhong, Ray Y. and Liu, Yongkui and Liu, Chao and Mubarok, Khamdi and Yu, Shiqiang and Xu, Xun},
+  title   = {Smart manufacturing systems for {Industry 4.0}: Conceptual framework, scenarios, and future perspectives},
+  journal = {Frontiers of Mechanical Engineering},
+  volume  = {13},
+  number  = {2},
+  pages   = {137--150},
+  year    = {2018}
+}
+
+@article{quality_prediction,
+  author  = {Weichert, Dominik and Link, Patrick and Stoll, Anke and R{\"u}ping, Stefan and Ihlenfeldt, Steffen and Wrobel, Stefan},
+  title   = {A review of machine learning for the optimization of production processes},
+  journal = {The International Journal of Advanced Manufacturing Technology},
+  volume  = {104},
+  pages   = {1889--1902},
+  year    = {2019}
+}
+
+% -- Additional CNC monitoring --
+
+@article{mohanraj2020tool,
+  author  = {Mohanraj, T. and Shankar, S. and Rajasekar, R. and Sakthivel, N.R. and Pramanik, A.},
+  title   = {Tool condition monitoring techniques in milling process --- a review},
+  journal = {Journal of Materials Research and Technology},
+  volume  = {9},
+  number  = {1},
+  pages   = {1032--1042},
+  year    = {2020}
+}
+
+@article{bergs2020digital,
+  author  = {Bergs, Thomas and Gierlings, Sebastian and Auerbach, Thomas and Klink, Andreas and Schraknepper, Daniel and Augspurger, Thorsten},
+  title   = {The Concept of Digital Twin and Digital Shadow in Manufacturing},
+  journal = {Procedia CIRP},
+  volume  = {101},
+  pages   = {81--84},
+  year    = {2021}
+}
+
+% -- Manufacturing cybersecurity --
+
+@inproceedings{sturm2014cyber,
+  author    = {Sturm, Logan D. and Williams, Christopher B. and Camelio, Jaime A. and White, Jules and Parker, Robert},
+  title     = {Cyber-physical vulnerabilities in additive manufacturing systems},
+  booktitle = {International Solid Freeform Fabrication Symposium},
+  pages     = {951--963},
+  year      = {2014}
+}
+
+@article{yampolskiy2018security,
+  author  = {Yampolskiy, Mark and King, Wayne E. and Gatlin, Jacob and Belikovetsky, Sofia and Brown, Adam and Skjellum, Anthony and Elovici, Yuval},
+  title   = {Security of Additive Manufacturing: Attack Taxonomy and Survey},
+  journal = {Additive Manufacturing},
+  volume  = {21},
+  pages   = {431--457},
+  year    = {2018}
+}
+
+@inproceedings{goh2017dataset,
+  author    = {Goh, Jonathan and Adepu, Sridhar and Junejo, Khurum Nazir and Mathur, Aditya},
+  title     = {A Dataset to Support Research in the Design of Secure Water Treatment Systems},
+  booktitle = {International Conference on Critical Information Infrastructures Security (CRITIS)},
+  pages     = {88--99},
+  year      = {2017}
+}

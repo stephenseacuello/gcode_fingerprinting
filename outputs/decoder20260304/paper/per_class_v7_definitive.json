@@ -1,0 +1,108 @@
+{
+  "fold_results": {
+    "1": {
+      "acc": 71.21212121212122,
+      "correct": 94,
+      "total": 132
+    },
+    "2": {
+      "acc": 89.38053097345133,
+      "correct": 101,
+      "total": 113
+    },
+    "3": {
+      "acc": 88.67924528301887,
+      "correct": 94,
+      "total": 106
+    },
+    "4": {
+      "acc": 89.81481481481481,
+      "correct": 97,
+      "total": 108
+    },
+    "5": {
+      "acc": 91.39784946236558,
+      "correct": 85,
+      "total": 93
+    }
+  },
+  "per_class_sequence": {
+    "adaptive": {
+      "correct": 40,
+      "total": 40
+    },
+    "adaptive150025": {
+      "correct": 62,
+      "total": 68
+    },
+    "damageface": {
+      "correct": 18,
+      "total": 20
+    },
+    "damagepocket": {
+      "correct": 18,
+      "total": 30
+    },
+    "face": {
+      "correct": 144,
+      "total": 144
+    },
+    "face150025": {
+      "correct": 63,
+      "total": 87
+    },
+    "pocket": {
+      "correct": 18,
+      "total": 19
+    },
+    "pocket150025": {
+      "correct": 88,
+      "total": 124
+    },
+    "damageadaptive": {
+      "correct": 20,
+      "total": 20
+    }
+  },
+  "per_class_token": {
+    "adaptive": {
+      "correct": 220,
+      "total": 220
+    },
+    "adaptive150025": {
+      "correct": 130,
+      "total": 136
+    },
+    "damageface": {
+      "correct": 58,
+      "total": 60
+    },
+    "damagepocket": {
+      "correct": 66,
+      "total": 85
+    },
+    "face": {
+      "correct": 432,
+      "total": 432
+    },
+    "face150025": {
+      "correct": 223,
+      "total": 249
+    },
+    "pocket": {
+      "correct": 105,
+      "total": 106
+    },
+    "pocket150025": {
+      "correct": 304,
+      "total": 354
+    },
+    "damageadaptive": {
+      "correct": 40,
+      "total": 40
+    }
+  },
+  "overall_seq": 85.32608695652173,
+  "eval_method": "teacher_forced_beam0_via_training_script",
+  "n_predictions": 552
+}

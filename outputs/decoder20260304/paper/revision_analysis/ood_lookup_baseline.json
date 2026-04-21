@@ -1,0 +1,32 @@
+{
+  "lookup_table": {
+    "adaptive": {
+      "n_test": 128,
+      "n_lookup_miss": 128,
+      "seq_acc": 0.0,
+      "tok_acc": 0.0,
+      "cmd_acc": 0.0,
+      "param_acc": 0.0,
+      "num_acc": 0.0
+    },
+    "face": {
+      "n_test": 244,
+      "n_lookup_miss": 232,
+      "seq_acc": 0.0,
+      "tok_acc": 2.47,
+      "cmd_acc": 4.92,
+      "param_acc": 2.48,
+      "num_acc": 0.0
+    },
+    "pocket": {
+      "n_test": 173,
+      "n_lookup_miss": 35,
+      "seq_acc": 0.0,
+      "tok_acc": 36.43,
+      "cmd_acc": 80.23,
+      "param_acc": 33.53,
+      "num_acc": 0.0
+    }
+  },
+  "note": "Lookup uses (window_index, total_windows) -> majority token sequence. Per-metric accuracies computed by aligning pred and true tokens position-wise."
+}

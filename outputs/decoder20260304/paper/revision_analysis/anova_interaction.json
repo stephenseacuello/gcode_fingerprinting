@@ -1,0 +1,36 @@
+{
+  "n_conditions": 13,
+  "n_folds": 5,
+  "n_obs_per_cell": 1,
+  "condition_main": {
+    "SS": 0.4391,
+    "df": 12,
+    "MS": 0.03659,
+    "F": 28.89,
+    "p": 1.1102230246251565e-16,
+    "eta_sq": 0.568
+  },
+  "fold_main": {
+    "SS": 0.2731,
+    "df": 4,
+    "MS": 0.06828,
+    "F": 53.91,
+    "p": 1.1102230246251565e-16,
+    "eta_sq": 0.353
+  },
+  "residual_is_interaction": {
+    "SS": 0.0608,
+    "df": 48,
+    "MS": 0.00127,
+    "eta_sq": 0.079,
+    "note": "With 1 observation per cell, the condition\u00d7fold interaction SS is indistinguishable from residual error. The paper's F-statistics use this as the denominator, which is conservative (any true interaction inflates the error term)."
+  },
+  "tukey_nonadditivity_1df": {
+    "F_1_df": 7.91,
+    "p": 0.0071,
+    "note": "Tukey's test for nonadditivity as a proxy for interaction detection."
+  },
+  "interpretation": "Paper's existing F(12,48)=28.89 and F(4,48)=53.91 are reproduced exactly, confirming the analysis. A formal interaction term cannot be tested without replication. The Tukey 1-df nonadditivity test is offered as a principled proxy.",
+  "recomputed_F_cond": 28.89,
+  "recomputed_F_fold": 53.91
+}

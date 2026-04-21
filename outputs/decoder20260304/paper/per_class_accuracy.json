@@ -1,0 +1,358 @@
+{
+  "fold_1": {
+    "overall_accuracy": 0.817837,
+    "overall_correct": 431,
+    "overall_total": 527,
+    "n_test_samples": 132,
+    "per_class": {
+      "adaptive": {
+        "correct": 48,
+        "total": 52,
+        "accuracy": 0.923077,
+        "n_windows": 8
+      },
+      "adaptive150025": {
+        "correct": 30,
+        "total": 48,
+        "accuracy": 0.625,
+        "n_windows": 16
+      },
+      "damageadaptive": {
+        "correct": 10,
+        "total": 12,
+        "accuracy": 0.833333,
+        "n_windows": 4
+      },
+      "damageface": {
+        "correct": 20,
+        "total": 20,
+        "accuracy": 1.0,
+        "n_windows": 5
+      },
+      "damagepocket": {
+        "correct": 17,
+        "total": 23,
+        "accuracy": 0.73913,
+        "n_windows": 6
+      },
+      "face": {
+        "correct": 144,
+        "total": 144,
+        "accuracy": 1.0,
+        "n_windows": 36
+      },
+      "face150025": {
+        "correct": 59,
+        "total": 72,
+        "accuracy": 0.819444,
+        "n_windows": 19
+      },
+      "pocket": {
+        "correct": 20,
+        "total": 24,
+        "accuracy": 0.833333,
+        "n_windows": 4
+      },
+      "pocket150025": {
+        "correct": 83,
+        "total": 132,
+        "accuracy": 0.628788,
+        "n_windows": 34
+      }
+    }
+  },
+  "fold_2": {
+    "overall_accuracy": 0.859341,
+    "overall_correct": 391,
+    "overall_total": 455,
+    "n_test_samples": 113,
+    "per_class": {
+      "adaptive": {
+        "correct": 48,
+        "total": 52,
+        "accuracy": 0.923077,
+        "n_windows": 8
+      },
+      "adaptive150025": {
+        "correct": 32,
+        "total": 48,
+        "accuracy": 0.666667,
+        "n_windows": 16
+      },
+      "damageadaptive": {
+        "correct": 6,
+        "total": 12,
+        "accuracy": 0.5,
+        "n_windows": 4
+      },
+      "damageface": {
+        "correct": 18,
+        "total": 20,
+        "accuracy": 0.9,
+        "n_windows": 5
+      },
+      "damagepocket": {
+        "correct": 20,
+        "total": 23,
+        "accuracy": 0.869565,
+        "n_windows": 6
+      },
+      "face": {
+        "correct": 108,
+        "total": 108,
+        "accuracy": 1.0,
+        "n_windows": 27
+      },
+      "face150025": {
+        "correct": 63,
+        "total": 72,
+        "accuracy": 0.875,
+        "n_windows": 19
+      },
+      "pocket": {
+        "correct": 18,
+        "total": 28,
+        "accuracy": 0.642857,
+        "n_windows": 4
+      },
+      "pocket150025": {
+        "correct": 78,
+        "total": 92,
+        "accuracy": 0.847826,
+        "n_windows": 24
+      }
+    }
+  },
+  "fold_3": {
+    "overall_accuracy": 0.821101,
+    "overall_correct": 358,
+    "overall_total": 436,
+    "n_test_samples": 106,
+    "per_class": {
+      "adaptive": {
+        "correct": 34,
+        "total": 52,
+        "accuracy": 0.653846,
+        "n_windows": 8
+      },
+      "adaptive150025": {
+        "correct": 30,
+        "total": 36,
+        "accuracy": 0.833333,
+        "n_windows": 12
+      },
+      "damageadaptive": {
+        "correct": 10,
+        "total": 12,
+        "accuracy": 0.833333,
+        "n_windows": 4
+      },
+      "damageface": {
+        "correct": 20,
+        "total": 20,
+        "accuracy": 1.0,
+        "n_windows": 5
+      },
+      "damagepocket": {
+        "correct": 15,
+        "total": 23,
+        "accuracy": 0.652174,
+        "n_windows": 6
+      },
+      "face": {
+        "correct": 104,
+        "total": 108,
+        "accuracy": 0.962963,
+        "n_windows": 27
+      },
+      "face150025": {
+        "correct": 60,
+        "total": 64,
+        "accuracy": 0.9375,
+        "n_windows": 16
+      },
+      "pocket": {
+        "correct": 8,
+        "total": 28,
+        "accuracy": 0.285714,
+        "n_windows": 4
+      },
+      "pocket150025": {
+        "correct": 77,
+        "total": 93,
+        "accuracy": 0.827957,
+        "n_windows": 24
+      }
+    }
+  },
+  "fold_4": {
+    "overall_accuracy": 0.871264,
+    "overall_correct": 379,
+    "overall_total": 435,
+    "n_test_samples": 108,
+    "per_class": {
+      "adaptive": {
+        "correct": 52,
+        "total": 52,
+        "accuracy": 1.0,
+        "n_windows": 8
+      },
+      "adaptive150025": {
+        "correct": 29,
+        "total": 36,
+        "accuracy": 0.805556,
+        "n_windows": 12
+      },
+      "damageadaptive": {
+        "correct": 10,
+        "total": 12,
+        "accuracy": 0.833333,
+        "n_windows": 4
+      },
+      "damageface": {
+        "correct": 17,
+        "total": 20,
+        "accuracy": 0.85,
+        "n_windows": 5
+      },
+      "damagepocket": {
+        "correct": 19,
+        "total": 23,
+        "accuracy": 0.826087,
+        "n_windows": 6
+      },
+      "face": {
+        "correct": 108,
+        "total": 108,
+        "accuracy": 1.0,
+        "n_windows": 27
+      },
+      "face150025": {
+        "correct": 57,
+        "total": 68,
+        "accuracy": 0.838235,
+        "n_windows": 18
+      },
+      "pocket": {
+        "correct": 8,
+        "total": 24,
+        "accuracy": 0.333333,
+        "n_windows": 4
+      },
+      "pocket150025": {
+        "correct": 79,
+        "total": 92,
+        "accuracy": 0.858696,
+        "n_windows": 24
+      }
+    }
+  },
+  "fold_5": {
+    "overall_accuracy": 0.918635,
+    "overall_correct": 350,
+    "overall_total": 381,
+    "n_test_samples": 93,
+    "per_class": {
+      "adaptive": {
+        "correct": 52,
+        "total": 52,
+        "accuracy": 1.0,
+        "n_windows": 8
+      },
+      "adaptive150025": {
+        "correct": 27,
+        "total": 36,
+        "accuracy": 0.75,
+        "n_windows": 12
+      },
+      "damageadaptive": {
+        "correct": 9,
+        "total": 12,
+        "accuracy": 0.75,
+        "n_windows": 4
+      },
+      "damagepocket": {
+        "correct": 21,
+        "total": 23,
+        "accuracy": 0.913043,
+        "n_windows": 6
+      },
+      "face": {
+        "correct": 108,
+        "total": 108,
+        "accuracy": 1.0,
+        "n_windows": 27
+      },
+      "face150025": {
+        "correct": 56,
+        "total": 60,
+        "accuracy": 0.933333,
+        "n_windows": 15
+      },
+      "pocket": {
+        "correct": 16,
+        "total": 21,
+        "accuracy": 0.761905,
+        "n_windows": 3
+      },
+      "pocket150025": {
+        "correct": 61,
+        "total": 69,
+        "accuracy": 0.884058,
+        "n_windows": 18
+      }
+    }
+  },
+  "aggregate": {
+    "overall_accuracy": 0.854521,
+    "overall_correct": 1909,
+    "overall_total": 2234,
+    "per_class": {
+      "adaptive": {
+        "correct": 234,
+        "total": 260,
+        "accuracy": 0.9
+      },
+      "adaptive150025": {
+        "correct": 148,
+        "total": 204,
+        "accuracy": 0.72549
+      },
+      "damageadaptive": {
+        "correct": 45,
+        "total": 60,
+        "accuracy": 0.75
+      },
+      "damageface": {
+        "correct": 75,
+        "total": 80,
+        "accuracy": 0.9375
+      },
+      "damagepocket": {
+        "correct": 92,
+        "total": 115,
+        "accuracy": 0.8
+      },
+      "face": {
+        "correct": 572,
+        "total": 576,
+        "accuracy": 0.993056
+      },
+      "face150025": {
+        "correct": 295,
+        "total": 336,
+        "accuracy": 0.877976
+      },
+      "pocket": {
+        "correct": 70,
+        "total": 125,
+        "accuracy": 0.56
+      },
+      "pocket150025": {
+        "correct": 378,
+        "total": 478,
+        "accuracy": 0.790795
+      }
+    }
+  }
+}

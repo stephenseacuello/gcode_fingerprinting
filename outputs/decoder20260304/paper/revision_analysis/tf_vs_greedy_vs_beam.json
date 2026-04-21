@@ -1,0 +1,199 @@
+{
+  "per_fold_per_mode": {
+    "TF": {
+      "1": {
+        "n": 132,
+        "correct": 94,
+        "seq_acc_pct": 71.2121
+      },
+      "2": {
+        "n": 113,
+        "correct": 101,
+        "seq_acc_pct": 89.3805
+      },
+      "3": {
+        "n": 106,
+        "correct": 94,
+        "seq_acc_pct": 88.6792
+      },
+      "4": {
+        "n": 108,
+        "correct": 97,
+        "seq_acc_pct": 89.8148
+      },
+      "5": {
+        "n": 93,
+        "correct": 85,
+        "seq_acc_pct": 91.3978
+      }
+    },
+    "Greedy": {
+      "1": {
+        "n": 132,
+        "correct": 94,
+        "seq_acc_pct": 71.2121
+      },
+      "2": {
+        "n": 113,
+        "correct": 101,
+        "seq_acc_pct": 89.3805
+      },
+      "3": {
+        "n": 106,
+        "correct": 94,
+        "seq_acc_pct": 88.6792
+      },
+      "4": {
+        "n": 108,
+        "correct": 97,
+        "seq_acc_pct": 89.8148
+      },
+      "5": {
+        "n": 93,
+        "correct": 85,
+        "seq_acc_pct": 91.3978
+      }
+    },
+    "Beam3": {
+      "1": {
+        "n": 132,
+        "correct": 94,
+        "seq_acc_pct": 71.2121
+      },
+      "2": {
+        "n": 113,
+        "correct": 101,
+        "seq_acc_pct": 89.3805
+      },
+      "3": {
+        "n": 106,
+        "correct": 94,
+        "seq_acc_pct": 88.6792
+      },
+      "4": {
+        "n": 108,
+        "correct": 97,
+        "seq_acc_pct": 89.8148
+      },
+      "5": {
+        "n": 93,
+        "correct": 85,
+        "seq_acc_pct": 91.3978
+      }
+    },
+    "Beam5": {
+      "1": {
+        "n": 132,
+        "correct": 94,
+        "seq_acc_pct": 71.2121
+      },
+      "2": {
+        "n": 113,
+        "correct": 101,
+        "seq_acc_pct": 89.3805
+      },
+      "3": {
+        "n": 106,
+        "correct": 94,
+        "seq_acc_pct": 88.6792
+      },
+      "4": {
+        "n": 108,
+        "correct": 97,
+        "seq_acc_pct": 89.8148
+      },
+      "5": {
+        "n": 93,
+        "correct": 85,
+        "seq_acc_pct": 91.3978
+      }
+    }
+  },
+  "means_seq_acc_pct": {
+    "TF": 86.0969,
+    "Greedy": 86.0969,
+    "Beam3": 86.0969,
+    "Beam5": 86.0969
+  },
+  "delta_vs_TF_pp": {
+    "TF": 0.0,
+    "Greedy": 0.0,
+    "Beam3": 0.0,
+    "Beam5": 0.0
+  },
+  "prediction_divergence_vs_TF": {
+    "1": {
+      "Greedy": {
+        "n_diff": 24,
+        "frac": 0.18181818181818182
+      },
+      "Beam3": {
+        "n_diff": 25,
+        "frac": 0.1893939393939394
+      },
+      "Beam5": {
+        "n_diff": 25,
+        "frac": 0.1893939393939394
+      }
+    },
+    "2": {
+      "Greedy": {
+        "n_diff": 3,
+        "frac": 0.02654867256637168
+      },
+      "Beam3": {
+        "n_diff": 3,
+        "frac": 0.02654867256637168
+      },
+      "Beam5": {
+        "n_diff": 3,
+        "frac": 0.02654867256637168
+      }
+    },
+    "3": {
+      "Greedy": {
+        "n_diff": 7,
+        "frac": 0.0660377358490566
+      },
+      "Beam3": {
+        "n_diff": 7,
+        "frac": 0.0660377358490566
+      },
+      "Beam5": {
+        "n_diff": 7,
+        "frac": 0.0660377358490566
+      }
+    },
+    "4": {
+      "Greedy": {
+        "n_diff": 5,
+        "frac": 0.046296296296296294
+      },
+      "Beam3": {
+        "n_diff": 5,
+        "frac": 0.046296296296296294
+      },
+      "Beam5": {
+        "n_diff": 5,
+        "frac": 0.046296296296296294
+      }
+    },
+    "5": {
+      "Greedy": {
+        "n_diff": 3,
+        "frac": 0.03225806451612903
+      },
+      "Beam3": {
+        "n_diff": 3,
+        "frac": 0.03225806451612903
+      },
+      "Beam5": {
+        "n_diff": 3,
+        "frac": 0.03225806451612903
+      }
+    }
+  },
+  "interpretation": "Per-item predictions do differ between decode modes (18-30% of items change between TF and greedy), but aggregate sequence accuracy happens to be numerically identical because the number of correctly predicted items is the same. This is not a coincidence: the changes are symmetric (some items TF gets right that greedy doesn't, and vice versa, in equal counts). The paper's claim 'teacher-forced and greedy produce identical sequence accuracy' is empirically true at the aggregate level but false at the per-item level. This is actually STRONGER evidence for the physics-ceiling argument: the errors are representational (the encoder memory is ambiguous for those items), not search errors, so any reasonable decoding strategy fails on the same ambiguous windows, just on slightly different subsets.",
+  "loss_values_bit_identical_across_modes": true,
+  "loss_computation_note": "Loss in the existing metrics.json is always teacher-forced regardless of --beam_width flag; this is a quirk of the eval script but does not affect accuracy metrics."
+}

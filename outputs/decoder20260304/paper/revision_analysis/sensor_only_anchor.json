@@ -1,0 +1,33 @@
+{
+  "sensor_plus_position": {
+    "mean": 86.1,
+    "fold_values_pct": [
+      71.21,
+      89.38,
+      88.68,
+      89.81,
+      91.4
+    ],
+    "std": 8.38
+  },
+  "sensor_only": {
+    "mean": 62.32,
+    "fold_values_pct": [
+      53.79,
+      69.03,
+      66.98,
+      64.81,
+      56.99
+    ],
+    "std": 6.6,
+    "delta_vs_sensor_plus_position_pp": -23.78,
+    "cohens_d": -3.64,
+    "p_corrected": 0.0149
+  },
+  "all_data_off": {
+    "mean": 61.62,
+    "delta_pp": -24.48,
+    "incremental_beyond_window_position_pp": -0.7
+  },
+  "note": "Sensor-only means 'full V7 model with window position metadata removed' (ablation 2A1). It still uses all other architectural features (MWC, memory pos enc, grammar, etc). The sensor-only vs sensor+position gap quantifies how much metadata contributes beyond sensor embeddings."
+}
