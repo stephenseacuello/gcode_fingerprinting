@@ -1,0 +1,60 @@
+program: scripts/evaluation/run_decoder_quick_test.py
+method: bayes
+metric:
+  name: val/token_accuracy
+  goal: maximize
+
+parameters:
+  # Two encoder configs + cross-validation
+  encoder_config:
+    values:
+      - f110_w256_s64
+      - f98_w64_s16
+  fold:
+    values: [1, 2, 3, 4, 5]
+
+  # Fixed from V2 findings
+  dropout:
+    value: 0.1
+  legacy_weight:
+    value: 1.0
+
+  # Expanded LR (was hitting boundary at 0.0005)
+  lr:
+    values: [0.0005, 0.001, 0.002, 0.003]
+
+  # Architecture
+  d_model:
+    values: [384, 512]
+  n_layers:
+    values: [4, 6, 8]
+  n_heads:
+    values: [4, 8, 12]
+
+  # Training strategy
+  batch_size:
+    values: [16, 32]
+  digit_weight:
+    values: [10, 15, 20]
+  label_smoothing:
+    values: [0.0, 0.1, 0.2]
+  scheduled_sampling:
+    values: [0.0, 0.3, 0.5]
+  focal_gamma:
+    values: [0.0, 1.0, 2.0]
+  weight_decay:
+    values: [0.01, 0.05, 0.1]
+  warmup_epochs:
+    values: [5, 10, 20]
+
+command:
+  - ${env}
+  - python3
+  - ${program}
+  - --vocab=data/gcode_vocab_712.json
+  - --output_dir=outputs/decoder20260304/sweep_v3
+  - --epochs=500
+  - --patience=100
+  - --wandb
+  - --wandb_project=decoder-sweep-v3
+  - ${args}

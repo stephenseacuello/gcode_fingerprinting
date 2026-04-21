@@ -310,7 +310,8 @@ def train_ml_model(model_name, X_train, y_train, X_val, y_val, X_test, y_test, s
             colsample_bytree=0.8,
             random_state=seed,
             n_jobs=-1,
-            use_label_encoder=False,
+            device='cpu',
+            tree_method='hist',
             eval_metric='mlogloss'
         )
         model.fit(X_train_flat, y_train, eval_set=[(X_val_flat, y_val)],
@@ -336,7 +337,9 @@ def train_ml_model(model_name, X_train, y_train, X_val, y_val, X_test, y_test, s
     elif model_name == 'logistic_regression':
         model = LogisticRegression(
             C=1.0,
-            max_iter=1000,
+            solver='saga',
+            max_iter=5000,
+            tol=1e-3,
             random_state=seed,
             n_jobs=-1
         )
@@ -638,6 +641,7 @@ if __name__ == '__main__':
         log(f"    {cls_name}: {acc:.2%}")
 
     # Confusion matrix
+    cm = confusion_matrix(test_labels, test_preds, labels=list(range(len(CLASS_NAMES_9))))
     plot_confusion_matrix(test_labels, test_preds, CLASS_NAMES_9,
                           out_dir / 'confusion_matrix_test.png',
                           title=f'{args.model} - Test Set')
@@ -661,6 +665,7 @@ if __name__ == '__main__':
         'test': {
             'accuracy': results['test']['accuracy'],
             'per_class': results['test']['per_class'],
+            'confusion_matrix': cm.tolist(),
         },
     }
 

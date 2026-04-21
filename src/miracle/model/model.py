@@ -130,6 +130,25 @@ class DTAE(nn.Module):
         )
         return rec, z
 
+    def forward_clean(
+        self,
+        x: torch.Tensor,  # [B,T,D]
+        src_key_padding_mask: Optional[torch.Tensor] = None,
+        tgt_len: Optional[int] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Forward WITHOUT noise injection (for no_denoise ablation).
+        Keeps the full TAE encoder-decoder structure but never corrupts input."""
+        B, T, D = x.shape
+        z = self.encoder(self.pos(self.dropout(x)), src_key_padding_mask=src_key_padding_mask)
+        L = int(tgt_len or T)
+        tgt = torch.zeros(B, L, D, device=x.device)
+        rec = self.decoder(
+            self.pos(tgt), z,
+            tgt_key_padding_mask=(src_key_padding_mask[:, :L] if src_key_padding_mask is not None else None),
+            memory_key_padding_mask=src_key_padding_mask,
+        )
+        return rec, z
+
 
 # -----------------------
 # Per-modality encoder and fusion
@@ -156,8 +175,11 @@ class CrossModalFusion(nn.Module):
     Also supports **modality dropout** during training to improve robustness.
     Flash Attention (PyTorch 2.0+) is used when available for better performance.
     """
-    def __init__(self, d_model: int, n_heads: int, num_modalities: int):
+    def __init__(self, d_model: int, n_heads: int, num_modalities: int,
+                 disable_gates: bool = False, disable_crossattn: bool = False):
         super().__init__()
+        self.disable_gates = disable_gates
+        self.disable_crossattn = disable_crossattn
         self.attn = nn.MultiheadAttention(d_model, n_heads, batch_first=True)
         self.ln = nn.LayerNorm(d_model)
         self.gates = nn.Parameter(torch.ones(num_modalities))  # learned modality importance
@@ -218,7 +240,12 @@ class CrossModalFusion(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         M = len(mods)
         B, T, D = mods[0].shape
-        gates = torch.sigmoid(self.gates[:M])  # [M]
+
+        # Gates: learned sigmoid or uniform 1/M when disabled
+        if self.disable_gates:
+            gates = torch.ones(M, device=mods[0].device) / M
+        else:
+            gates = torch.sigmoid(self.gates[:M])  # [M]
 
         # Optional: randomly drop entire modalities (training-time only)
         drop_mask = torch.ones(M, device=mods[0].device)
@@ -231,25 +258,32 @@ class CrossModalFusion(nn.Module):
 
         stack = torch.stack(mods, dim=2)       # [B,T,M,D]
         q = stack.mean(dim=2)                  # [B,T,D]
-        kv = stack.flatten(1, 2)               # [B,T*M,D]
 
-        # If a key_padding_mask is provided it has shape [B,T]. Expand it
-        # across modalities to match the flattened KV length [B, T*M].
-        if key_padding_mask is not None:
-            # key_padding_mask: True for PAD positions -> MultiheadAttention expects True to ignore
-            kv_key_padding = key_padding_mask.unsqueeze(1).expand(B, M, T).transpose(1, 2).flatten(1)
+        if self.disable_crossattn:
+            # Skip cross-attention; only gated sum
+            gated_sum = sum(gates[i] * mods[i] for i in range(M)) / (gates.sum() + 1e-6)
+            fused = self.ln(q + gated_sum)
         else:
-            kv_key_padding = None
+            kv = stack.flatten(1, 2)               # [B,T*M,D]
 
-        # Use Flash Attention if available (PyTorch 2.0+), otherwise standard attention
-        if self.use_flash:
-            attn_out = self._flash_attention(q, kv, kv, kv_key_padding)
-        else:
-            attn_out, _ = self.attn(q, kv, kv, key_padding_mask=kv_key_padding)
+            # If a key_padding_mask is provided it has shape [B,T]. Expand it
+            # across modalities to match the flattened KV length [B, T*M].
+            if key_padding_mask is not None:
+                # key_padding_mask: True for PAD positions -> MultiheadAttention expects True to ignore
+                kv_key_padding = key_padding_mask.unsqueeze(1).expand(B, M, T).transpose(1, 2).flatten(1)
+            else:
+                kv_key_padding = None
 
-        fused = self.ln(q + attn_out)
-        gated_sum = sum(gates[i] * mods[i] for i in range(M)) / (gates.sum() + 1e-6)
-        fused = self.ln(fused + gated_sum)
+            # Use Flash Attention if available (PyTorch 2.0+), otherwise standard attention
+            if self.use_flash:
+                attn_out = self._flash_attention(q, kv, kv, kv_key_padding)
+            else:
+                attn_out, _ = self.attn(q, kv, kv, key_padding_mask=kv_key_padding)
+
+            fused = self.ln(q + attn_out)
+            gated_sum = sum(gates[i] * mods[i] for i in range(M)) / (gates.sum() + 1e-6)
+            fused = self.ln(fused + gated_sum)
+
         if key_padding_mask is not None:
             fused = fused.masked_fill(key_padding_mask.unsqueeze(-1), 0.0)
         return fused, gates.detach(), drop_mask.detach()
@@ -410,19 +444,41 @@ class ModelConfig:
     fp_dim: int = 128                                # fingerprint dimension
     use_attention_pooling: bool = True               # use attention pooling in fingerprint head
     cls_pooling: str = 'last'                        # 'last' (last-step) or 'mean' (temporal mean)
+    ablation: str = 'full'                           # Architecture ablation condition
+
+VALID_ABLATIONS = {'full', 'single_proj', 'no_gates', 'no_crossattn', 'no_denoise', 'no_dtae', 'minimal'}
 
 class MM_DTAE_LSTM(nn.Module):
     """Backbone: per-modality encoders → modality+context fusion → DTAE → LSTM → heads."""
     def __init__(self, config: ModelConfig):
         super().__init__()
         self.config = config
-        self.encoders = nn.ModuleList([LinearModalityEncoder(d, config.d_model) for d in config.sensor_dims])
+        abl = getattr(config, 'ablation', 'full')
+        if abl not in VALID_ABLATIONS:
+            raise ValueError(f"Invalid ablation '{abl}'. Must be one of: {sorted(VALID_ABLATIONS)}")
+
+        # Per-modality encoders or single shared encoder
+        if abl == 'single_proj':
+            max_dim = max(config.sensor_dims)
+            self._shared_encoder = LinearModalityEncoder(max_dim, config.d_model)
+            self.encoders = nn.ModuleList()  # empty; forward uses _shared_encoder
+            self._max_modality_dim = max_dim
+        else:
+            self.encoders = nn.ModuleList([LinearModalityEncoder(d, config.d_model) for d in config.sensor_dims])
 
         # Modality ID embeddings
         self.mod_emb = nn.Embedding(len(config.sensor_dims), config.d_model)
 
-        self.fusion = CrossModalFusion(config.d_model, config.n_heads, num_modalities=len(config.sensor_dims))
-        self.dtae = DTAE(config.d_model, nhead=config.n_heads, dropout=config.dropout)
+        self.fusion = CrossModalFusion(
+            config.d_model, config.n_heads, num_modalities=len(config.sensor_dims),
+            disable_gates=(abl in ('no_gates', 'minimal')),
+            disable_crossattn=(abl in ('no_crossattn', 'minimal')),
+        )
+
+        if abl in ('no_dtae', 'minimal'):
+            self.dtae = None
+        else:
+            self.dtae = DTAE(config.d_model, nhead=config.n_heads, dropout=config.dropout)
         self.temporal = nn.LSTM(config.d_model, config.d_model, num_layers=config.lstm_layers,
                                 batch_first=True, dropout=config.dropout)
         self.norm = nn.LayerNorm(config.d_model)
@@ -455,21 +511,44 @@ class MM_DTAE_LSTM(nn.Module):
         modality_dropout_p: float = 0.0,
         ctx_ids: Optional[Dict[str, torch.Tensor]] = None,
     ) -> Dict[str, torch.Tensor]:
+        abl = getattr(self.config, 'ablation', 'full')
         pad_mask = make_pad_mask(lengths, max_len=mods[0].size(1))
-        encoded_mods = []
-        for i, (enc, m) in enumerate(zip(self.encoders, mods)):
-            e = enc(m)  # [B,T,D]
-            # add modality id embedding
-            e = e + self.mod_emb.weight[i].view(1, 1, -1)
-            encoded_mods.append(e)
 
+        # Stage 1: Per-modality encoding
+        encoded_mods = []
+        if abl == 'single_proj':
+            for i, m in enumerate(mods):
+                B, T, C = m.shape
+                if C < self._max_modality_dim:
+                    pad = torch.zeros(B, T, self._max_modality_dim - C, device=m.device, dtype=m.dtype)
+                    m = torch.cat([m, pad], dim=-1)
+                e = self._shared_encoder(m)
+                e = e + self.mod_emb.weight[i].view(1, 1, -1)
+                encoded_mods.append(e)
+        else:
+            for i, (enc, m) in enumerate(zip(self.encoders, mods)):
+                e = enc(m)  # [B,T,D]
+                e = e + self.mod_emb.weight[i].view(1, 1, -1)
+                encoded_mods.append(e)
+
+        # Stage 2: Fusion
         fused, gates, drop_mask = self.fusion(encoded_mods, key_padding_mask=pad_mask,
                                               modality_dropout_p=modality_dropout_p)
 
-        # add context embeddings (broadcast per sequence or timestep)
+        # Stage 3: Context embeddings
         fused = fused + self.ctx(ctx_ids, T=fused.size(1), device=fused.device)
 
-        rec, z = self.dtae(fused, src_key_padding_mask=pad_mask)
+        # Stage 4: DTAE (conditional on ablation)
+        fused_target = fused.detach()
+        if self.dtae is None:
+            # no_dtae / minimal: skip DTAE, pass fused directly to LSTM
+            z = fused
+            rec = torch.zeros_like(fused)
+        elif abl == 'no_denoise':
+            rec, z = self.dtae.forward_clean(fused, src_key_padding_mask=pad_mask)
+        else:
+            rec, z = self.dtae(fused, src_key_padding_mask=pad_mask)
+
         lstm_out, _ = self.temporal(z)
         lstm_out = self.norm(lstm_out)
 
@@ -485,7 +564,7 @@ class MM_DTAE_LSTM(nn.Module):
 
         out: Dict[str, torch.Tensor] = {
             "recon": rec,
-            "fused_target": fused,
+            "fused_target": fused_target,
             "cls": self.head_cls(cls_features),
             "reg": self.head_reg(last),
             "anom": self.head_anom(last),  # logits

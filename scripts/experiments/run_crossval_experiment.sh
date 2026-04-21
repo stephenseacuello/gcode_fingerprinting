@@ -16,44 +16,61 @@
 #   Damage classes (5 files):  1 test, 1 val,  3 train
 #
 # Usage:
-#   ./run_crossval_experiment.sh                                   # 93 features
-#   ./run_crossval_experiment.sh --no-proximity                    # 88 features
-#   ./run_crossval_experiment.sh --no-proximity --no-color         # 68 features
-#   ./run_crossval_experiment.sh --no-proximity --no-color --no-magnetometer  # 53 features
+#   ./run_crossval_experiment.sh                                             # 93 feat, w64 s16
+#   ./run_crossval_experiment.sh --window-size 128 --stride 32              # 93 feat, w128 s32
+#   ./run_crossval_experiment.sh --no-proximity                              # 88 feat
+#   ./run_crossval_experiment.sh --no-proximity --no-color                   # 68 feat
+#   ./run_crossval_experiment.sh --no-proximity --no-color --no-magnetometer # 53 feat
+#
+# Output naming:
+#   outputs/experiments_YYYY_MM_DD/{features}_w{W}_s{S}_cv/
+#   e.g. outputs/experiments_2026_02_23/full_w64_s16_cv/
+#   e.g. outputs/experiments_2026_02_23/no_proximity_no_color_w128_s32_cv/
 ################################################################################
 
 set -e
 
 # ── Parse arguments ──────────────────────────────────────────────────────────
 EXCLUDE_PROXIMITY=false
+EXCLUDE_PRESSURE=false
 EXCLUDE_COLOR=false
 EXCLUDE_MAGNETOMETER=false
+WINDOW_SIZE=64
+STRIDE=16
 N_FOLDS=5
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --no-proximity)    EXCLUDE_PROXIMITY=true;    shift ;;
+        --no-pressure)     EXCLUDE_PRESSURE=true;     shift ;;
         --no-color)        EXCLUDE_COLOR=true;        shift ;;
         --no-magnetometer) EXCLUDE_MAGNETOMETER=true; shift ;;
-        *) echo "Unknown option: $1"; echo "Usage: $0 [--no-proximity] [--no-color] [--no-magnetometer]"; exit 1 ;;
+        --window-size)     WINDOW_SIZE="$2";          shift 2 ;;
+        --stride)          STRIDE="$2";               shift 2 ;;
+        *) echo "Unknown option: $1"
+           echo "Usage: $0 [--no-proximity] [--no-pressure] [--no-color] [--no-magnetometer] [--window-size N] [--stride N]"
+           exit 1 ;;
     esac
 done
 
 # ── Experiment name & output base ─────────────────────────────────────────────
+DATE_TAG=$(date +%Y_%m_%d)
 DIR_PARTS=()
 [ "$EXCLUDE_PROXIMITY"    = true ] && DIR_PARTS+=("no_proximity")
+[ "$EXCLUDE_PRESSURE"     = true ] && DIR_PARTS+=("no_pressure")
 [ "$EXCLUDE_COLOR"        = true ] && DIR_PARTS+=("no_color")
 [ "$EXCLUDE_MAGNETOMETER" = true ] && DIR_PARTS+=("no_magnetometer")
 
 if [ ${#DIR_PARTS[@]} -eq 0 ]; then
-    EXP_NAME="file_level_cv_clip"
+    FEAT_NAME="full"
 else
-    IFS='_'; EXP_NAME="${DIR_PARTS[*]}_cv_clip"; unset IFS
+    IFS='_'; FEAT_NAME="${DIR_PARTS[*]}"; unset IFS
 fi
 
-OUTPUT_BASE="outputs/experiments/${EXP_NAME}"
+EXP_NAME="${FEAT_NAME}_w${WINDOW_SIZE}_s${STRIDE}_cv"
+OUTPUT_BASE="outputs/experiments_${DATE_TAG}/${EXP_NAME}"
 DATA_DIR="data"
-VOCAB_PATH="outputs/vocabulary/gcode_vocabulary_v2.json"
+VOCAB_PATH="data/gcode_vocab_v2.json"
 SENSOR_REPORT="outputs/sensor_consistency_report.json"
 SEED=42
 
@@ -66,8 +83,10 @@ echo "5-FOLD CROSS-VALIDATION: ${EXP_NAME}"
 echo "================================================================================"
 echo "Started at: $(date)"
 echo "Output base: $OUTPUT_BASE"
+echo "Window size: $WINDOW_SIZE  Stride: $STRIDE"
 echo ""
 [ "$EXCLUDE_PROXIMITY"    = true ] && echo "  Excluding: Proximity channels"
+[ "$EXCLUDE_PRESSURE"     = true ] && echo "  Excluding: Pressure channels"
 [ "$EXCLUDE_COLOR"        = true ] && echo "  Excluding: Color (RGBA) channels"
 [ "$EXCLUDE_MAGNETOMETER" = true ] && echo "  Excluding: Magnetometer channels"
 echo ""
@@ -75,13 +94,14 @@ echo ""
 # ── Build exclusion flags for Python scripts ───────────────────────────────────
 EXCLUDE_FLAGS=""
 [ "$EXCLUDE_PROXIMITY"    = true ] && EXCLUDE_FLAGS="$EXCLUDE_FLAGS --exclude-proximity"
+[ "$EXCLUDE_PRESSURE"     = true ] && EXCLUDE_FLAGS="$EXCLUDE_FLAGS --exclude-pressure"
 [ "$EXCLUDE_COLOR"        = true ] && EXCLUDE_FLAGS="$EXCLUDE_FLAGS --exclude-color"
 [ "$EXCLUDE_MAGNETOMETER" = true ] && EXCLUDE_FLAGS="$EXCLUDE_FLAGS --exclude-magnetometer"
 
 # ── Step 0: Sensor consistency report (once) ──────────────────────────────────
 if [ ! -f "$SENSOR_REPORT" ]; then
     echo "Running sensor consistency analysis..."
-    python scripts/analysis/identify_consistent_sensors.py \
+    python3 scripts/analysis/identify_consistent_sensors.py \
         --data-dir "$DATA_DIR" \
         --threshold 95.0 \
         --output "$SENSOR_REPORT"
@@ -105,7 +125,7 @@ for FOLD in $(seq 1 $N_FOLDS); do
     # ── Step 1: Preprocess ────────────────────────────────────────────────────
     echo ""
     echo "--- [Fold $FOLD] Step 1: Preprocessing ---"
-    python romesh_changes/run_preprocessing_cv_fold.py \
+    python3 romesh_changes/run_preprocessing_cv_fold.py \
         --data-dir "$DATA_DIR" \
         --output-dir "$PREPROCESS_DIR" \
         --vocab-path "$VOCAB_PATH" \
@@ -113,18 +133,19 @@ for FOLD in $(seq 1 $N_FOLDS); do
         --threshold 95.0 \
         --fold "$FOLD" \
         --n-folds "$N_FOLDS" \
-        --window-size 64 \
-        --stride 16 \
+        --window-size "$WINDOW_SIZE" \
+        --stride "$STRIDE" \
         $EXCLUDE_FLAGS
 
     # ── Step 2: MM-LSTM-DAE encoder ───────────────────────────────────────────
     echo ""
     echo "--- [Fold $FOLD] Step 2: Training MM-LSTM-DAE encoder ---"
-    python scripts/evaluation/run_9class_direct.py \
+    python3 scripts/evaluation/run_9class_direct.py \
         --data-dir "$PREPROCESS_DIR" \
         --output-dir "$ENCODER_DIR" \
         --iteration "cv_fold_${FOLD}" \
-        --max_epochs 100 \
+        --max_epochs 200 \
+        --patience 40 \
         --seed "$SEED"
 
     # ── Step 3: Baselines ─────────────────────────────────────────────────────
@@ -134,7 +155,7 @@ for FOLD in $(seq 1 $N_FOLDS); do
     for MODEL in xgboost random_forest logistic_regression mlp lstm_simple; do
         echo ""
         echo "  [Fold $FOLD] $MODEL ..."
-        python scripts/evaluation/run_baseline_models.py \
+        python3 scripts/evaluation/run_baseline_models.py \
             --data-dir "$PREPROCESS_DIR" \
             --output-dir "$BASELINE_DIR/$MODEL" \
             --model "$MODEL" \
@@ -151,7 +172,7 @@ echo ""
 echo "================================================================================"
 echo "AGGREGATING CROSS-VALIDATION RESULTS"
 echo "================================================================================"
-python romesh_changes/aggregate_cv_results.py \
+python3 romesh_changes/aggregate_cv_results.py \
     --cv-dir "$OUTPUT_BASE" \
     --n-folds "$N_FOLDS" \
     --output "$OUTPUT_BASE/cv_summary.json"

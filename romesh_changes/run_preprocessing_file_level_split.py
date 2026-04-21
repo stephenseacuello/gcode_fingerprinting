@@ -22,14 +22,14 @@ import argparse
 from pathlib import Path
 from collections import defaultdict
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'src'))
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-from src.miracle.dataset.preprocessing import GCodePreprocessor
-from src.miracle.config.preprocessing_config import PreprocessingConfig
+from miracle.dataset.preprocessing import GCodePreprocessor
+from miracle.config.preprocessing_config import PreprocessingConfig
 
 # Sensors with ≥95% activity
 CONSISTENT_SENSORS = ['frame_l2', 'frame_r2', 'spindle2', 'y_bed__3', 'y_bed__4']

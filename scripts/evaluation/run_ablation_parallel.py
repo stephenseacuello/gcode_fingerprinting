@@ -130,6 +130,10 @@ def build_command(experiment, data_dir, output_dir, split_dir=None):
         if needs_modality_dropout_off:
             cmd.extend(['--modality_dropout', '0.0'])
 
+        # L5 single-channel experiments converge by epoch ~100 (p95=94 across 2430 runs)
+        if study == 'crossed_L5_sensor_channel':
+            cmd.extend(['--max_epochs', '100'])
+
     elif study == 'architecture':
         arch_config = experiment.get('architecture_config', {})
         for key, value in arch_config.items():
@@ -160,7 +164,7 @@ def run_experiment_subprocess(experiment, data_dir, output_dir, gpu_id=None, spl
             capture_output=True,
             text=True,
             env=env,
-            timeout=3600  # 1 hour timeout per experiment
+            timeout=7200  # 2 hour timeout per experiment
         )
         elapsed = time.time() - start_time
         success = result.returncode == 0

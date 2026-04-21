@@ -126,6 +126,7 @@ def collect_results(results_dir, studies=None):
                     model_seed = int(ms_part)
                 except (IndexError, ValueError):
                     data_split_seed = 42
+                    model_seed = 42
             else:
                 data_split_seed = 42
 

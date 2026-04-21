@@ -484,12 +484,28 @@ class SensorMultiHeadDecoder(nn.Module):
         no_positional_encoding: bool = False,
         # ============ SELF-CONDITIONING ============
         use_self_conditioning: bool = False,
+        # ============ HIERARCHICAL CONDITIONING ============
+        hierarchical: bool = False,
+        hier_embed_dim: int = 48,
+        # ============ MEMORY POSITIONAL ENCODING ============
+        memory_pos_encoding: bool = False,
         # ============ REGULARIZATION ============
         drop_path_rate: float = 0.0,
         use_gradient_checkpointing: bool = False,
         # ============ SENSOR VALUE PRIOR (Phase 2) ============
         use_sensor_prior: bool = False,
         sensor_prior_weight: float = 0.5,
+        # ============ NUMERIC REGRESSION HEAD ============
+        use_regression_head: bool = False,
+        # ============ WINDOW POSITION INPUT (Stage 2A) ============
+        use_window_position: bool = False,
+        max_windows_per_file: int = 32,
+        # ============ SEQUENCE CLASSIFIER (Stage 2D) ============
+        use_sequence_classifier: bool = False,
+        n_unique_sequences: int = 34,
+        # ============ POINTER NETWORK (V7) ============
+        use_pointer_network: bool = False,
+        axis_value_tables: dict = None,  # loaded from axis_value_tables.json
     ):
         """
         Args:
@@ -557,6 +573,29 @@ class SensorMultiHeadDecoder(nn.Module):
             nn.GELU(),
             nn.Dropout(dropout),
         )
+
+        # ============ MEMORY POSITIONAL ENCODING ============
+        # Adds positional info to sensor memory so decoder knows WHERE in the
+        # toolpath each window comes from (disambiguates e.g. Y=0.175 vs Y=2.913)
+        self.memory_pos_encoding_enabled = memory_pos_encoding
+        if memory_pos_encoding:
+            self.memory_pos_enc = SinusoidalPositionalEncoding(d_model, max_len=4096, dropout=dropout)
+        else:
+            self.memory_pos_enc = None
+
+        # ============ HIERARCHICAL CONDITIONING ============
+        # Cascaded heads: type → cmd/param → digits
+        # Breaks the gradient competition between heads by giving downstream
+        # heads explicit context from upstream predictions
+        self.hierarchical = hierarchical
+        self.hier_embed_dim = hier_embed_dim
+        if hierarchical:
+            # Embeddings for cascading context
+            self.hier_type_embed = nn.Embedding(n_types, hier_embed_dim)
+            self.hier_param_embed = nn.Embedding(n_param_types, hier_embed_dim)
+            # Project embeddings to d_model for additive conditioning on digit head
+            self.hier_type_proj = nn.Linear(hier_embed_dim, d_model)
+            self.hier_param_proj = nn.Linear(hier_embed_dim, d_model)
 
         # ============ TOKEN EMBEDDING ============
         self.token_embedding = nn.Embedding(vocab_size, d_model)
@@ -648,6 +687,7 @@ class SensorMultiHeadDecoder(nn.Module):
 
         # ============ MULTI-HEAD OUTPUTS ============
         # Type head: SPECIAL, COMMAND, PARAM_LETTER, NUMERIC
+        # Always takes raw hidden state (no conditioning needed - it's the root)
         self.type_head = nn.Sequential(
             nn.Linear(d_model, d_model // 2),
             nn.LayerNorm(d_model // 2),
@@ -657,8 +697,10 @@ class SensorMultiHeadDecoder(nn.Module):
         )
 
         # Command head: G0, G1, G2, G3, G53, OTHER
+        # In hierarchical mode: conditioned on type embedding
+        cmd_input_dim = d_model + hier_embed_dim if hierarchical else d_model
         self.command_head = nn.Sequential(
-            nn.Linear(d_model, d_model // 2),
+            nn.Linear(cmd_input_dim, d_model // 2),
             nn.LayerNorm(d_model // 2),
             nn.GELU(),
             nn.Dropout(dropout),
@@ -666,8 +708,10 @@ class SensorMultiHeadDecoder(nn.Module):
         )
 
         # Parameter type head: X, Y, Z, F, R, S, I, J, K, OTHER
+        # In hierarchical mode: conditioned on type embedding
+        param_input_dim = d_model + hier_embed_dim if hierarchical else d_model
         self.param_type_head = nn.Sequential(
-            nn.Linear(d_model, d_model // 2),
+            nn.Linear(param_input_dim, d_model // 2),
             nn.LayerNorm(d_model // 2),
             nn.GELU(),
             nn.Dropout(dropout),
@@ -713,35 +757,117 @@ class SensorMultiHeadDecoder(nn.Module):
         self.type_token_mask = None
         self.use_type_constraint = True  # Can be disabled for ablation
 
+        # ============ GRAMMAR CONSTRAINT MASK ============
+        # Transition mask: for each token, which tokens can follow it
+        # Built in set_vocab() alongside type_token_mask
+        self.grammar_mask = None
+        self.use_grammar_constraint = True  # Can be toggled via CLI
+
+        # ============ NUMERIC REGRESSION HEAD ============
+        # Direct float prediction conditioned on param type
+        self._use_regression_head = use_regression_head
+        if use_regression_head:
+            self.regression_head = nn.Sequential(
+                nn.Linear(d_model + n_param_types, d_model // 2),
+                nn.LayerNorm(d_model // 2),
+                nn.GELU(),
+                nn.Dropout(dropout),
+                nn.Linear(d_model // 2, 1),
+            )
+        else:
+            self.regression_head = None
+
+        # ============ WINDOW POSITION INPUT (Stage 2A) ============
+        self._use_window_position = use_window_position
+        self._max_windows_per_file = max_windows_per_file
+        if use_window_position:
+            self.window_pos_embed = nn.Embedding(max_windows_per_file, d_model // 4)
+            self.window_frac_proj = nn.Linear(1, d_model // 8)
+            # Project the combined position features to d_model and add to memory
+            self.window_pos_proj = nn.Linear(d_model // 4 + d_model // 8, d_model)
+
+        # ============ SEQUENCE CLASSIFIER (Stage 2D) ============
+        self._use_sequence_classifier = use_sequence_classifier
+        self.n_unique_sequences = n_unique_sequences
+        if use_sequence_classifier:
+            self.sequence_classifier = nn.Sequential(
+                nn.Linear(sensor_dim, d_model),
+                nn.LayerNorm(d_model),
+                nn.GELU(),
+                nn.Dropout(dropout),
+                nn.Linear(d_model, n_unique_sequences),
+            )
+            self.sequence_embed = nn.Embedding(n_unique_sequences, d_model)
+            self.sequence_gate = nn.Linear(d_model, d_model)
+
+        # ============ POINTER NETWORK (V7) ============
+        self._use_pointer_network = use_pointer_network
+        self.axis_value_tables = axis_value_tables
+        if use_pointer_network and axis_value_tables is not None:
+            # Per-axis classification heads
+            # axis_value_tables: {"X": {"n_values": 203, ...}, "Y": {...}, ...}
+            self.pointer_heads = nn.ModuleDict()
+            self.axis_n_values = {}   # axis_name -> n_values
+            self.axis_param_id = {}   # axis_name -> param_type_id (X=0, Y=1, etc.)
+            param_names = ['X', 'Y', 'Z', 'F', 'R', 'S', 'I', 'J', 'K']
+            for axis_name, axis_info in axis_value_tables.items():
+                n_values = axis_info['n_values']
+                if n_values < 2:
+                    continue  # Skip axes with only 1 value (e.g., F=7.0)
+                self.pointer_heads[axis_name] = nn.Sequential(
+                    nn.Linear(d_model, d_model // 2),
+                    nn.LayerNorm(d_model // 2),
+                    nn.GELU(),
+                    nn.Dropout(dropout),
+                    nn.Linear(d_model // 2, n_values),
+                )
+                self.axis_n_values[axis_name] = n_values
+                if axis_name in param_names:
+                    self.axis_param_id[axis_name] = param_names.index(axis_name)
+            # Build reverse mapping: token_id -> (axis_name, axis_idx)
+            self._build_pointer_token_maps()
+        else:
+            self.pointer_heads = None
+
+        # ============ OPERATION-SEQUENCE PRIOR (Stage 2E) ============
+        # Will be set via set_op_sequence_mask() method
+        self.op_seq_mask = None
+
         # Initialize weights
         self._init_weights()
 
     def set_vocab(self, vocab: dict):
         """
-        Set vocabulary and build type masks for type-constrained decoding.
+        Set vocabulary and build type masks + grammar transition masks.
 
-        This enables the model to use its high-accuracy type predictions (99.8%)
-        to constrain the 668-way token prediction, eliminating errors like
-        predicting "X" when the type head says "COMMAND".
+        Type masks: constrain token prediction by predicted token type.
+        Grammar masks: constrain what tokens can follow a given token based on
+        G-code grammar rules (e.g., after X only NUM_X_* is valid).
 
         Args:
             vocab: Dictionary mapping token strings to indices
         """
         self.vocab = vocab
         type_mask = self._build_type_masks(vocab)
+        grammar_mask = self._build_grammar_masks(vocab)
 
         # Move to same device as model if already on device
+        device = 'cpu'
         if hasattr(self, 'type_head') and next(self.type_head.parameters()).device.type != 'cpu':
-            type_mask = type_mask.to(next(self.type_head.parameters()).device)
+            device = next(self.type_head.parameters()).device
+            type_mask = type_mask.to(device)
+            grammar_mask = grammar_mask.to(device)
 
-        # Remove existing buffer/attribute if it exists, then register new one
-        if hasattr(self, 'type_token_mask'):
-            delattr(self, 'type_token_mask')
-        if 'type_token_mask' in self._buffers:
-            del self._buffers['type_token_mask']
+        # Remove existing buffers if they exist, then register new ones
+        for buf_name, buf_val in [('type_token_mask', type_mask), ('grammar_mask', grammar_mask)]:
+            if hasattr(self, buf_name):
+                delattr(self, buf_name)
+            if buf_name in self._buffers:
+                del self._buffers[buf_name]
+            self.register_buffer(buf_name, buf_val)
 
-        self.register_buffer('type_token_mask', type_mask)
         print(f"[SensorMultiHeadDecoder] Type constraint mask built: {type_mask.shape}")
+        print(f"[SensorMultiHeadDecoder] Grammar mask built: {grammar_mask.shape}")
 
     def _build_type_masks(self, vocab: dict) -> torch.Tensor:
         """
@@ -786,6 +912,143 @@ class SensorMultiHeadDecoder(nn.Module):
 
         return mask
 
+    def _build_grammar_masks(self, vocab: dict) -> torch.Tensor:
+        """
+        Build grammar transition masks: for each token, which tokens can legally follow.
+
+        G-code grammar rules:
+        - BOS -> COMMAND (G0, G1, M30, ...) or PARAM (X, Y for continuation lines)
+        - COMMAND (G0, G1, G2, G3, G53) -> PARAM (X, Y, Z, F, R, ...)
+        - COMMAND (M30) -> EOS
+        - PARAM (X) -> NUM_X_*
+        - PARAM (Y) -> NUM_Y_*
+        - PARAM (Z) -> NUM_Z_*
+        - PARAM (R) -> NUM_R_*
+        - PARAM (F) -> NUM_F_*
+        - NUM_*_* -> PARAM (next axis) or EOS
+        - EOS -> PAD
+        - PAD -> PAD
+
+        Returns:
+            mask: [vocab_size, vocab_size] where valid transitions have 0,
+                  invalid transitions have large negative value
+        """
+        MASK_VALUE = -1e4
+        V = len(vocab)
+        mask = torch.full((V, V), MASK_VALUE)
+
+        # Build token sets
+        special = {}
+        move_commands = set()  # G0, G1, G2, G3, G53 — commands that take params
+        end_commands = set()   # M30 — commands that end program
+        params = {}            # letter -> vocab_id
+        numerics_by_axis = {}  # axis -> set of vocab_ids
+        other_tokens = set()
+
+        param_letters = {'X', 'Y', 'Z', 'F', 'R', 'S', 'I', 'J', 'K'}
+
+        for token, idx in vocab.items():
+            if token in ('PAD', 'BOS', 'EOS', 'UNK', 'MASK'):
+                special[token] = idx
+            elif token in param_letters:
+                params[token] = idx
+            elif token.startswith('NUM_'):
+                parts = token.split('_')
+                if len(parts) >= 3:
+                    axis = parts[1]
+                    if axis not in numerics_by_axis:
+                        numerics_by_axis[axis] = set()
+                    numerics_by_axis[axis].add(idx)
+            elif token.startswith('G'):
+                move_commands.add(idx)
+            elif token.startswith('M'):
+                end_commands.add(idx)
+            else:
+                other_tokens.add(idx)
+
+        all_param_ids = set(params.values())
+        all_numeric_ids = set()
+        for s in numerics_by_axis.values():
+            all_numeric_ids.update(s)
+
+        pad_id = special.get('PAD', 0)
+        bos_id = special.get('BOS', 1)
+        eos_id = special.get('EOS', 2)
+
+        # Rule: BOS -> any COMMAND or any PARAM (for continuation lines)
+        for cmd_id in (move_commands | end_commands):
+            mask[bos_id, cmd_id] = 0
+        for p_id in all_param_ids:
+            mask[bos_id, p_id] = 0
+
+        # Rule: move COMMAND (G0, G1, G2, G3, G53) -> any PARAM letter
+        for cmd_id in move_commands:
+            for p_id in all_param_ids:
+                mask[cmd_id, p_id] = 0
+
+        # Rule: end COMMAND (M30) -> EOS
+        for cmd_id in end_commands:
+            mask[cmd_id, eos_id] = 0
+
+        # Rule: PARAM letter -> matching NUM tokens only
+        for letter, p_id in params.items():
+            if letter in numerics_by_axis:
+                for num_id in numerics_by_axis[letter]:
+                    mask[p_id, num_id] = 0
+            else:
+                # Axis with no numeric tokens in vocab — allow EOS as fallback
+                mask[p_id, eos_id] = 0
+
+        # Rule: NUM_*_* -> any PARAM letter or EOS
+        for num_id in all_numeric_ids:
+            for p_id in all_param_ids:
+                mask[num_id, p_id] = 0
+            mask[num_id, eos_id] = 0
+
+        # Rule: NUM -> COMMAND (for multi-command lines like G53 G0)
+        for num_id in all_numeric_ids:
+            for cmd_id in (move_commands | end_commands):
+                mask[num_id, cmd_id] = 0
+
+        # Rule: COMMAND -> COMMAND (for G53 G0)
+        for cmd_id in move_commands:
+            for cmd_id2 in (move_commands | end_commands):
+                mask[cmd_id, cmd_id2] = 0
+
+        # Rule: EOS -> PAD
+        mask[eos_id, pad_id] = 0
+
+        # Rule: PAD -> PAD
+        mask[pad_id, pad_id] = 0
+
+        # Other/unknown tokens: allow anything (don't constrain)
+        for oid in other_tokens:
+            mask[oid, :] = 0
+            mask[:, oid] = 0
+
+        # UNK: allow anything
+        unk_id = special.get('UNK', 3)
+        mask[unk_id, :] = 0
+
+        # Log stats
+        valid_per_token = (mask == 0).sum(dim=1).float()
+        print(f"[SensorMultiHeadDecoder] Grammar mask: avg valid next tokens = {valid_per_token.mean():.1f}, "
+              f"min = {valid_per_token.min():.0f}, max = {valid_per_token.max():.0f}")
+
+        return mask
+
+    def set_op_sequence_mask(self, op_seq_mask: torch.Tensor):
+        """
+        Store a [n_op_types, n_unique_sequences] boolean mask for operation-type
+        sequence prior (Stage 2E). True means the sequence is valid for that op type.
+
+        Args:
+            op_seq_mask: [n_op_types, n_unique_sequences] boolean tensor
+        """
+        if hasattr(self, 'op_seq_mask') and 'op_seq_mask' in self._buffers:
+            del self._buffers['op_seq_mask']
+        self.register_buffer('op_seq_mask', op_seq_mask)
+
     def _init_weights(self):
         """Initialize weights with Xavier/Glorot initialization."""
         for module in self.modules():
@@ -795,6 +1058,20 @@ class SensorMultiHeadDecoder(nn.Module):
                     nn.init.zeros_(module.bias)
             elif isinstance(module, nn.Embedding):
                 nn.init.normal_(module.weight, mean=0.0, std=0.02)
+
+    def _build_pointer_token_maps(self):
+        """Build mapping from vocab token IDs to pointer network axis indices."""
+        self._token_to_pointer = {}  # token_id -> (axis_name, axis_idx)
+        self._pointer_to_token = {}  # (axis_name, axis_idx) -> token_id
+        if self.axis_value_tables is None:
+            return
+        for axis_name, axis_info in self.axis_value_tables.items():
+            if axis_name not in self.axis_n_values:
+                continue
+            token_ids = axis_info.get('token_ids', [])
+            for axis_idx, tok_id in enumerate(token_ids):
+                self._token_to_pointer[tok_id] = (axis_name, axis_idx)
+                self._pointer_to_token[(axis_name, axis_idx)] = tok_id
 
     def _generate_causal_mask(self, seq_len: int, device: torch.device) -> torch.Tensor:
         """Generate causal mask for autoregressive decoding."""
@@ -813,6 +1090,10 @@ class SensorMultiHeadDecoder(nn.Module):
         return_hidden: bool = False,
         teacher_forcing_ratio: float = 1.0,
         prev_logits: Optional[Dict[str, torch.Tensor]] = None,
+        window_index: Optional[torch.Tensor] = None,
+        total_windows: Optional[torch.Tensor] = None,
+        sequence_class: Optional[torch.Tensor] = None,
+        op_pred: Optional[torch.Tensor] = None,
     ) -> Dict[str, torch.Tensor]:
         """
         Forward pass for training with optional scheduled sampling.
@@ -858,6 +1139,43 @@ class SensorMultiHeadDecoder(nn.Module):
 
         # ============ 2. SENSOR PROJECTION ============
         memory = self.sensor_projection(sensor_with_op)  # [B, T_s, d_model]
+
+        # ============ 2a. WINDOW POSITION INPUT (Stage 2A) ============
+        if self._use_window_position and window_index is not None:
+            pos_emb = self.window_pos_embed(
+                window_index.clamp(0, self._max_windows_per_file - 1)
+            )  # [B, d_model//4]
+            frac = (window_index.float() / total_windows.float().clamp(min=1)).unsqueeze(-1)  # [B, 1]
+            frac_emb = self.window_frac_proj(frac)  # [B, d_model//8]
+            win_pos = self.window_pos_proj(torch.cat([pos_emb, frac_emb], dim=-1))  # [B, d_model]
+            memory = memory + win_pos.unsqueeze(1)  # broadcast over sequence length
+
+        # ============ 2b. MEMORY POSITIONAL ENCODING ============
+        if self.memory_pos_encoding_enabled and self.memory_pos_enc is not None:
+            memory = self.memory_pos_enc(memory)
+
+        # ============ 2c. SEQUENCE CLASSIFIER (Stage 2D) ============
+        seq_logits = None
+        if self._use_sequence_classifier:
+            # Use raw sensor embeddings (before projection) for classifier input
+            mem_pooled = sensor_embeddings.mean(dim=1)  # [B, sensor_dim]
+            seq_logits = self.sequence_classifier(mem_pooled)  # [B, n_unique_sequences]
+
+            # Apply operation-sequence prior mask (Stage 2E)
+            if hasattr(self, 'op_seq_mask') and self.op_seq_mask is not None and op_pred is not None:
+                valid_mask = self.op_seq_mask[op_pred]  # [B, n_sequences]
+                seq_logits = seq_logits + (~valid_mask).float() * -1e4
+
+            # Get class: use GT during training if provided, else argmax
+            if self.training and sequence_class is not None:
+                seq_class = sequence_class
+            else:
+                seq_class = seq_logits.argmax(-1)
+
+            # Embed and gate
+            seq_emb = self.sequence_embed(seq_class)  # [B, d_model]
+            gate = torch.sigmoid(self.sequence_gate(seq_emb))
+            memory = memory + (gate * seq_emb).unsqueeze(1)
 
         # ============ SCHEDULED SAMPLING (NEW) ============
         # If teacher_forcing_ratio < 1.0, mix ground truth with model predictions
@@ -971,17 +1289,35 @@ class SensorMultiHeadDecoder(nn.Module):
 
         # ============ 6. MULTI-HEAD PREDICTIONS ============
         type_logits = self.type_head(hidden)  # [B, L, n_types]
-        command_logits = self.command_head(hidden)  # [B, L, n_commands]
-        param_type_logits = self.param_type_head(hidden)  # [B, L, n_param_types]
+
+        if self.hierarchical:
+            # ── Hierarchical conditioning: cascade type → cmd/param → digits ──
+            # During training: teacher-force with ground truth type/param
+            # During inference: use predicted type/param (97%+ accurate)
+            type_pred = type_logits.argmax(-1)  # [B, L]
+            type_emb = self.hier_type_embed(type_pred)  # [B, L, hier_embed_dim]
+
+            # Command and param heads get type context
+            hidden_with_type = torch.cat([hidden, type_emb], dim=-1)  # [B, L, d_model + hier_embed_dim]
+            command_logits = self.command_head(hidden_with_type)  # [B, L, n_commands]
+            param_type_logits = self.param_type_head(hidden_with_type)  # [B, L, n_param_types]
+
+            # Digit head gets type + param context via the DigitByDigitValueHead
+            # (it already takes param_type as input, plus we pass enriched hidden)
+            param_type_pred = param_type_logits.argmax(-1)  # [B, L]
+            param_emb = self.hier_param_embed(param_type_pred)  # [B, L, hier_embed_dim]
+
+            # Enrich hidden for digit head with type + param embeddings (projected to d_model)
+            hidden_for_digits = hidden + self.hier_type_proj(type_emb) + self.hier_param_proj(param_emb)
+        else:
+            command_logits = self.command_head(hidden)  # [B, L, n_commands]
+            param_type_logits = self.param_type_head(hidden)  # [B, L, n_param_types]
+            param_type_pred = param_type_logits.argmax(-1)  # [B, L]
+            hidden_for_digits = hidden
 
         # ============ 7. DIGIT PREDICTIONS ============
-        # Get predicted param_type for digit conditioning
-        # During training, we could use ground truth param_type (teacher forcing)
-        # During inference, we use predicted param_type
-        param_type_pred = param_type_logits.argmax(-1)  # [B, L]
-
         digit_outputs = self.digit_value_head(
-            hidden=hidden,
+            hidden=hidden_for_digits,
             operation_type=operation_type,
             param_type=param_type_pred,
         )
@@ -1003,18 +1339,41 @@ class SensorMultiHeadDecoder(nn.Module):
                 self.sensor_prior_weight * sensor_prior['sign_bias']
             )
 
-        # ============ 8. LEGACY LOGITS WITH TYPE CONSTRAINT ============
+        # ============ 8. LEGACY LOGITS WITH TYPE + GRAMMAR CONSTRAINT ============
         raw_legacy_logits = self.legacy_token_head(hidden)  # [B, L, vocab_size]
 
         # Apply type constraint if mask is available and enabled
+        constrained_logits = raw_legacy_logits
         if self.use_type_constraint and self.type_token_mask is not None:
-            # Use predicted type to mask invalid tokens
-            type_pred = type_logits.argmax(-1)  # [B, L]
-            # Gather the mask for each predicted type
-            type_mask = self.type_token_mask[type_pred]  # [B, L, vocab_size]
-            constrained_logits = raw_legacy_logits + type_mask
-        else:
-            constrained_logits = raw_legacy_logits
+            type_pred_for_mask = type_logits.argmax(-1)  # [B, L]
+            type_mask = self.type_token_mask[type_pred_for_mask]  # [B, L, vocab_size]
+            constrained_logits = constrained_logits + type_mask
+
+        # Apply grammar constraint: mask based on previous token
+        if self.use_grammar_constraint and self.grammar_mask is not None:
+            # tokens[:, :] are the input tokens (shifted right by 1 from targets)
+            # tokens[b, t] is the input at position t, constraining what can appear at position t
+            prev_tokens = tokens  # [B, L] — the input tokens at each position
+            grammar_constraint = self.grammar_mask[prev_tokens]  # [B, L, vocab_size]
+            constrained_logits = constrained_logits + grammar_constraint
+
+        # ============ 8b. POINTER NETWORK (V7) ============
+        pointer_logits = None
+        if self._use_pointer_network and self.pointer_heads is not None:
+            # Compute per-axis logits for numeric token positions
+            pointer_logits = {}
+            for axis_name, head in self.pointer_heads.items():
+                pointer_logits[axis_name] = head(hidden)  # [B, L, n_values_for_axis]
+
+        # ============ 8c. NUMERIC REGRESSION HEAD ============
+        regression_value = None
+        if self._use_regression_head and self.regression_head is not None:
+            # One-hot param type conditioning
+            param_onehot = torch.nn.functional.one_hot(
+                param_type_pred.clamp(0), self.n_param_types
+            ).float()  # [B, L, n_param_types]
+            reg_input = torch.cat([hidden_for_digits, param_onehot], dim=-1)
+            regression_value = self.regression_head(reg_input).squeeze(-1)  # [B, L]
 
         # ============ 9. BUILD OUTPUT DICT ============
         outputs = {
@@ -1024,9 +1383,15 @@ class SensorMultiHeadDecoder(nn.Module):
             'sign_logits': digit_outputs['sign_logits'],
             'digit_logits': digit_outputs['digit_logits'],
             'aux_value': digit_outputs['aux_value'],
-            'legacy_logits': constrained_logits,  # Type-constrained token logits
+            'legacy_logits': constrained_logits,  # Type + grammar constrained
             'raw_legacy_logits': raw_legacy_logits,  # Unconstrained for debugging
         }
+        if regression_value is not None:
+            outputs['regression_value'] = regression_value
+        if seq_logits is not None:
+            outputs['sequence_logits'] = seq_logits
+        if pointer_logits is not None:
+            outputs['pointer_logits'] = pointer_logits  # Dict[axis_name, [B, L, n_values]]
 
         if return_hidden:
             outputs['hidden'] = hidden

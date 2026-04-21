@@ -385,6 +385,150 @@ def generate_anova_table(anova_results: dict) -> str:
     return '\n'.join(lines)
 
 
+def generate_crossed_l1_table(df: pd.DataFrame) -> str:
+    """Generate LaTeX table for L1 sensor × modality top configs."""
+    l1_df = df[df['study'] == 'crossed_L1_sensor_modality']
+
+    if l1_df.empty:
+        return "% No L1 sensor×modality data available\n"
+
+    stats = l1_df.groupby('config_name')['test_accuracy'].agg(['mean', 'std', 'count']).reset_index()
+    stats = stats.sort_values('mean', ascending=False)
+
+    lines = [
+        "\\begin{table}[h]",
+        "\\centering",
+        "\\caption{Top-20 Single Sensor--Modality Configurations (L1)}",
+        "\\label{tab:l1_sensor_modality}",
+        "\\begin{tabular}{rlcc}",
+        "\\toprule",
+        "\\textbf{Rank} & \\textbf{Sensor -- Modality} & \\textbf{Test Acc (\\%)} & \\textbf{$n$} \\\\",
+        "\\midrule",
+    ]
+
+    for rank, (_, row) in enumerate(stats.head(20).iterrows(), 1):
+        config = str(row['config_name']).replace('_', '\\_')
+        acc = f"{row['mean']*100:.2f} $\\pm$ {row['std']*100:.2f}"
+        n = int(row['count'])
+        lines.append(f"{rank} & {config} & {acc} & {n} \\\\")
+
+    lines.extend([
+        "\\bottomrule",
+        "\\end{tabular}",
+        "\\end{table}",
+    ])
+
+    return '\n'.join(lines)
+
+
+def generate_crossed_l2_table(df: pd.DataFrame) -> str:
+    """Generate LaTeX table for L2 sensor group × modality top configs."""
+    l2_df = df[df['study'] == 'crossed_L2_group_modality']
+
+    if l2_df.empty:
+        return "% No L2 group×modality data available\n"
+
+    stats = l2_df.groupby('config_name')['test_accuracy'].agg(['mean', 'std', 'count']).reset_index()
+    stats = stats.sort_values('mean', ascending=False)
+
+    lines = [
+        "\\begin{table}[h]",
+        "\\centering",
+        "\\caption{Sensor Group $\\times$ Modality Configurations (L2)}",
+        "\\label{tab:l2_group_modality}",
+        "\\begin{tabular}{rlcc}",
+        "\\toprule",
+        "\\textbf{Rank} & \\textbf{Group -- Modality} & \\textbf{Test Acc (\\%)} & \\textbf{$n$} \\\\",
+        "\\midrule",
+    ]
+
+    for rank, (_, row) in enumerate(stats.head(20).iterrows(), 1):
+        config = str(row['config_name']).replace('_', '\\_')
+        acc = f"{row['mean']*100:.2f} $\\pm$ {row['std']*100:.2f}"
+        n = int(row['count'])
+        lines.append(f"{rank} & {config} & {acc} & {n} \\\\")
+
+    lines.extend([
+        "\\bottomrule",
+        "\\end{tabular}",
+        "\\end{table}",
+    ])
+
+    return '\n'.join(lines)
+
+
+def generate_crossed_l3_table(df: pd.DataFrame) -> str:
+    """Generate LaTeX table for L3 sensor pair top configs."""
+    l3_df = df[df['study'] == 'crossed_L3_sensor_pairs']
+
+    if l3_df.empty:
+        return "% No L3 sensor pair data available\n"
+
+    stats = l3_df.groupby('config_name')['test_accuracy'].agg(['mean', 'std', 'count']).reset_index()
+    stats = stats.sort_values('mean', ascending=False)
+
+    lines = [
+        "\\begin{table}[h]",
+        "\\centering",
+        "\\caption{Top-20 Sensor Pair Configurations (L3)}",
+        "\\label{tab:l3_sensor_pairs}",
+        "\\begin{tabular}{rlcc}",
+        "\\toprule",
+        "\\textbf{Rank} & \\textbf{Sensor Pair} & \\textbf{Test Acc (\\%)} & \\textbf{$n$} \\\\",
+        "\\midrule",
+    ]
+
+    for rank, (_, row) in enumerate(stats.head(20).iterrows(), 1):
+        config = str(row['config_name']).replace('+', ' + ').replace('_', '\\_')
+        acc = f"{row['mean']*100:.2f} $\\pm$ {row['std']*100:.2f}"
+        n = int(row['count'])
+        lines.append(f"{rank} & {config} & {acc} & {n} \\\\")
+
+    lines.extend([
+        "\\bottomrule",
+        "\\end{tabular}",
+        "\\end{table}",
+    ])
+
+    return '\n'.join(lines)
+
+
+def generate_crossed_l4_table(df: pd.DataFrame) -> str:
+    """Generate LaTeX table for L4 modality combination top configs."""
+    l4_df = df[df['study'] == 'crossed_L4_modality_combos']
+
+    if l4_df.empty:
+        return "% No L4 modality combo data available\n"
+
+    stats = l4_df.groupby('config_name')['test_accuracy'].agg(['mean', 'std', 'count']).reset_index()
+    stats = stats.sort_values('mean', ascending=False)
+
+    lines = [
+        "\\begin{table}[h]",
+        "\\centering",
+        "\\caption{Modality Combination Configurations (L4)}",
+        "\\label{tab:l4_modality_combos}",
+        "\\begin{tabular}{rlcc}",
+        "\\toprule",
+        "\\textbf{Rank} & \\textbf{Modality Combination} & \\textbf{Test Acc (\\%)} & \\textbf{$n$} \\\\",
+        "\\midrule",
+    ]
+
+    for rank, (_, row) in enumerate(stats.iterrows(), 1):
+        config = str(row['config_name']).replace('+', ' + ').replace('_', '\\_')
+        acc = f"{row['mean']*100:.2f} $\\pm$ {row['std']*100:.2f}"
+        n = int(row['count'])
+        lines.append(f"{rank} & {config} & {acc} & {n} \\\\")
+
+    lines.extend([
+        "\\bottomrule",
+        "\\end{tabular}",
+        "\\end{table}",
+    ])
+
+    return '\n'.join(lines)
+
+
 def generate_l5_table(df: pd.DataFrame, l5_anova: dict = None) -> str:
     """Generate LaTeX table for L5 sensor × channel top configs."""
     l5_df = df[df['study'] == 'crossed_L5_sensor_channel']
@@ -503,6 +647,10 @@ def main():
         'table_architecture.tex': generate_architecture_table(df),
         'table_baselines.tex': generate_baseline_table(df),
         'table_anova.tex': generate_anova_table(anova),
+        'table_l1_sensor_modality.tex': generate_crossed_l1_table(df),
+        'table_l2_group_modality.tex': generate_crossed_l2_table(df),
+        'table_l3_sensor_pairs.tex': generate_crossed_l3_table(df),
+        'table_l4_modality_combos.tex': generate_crossed_l4_table(df),
         'table_l5_top_configs.tex': generate_l5_table(df, l5_anova),
     }
 

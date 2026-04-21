@@ -343,7 +343,8 @@ def generate_learning_curves(history, checkpoint_dir, val_best_epoch, test_best_
 def train_encoder(data_dir, checkpoint_dir, sensor_dims, group_names, group_indices, device,
                   n_classes=9, d_model=256, n_heads=4, lstm_layers=2, dropout=0.2,
                   max_epochs=200, patience=40, lr=1e-3, batch_size=32, seed=42,
-                  label_smoothing=0.1, modality_dropout=0.1, recon_weight=0.1):
+                  label_smoothing=0.1, modality_dropout=0.1, recon_weight=0.1,
+                  ablation='full'):
     """Train MM_DTAE_LSTM encoder for 9-class classification."""
     torch.manual_seed(seed)
     np.random.seed(seed)
@@ -369,14 +370,20 @@ def train_encoder(data_dir, checkpoint_dir, sensor_dims, group_names, group_indi
         op_counts[train_ds.operation_type[i].item()] += 1
     log(f"  Train class distribution: {dict(sorted(op_counts.items()))}")
 
+    # Force recon_weight=0 when DTAE is disabled (reconstruction is meaningless)
+    if ablation in ('no_dtae', 'minimal'):
+        recon_weight = 0.0
+        log(f"  NOTE: recon_weight forced to 0.0 for ablation='{ablation}' (no DTAE)")
+
     # Model
     config = ModelConfig(sensor_dims=sensor_dims, d_model=d_model, lstm_layers=lstm_layers,
-                         n_heads=n_heads, dropout=dropout, cls_pooling='last')
+                         n_heads=n_heads, dropout=dropout, cls_pooling='last',
+                         ablation=ablation)
     model = MM_DTAE_LSTM(config)
     model.head_cls = nn.Linear(d_model, n_classes)
     model = model.to(device)
 
-    log(f"  Model: MM_DTAE_LSTM, d_model={d_model}, dropout={dropout}")
+    log(f"  Model: MM_DTAE_LSTM, d_model={d_model}, dropout={dropout}, ablation={ablation}")
     log(f"  Total params: {sum(p.numel() for p in model.parameters()):,}")
 
     # Class weights (balanced)
@@ -649,6 +656,18 @@ if __name__ == '__main__':
                         help='Random seed')
     parser.add_argument('--modality_dropout', type=float, default=0.1,
                         help='Modality dropout during training')
+    parser.add_argument('--d_model', type=int, default=256,
+                        help='Model hidden dimension')
+    parser.add_argument('--n_heads', type=int, default=4,
+                        help='Number of attention heads')
+    parser.add_argument('--lstm_layers', type=int, default=2,
+                        help='Number of LSTM layers')
+
+    # Architecture ablation
+    parser.add_argument('--ablation', type=str, default='full',
+                        choices=['full', 'single_proj', 'no_gates', 'no_crossattn',
+                                 'no_denoise', 'no_dtae', 'minimal'],
+                        help='Architecture ablation condition (default: full)')
 
     # Ablation filtering
     parser.add_argument('--include-only-sensors', type=str, default=None,
@@ -684,6 +703,7 @@ if __name__ == '__main__':
     log(f"  patience: {args.patience}")
     log(f"  seed: {args.seed}")
     log(f"  modality_dropout: {args.modality_dropout}")
+    log(f"  ablation: {args.ablation}")
 
     # ── Prepare data ────────────────────────────────────────────────────────
     log(f"\n{'='*70}")
@@ -717,13 +737,16 @@ if __name__ == '__main__':
 
     train_kwargs = {
         'n_classes': 9,
-        'd_model': 256,
+        'd_model': args.d_model,
+        'n_heads': args.n_heads,
+        'lstm_layers': args.lstm_layers,
         'dropout': args.dropout,
         'max_epochs': args.max_epochs,
         'patience': args.patience,
         'lr': args.lr,
         'label_smoothing': args.label_smoothing,
         'modality_dropout': args.modality_dropout,
+        'ablation': args.ablation,
     }
 
     model, config, results = train_encoder(
@@ -755,28 +778,42 @@ if __name__ == '__main__':
                           out_dir / 'confusion_matrix_test.png',
                           title=f'9-Class Test - {args.iteration} (Test-Best)')
 
+    # Compute confusion matrix for val-best checkpoint (used in paper)
+    val_best_preds = results['val_best']['test']['predictions']
+    val_best_labels = results['val_best']['test']['true_labels']
+    cm_val_best = confusion_matrix(val_best_labels, val_best_preds,
+                                    labels=list(range(len(CLASS_NAMES_9))))
+
+    elapsed = time.time() - t0  # total wall-clock time
+
     # Save results JSON
     save_results = {
         'config': {
             'iteration': args.iteration,
             'seed': args.seed,
+            'n_params': sum(p.numel() for p in model.parameters()),
             **train_kwargs,
         },
         'checkpoint_info': results['checkpoint_info'],
+        'train_time_seconds': elapsed,
         'val_best_test': {
             'accuracy': results['val_best']['test']['accuracy'],
             'per_class': results['val_best']['test']['per_class'],
+            'confusion_matrix': cm_val_best.tolist(),
         },
         'test_best_test': {
             'accuracy': results['test_best']['test']['accuracy'],
             'per_class': results['test_best']['test']['per_class'],
+            'confusion_matrix': confusion_matrix(
+                test_labels, test_preds,
+                labels=list(range(len(CLASS_NAMES_9)))
+            ).tolist(),
         },
     }
 
     with open(out_dir / 'results.json', 'w') as f:
         json.dump(save_results, f, indent=2)
 
-    elapsed = time.time() - t0
     log(f"\n{'='*70}")
     log(f"COMPLETE in {elapsed/60:.1f} minutes")
     log(f"Results saved to {out_dir / 'results.json'}")

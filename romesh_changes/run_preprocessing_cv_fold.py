@@ -33,11 +33,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 import numpy as np
 
-from src.miracle.dataset.preprocessing import GCodePreprocessor
-from src.miracle.config.preprocessing_config import PreprocessingConfig
+from miracle.dataset.preprocessing import GCodePreprocessor
+from miracle.config.preprocessing_config import PreprocessingConfig
 
-# Sensors with >=95% activity
-CONSISTENT_SENSORS = ['frame_l2', 'frame_r2', 'spindle2', 'y_bed__3', 'y_bed__4']
+# 6 sensors used by Romesh (>=93% activity)
+CONSISTENT_SENSORS = ['frame_l2', 'frame_l3', 'frame_r2', 'spindle2', 'y_bed__3', 'y_bed__4']
 
 ELECTRICAL_FEATURES = [
     'spindle', 'x_motor', 'y_motor', 'z_motor',
@@ -45,23 +45,30 @@ ELECTRICAL_FEATURES = [
 ]
 
 ALL_PROXIMITY_CHANNELS = [
-    'frame_l2.Proximity', 'frame_r2.Proximity', 'spindle2.Proximity',
-    'y_bed__3.Proximity', 'y_bed__4.Proximity',
+    f'{s}.Proximity' for s in CONSISTENT_SENSORS
+]
+ALL_PRESSURE_CHANNELS = [
+    f'{s}.Pressure' for s in CONSISTENT_SENSORS
 ]
 ALL_COLOR_CHANNELS = [
-    'frame_l2.ColorR', 'frame_l2.ColorG', 'frame_l2.ColorB', 'frame_l2.ColorA',
-    'frame_r2.ColorR', 'frame_r2.ColorG', 'frame_r2.ColorB', 'frame_r2.ColorA',
-    'spindle2.ColorR', 'spindle2.ColorG', 'spindle2.ColorB', 'spindle2.ColorA',
-    'y_bed__3.ColorR', 'y_bed__3.ColorG', 'y_bed__3.ColorB', 'y_bed__3.ColorA',
-    'y_bed__4.ColorR', 'y_bed__4.ColorG', 'y_bed__4.ColorB', 'y_bed__4.ColorA',
+    f'{s}.{c}' for s in CONSISTENT_SENSORS for c in ['ColorR', 'ColorG', 'ColorB', 'ColorA']
 ]
 ALL_MAGNETOMETER_CHANNELS = [
-    'frame_l2.Mx', 'frame_l2.My', 'frame_l2.Mz',
-    'frame_r2.Mx', 'frame_r2.My', 'frame_r2.Mz',
-    'spindle2.Mx', 'spindle2.My', 'spindle2.Mz',
-    'y_bed__3.Mx', 'y_bed__3.My', 'y_bed__3.Mz',
-    'y_bed__4.Mx', 'y_bed__4.My', 'y_bed__4.Mz',
+    f'{s}.{c}' for s in CONSISTENT_SENSORS for c in ['Mx', 'My', 'Mz']
 ]
+ALL_ACCELEROMETER_CHANNELS = [
+    f'{s}.{c}' for s in CONSISTENT_SENSORS for c in ['Ax', 'Ay', 'Az']
+]
+ALL_GYROSCOPE_CHANNELS = [
+    f'{s}.{c}' for s in CONSISTENT_SENSORS for c in ['Gx', 'Gy', 'Gz']
+]
+ALL_TEMPERATURE_CHANNELS = [
+    f'{s}.Temperature' for s in CONSISTENT_SENSORS
+]
+ALL_AUDIO_CHANNELS = [
+    f'{s}.RMS' for s in CONSISTENT_SENSORS
+]
+ALL_ELECTRICAL_CHANNELS = list(ELECTRICAL_FEATURES)
 
 
 def extract_operation_type(filename):
@@ -147,15 +154,21 @@ def main():
     parser.add_argument('--vocab-path',  type=Path, required=True)
     parser.add_argument('--sensor-report', type=Path,
                         default='outputs/sensor_consistency_report.json')
-    parser.add_argument('--threshold',   type=float, default=95.0)
+    parser.add_argument('--threshold',   type=float, default=93.0)
     parser.add_argument('--fold',        type=int,   required=True,
                         help='Fold index, 1-indexed (1 to n-folds)')
     parser.add_argument('--n-folds',     type=int,   default=5)
     parser.add_argument('--window-size', type=int,   default=64)
     parser.add_argument('--stride',      type=int,   default=16)
     parser.add_argument('--exclude-proximity',    action='store_true')
+    parser.add_argument('--exclude-pressure',     action='store_true')
     parser.add_argument('--exclude-color',        action='store_true')
     parser.add_argument('--exclude-magnetometer', action='store_true')
+    parser.add_argument('--exclude-accelerometer', action='store_true')
+    parser.add_argument('--exclude-gyroscope',    action='store_true')
+    parser.add_argument('--exclude-temperature',  action='store_true')
+    parser.add_argument('--exclude-audio',        action='store_true')
+    parser.add_argument('--exclude-electrical',   action='store_true')
     args = parser.parse_args()
 
     # Convert to 0-indexed fold
@@ -167,9 +180,15 @@ def main():
 
     # Channels to exclude
     exclude_channels = []
-    if args.exclude_proximity:    exclude_channels.extend(ALL_PROXIMITY_CHANNELS)
-    if args.exclude_color:        exclude_channels.extend(ALL_COLOR_CHANNELS)
-    if args.exclude_magnetometer: exclude_channels.extend(ALL_MAGNETOMETER_CHANNELS)
+    if args.exclude_proximity:     exclude_channels.extend(ALL_PROXIMITY_CHANNELS)
+    if args.exclude_pressure:      exclude_channels.extend(ALL_PRESSURE_CHANNELS)
+    if args.exclude_color:         exclude_channels.extend(ALL_COLOR_CHANNELS)
+    if args.exclude_magnetometer:  exclude_channels.extend(ALL_MAGNETOMETER_CHANNELS)
+    if args.exclude_accelerometer: exclude_channels.extend(ALL_ACCELEROMETER_CHANNELS)
+    if args.exclude_gyroscope:     exclude_channels.extend(ALL_GYROSCOPE_CHANNELS)
+    if args.exclude_temperature:   exclude_channels.extend(ALL_TEMPERATURE_CHANNELS)
+    if args.exclude_audio:         exclude_channels.extend(ALL_AUDIO_CHANNELS)
+    if args.exclude_electrical:    exclude_channels.extend(ALL_ELECTRICAL_CHANNELS)
 
     # Load sensor consistency report
     consistent_sensors = CONSISTENT_SENSORS
@@ -191,22 +210,24 @@ def main():
         raise ValueError(f"No CSV files found in {args.data_dir}")
     print(f"Found {len(csv_files)} CSV files")
 
+    # Filter to files that have all required sensors present
+    import pandas as pd
+    valid_files = []
+    for csv_path in csv_files:
+        df_header = pd.read_csv(csv_path, nrows=0)
+        sensors_in_file = {col.split('.')[0] for col in df_header.columns if '.' in col}
+        if all(s in sensors_in_file for s in consistent_sensors):
+            valid_files.append(csv_path)
+    n_dropped = len(csv_files) - len(valid_files)
+    if n_dropped > 0:
+        print(f"Filtered to {len(valid_files)} files with all {len(consistent_sensors)} "
+              f"sensors present (dropped {n_dropped})")
+    csv_files = valid_files
+
     # CV fold split
     train_files, val_files, test_files = stratified_cv_fold_split(
         csv_files, fold=fold_0, n_folds=args.n_folds
     )
-
-    # Save split info
-    split_info = {
-        'fold': args.fold,
-        'n_folds': args.n_folds,
-        'val_fold': (fold_0 + 1) % args.n_folds + 1,
-        'train_files': [f.name for f in train_files],
-        'val_files':   [f.name for f in val_files],
-        'test_files':  [f.name for f in test_files],
-    }
-    with open(args.output_dir / 'file_split.json', 'w') as f:
-        json.dump(split_info, f, indent=2)
 
     # Preprocessing config
     config = PreprocessingConfig(
@@ -221,7 +242,6 @@ def main():
     )
 
     # Build master column list from all files
-    import pandas as pd
     all_continuous_cols = set()
     for csv_path in csv_files:
         df = pd.read_csv(csv_path, nrows=1)
@@ -239,6 +259,130 @@ def main():
     preprocessor = GCodePreprocessor(
         args.vocab_path, config=config, master_columns=master_columns
     )
+
+    # Verify sequence coverage: all test/val sequences must appear in training
+    def get_file_sequences(files):
+        """Get unique G-code sequences from a set of files."""
+        seqs = set()
+        for csv_path in files:
+            df = preprocessor.load_csv(csv_path)
+            _, _, gcode_texts = preprocessor.extract_features(df)
+            if gcode_texts:
+                seqs.update(g for g in gcode_texts if g and isinstance(g, str) and g.strip())
+        return seqs
+
+    def get_per_file_sequences(files):
+        """Get sequences per file for swap-based repair."""
+        file_seqs = {}
+        for csv_path in files:
+            df = preprocessor.load_csv(csv_path)
+            _, _, gcode_texts = preprocessor.extract_features(df)
+            if gcode_texts:
+                file_seqs[csv_path] = {g for g in gcode_texts if g and isinstance(g, str) and g.strip()}
+            else:
+                file_seqs[csv_path] = set()
+        return file_seqs
+
+    def repair_sequence_coverage(train_fs, val_fs, test_fs):
+        """Swap files between folds to ensure all test/val sequences appear in training."""
+        train_seqs = get_file_sequences(train_fs)
+        val_seqs = get_file_sequences(val_fs)
+        test_seqs = get_file_sequences(test_fs)
+
+        missing = (val_seqs | test_seqs) - train_seqs
+        if not missing:
+            return train_fs, val_fs, test_fs, 0
+
+        # Build per-file sequence maps for val and test
+        val_file_seqs = get_per_file_sequences(val_fs)
+        test_file_seqs = get_per_file_sequences(test_fs)
+        train_file_seqs = get_per_file_sequences(train_fs)
+
+        swaps = 0
+        # For each missing sequence, find a val/test file that has it,
+        # and swap with a train file of the same operation type
+        for seq in list(missing):
+            # Check if already resolved by previous swaps
+            current_train_seqs = set()
+            for f in train_fs:
+                current_train_seqs.update(train_file_seqs.get(f, set()))
+            if seq in current_train_seqs:
+                continue
+
+            # Find source file (val or test) that has this sequence
+            source_file = None
+            source_list = None
+            for f in val_fs:
+                if seq in val_file_seqs.get(f, set()):
+                    source_file = f
+                    source_list = val_fs
+                    break
+            if source_file is None:
+                for f in test_fs:
+                    if seq in test_file_seqs.get(f, set()):
+                        source_file = f
+                        source_list = test_fs
+                        break
+
+            if source_file is None:
+                continue
+
+            # Find a train file of the same operation type to swap
+            source_op = extract_operation_type(source_file.name)
+            swap_candidate = None
+            for f in train_fs:
+                if extract_operation_type(f.name) == source_op:
+                    swap_candidate = f
+                    break
+
+            if swap_candidate:
+                # Swap: move train file to source's list, move source to train
+                train_fs.remove(swap_candidate)
+                source_list.remove(source_file)
+                train_fs.append(source_file)
+                source_list.append(swap_candidate)
+                # Update sequence maps
+                train_file_seqs[source_file] = val_file_seqs.get(source_file, set()) | test_file_seqs.get(source_file, set())
+                swaps += 1
+                print(f"    Swapped {swap_candidate.name} <-> {source_file.name} (op={source_op}) for sequence: {seq[:50]}...")
+
+        return train_fs, val_fs, test_fs, swaps
+
+    print("Verifying sequence coverage...")
+    train_seqs = get_file_sequences(train_files)
+    val_seqs = get_file_sequences(val_files)
+    test_seqs = get_file_sequences(test_files)
+    missing = (val_seqs | test_seqs) - train_seqs
+
+    if missing:
+        print(f"  Found {len(missing)} sequences in test/val missing from train. Repairing...")
+        train_files, val_files, test_files, n_swaps = repair_sequence_coverage(
+            train_files, val_files, test_files
+        )
+        print(f"  Repaired with {n_swaps} file swaps")
+        # Re-verify
+        train_seqs = get_file_sequences(train_files)
+        val_seqs = get_file_sequences(val_files)
+        test_seqs = get_file_sequences(test_files)
+        still_missing = (val_seqs | test_seqs) - train_seqs
+        if still_missing:
+            print(f"  WARNING: {len(still_missing)} sequences still missing after repair: {still_missing}")
+        else:
+            print(f"  Sequence coverage OK after repair")
+    else:
+        print(f"  Sequence coverage OK: all {len(test_seqs)} test and {len(val_seqs)} val sequences found in train")
+
+    # Save split info
+    split_info = {
+        'fold': args.fold,
+        'n_folds': args.n_folds,
+        'val_fold': (fold_0 + 1) % args.n_folds + 1,
+        'train_files': [f.name for f in train_files],
+        'val_files':   [f.name for f in val_files],
+        'test_files':  [f.name for f in test_files],
+    }
+    with open(args.output_dir / 'file_split.json', 'w') as f:
+        json.dump(split_info, f, indent=2)
 
     # Fit scaler on training files only
     print("Fitting scaler on training data...")

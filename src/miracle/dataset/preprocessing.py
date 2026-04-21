@@ -17,14 +17,14 @@ from sklearn.model_selection import train_test_split
 import argparse
 
 # Import the advanced tokenizer
-from src.miracle.utilities.gcode_tokenizer import (
+from miracle.utilities.gcode_tokenizer import (
     GCodeTokenizer as AdvancedGCodeTokenizer,
     TokenizerConfig,
 )
 
 # Import configuration and utilities
-from src.miracle.config.preprocessing_config import PreprocessingConfig, get_default_config
-from src.miracle.dataset.preprocessing_utils import (
+from miracle.config.preprocessing_config import PreprocessingConfig, get_default_config
+from miracle.dataset.preprocessing_utils import (
     get_scaler,
     handle_missing_values,
     clip_outliers,
@@ -241,6 +241,7 @@ class GCodePreprocessor:
         categorical: np.ndarray,
         gcode_texts: List[str],
         operation_type: str = 'unknown',
+        source_file: str = 'unknown',
     ) -> List[Dict]:
         """
         Create sliding windows from data.
@@ -250,14 +251,17 @@ class GCodePreprocessor:
             categorical: Categorical features
             gcode_texts: G-code text per timestep
             operation_type: Operation type for all windows from this file
+            source_file: Source filename for file-level grouping
 
         Returns:
             List of dictionaries with windowed data
         """
         T = len(continuous)
         windows = []
+        window_starts = list(range(0, T - self.window_size + 1, self.stride))
+        total_windows = len(window_starts)
 
-        for start_idx in range(0, T - self.window_size + 1, self.stride):
+        for window_idx, start_idx in enumerate(window_starts):
             end_idx = start_idx + self.window_size
 
             # Extract window
@@ -265,15 +269,24 @@ class GCodePreprocessor:
             cat_window = categorical[start_idx:end_idx]
             gcode_window = gcode_texts[start_idx:end_idx] if gcode_texts else None
 
-            # Get unique G-code commands in this window (for label)
+            # Get G-code commands in this window
             # Filter out empty strings from gcode_window
             valid_gcodes = [g for g in (gcode_window or []) if g and isinstance(g, str) and g.strip()]
             if valid_gcodes:
-                # Use the most frequent one as the label
-                gcode_label = max(set(valid_gcodes), key=valid_gcodes.count)
+                # Keep ordered sequence of unique G-code lines (first occurrence)
+                seen = set()
+                ordered_unique = []
+                for g in valid_gcodes:
+                    if g not in seen:
+                        seen.add(g)
+                        ordered_unique.append(g)
 
-                # Tokenize using advanced tokenizer
-                token_ids = self.tokenizer.encode([gcode_label], add_bos_eos=False)
+                # Tokenize all unique lines for multi-line sequences
+                token_ids = self.tokenizer.encode(ordered_unique, add_bos_eos=False)
+
+                # Store multi-line G-code as newline-joined string
+                # (training script re-tokenizes from this field)
+                gcode_label = "\n".join(ordered_unique)
             else:
                 gcode_label = ""
                 token_ids = []
@@ -285,6 +298,9 @@ class GCodePreprocessor:
                 'token_ids': token_ids,
                 'length': self.window_size,
                 'operation_type': operation_type,
+                'window_index': window_idx,
+                'total_windows': total_windows,
+                'source_file': source_file,
             })
 
         return windows
@@ -340,7 +356,10 @@ class GCodePreprocessor:
             continuous = self.transform(continuous)
 
         # Create windows
-        windows = self.create_windows(continuous, categorical, gcode_texts, operation_type)
+        windows = self.create_windows(
+            continuous, categorical, gcode_texts, operation_type,
+            source_file=csv_path.stem,
+        )
 
         return windows
 
@@ -386,6 +405,11 @@ class GCodePreprocessor:
         operation_types = [w['operation_type'] for w in windows]
         operation_type_ids = np.array([operation_type_mapping[op] for op in operation_types], dtype=np.int64)
 
+        # Window position metadata
+        window_indices = np.array([w.get('window_index', 0) for w in windows], dtype=np.int64)
+        total_windows = np.array([w.get('total_windows', 1) for w in windows], dtype=np.int64)
+        source_files = np.array([w.get('source_file', 'unknown') for w in windows], dtype=object)
+
         # Save
         np.savez(
             output_path,
@@ -396,6 +420,9 @@ class GCodePreprocessor:
             gcode_texts=np.array(gcode_texts, dtype=object),
             operation_type=operation_type_ids,
             operation_type_names=np.array(operation_types, dtype=object),
+            window_index=window_indices,
+            total_windows=total_windows,
+            source_file=source_files,
         )
 
         # Save metadata
