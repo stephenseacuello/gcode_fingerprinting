@@ -210,7 +210,8 @@ def main():
         _, group_indices, sensor_dims = build_modality_indices(columns)
 
         # Load test dataset
-        test_ds = DecoderQuickTestDataset(data_dir / 'test_sequences.npz', tokenizer, max_token_len=16)
+        # Phase-3 (decoder20260511): None auto-resolves from NPZ; V7 NPZ → ~16, V8 NPZ → larger.
+        test_ds = DecoderQuickTestDataset(data_dir / 'test_sequences.npz', tokenizer, max_token_len=None)
         print(f"  Test samples: {test_ds.stats['n_samples']}")
 
         # Cache encoder memory for test

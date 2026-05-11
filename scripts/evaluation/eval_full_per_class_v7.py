@@ -66,7 +66,8 @@ for fold in range(1, 6):
 
     # Load test data using the training script's dataset classes
     test_npz = f"{PREPROC_BASE}/fold_{fold}/test_sequences.npz"
-    test_ds = DecoderQuickTestDataset(test_npz, tokenizer, max_token_len=16)
+    # Phase-3 (decoder20260511): None auto-resolves max_token_len from NPZ.
+    test_ds = DecoderQuickTestDataset(test_npz, tokenizer, max_token_len=None)
 
     # Load encoder memory and op_pred
     memory = torch.load(f"{run_dir}/encoder_memory/test_memory.pt", map_location=device, weights_only=False)

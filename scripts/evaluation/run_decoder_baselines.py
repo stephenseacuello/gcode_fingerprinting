@@ -519,7 +519,9 @@ def main():
                         choices=['1A', '1B', '1C', '1D'])
     parser.add_argument("--device", type=str, default="auto")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--max_token_len", type=int, default=16)
+    # Phase-3 (decoder20260511): 0 means "auto-resolve from NPZ" (None semantics via int CLI).
+    parser.add_argument("--max_token_len", type=int, default=0,
+                        help="0 = auto-resolve from NPZ; >0 = explicit cap (legacy V7 used 16)")
     args = parser.parse_args()
 
     torch.manual_seed(args.seed)
@@ -563,7 +565,9 @@ def main():
     datasets = {}
     for split in ['train', 'val', 'test']:
         npz_path = data_dir / f'{split}_sequences.npz'
-        ds = DecoderQuickTestDataset(npz_path, tokenizer, max_token_len=args.max_token_len)
+        # 0 -> auto-resolve from NPZ (Phase-3 default); positive -> legacy explicit cap.
+        cap = args.max_token_len if args.max_token_len > 0 else None
+        ds = DecoderQuickTestDataset(npz_path, tokenizer, max_token_len=cap)
         datasets[split] = ds
         lprint(f"  {split}: {ds.stats['n_samples']} samples")
 

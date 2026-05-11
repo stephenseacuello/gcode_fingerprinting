@@ -414,10 +414,11 @@ def run_fold(fold, args):
 
     # Load datasets
     lprint(f"  Loading data from {data_dir}")
+    # Phase-3 (decoder20260511): None auto-resolves from NPZ; V7 → ~16, V8 → larger.
     train_ds = DecoderQuickTestDataset(
-        data_dir / 'train_sequences.npz', tokenizer, max_token_len=16)
+        data_dir / 'train_sequences.npz', tokenizer, max_token_len=None)
     test_ds = DecoderQuickTestDataset(
-        data_dir / 'test_sequences.npz', tokenizer, max_token_len=16)
+        data_dir / 'test_sequences.npz', tokenizer, max_token_len=None)
     lprint(f"  Train: {len(train_ds)} samples, Test: {len(test_ds)} samples")
 
     # Build ambiguity map

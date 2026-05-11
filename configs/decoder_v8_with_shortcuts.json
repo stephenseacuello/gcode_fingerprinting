@@ -1,0 +1,75 @@
+{
+    "_description": "V8 decoder (decoder20260511) — V7-compatible config with shortcuts ENABLED, for ablation.",
+    "_date": "2026-05-11",
+    "_audit_ref": "outputs/decoder20260511/AUDIT_REPORT.md",
+    "_notes": [
+        "Matches V7 best config (use_window_position=true) but trained on the V8 NPZ that preserves multi-line targets.",
+        "Used as the ablation companion to decoder_v8_no_shortcuts.json. The difference between the two isolates the sensor pathway's contribution.",
+        "Do not use this as the manuscript headline number — the audit shows ~75-95% of accuracy under this config is positional shortcut."
+    ],
+
+    "model": {
+        "d_model": 384,
+        "n_heads": 12,
+        "n_layers": 8,
+        "dropout": 0.1,
+        "embed_dropout": 0.1,
+        "sensor_dim": 256,
+        "n_operations": 9,
+        "n_types": 4,
+        "n_commands": 6,
+        "n_param_types": 10,
+        "max_seq_len": 32,
+        "use_window_position": true,
+        "position_dropout": 0.0,
+        "use_sensor_prior": true,
+        "use_pointer_network": false,
+        "memory_pos_encoding": true,
+        "use_sequence_classifier": false
+    },
+
+    "data": {
+        "label_mode": "per_row",
+        "expose_position_metadata": true,
+        "multi_window_context": 2,
+        "window_dropout": 0.1
+    },
+
+    "training": {
+        "batch_size": 64,
+        "max_epochs": 200,
+        "patience": 40,
+        "track_metric": "token"
+    },
+
+    "optimizer": {
+        "type": "adamw",
+        "learning_rate": 1e-4,
+        "weight_decay": 0.05
+    },
+
+    "loss": {
+        "use_focal_loss": false,
+        "type_weight": 1.0,
+        "command_weight": 2.0,
+        "param_type_weight": 1.5,
+        "digit_weight": 1.0,
+        "legacy_weight": 1.0
+    },
+
+    "scheduled_sampling": {
+        "enabled": true,
+        "start_ratio": 1.0,
+        "end_ratio": 0.5
+    },
+
+    "paths": {
+        "vocab_path": "data/gcode_vocab_712.json",
+        "encoder_path": "outputs/experiments_2026_02_25/full_w256_s64_cv"
+    },
+
+    "wandb": {
+        "project": "decoder20260511",
+        "enabled": false
+    }
+}

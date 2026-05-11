@@ -46,6 +46,10 @@ class DataAugmenter:
         feature_dropout_prob: float = 0.05,  # Conservative: was 0.1
         cutout_length: int = 2,  # Conservative: was 3
         jitter_sigma: float = 0.005,  # Conservative: was 0.01
+        # Phase-4 (decoder20260511) additions: token masking + mask-id config
+        token_mask_prob: float = 0.0,
+        mask_token_id: int = 4,  # default MASK in src/miracle/utilities/gcode_tokenizer.py DEFAULT_SPECIAL
+        token_mask_keep_specials: bool = True,
     ):
         """
         Args:
@@ -57,6 +61,12 @@ class DataAugmenter:
             feature_dropout_prob: Probability of dropping each feature
             cutout_length: Maximum length of cutout window
             jitter_sigma: Standard deviation for time-dependent jitter
+            token_mask_prob: Probability of replacing each non-special token in
+                `input_tokens` with `mask_token_id`. Encourages the decoder to
+                attend to sensor evidence rather than autoregressive context.
+                Default 0.0 (off, backwards compatible).
+            mask_token_id: Vocabulary id used for masked tokens. Vocab default is 4.
+            token_mask_keep_specials: When True, never mask PAD/BOS/EOS/UNK/MASK.
         """
         self.noise_level = noise_level
         self.shift_range = shift_range
@@ -66,6 +76,79 @@ class DataAugmenter:
         self.feature_dropout_prob = feature_dropout_prob
         self.cutout_length = cutout_length
         self.jitter_sigma = jitter_sigma
+        self.token_mask_prob = float(token_mask_prob)
+        self.mask_token_id = int(mask_token_id)
+        self.token_mask_keep_specials = bool(token_mask_keep_specials)
+        # IDs we never replace with MASK (PAD/BOS/EOS/UNK/MASK).
+        self._special_token_ids = {0, 1, 2, 3, mask_token_id}
+
+    @classmethod
+    def from_schedule(cls, schedule: Dict, fold: Optional[int] = None) -> "DataAugmenter":
+        """Construct a DataAugmenter from a dict-based schedule.
+
+        The schedule can be a flat dict of constructor kwargs OR a nested dict
+        keyed by fold number. Example:
+
+            {
+              "sensor_noise_std": 0.02,
+              "feature_dropout_prob": 0.1,
+              "token_mask_prob": 0.05
+            }
+
+        Or per-fold:
+
+            {
+              "1": {"sensor_noise_std": 0.01},
+              "2": {"sensor_noise_std": 0.03},
+              "default": {"sensor_noise_std": 0.02}
+            }
+
+        Phase-4 addition (decoder20260511).
+        """
+        chosen = schedule
+        if fold is not None and str(fold) in schedule:
+            chosen = schedule[str(fold)]
+        elif "default" in schedule and not any(k in schedule for k in ("sensor_noise_std", "noise_level")):
+            chosen = schedule["default"]
+
+        # Allow aliases that match config naming conventions
+        kwargs = {
+            "noise_level": chosen.get("sensor_noise_std", chosen.get("noise_level", 0.01)),
+            "feature_dropout_prob": chosen.get("feature_dropout_prob", 0.05),
+            "token_mask_prob": chosen.get("token_mask_prob", 0.0),
+            "augment_prob": chosen.get("augment_prob", 0.3),
+            "scale_range": tuple(chosen.get("scale_range", (0.98, 1.02))),
+            "shift_range": chosen.get("shift_range", 1),
+            "time_warp_sigma": chosen.get("time_warp_sigma", 0.1),
+            "cutout_length": chosen.get("cutout_length", 2),
+            "jitter_sigma": chosen.get("jitter_sigma", 0.005),
+        }
+        return cls(**kwargs)
+
+    def mask_tokens(self, tokens: torch.Tensor) -> torch.Tensor:
+        """Replace a random subset of non-special tokens with `mask_token_id`.
+
+        Operates on the INPUT token sequence (teacher forcing); targets are
+        unchanged so the model is still supervised on the original token. The
+        net effect is masked-language-modelling-style regularization that
+        encourages the decoder to use the sensor memory rather than the
+        previous-token shortcut.
+        """
+        if self.token_mask_prob <= 0.0:
+            return tokens
+        if not isinstance(tokens, torch.Tensor):
+            return tokens
+        mask_prob = self.token_mask_prob
+        rand = torch.rand_like(tokens, dtype=torch.float32)
+        replace = rand < mask_prob
+        if self.token_mask_keep_specials:
+            # Keep special-token positions untouched.
+            for sid in self._special_token_ids:
+                replace = replace & (tokens != sid)
+        if replace.any():
+            tokens = tokens.clone()
+            tokens[replace] = self.mask_token_id
+        return tokens
 
     def add_sensor_noise(self, continuous: torch.Tensor) -> torch.Tensor:
         """
@@ -374,6 +457,11 @@ class DataAugmenter:
         # Return augmented sample - preserve all original keys and update sensor data
         result = dict(sample)  # Copy all original keys
         result[sensor_key] = continuous  # Update sensor data with augmented version
+
+        # Phase-4 (decoder20260511): optionally mask a fraction of input tokens.
+        if self.token_mask_prob > 0.0 and "input_tokens" in result:
+            result["input_tokens"] = self.mask_tokens(result["input_tokens"])
+
         return result
 
 

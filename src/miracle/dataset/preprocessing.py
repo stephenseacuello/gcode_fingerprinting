@@ -39,6 +39,21 @@ from miracle.dataset.preprocessing_utils import (
 
 __all__ = ["GCodePreprocessor", "load_vocabulary", "preprocess_dataset", "extract_operation_type"]
 
+# Phase-2 (decoder20260511) addition.
+# Two label-construction modes for the decoder target:
+#   "full_window": one sample per sliding window, target is the newline-joined
+#                  list of unique G-code lines that fired during the window.
+#                  Multi-line target. Backwards-compatible with V7 semantics
+#                  EXCEPT that the buggy `lengths` field is now token length
+#                  (see audit/diagnostics_v7.json).
+#   "per_row":     one sample per (window, distinct G-code line) pair. Sensor
+#                  context is the full window. Target is a single G-code line.
+#                  Produces ~K samples per window where K is the number of
+#                  distinct lines in that window. Required by the Phase-1
+#                  audit recommendation (lines G-code label per 64-second
+#                  window is the structural defect that drives shortcuts).
+VALID_LABEL_MODES = ("full_window", "per_row")
+
 
 def extract_operation_type(filename: str) -> str:
     """
@@ -102,6 +117,7 @@ class GCodePreprocessor:
         window_size: Optional[int] = None,
         stride: Optional[int] = None,
         master_columns: Optional[List[str]] = None,
+        label_mode: str = "full_window",
     ):
         """
         Initialize preprocessor with configuration.
@@ -112,6 +128,10 @@ class GCodePreprocessor:
             window_size: Override config window_size (deprecated, use config instead)
             stride: Override config stride (deprecated, use config instead)
             master_columns: Master column list for consistent dimensions
+            label_mode: Decoder-target construction mode. See VALID_LABEL_MODES.
+                "full_window" preserves the V7 semantics (one sample per window,
+                multi-line target). "per_row" emits one sample per distinct
+                G-code line per window, single-line target.
         """
         # Load or create config
         if config is None:
@@ -123,6 +143,12 @@ class GCodePreprocessor:
             self.config.window_size = window_size
         if stride is not None:
             self.config.stride = stride
+
+        if label_mode not in VALID_LABEL_MODES:
+            raise ValueError(
+                f"label_mode must be one of {VALID_LABEL_MODES}, got {label_mode!r}"
+            )
+        self.label_mode = label_mode
 
         self.window_size = self.config.window_size
         self.stride = self.config.stride
@@ -269,39 +295,85 @@ class GCodePreprocessor:
             cat_window = categorical[start_idx:end_idx]
             gcode_window = gcode_texts[start_idx:end_idx] if gcode_texts else None
 
-            # Get G-code commands in this window
-            # Filter out empty strings from gcode_window
+            # Ordered list of unique G-code lines that fired inside this window.
+            # Preserves first-occurrence order, which is the natural temporal
+            # ordering of distinct instructions executed during the window.
             valid_gcodes = [g for g in (gcode_window or []) if g and isinstance(g, str) and g.strip()]
-            if valid_gcodes:
-                # Keep ordered sequence of unique G-code lines (first occurrence)
-                seen = set()
-                ordered_unique = []
-                for g in valid_gcodes:
-                    if g not in seen:
-                        seen.add(g)
-                        ordered_unique.append(g)
+            seen: set = set()
+            ordered_unique: List[str] = []
+            for g in valid_gcodes:
+                if g not in seen:
+                    seen.add(g)
+                    ordered_unique.append(g)
 
-                # Tokenize all unique lines for multi-line sequences
-                token_ids = self.tokenizer.encode(ordered_unique, add_bos_eos=False)
+            if self.label_mode == "full_window":
+                # Multi-line target: one sample per window covering all unique
+                # lines that fired in it.
+                if ordered_unique:
+                    token_ids = self.tokenizer.encode(ordered_unique, add_bos_eos=False)
+                    gcode_label = "\n".join(ordered_unique)
+                else:
+                    token_ids = []
+                    gcode_label = ""
 
-                # Store multi-line G-code as newline-joined string
-                # (training script re-tokenizes from this field)
-                gcode_label = "\n".join(ordered_unique)
-            else:
-                gcode_label = ""
-                token_ids = []
-
-            windows.append({
-                'continuous': cont_window,
-                'categorical': cat_window,
-                'gcode_text': gcode_label,
-                'token_ids': token_ids,
-                'length': self.window_size,
-                'operation_type': operation_type,
-                'window_index': window_idx,
-                'total_windows': total_windows,
-                'source_file': source_file,
-            })
+                windows.append({
+                    'continuous': cont_window,
+                    'categorical': cat_window,
+                    'gcode_text': gcode_label,
+                    'token_ids': token_ids,
+                    'token_length': len(token_ids),
+                    'window_length': self.window_size,
+                    'operation_type': operation_type,
+                    'window_index': window_idx,
+                    'total_windows': total_windows,
+                    'line_in_window_index': 0,
+                    'n_lines_in_window': len(ordered_unique),
+                    'source_file': source_file,
+                    'label_mode': self.label_mode,
+                })
+            else:  # per_row
+                # Single-line target: emit one sample per distinct G-code line
+                # that fired in this window. Sensor context is the FULL window
+                # (per Phase-1 user decision). Each emitted sample shares the
+                # same `(continuous, categorical)` payload but has a unique
+                # target and identifying `line_in_window_index`.
+                if not ordered_unique:
+                    # Preserve a placeholder sample so that downstream code
+                    # never sees an empty file. token_ids=[] is handled by
+                    # save_processed (pads to 0-length token row).
+                    windows.append({
+                        'continuous': cont_window,
+                        'categorical': cat_window,
+                        'gcode_text': "",
+                        'token_ids': [],
+                        'token_length': 0,
+                        'window_length': self.window_size,
+                        'operation_type': operation_type,
+                        'window_index': window_idx,
+                        'total_windows': total_windows,
+                        'line_in_window_index': 0,
+                        'n_lines_in_window': 0,
+                        'source_file': source_file,
+                        'label_mode': self.label_mode,
+                    })
+                else:
+                    for line_idx, line in enumerate(ordered_unique):
+                        token_ids = self.tokenizer.encode([line], add_bos_eos=False)
+                        windows.append({
+                            'continuous': cont_window,
+                            'categorical': cat_window,
+                            'gcode_text': line,
+                            'token_ids': token_ids,
+                            'token_length': len(token_ids),
+                            'window_length': self.window_size,
+                            'operation_type': operation_type,
+                            'window_index': window_idx,
+                            'total_windows': total_windows,
+                            'line_in_window_index': line_idx,
+                            'n_lines_in_window': len(ordered_unique),
+                            'source_file': source_file,
+                            'label_mode': self.label_mode,
+                        })
 
         return windows
 
@@ -369,22 +441,55 @@ class GCodePreprocessor:
         output_path: Path,
         metadata: Optional[Dict] = None,
     ):
-        """Save processed windows to .npz file."""
+        """Save processed windows to .npz file.
+
+        V8 NPZ schema (decoder20260511):
+          - `tokens`         [N, max_token_len]    target token IDs, PAD-padded
+          - `token_length`   [N]                   true token sequence length (excludes PAD/BOS/EOS)
+          - `window_length`  [N]                   sensor window length (always = self.window_size)
+          - `lengths`        [N]                   ALIAS of `token_length` for back-compat with
+                                                   DecoderDataset / DecoderQuickTestDataset which
+                                                   already consume `lengths` as a token length.
+                                                   V7 NPZ stored sensor length here (bug); V8 fixes it.
+          - `gcode_texts`    [N]                   string, newline-joined for full_window mode,
+                                                   single line for per_row mode
+          - `continuous`     [N, window_size, D_cont]
+          - `categorical`    [N, window_size, D_cat]
+          - `operation_type` [N], `operation_type_names` [N]
+          - `window_index`, `total_windows`, `source_file`
+          - `line_in_window_index`, `n_lines_in_window`  (per_row mode useful)
+          - `label_mode`     scalar string
+        """
         # Stack windows
         continuous_data = np.stack([w['continuous'] for w in windows])
         categorical_data = np.stack([w['categorical'] for w in windows])
 
         # Pad token sequences to same length
-        max_token_len = max(len(w['token_ids']) for w in windows)
+        max_token_len = max((len(w['token_ids']) for w in windows), default=0)
         token_data = []
         pad_token_id = self.tokenizer.cfg.special.get('PAD', 0)
         for w in windows:
             tokens = w['token_ids']
             padded = tokens + [pad_token_id] * (max_token_len - len(tokens))
             token_data.append(padded)
-        token_data = np.array(token_data, dtype=np.int64)
+        token_data = np.array(token_data, dtype=np.int64) if token_data else np.empty((0, 0), dtype=np.int64)
 
-        lengths = np.array([w['length'] for w in windows], dtype=np.int64)
+        # CRITICAL FIX (Phase 2 / decoder20260511):
+        # Old V7 saved `lengths = window_size` (sensor length) — see
+        # AUDIT_REPORT.md Priority 1. This consumed by decoder_dataset.py:91 as
+        # if it were a token length, silently truncating targets.
+        # V8 saves both `token_length` and `window_length` explicitly and
+        # populates `lengths` with the token length for callers that haven't
+        # migrated yet.
+        token_lengths = np.array(
+            [w.get('token_length', len(w.get('token_ids', []))) for w in windows],
+            dtype=np.int64,
+        )
+        window_lengths = np.array(
+            [w.get('window_length', self.window_size) for w in windows],
+            dtype=np.int64,
+        )
+
         gcode_texts = [w['gcode_text'] for w in windows]
 
         # Operation type mapping and extraction
@@ -410,19 +515,28 @@ class GCodePreprocessor:
         total_windows = np.array([w.get('total_windows', 1) for w in windows], dtype=np.int64)
         source_files = np.array([w.get('source_file', 'unknown') for w in windows], dtype=object)
 
-        # Save
+        # Per-row mode bookkeeping (present in full_window mode too with line_idx=0)
+        line_in_window = np.array([w.get('line_in_window_index', 0) for w in windows], dtype=np.int64)
+        n_lines_in_window = np.array([w.get('n_lines_in_window', 0) for w in windows], dtype=np.int64)
+        label_mode = np.array(windows[0].get('label_mode', self.label_mode), dtype=object) if windows else np.array(self.label_mode, dtype=object)
+
         np.savez(
             output_path,
             continuous=continuous_data,
             categorical=categorical_data,
             tokens=token_data,
-            lengths=lengths,
+            lengths=token_lengths,
+            token_length=token_lengths,
+            window_length=window_lengths,
             gcode_texts=np.array(gcode_texts, dtype=object),
             operation_type=operation_type_ids,
             operation_type_names=np.array(operation_types, dtype=object),
             window_index=window_indices,
             total_windows=total_windows,
             source_file=source_files,
+            line_in_window_index=line_in_window,
+            n_lines_in_window=n_lines_in_window,
+            label_mode=label_mode,
         )
 
         # Save metadata

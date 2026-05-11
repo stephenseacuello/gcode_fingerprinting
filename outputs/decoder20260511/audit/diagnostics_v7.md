@@ -1,0 +1,19 @@
+## NPZ structural diagnostics
+
+| Path | N | tokens.shape | content_len min/med/max | distinct gcode | lengths | leakage fields | issues |
+|---|---|---|---|---|---|---|---|
+| `outputs/decoder20260304/preprocessed_v7/fold_1/test_sequences.npz` | 132 | [132, 6] | 1/3.0/6 | 24 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_1/train_sequences.npz` | 303 | [303, 6] | 2/3.0/6 | 22 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_1/val_sequences.npz` | 110 | [110, 6] | 2/3.0/6 | 18 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_2/test_sequences.npz` | 113 | [113, 6] | 1/3.0/6 | 19 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_2/train_sequences.npz` | 327 | [327, 6] | 2/3.0/6 | 24 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_2/val_sequences.npz` | 105 | [105, 6] | 2/3.0/6 | 16 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_3/test_sequences.npz` | 106 | [106, 6] | 2/3.0/6 | 18 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_3/train_sequences.npz` | 331 | [331, 6] | 2/3.0/6 | 26 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_3/val_sequences.npz` | 108 | [108, 6] | 1/3.0/6 | 18 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_4/test_sequences.npz` | 108 | [108, 6] | 1/3.0/6 | 17 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_4/train_sequences.npz` | 344 | [344, 6] | 2/3.0/6 | 26 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_4/val_sequences.npz` | 93 | [93, 6] | 2/3.0/6 | 16 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_5/test_sequences.npz` | 93 | [93, 6] | 2/3.0/6 | 17 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_5/train_sequences.npz` | 320 | [320, 6] | 2/3.0/6 | 23 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |
+| `outputs/decoder20260304/preprocessed_v7/fold_5/val_sequences.npz` | 132 | [132, 6] | 1/3.0/6 | 22 | 256-256 | window_index,total_windows,source_file,operation_type | lengths_field_is_sensor_not_token_length; gcode_texts_single_line_only |

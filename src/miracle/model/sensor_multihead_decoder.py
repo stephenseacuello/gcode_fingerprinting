@@ -498,7 +498,12 @@ class SensorMultiHeadDecoder(nn.Module):
         # ============ NUMERIC REGRESSION HEAD ============
         use_regression_head: bool = False,
         # ============ WINDOW POSITION INPUT (Stage 2A) ============
+        # Phase-4 (decoder20260511): default flipped to False; V7 trained with
+        # this True, which drove ~75-95% of the V7 "accuracy" from positional
+        # shortcut (see outputs/decoder20260511/AUDIT_REPORT.md Priority 3).
+        # Use decoder_v8_with_shortcuts.json to opt back in for ablation.
         use_window_position: bool = False,
+        position_dropout: float = 0.0,  # Phase-4: stochastically zero window pos embedding
         max_windows_per_file: int = 32,
         # ============ SEQUENCE CLASSIFIER (Stage 2D) ============
         use_sequence_classifier: bool = False,
@@ -779,6 +784,7 @@ class SensorMultiHeadDecoder(nn.Module):
 
         # ============ WINDOW POSITION INPUT (Stage 2A) ============
         self._use_window_position = use_window_position
+        self._position_dropout = float(position_dropout)
         self._max_windows_per_file = max_windows_per_file
         if use_window_position:
             self.window_pos_embed = nn.Embedding(max_windows_per_file, d_model // 4)
@@ -1148,6 +1154,12 @@ class SensorMultiHeadDecoder(nn.Module):
             frac = (window_index.float() / total_windows.float().clamp(min=1)).unsqueeze(-1)  # [B, 1]
             frac_emb = self.window_frac_proj(frac)  # [B, d_model//8]
             win_pos = self.window_pos_proj(torch.cat([pos_emb, frac_emb], dim=-1))  # [B, d_model]
+            # Phase-4 position dropout: during training, zero this batch's
+            # positional signal with prob `position_dropout`. Lets us probe
+            # how reliant the model is on positional info without re-training.
+            if self.training and self._position_dropout > 0.0:
+                keep = (torch.rand(win_pos.size(0), device=win_pos.device) >= self._position_dropout).float()
+                win_pos = win_pos * keep.unsqueeze(-1)
             memory = memory + win_pos.unsqueeze(1)  # broadcast over sequence length
 
         # ============ 2b. MEMORY POSITIONAL ENCODING ============

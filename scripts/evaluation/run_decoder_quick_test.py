@@ -230,11 +230,47 @@ class FocalLoss(nn.Module):
 
 # ── Dataset ────────────────────────────────────────────────────────────────────
 
-class DecoderQuickTestDataset(Dataset):
-    """Loads .npz sensor data, re-tokenizes with vocab, builds structured targets."""
+def _auto_resolve_max_token_len(data, tokenizer, slack: int = 4, ceiling: int = 2048) -> int:
+    """Pick a max_token_len that won't truncate any sample in `data`.
 
-    def __init__(self, npz_path, tokenizer, max_token_len=16, sequence_class_map=None):
+    Walks `data['gcode_texts']`, re-tokenises each entry with `tokenizer`,
+    and returns `max(content_len_i) + slack`, clamped to `[16, ceiling]`.
+
+    Added Phase 3 (decoder20260511) to kill the silent-truncation path that
+    came from hardcoded `max_token_len=16` defaults. See
+    `outputs/decoder20260511/AUDIT_REPORT.md` Priority 1.
+    """
+    max_len = 0
+    for text in data.get('gcode_texts', []):
+        text_str = str(text)
+        lines = [l for l in text_str.split('\n') if l.strip()]
+        if not lines:
+            continue
+        canon = tokenizer.canonicalize(lines)
+        toks = tokenizer.tokenize_canonical(canon)
+        if len(toks) > max_len:
+            max_len = len(toks)
+    if max_len == 0:
+        return 16  # empty dataset; fall back to legacy default
+    resolved = max_len + slack
+    return max(16, min(resolved, ceiling))
+
+
+class DecoderQuickTestDataset(Dataset):
+    """Loads .npz sensor data, re-tokenizes with vocab, builds structured targets.
+
+    Phase-3 update: when `max_token_len` is None, auto-resolves from the NPZ
+    contents so the V7 hardcoded-16 silent-truncation path can't fire on
+    V8 NPZs. Callers that pin a value (eg. legacy V7 reproductions) keep
+    their explicit cap.
+    """
+
+    def __init__(self, npz_path, tokenizer, max_token_len=None, sequence_class_map=None,
+                 strict_no_truncation=False):
         data = np.load(npz_path, allow_pickle=True)
+        if max_token_len is None:
+            max_token_len = _auto_resolve_max_token_len(data, tokenizer)
+            print(f"[DecoderQuickTestDataset] auto-resolved max_token_len={max_token_len} for {npz_path}")
         self.continuous = torch.from_numpy(data['continuous'].astype(np.float32))
         self.operation_type = torch.from_numpy(data['operation_type'].astype(np.int64))
         gcode_texts = data['gcode_texts']
@@ -296,7 +332,14 @@ class DecoderQuickTestDataset(Dataset):
                     unk_count += 1
             token_lengths.append(len(tok_ids))
 
-            # Truncate to max_token_len - 1 (leave room for BOS/EOS)
+            # Truncate to max_token_len - 1 (leave room for BOS/EOS).
+            # Phase-3: if `strict_no_truncation` is set, refuse to silently drop tokens.
+            if strict_no_truncation and len(tok_ids) > max_token_len - 1:
+                raise AssertionError(
+                    f"[DecoderQuickTestDataset] sample {i} would truncate "
+                    f"{len(tok_ids)} -> {max_token_len - 1}. Raise max_token_len "
+                    f"or pass strict_no_truncation=False."
+                )
             tok_ids = tok_ids[:max_token_len - 1]
             tok_strings = tok_strings[:max_token_len - 1]
 
@@ -400,8 +443,15 @@ def load_frozen_encoder(ckpt_path, device):
 
 # ── Memory Caching ─────────────────────────────────────────────────────────────
 
-def cache_encoder_memory(encoder, dataset, group_indices, device, batch_size=32, cache_dir=None):
-    """Pre-compute encoder memory for all samples, optionally caching to disk."""
+def cache_encoder_memory(encoder, dataset, group_indices, device, batch_size=32, cache_dir=None,
+                         zero_modality_indices=None):
+    """Pre-compute encoder memory for all samples, optionally caching to disk.
+
+    Phase-6 (decoder20260511) addition: `zero_modality_indices` is an
+    optional iterable of indices into `group_indices` whose group inputs
+    should be zeroed before the encoder pass. This implements per-modality
+    leave-one-out ablation without retraining the frozen encoder.
+    """
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=False,
                         collate_fn=decoder_collate_fn, num_workers=0)
 
@@ -409,6 +459,7 @@ def cache_encoder_memory(encoder, dataset, group_indices, device, batch_size=32,
     all_op_pred = []
     all_cls_correct = 0
     all_cls_total = 0
+    zero_set = set(zero_modality_indices or [])
 
     with torch.no_grad():
         for batch in loader:
@@ -417,6 +468,11 @@ def cache_encoder_memory(encoder, dataset, group_indices, device, batch_size=32,
             B, T = sensor_data.shape[:2]
             lengths = torch.full((B,), T, dtype=torch.long, device=device)
             mods = [sensor_data[:, :, idx] for idx in group_indices]
+
+            if zero_set:
+                for gi in zero_set:
+                    if 0 <= gi < len(mods):
+                        mods[gi] = torch.zeros_like(mods[gi])
 
             out = encoder(mods, lengths)
             memory = out['memory']  # [B, T, 256]
@@ -1189,7 +1245,9 @@ def main():
     parser.add_argument("--epochs", type=int, default=50, help="Number of training epochs")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate")
-    parser.add_argument("--max_token_len", type=int, default=16, help="Max token sequence length")
+    # Phase-3 (decoder20260511): 0 means auto-resolve from NPZ contents.
+    parser.add_argument("--max_token_len", type=int, default=0,
+                        help="0 = auto-resolve from NPZ (Phase-3); >0 = explicit cap. V7 legacy used 16.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--patience", type=int, default=0, help="Early stopping patience (0=disabled)")
     parser.add_argument("--curriculum", type=str, default="none", choices=["none", "3phase"],
@@ -1268,6 +1326,11 @@ def main():
                         default=False, help="Enable cross-window self-attention for MWC")
 
     # Eval-only mode
+    # Phase-6 (decoder20260511): sensor ablation knob. Comma-separated modality
+    # names to zero at encoder input. Names must match build_modality_indices:
+    # accelerometer, gyroscope, magnetometer, environmental, color, rms, electrical.
+    parser.add_argument("--zero_modality_groups", type=str, default="",
+                        help="Comma-separated modality groups to zero at encoder input.")
     parser.add_argument("--eval_only", action="store_true",
                         help="Skip training, load checkpoint and evaluate with beam search")
     parser.add_argument("--checkpoint", type=str, default=None,
@@ -1382,8 +1445,10 @@ def main():
     for split in ['train', 'val', 'test']:
         npz_path = data_dir / f'{split}_sequences.npz'
         lprint(f"  Loading {split}: {npz_path}")
+        # Phase-3: pass None (auto-resolve from NPZ) when CLI gave 0.
+        cap = args.max_token_len if args.max_token_len > 0 else None
         ds = DecoderQuickTestDataset(
-            npz_path, tokenizer, max_token_len=args.max_token_len,
+            npz_path, tokenizer, max_token_len=cap,
             sequence_class_map=sequence_class_map,
         )
         datasets[split] = ds
@@ -1423,6 +1488,18 @@ def main():
         f"Sensor dims mismatch: {sensor_dims} vs {list(enc_config.sensor_dims)}"
     lprint(f"  Sensor dims verified: {sensor_dims}")
 
+    # Phase-6: resolve --zero_modality_groups into indices for cache_encoder_memory.
+    zero_modality_indices = []
+    if args.zero_modality_groups:
+        wanted = {g.strip() for g in args.zero_modality_groups.split(',') if g.strip()}
+        for i, name in enumerate(group_names):
+            if name in wanted:
+                zero_modality_indices.append(i)
+        unknown = wanted - set(group_names)
+        if unknown:
+            raise ValueError(f"Unknown modality groups in --zero_modality_groups: {unknown}. Choices: {group_names}")
+        lprint(f"  ABLATION: zeroing groups {sorted(wanted)} (indices {zero_modality_indices})")
+
     # ── 5. Cache encoder memory ──
     if args.e2e:
         lprint(f"\n[5/7] E2E mode: caching val/test only (train uses live encoder)")
@@ -1434,6 +1511,7 @@ def main():
             memory, op_pred, cls_acc = cache_encoder_memory(
                 encoder, datasets[split], group_indices, device,
                 batch_size=args.batch_size,
+                zero_modality_indices=zero_modality_indices,
             )
             cached_datasets[split] = CachedDecoderDataset(
                 datasets[split], memory, op_pred,
@@ -1453,6 +1531,7 @@ def main():
                 encoder, datasets[split], group_indices, device,
                 batch_size=args.batch_size,
                 cache_dir=cache_path if split == 'train' else None,
+                zero_modality_indices=zero_modality_indices,
             )
             torch.save(memory, output_dir / 'encoder_memory' / f'{split}_memory.pt')
             torch.save(op_pred, output_dir / 'encoder_memory' / f'{split}_op_pred.pt')
@@ -1500,7 +1579,8 @@ def main():
         max_int_digits=2,
         n_decimal_digits=4,
         dropout=args.dropout,
-        max_seq_len=args.max_token_len,
+        # Phase-3: when CLI arg is 0 (auto-resolve), use the actual cap derived by the dataset.
+        max_seq_len=args.max_token_len if args.max_token_len > 0 else int(datasets['train'].input_tokens.shape[1]),
         hierarchical=args.hierarchical,
         memory_pos_encoding=args.memory_pos_encoding,
         use_regression_head=args.use_regression_head,
