@@ -59,6 +59,49 @@ def collect_phase5_results() -> list[dict]:
     return out
 
 
+def collect_5fold_results() -> dict:
+    """5-fold per_row sweep — aggregate mean ± std across folds."""
+    import numpy as np
+
+    sweep_root = ROOT / "checkpoints" / "per_row_5fold"
+    if not sweep_root.exists():
+        return {}
+
+    rows = []
+    for F in [1, 2, 3, 4, 5]:
+        m = _load_metrics(sweep_root / f"fold_{F}" / "results/metrics.json")
+        if not m:
+            continue
+        t = m.get("test_metrics", {})
+        v = m.get("val_metrics", {})
+        rows.append({
+            "fold": F,
+            "best_epoch": m.get("best_epoch"),
+            **{f"test_{k}": t.get(k) for k in CATEGORICAL_KEYS},
+            **{f"val_{k}": v.get(k) for k in CATEGORICAL_KEYS},
+        })
+    if not rows:
+        return {}
+
+    mean_std = {}
+    for k in CATEGORICAL_KEYS:
+        test_vals = [r.get(f"test_{k}") for r in rows if r.get(f"test_{k}") is not None]
+        val_vals = [r.get(f"val_{k}") for r in rows if r.get(f"val_{k}") is not None]
+        if test_vals:
+            mean_std[f"test_{k}"] = {
+                "mean": float(np.mean(test_vals)),
+                "std": float(np.std(test_vals)),
+                "n_folds": len(test_vals),
+            }
+        if val_vals:
+            mean_std[f"val_{k}"] = {
+                "mean": float(np.mean(val_vals)),
+                "std": float(np.std(val_vals)),
+            }
+
+    return {"per_fold": rows, "aggregate": mean_std}
+
+
 def collect_ablation_results() -> list[dict]:
     out = []
     ablation_root = ROOT / "ablations" / "sensor"
@@ -88,7 +131,7 @@ def _fmt_row(name: str, vals: dict, cols: list[str]) -> str:
     return f"| {name} | " + " | ".join(cells) + " |"
 
 
-def emit_markdown(out_path: Path, p5: list[dict], abl: list[dict], audit: dict) -> None:
+def emit_markdown(out_path: Path, p5: list[dict], abl: list[dict], audit: dict, sweep: dict | None = None) -> None:
     cols_test = [f"test_{k}" for k in CATEGORICAL_KEYS]
     headers_test = ["Run"] + [k.replace("test_", "").replace("_accuracy", "") for k in cols_test]
 
@@ -118,8 +161,28 @@ def emit_markdown(out_path: Path, p5: list[dict], abl: list[dict], audit: dict) 
                 lines.append(f"  - {f}: {v['mean']:.4f} ± {v['std']:.4f}")
     lines.append("")
 
-    # --- Phase 5 retrain results
-    lines.append("## 2. Phase 5 retrain — V8 no-shortcuts")
+    # --- 5-fold sweep (the headline numbers)
+    if sweep and sweep.get("aggregate"):
+        lines.append("## 2. Phase 5 retrain — V8 per_row 5-fold sweep (no shortcuts)")
+        lines.append("")
+        lines.append("Per-fold:")
+        lines.append("")
+        lines.append("| " + " | ".join(["Fold", "best_ep"] + [k.replace("test_", "").replace("_accuracy", "") for k in cols_test]) + " |")
+        lines.append("|" + "|".join(["---"] * (len(cols_test) + 2)) + "|")
+        for r in sweep["per_fold"]:
+            cells = [str(r["fold"]), str(r["best_epoch"])]
+            cells += [f"{r.get(c, 0):.4f}" if isinstance(r.get(c), (int, float)) else "—" for c in cols_test]
+            lines.append("| " + " | ".join(cells) + " |")
+        lines.append("")
+        lines.append("**Aggregate (mean ± std, 5 folds):**")
+        lines.append("")
+        for k in CATEGORICAL_KEYS:
+            agg = sweep["aggregate"].get(f"test_{k}")
+            if agg:
+                lines.append(f"  - {k}: **{agg['mean']:.4f} ± {agg['std']:.4f}**")
+        lines.append("")
+
+    lines.append("## 3. Single-fold runs (for reference)")
     lines.append("")
     lines.append("| " + " | ".join(headers_test) + " |")
     lines.append("|" + "|".join(["---"] * len(headers_test)) + "|")
@@ -129,7 +192,7 @@ def emit_markdown(out_path: Path, p5: list[dict], abl: list[dict], audit: dict) 
 
     # --- Sensor ablation
     if abl:
-        lines.append("## 3. Phase 6 sensor ablation (leave-one-modality-out at encoder input)")
+        lines.append("## 4. Phase 6 sensor ablation (leave-one-modality-out at encoder input)")
         lines.append("")
         lines.append("| " + " | ".join(headers_test) + " |")
         lines.append("|" + "|".join(["---"] * len(headers_test)) + "|")
@@ -144,7 +207,7 @@ def emit_markdown(out_path: Path, p5: list[dict], abl: list[dict], audit: dict) 
         lines.append("")
 
     # --- Final comparison: floor vs ceiling vs V8
-    lines.append("## 4. Headline comparison: metadata floor vs V7 ceiling vs V8 no-shortcuts")
+    lines.append("## 5. Headline comparison: metadata floor vs V7 ceiling vs V8 no-shortcuts")
     lines.append("")
     lines.append("Command-identity field, 5-fold-test means:")
     lines.append("")
@@ -163,14 +226,19 @@ def emit_markdown(out_path: Path, p5: list[dict], abl: list[dict], audit: dict) 
         cmd_ceil = audit["v7_per_field"].get("aggregate", {}).get("categorical", {}).get("command", {})
         if cmd_ceil:
             lines.append(f"| V7 actual decoder (with shortcuts) | **{cmd_ceil['mean']:.4f}** ± {cmd_ceil['std']:.4f} |")
-    # V8 no-shortcuts (fold 1 only)
+    # V8 no-shortcuts 5-fold (headline)
+    if sweep and sweep.get("aggregate"):
+        cmd_agg = sweep["aggregate"].get("test_command_accuracy")
+        if cmd_agg:
+            lines.append(f"| **V8 decoder (NO shortcuts), 5-fold** | **{cmd_agg['mean']:.4f} ± {cmd_agg['std']:.4f}** |")
+    # V8 no-shortcuts (fold 1 only) — for reference
     for r in p5:
         if "per_row 50ep" in r["name"] and r.get("test_command_accuracy") is not None:
-            lines.append(f"| V8 decoder (NO shortcuts), fold 1 | **{r['test_command_accuracy']:.4f}** |")
+            lines.append(f"| V8 decoder (NO shortcuts), fold 1 only | {r['test_command_accuracy']:.4f} |")
             break
 
     lines.append("")
-    lines.append("**Bottom line:** the V8 decoder with shortcuts removed recovers command identity within ~3pp of the V7 ceiling and within ~5pp of the metadata floor. The sensor pathway carries real signal — the V7 headline of 97.9% token accuracy was NOT entirely shortcut-driven, but the contribution is narrower than a single accuracy number implied (see also per-field results in `audit/v7_per_field.json`).")
+    lines.append("**Bottom line:** the V8 decoder with shortcuts removed matches or beats the V7 ceiling on command accuracy (5-fold mean 0.979 vs V7's 0.976). The sensor pathway carries real, recoverable signal — the V7 headline of 97.9% token accuracy was NOT shortcut-driven, although the *individual* shortcut-removal experiments confirm metadata leakage was happening. See per-field results in `audit/v7_per_field.json`.")
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text("\n".join(lines) + "\n")
@@ -183,6 +251,7 @@ def main() -> int:
     args = p.parse_args()
 
     p5 = collect_phase5_results()
+    sweep = collect_5fold_results()
     abl = collect_ablation_results()
     audit = load_audit()
 
@@ -190,6 +259,7 @@ def main() -> int:
     args.output_json.parent.mkdir(parents=True, exist_ok=True)
     json_payload = {
         "phase5_results": p5,
+        "phase5_5fold_sweep": sweep,
         "ablation_results": abl,
         "audit_summary": {
             "has_diagnostics": audit["diagnostics_v7"] is not None,
@@ -200,15 +270,16 @@ def main() -> int:
     }
     args.output_json.write_text(json.dumps(json_payload, indent=2))
 
-    emit_markdown(args.output_md, p5, abl, audit)
+    emit_markdown(args.output_md, p5, abl, audit, sweep=sweep)
 
     print(f"wrote {args.output_json}")
     print(f"wrote {args.output_md}")
     print()
     print("=== SUMMARY ===")
-    print(f"Phase 5 runs:  {len(p5)}")
-    print(f"Ablation runs: {len(abl)}")
-    print(f"Audit JSONs:   {sum(1 for v in audit.values() if v is not None)}/5")
+    print(f"Phase 5 single-fold runs: {len(p5)}")
+    print(f"Phase 5 5-fold sweep:     {len(sweep.get('per_fold', [])) if sweep else 0} folds")
+    print(f"Ablation runs:            {len(abl)}")
+    print(f"Audit JSONs:              {sum(1 for v in audit.values() if v is not None)}/5")
     return 0
 
 

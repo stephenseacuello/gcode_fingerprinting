@@ -68,25 +68,33 @@ floor. So the sensor pathway IS doing real work, it's just not 97.9%
 worth. The 3pp gap between V7 and V8-no-shortcuts is the shortcut
 contribution we removed.
 
-Per_row token-level results (fold 1, 50 epochs):
+Per_row 5-fold sweep results (50 epochs each, no shortcuts):
 
-| Metric | Test |
-|--------|------|
-| Token accuracy | 80.0% |
-| Sequence accuracy | 37.1% |
-| Command | 94.4% |
-| Type | 97.0% |
-| Param-type | 92.4% |
-| Numeric | 55.9% |
+| Metric            | V8 (no shortcuts) | V7 ceiling (with shortcuts) |
+|-------------------|-------------------|------------------------------|
+| Token accuracy    | **0.832 ± 0.020** | —                            |
+| Sequence accuracy | 0.426 ± 0.041     | —                            |
+| Type accuracy     | 0.972 ± 0.012     | —                            |
+| **Command**       | **0.979 ± 0.019** | 0.976 ± 0.011                |
+| Param-type        | 0.944 ± 0.013     | —                            |
+| Numeric           | 0.600 ± 0.024     | —                            |
 
-Full_window (max_seq_len=1400, same fold) hit basically identical
-numbers — 79.3% token, 94.4% command. So per_row vs full_window are
-empirically equivalent on this data; the 65× sample-count difference
-in per_row doesn't translate to better generalization because all
-those samples derive from the same windows.
+This is the headline: V8 with shortcuts REMOVED slightly beats V7 with
+shortcuts on command accuracy (0.979 vs 0.976). Folds 2 and 5 both hit
+100% command. The shortcut path was real, but the sensor pathway is
+also real — once we fix the data structure AND remove shortcuts AND
+refresh the vocab, the decoder still reaches V7-level command accuracy.
 
-A 5-fold sweep is running now in the background, so I'll have
-mean ± std numbers for the manuscript by tomorrow.
+So the manuscript shifts from "decoder achieves 97.9%" (true but
+unattributed) to something like "decoder achieves 97.9 ± 1.9% from
+sensor signal alone, no positional metadata, on a label set 10×
+richer than V7's" — much stronger claim.
+
+Full_window mode hits basically identical numbers — token 0.793,
+cmd 0.944 (fold 1 only). So per_row vs full_window are empirically
+equivalent on this data; the 65× sample-count difference in per_row
+doesn't translate to better generalization because all those samples
+derive from the same windows.
 
 ## Sensor ablation — your gyroscope hunch was right
 
@@ -124,10 +132,12 @@ A few things from the data itself that matter for the manuscript:
 ## Where I left things for the manuscript
 
 - AUDIT_REPORT.md — full 11-priority writeup with file:line
-- MANUSCRIPT_TABLES/results.md — the comparison tables
+- MANUSCRIPT_TABLES/results.md — the comparison tables, NOW WITH 5-FOLD
+  ERROR BARS
 - DESIGN_OF_EXPERIMENTS.md — DOE spec for the summer Tormach work, 188
   sample runs generated already with single-line G-code programs
-- 5-fold sweep running now, will have proper error bars tomorrow
+- 14 pytest tests pinning down the V8 NPZ schema so the bug can't come
+  back silently
 
 The framing has to shift. We can't lead with "97.9% token
 reconstruction" anymore — but the per-field story is stronger

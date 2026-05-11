@@ -49,6 +49,146 @@
       "val_numeric_accuracy": 0.0
     }
   ],
+  "phase5_5fold_sweep": {
+    "per_fold": [
+      {
+        "fold": 1,
+        "best_epoch": 28,
+        "test_token_accuracy": 0.8,
+        "test_sequence_accuracy": 0.3712121212121212,
+        "test_type_accuracy": 0.9700934579439252,
+        "test_command_accuracy": 0.9537037037037037,
+        "test_param_type_accuracy": 0.9241379310344827,
+        "test_numeric_accuracy": 0.5586206896551724,
+        "val_token_accuracy": 0.8177777777777778,
+        "val_sequence_accuracy": 0.41818181818181815,
+        "val_type_accuracy": 0.9688888888888889,
+        "val_command_accuracy": 0.9411764705882353,
+        "val_param_type_accuracy": 0.936,
+        "val_numeric_accuracy": 0.624
+      },
+      {
+        "fold": 2,
+        "best_epoch": 23,
+        "test_token_accuracy": 0.843400447427293,
+        "test_sequence_accuracy": 0.41818181818181815,
+        "test_type_accuracy": 0.9776286353467561,
+        "test_command_accuracy": 1.0,
+        "test_param_type_accuracy": 0.94,
+        "test_numeric_accuracy": 0.616,
+        "val_token_accuracy": 0.8382687927107062,
+        "val_sequence_accuracy": 0.42592592592592593,
+        "val_type_accuracy": 0.9749430523917996,
+        "val_command_accuracy": 0.9761904761904762,
+        "val_param_type_accuracy": 0.9297520661157025,
+        "val_numeric_accuracy": 0.628099173553719
+      },
+      {
+        "fold": 3,
+        "best_epoch": 19,
+        "test_token_accuracy": 0.8211009174311926,
+        "test_sequence_accuracy": 0.46296296296296297,
+        "test_type_accuracy": 0.9495412844036697,
+        "test_command_accuracy": 0.9772727272727273,
+        "test_param_type_accuracy": 0.940677966101695,
+        "test_numeric_accuracy": 0.6101694915254238,
+        "val_token_accuracy": 0.8283062645011601,
+        "val_sequence_accuracy": 0.4339622641509434,
+        "val_type_accuracy": 0.962877030162413,
+        "val_command_accuracy": 1.0,
+        "val_param_type_accuracy": 0.9529914529914529,
+        "val_numeric_accuracy": 0.5982905982905983
+      },
+      {
+        "fold": 4,
+        "best_epoch": 30,
+        "test_token_accuracy": 0.856492027334852,
+        "test_sequence_accuracy": 0.48148148148148145,
+        "test_type_accuracy": 0.9840546697038725,
+        "test_command_accuracy": 0.9642857142857143,
+        "test_param_type_accuracy": 0.9628099173553719,
+        "test_numeric_accuracy": 0.628099173553719,
+        "val_token_accuracy": 0.8398950131233596,
+        "val_sequence_accuracy": 0.44086021505376344,
+        "val_type_accuracy": 0.9711286089238845,
+        "val_command_accuracy": 0.9857142857142858,
+        "val_param_type_accuracy": 0.9439252336448598,
+        "val_numeric_accuracy": 0.5981308411214953
+      },
+      {
+        "fold": 5,
+        "best_epoch": 27,
+        "test_token_accuracy": 0.8372703412073491,
+        "test_sequence_accuracy": 0.3978494623655914,
+        "test_type_accuracy": 0.979002624671916,
+        "test_command_accuracy": 1.0,
+        "test_param_type_accuracy": 0.9532710280373832,
+        "test_numeric_accuracy": 0.5887850467289719,
+        "val_token_accuracy": 0.7664783427495292,
+        "val_sequence_accuracy": 0.3409090909090909,
+        "val_type_accuracy": 0.9378531073446328,
+        "val_command_accuracy": 0.9807692307692307,
+        "val_param_type_accuracy": 0.9137931034482759,
+        "val_numeric_accuracy": 0.5241379310344828
+      }
+    ],
+    "aggregate": {
+      "test_token_accuracy": {
+        "mean": 0.8316527466801373,
+        "std": 0.01949252768348113,
+        "n_folds": 5
+      },
+      "val_token_accuracy": {
+        "mean": 0.8181452381725066,
+        "std": 0.027021693964319898
+      },
+      "test_sequence_accuracy": {
+        "mean": 0.426337569240795,
+        "std": 0.04074107031373474,
+        "n_folds": 5
+      },
+      "val_sequence_accuracy": {
+        "mean": 0.41196786284430836,
+        "std": 0.036335413964617896
+      },
+      "test_type_accuracy": {
+        "mean": 0.972064134414028,
+        "std": 0.01211644826312611,
+        "n_folds": 5
+      },
+      "val_type_accuracy": {
+        "mean": 0.9631381375423237,
+        "std": 0.013233863515352766
+      },
+      "test_command_accuracy": {
+        "mean": 0.9790524290524291,
+        "std": 0.018662167813190043,
+        "n_folds": 5
+      },
+      "val_command_accuracy": {
+        "mean": 0.9767700926524455,
+        "std": 0.01950826582489269
+      },
+      "test_param_type_accuracy": {
+        "mean": 0.9441793685057865,
+        "std": 0.01312358014639282,
+        "n_folds": 5
+      },
+      "val_param_type_accuracy": {
+        "mean": 0.9352923712400582,
+        "std": 0.013275526679257719
+      },
+      "test_numeric_accuracy": {
+        "mean": 0.6003348802926575,
+        "std": 0.02443949217852341,
+        "n_folds": 5
+      },
+      "val_numeric_accuracy": {
+        "mean": 0.5945317088000591,
+        "std": 0.03735645012045805
+      }
+    }
+  },
   "ablation_results": [
     {
       "name": "ablation: zero accelerometer",

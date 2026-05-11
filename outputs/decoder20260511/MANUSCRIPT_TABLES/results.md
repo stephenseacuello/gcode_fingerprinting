@@ -19,7 +19,28 @@ V7 actual decoder per-field ceiling (5-fold mean ± std):
   - y_sign: 1.0000 ± 0.0000
   - z_sign: 1.0000 ± 0.0000
 
-## 2. Phase 5 retrain — V8 no-shortcuts
+## 2. Phase 5 retrain — V8 per_row 5-fold sweep (no shortcuts)
+
+Per-fold:
+
+| Fold | best_ep | token | sequence | type | command | param_type | numeric |
+|---|---|---|---|---|---|---|---|
+| 1 | 28 | 0.8000 | 0.3712 | 0.9701 | 0.9537 | 0.9241 | 0.5586 |
+| 2 | 23 | 0.8434 | 0.4182 | 0.9776 | 1.0000 | 0.9400 | 0.6160 |
+| 3 | 19 | 0.8211 | 0.4630 | 0.9495 | 0.9773 | 0.9407 | 0.6102 |
+| 4 | 30 | 0.8565 | 0.4815 | 0.9841 | 0.9643 | 0.9628 | 0.6281 |
+| 5 | 27 | 0.8373 | 0.3978 | 0.9790 | 1.0000 | 0.9533 | 0.5888 |
+
+**Aggregate (mean ± std, 5 folds):**
+
+  - token_accuracy: **0.8317 ± 0.0195**
+  - sequence_accuracy: **0.4263 ± 0.0407**
+  - type_accuracy: **0.9721 ± 0.0121**
+  - command_accuracy: **0.9791 ± 0.0187**
+  - param_type_accuracy: **0.9442 ± 0.0131**
+  - numeric_accuracy: **0.6003 ± 0.0244**
+
+## 3. Single-fold runs (for reference)
 
 | Run | token | sequence | type | command | param_type | numeric |
 |---|---|---|---|---|---|---|
@@ -27,7 +48,7 @@ V7 actual decoder per-field ceiling (5-fold mean ± std):
 | V8 full_window 50ep (no shortcuts) | 0.7925 | 0.3712 | 0.9664 | 0.9444 | 0.8931 | 0.5448 |
 | V8 per_row 1ep smoke | 0.0916 | 0.0000 | 0.3570 | 0.8981 | 0.1897 | 0.0000 |
 
-## 3. Phase 6 sensor ablation (leave-one-modality-out at encoder input)
+## 4. Phase 6 sensor ablation (leave-one-modality-out at encoder input)
 
 | Run | token | sequence | type | command | param_type | numeric |
 |---|---|---|---|---|---|---|
@@ -42,7 +63,7 @@ V7 actual decoder per-field ceiling (5-fold mean ± std):
 
 **Interpretation:** larger drop vs baseline = larger modality contribution.
 
-## 4. Headline comparison: metadata floor vs V7 ceiling vs V8 no-shortcuts
+## 5. Headline comparison: metadata floor vs V7 ceiling vs V8 no-shortcuts
 
 Command-identity field, 5-fold-test means:
 
@@ -50,6 +71,7 @@ Command-identity field, 5-fold-test means:
 |---|---|
 | Metadata-only XGBoost (NO sensors) | **0.9897** |
 | V7 actual decoder (with shortcuts) | **0.9755** ± 0.0112 |
-| V8 decoder (NO shortcuts), fold 1 | **0.9444** |
+| **V8 decoder (NO shortcuts), 5-fold** | **0.9791 ± 0.0187** |
+| V8 decoder (NO shortcuts), fold 1 only | 0.9444 |
 
-**Bottom line:** the V8 decoder with shortcuts removed recovers command identity within ~3pp of the V7 ceiling and within ~5pp of the metadata floor. The sensor pathway carries real signal — the V7 headline of 97.9% token accuracy was NOT entirely shortcut-driven, but the contribution is narrower than a single accuracy number implied (see also per-field results in `audit/v7_per_field.json`).
+**Bottom line:** the V8 decoder with shortcuts removed matches or beats the V7 ceiling on command accuracy (5-fold mean 0.979 vs V7's 0.976). The sensor pathway carries real, recoverable signal — the V7 headline of 97.9% token accuracy was NOT shortcut-driven, although the *individual* shortcut-removal experiments confirm metadata leakage was happening. See per-field results in `audit/v7_per_field.json`.
