@@ -1,0 +1,108 @@
+{
+  "config": {
+    "memory_root": "/home/seacuello/Documents/gcode_fingerprinting/outputs/decoder20260511/checkpoints/hp_sweep_stage2/scheduled_sampling_0.5/fold_1/encoder_memory",
+    "data_root": "/home/seacuello/Documents/gcode_fingerprinting/outputs/decoder20260511/preprocessed_f98/per_row/fold_1",
+    "baseline": "XGBoost on mean-pooled encoder memory",
+    "n_train": 19584,
+    "n_val": 7273,
+    "n_test": 7937,
+    "feature_dim": 256,
+    "elapsed_seconds": 24.06632399559021
+  },
+  "results_per_head": {
+    "command_5class": {
+      "accuracy": 0.6586871613959935,
+      "macro_precision": 0.27334879873448725,
+      "macro_recall": 0.22003900241811927,
+      "macro_f1": 0.23200453774881943,
+      "support": 7937,
+      "class_counts_test": {
+        "0": 5886,
+        "1": 86,
+        "4": 395,
+        "2": 1095,
+        "3": 475
+      }
+    },
+    "has_X_binary": {
+      "accuracy": 0.8853471084792743,
+      "macro_precision": 0.44267355423963717,
+      "macro_recall": 0.5,
+      "macro_f1": 0.46959369152632985,
+      "support": 7937,
+      "class_counts_test": {
+        "1": 7027,
+        "0": 910
+      }
+    },
+    "has_Y_binary": {
+      "accuracy": 0.8663222880181429,
+      "macro_precision": 0.43316114400907146,
+      "macro_recall": 0.5,
+      "macro_f1": 0.4641868628907041,
+      "support": 7937,
+      "class_counts_test": {
+        "1": 6876,
+        "0": 1061
+      }
+    },
+    "has_Z_binary": {
+      "accuracy": 0.8820713115786821,
+      "macro_precision": 0.8820498751447317,
+      "macro_recall": 0.8382104883643258,
+      "macro_f1": 0.8553182439617195,
+      "support": 7937,
+      "class_counts_test": {
+        "1": 2490,
+        "0": 5447
+      }
+    },
+    "has_F_binary": {
+      "accuracy": 0.9943303515182059,
+      "macro_precision": 0.49716517575910296,
+      "macro_recall": 0.5,
+      "macro_f1": 0.49857855834228315,
+      "support": 7937,
+      "class_counts_test": {
+        "0": 7892,
+        "1": 45
+      }
+    },
+    "sign_X_3class": {
+      "accuracy": 0.8098777875771702,
+      "macro_precision": 0.3763841445929424,
+      "macro_recall": 0.39384535769194895,
+      "macro_f1": 0.3811917886505202,
+      "support": 7937,
+      "class_counts_test": {
+        "2": 6517,
+        "1": 910,
+        "0": 510
+      }
+    },
+    "sign_Y_3class": {
+      "accuracy": 0.8578808113896939,
+      "macro_precision": 0.2859602704632313,
+      "macro_recall": 0.3333333333333333,
+      "macro_f1": 0.30783489307834894,
+      "support": 7937,
+      "class_counts_test": {
+        "2": 6809,
+        "1": 1061,
+        "0": 67
+      }
+    },
+    "sign_Z_3class": {
+      "accuracy": 0.7834194279954643,
+      "macro_precision": 0.4597146660256913,
+      "macro_recall": 0.5693903972916503,
+      "macro_f1": 0.5053706935000508,
+      "support": 7937,
+      "class_counts_test": {
+        "2": 1146,
+        "1": 5447,
+        "0": 1344
+      }
+    }
+  }
+}
