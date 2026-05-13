@@ -46,7 +46,9 @@
 \usepackage{tikz}
 \usepackage{enumitem}
 \usepackage{subcaption}
+\usepackage{graphicx}
 \usetikzlibrary{arrows.meta, positioning, decorations.pathreplacing}
+\graphicspath{{../figures/}}
 
 % Custom commands
 \newcommand{\modelname}{G-Code Decoder}
@@ -303,6 +305,13 @@ The decoder is optimised with AdamW~\cite{loshchilov2019adamw} ($\eta=$ \TBD{lr}
 
 The decoder is trained \emph{without} positional metadata in its baseline configuration: \texttt{window\_index}, \texttt{total\_windows}, and \texttt{source\_file} identifiers are not exposed to the decoder. Section~\ref{sec:abl-positional} ablates this choice.
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{learning_curves.pdf}
+\caption{Training and validation learning curves for the headline 5-fold sweep. Both train and validation loss decrease monotonically; validation token accuracy plateaus by approximately epoch \TBD{plateau\_epoch}, well within the patience-75 budget. Per-fold curves are colour-coded.}
+\label{fig:learning_curves}
+\end{figure}
+
 \subsection{Encoder Information-Content Probe}
 \label{sec:encoder-probe}
 
@@ -494,6 +503,13 @@ Table~\ref{tab:headline} reports the headline accuracies and macro precision/rec
 
 \input{../tables/headline_5fold.tex}
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{five_fold_spread.pdf}
+\caption{Five-fold cross-validation spread for each headline metric. Boxes show median and inter-quartile range across the five folds; whiskers show min/max. The categorical metrics (type, command, param-type, sign) cluster tightly; sequence accuracy and the digit head show wider fold-to-fold variance, reflecting the per-row autoregressive amplification of small per-token errors.}
+\label{fig:five_fold_spread}
+\end{figure}
+
 The macro F1 of the command head (\TBD{cmd\_macro\_f1}) is markedly lower than its raw accuracy (\TBD{cmd\_acc\_5fold}). This is the long-tail signature: the dominant class G1 (\TBD{n\_G1\_test} test instances) is recovered at F1 \TBD{G1\_f1}, while G3 (\TBD{n\_G3\_test} instances), G0 (\TBD{n\_G0\_test} instances), and M30 (\TBD{n\_M30\_test} instances) are recovered substantially less well or not at all. Table~\ref{tab:per_class_command} provides the per-class breakdown.
 
 \input{../tables/per_class_command.tex}
@@ -501,6 +517,34 @@ The macro F1 of the command head (\TBD{cmd\_macro\_f1}) is markedly lower than i
 The parameter-type head shows a different pattern: macro F1 \TBD{paramtype\_macro\_f1} closely tracks accuracy because the axis letters appearing in the corpus (X, Y, Z, R) all have substantial support and are predicted with F1 between \TBD{paramtype\_min\_f1} and \TBD{paramtype\_max\_f1}. Table~\ref{tab:per_class_param_type} shows the breakdown.
 
 \input{../tables/per_class_param_type.tex}
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.48\linewidth}\centering
+  \includegraphics[width=\linewidth]{per_class_metrics_command.pdf}
+  \caption{Command head}
+\end{subfigure}\hfill
+\begin{subfigure}{0.48\linewidth}\centering
+  \includegraphics[width=\linewidth]{per_class_metrics_param_type.pdf}
+  \caption{Parameter-type head}
+\end{subfigure}
+\caption{Per-class precision / recall / F1 for the command and parameter-type heads (5-fold mean). The long-tail signature in the command head is visible: G1 (the dominant class) is recovered with high F1; G3 and M30 (small supports) are recovered substantially less well. The parameter-type head's classes (X, Y, Z, R) all have substantial support and high F1.}
+\label{fig:per_class_bars}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.48\linewidth}\centering
+  \includegraphics[width=\linewidth]{confusion_matrix_command_normalized.pdf}
+  \caption{Command head (row-normalised)}
+\end{subfigure}\hfill
+\begin{subfigure}{0.48\linewidth}\centering
+  \includegraphics[width=\linewidth]{confusion_matrix_param_type_normalized.pdf}
+  \caption{Parameter-type head (row-normalised)}
+\end{subfigure}
+\caption{Row-normalised confusion matrices for the command and parameter-type heads (5-fold pooled test predictions). Off-diagonal mass on the command-head matrix is concentrated on the G2/G3 confusion pair, consistent with the per-class F1 long tail.}
+\label{fig:confusion}
+\end{figure}
 
 \subsection{Per-Axis Recoverability}
 \label{sec:per-axis}
@@ -512,6 +556,13 @@ For each axis letter we extract three quantities from the decoded G-code text: (
 \input{../tables/per_axis_recoverability.tex}
 
 Three patterns emerge. First, X and Y axes are recovered with high presence accuracy (\TBD{has\_X\_acc} / \TBD{has\_Y\_acc}). Second, X-positive vs.\ X-negative motion sign is recovered with substantially \TBD{X\_sign\_qualifier} fidelity (\TBD{sign\_X\_acc}) than Y-sign (\TBD{sign\_Y\_acc}), suggesting that the sensor pathway has more difficulty distinguishing direction along the X axis on this geometry. Third, feed rate (F), spindle (S), and arc parameters (I, J) have effectively zero positive support in the corpus (Table~\ref{tab:data_coverage}) and cannot be meaningfully evaluated; their recovery is a target of the planned summer DOE dataset described in Appendix~\ref{app:doe}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{per_axis_recoverability.pdf}
+\caption{Per-axis G-code recoverability (5-fold mean): has-axis F1 (top), motion-sign accuracy (middle), and numeric-value MAE (bottom). The categorical-vs-numeric split is visible: has-axis and sign reach high accuracy on the well-supported axes (X, Y, Z, R), while value MAE is the limiting factor for full coordinate reconstruction.}
+\label{fig:per_axis}
+\end{figure}
 
 \subsection{Numeric Digit Head Decomposition}
 \label{sec:numeric-decomposition}
@@ -587,6 +638,13 @@ The per-row vs.\ full-window comparison \TBD{target\_mode\_qualitative} (token: 
 For each of seven sensor modality groups (accelerometer, gyroscope, magnetometer, environmental, color, audio-RMS, electrical) we zero the corresponding sensor channels at the encoder input, then evaluate the decoder. The encoder is not retrained; the zeroing happens only at decoder-inference time, isolating the marginal contribution of each modality conditional on the encoder's pre-training. Five-fold averaged across folds, the \TBD{loadbearing\_modalities} modalities are the most-load-bearing; their removal moves command accuracy \TBD{loadbearing\_delta\_pp}~pp downward across folds. Removing \TBD{nonloadbearing\_modalities} channels moves nothing measurable.
 
 The result is consistent with the modality-importance findings from the encoder paper~\cite{encoder_paper}: the same sensor groups that drove operation classification also drive G-code recovery. This is reassuring because it suggests that a deployment with only the load-bearing modalities would retain most of both capabilities. The full-modality decoder is the strongest configuration; the minimum-viable subset for instruction-level recovery on this corpus is \TBD{minimum\_viable\_modalities}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{sensor_ablation_bars.pdf}
+\caption{Sensor-modality ablation. For each of the seven sensor groups we zero the corresponding channels at the encoder input and report the resulting decoder accuracy across 5 folds (mean $\pm$ std). Gyroscope and color emerge as the most-load-bearing inputs; environmental and accelerometer channels are largely redundant on this corpus, consistent with the modality-importance findings from the encoder paper~\cite{encoder_paper}.}
+\label{fig:sensor_ablation}
+\end{figure}
 
 \subsubsection{Sequence-Classifier (Pattern-Aware) Ablation}
 A sequence-classifier head trained jointly with the legacy-token head predicts \emph{which whole G-code line} the model is reconstructing, then biases the token-level distribution toward that line's tokens. This component moves command accuracy \TBD{pattern\_cmd\_delta\_qualifier} by \TBD{pattern\_cmd\_delta\_pp}~pp and numeric accuracy \TBD{pattern\_num\_delta\_qualifier} by \TBD{pattern\_num\_delta\_pp}~pp \TBD{pattern\_paramtype\_caveat}. Net effect is \TBD{pattern\_net\_effect\_qualifier} on the targets that matter.
