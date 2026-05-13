@@ -126,11 +126,27 @@ versus the no-shortcuts baseline. Implemented with
 \item \textbf{Effect size.} Cohen's $d$ using pooled variance.
 \item \textbf{Bootstrap CI.} 10{,}000 percentile-method resamples on the
 5-fold means.
-\item \textbf{Multiple-comparisons correction.} Holm-Bonferroni applied
-across all (ablation, metric) pairs reported in
-Table~\ref{tab:anova}. BH-FDR also computed for the less-conservative
-reading. Significance at $\alpha=0.05$ is reported under both
-adjustments.
+\item \textbf{Multiple-comparisons correction.} Holm-Bonferroni and BH-FDR
+applied across all (ablation, macro-metric) pairs reported in
+Table~\ref{tab:anova}, AND separately across the drilled per-class /
+per-axis / per-position grid below. Significance at $\alpha=0.05$ is
+reported under both adjustments.
+
+\item \textbf{Per-class / per-axis / per-position ANOVA grid.} In
+addition to the macro-metric ANOVA above (token / sequence / type /
+command / param-type / sign / numeric), we run the same one-way-ANOVA +
+Cohen's $d$ + Holm-Bonferroni / BH-FDR procedure on the drilled
+per-class metrics: precision, recall, and F1 for each command class
+(G0 / G1 / G2 / G3 / G53 / M30), each param-type axis (X / Y / Z / R /
+F), each sign class (POSITIVE / NEGATIVE), each type class (SPECIAL /
+COMMAND / PARAM / NUMERIC), each of the six numeric-digit output
+positions (accuracy + macro precision / recall / F1), and each of the
+ten digit-value classes (0--9). The grid contains approximately
+\TBD{n\_per\_class\_anova\_tests} (ablation, drilled-metric) tests;
+results are emitted to \texttt{audit/anova\_per\_class\_results.json}.
+Per-class results with $n_{\text{support}} \le 50$ are flagged as
+underpowered (Section~\ref{sec:lim-power}); the headline-significance
+claims rely on the larger-support classes only.
 \end{itemize}
 
 \subsection{Inference Cost}
