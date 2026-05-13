@@ -106,6 +106,43 @@ def one_way_anova(samples: list[list[float]]) -> dict[str, float]:
             "df_between": len(samples) - 1, "df_within": sum(len(s) for s in samples) - len(samples)}
 
 
+def adjust_pvalues(pvalues: list[float], method: str = "holm-bonferroni"
+                   ) -> tuple[list[float], list[bool]]:
+    """Multiple-comparisons correction.
+
+    method: 'bonferroni' (most conservative), 'holm-bonferroni' (recommended
+            default), or 'bh-fdr' (Benjamini-Hochberg false discovery rate).
+    Returns (adjusted_p, significant_at_0.05).
+    """
+    p = np.asarray(pvalues, dtype=float)
+    n = len(p)
+    if n == 0:
+        return [], []
+
+    if method == "bonferroni":
+        adj = np.minimum(p * n, 1.0)
+    elif method == "holm-bonferroni":
+        # Sort ascending. p_adj[i] = max(p[i]*(n-i), p_adj[i-1]), clipped to 1.
+        order = np.argsort(p)
+        scaled = p[order] * (n - np.arange(n))
+        adj_sorted = np.maximum.accumulate(scaled)
+        adj_sorted = np.minimum(adj_sorted, 1.0)
+        adj = np.empty(n)
+        adj[order] = adj_sorted
+    elif method == "bh-fdr":
+        order = np.argsort(p)
+        ranks = np.arange(1, n + 1)
+        adj_sorted = p[order] * n / ranks
+        # Enforce monotonicity from the largest rank downward
+        adj_sorted = np.minimum.accumulate(adj_sorted[::-1])[::-1]
+        adj_sorted = np.minimum(adj_sorted, 1.0)
+        adj = np.empty(n)
+        adj[order] = adj_sorted
+    else:
+        raise ValueError(f"unknown method: {method}")
+    return adj.tolist(), (adj < 0.05).tolist()
+
+
 def bootstrap_ci(values: list[float], n_resamples: int = 10000, alpha: float = 0.05,
                  seed: int = 42) -> dict[str, float]:
     """Percentile-method bootstrap CI for the mean."""
@@ -210,6 +247,28 @@ def main() -> int:
         for metric in METRIC_KEYS:
             if abl_data.get(metric):
                 bootstrap_results["ablations"][name][metric] = bootstrap_ci(abl_data[metric])
+
+    # ---------- 3a. Multiple-comparisons correction ----------
+    # Collect all (name, metric, p) tuples across the ANOVA grid and apply
+    # Holm-Bonferroni + BH-FDR adjustment. Reviewers regularly ask for this
+    # when an HP-sweep paper picks "the best of N cells" --- the corrected
+    # p-values constrain how strongly we can claim the winner is "different".
+    all_pvalues, pvalue_keys = [], []
+    for name, payload in anova_results.items():
+        for metric, m in payload.get("metrics", {}).items():
+            if m.get("p_value") == m.get("p_value"):  # not NaN
+                all_pvalues.append(m["p_value"])
+                pvalue_keys.append((name, metric))
+    if all_pvalues:
+        holm_adj, holm_sig = adjust_pvalues(all_pvalues, method="holm-bonferroni")
+        bh_adj, bh_sig = adjust_pvalues(all_pvalues, method="bh-fdr")
+        for (name, metric), pa, ps, ba, bs in zip(pvalue_keys, holm_adj, holm_sig, bh_adj, bh_sig):
+            anova_results[name]["metrics"][metric]["p_holm_bonferroni"] = pa
+            anova_results[name]["metrics"][metric]["significant_holm_at_0.05"] = ps
+            anova_results[name]["metrics"][metric]["p_bh_fdr"] = ba
+            anova_results[name]["metrics"][metric]["significant_bh_at_0.05"] = bs
+        print(f"  applied Holm-Bonferroni + BH-FDR correction across "
+              f"{len(all_pvalues)} (ablation, metric) tests")
 
     # ---------- 3. Write JSON + LaTeX tables ----------
     audit_dir = ROOT / "audit"

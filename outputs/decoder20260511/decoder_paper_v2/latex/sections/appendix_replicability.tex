@@ -1,0 +1,143 @@
+% Replicability appendix. Included from decoder_paper_v2.tex via \input.
+% Follows the NeurIPS / Sensors-journal reproducibility-checklist conventions.
+
+\section{Replicability Checklist}
+\label{app:replicability}
+
+This section documents implementation details necessary for an independent
+team to reproduce the headline results. The checklist follows the NeurIPS
+and \emph{Sensors} reproducibility-checklist conventions.
+
+\subsection{Code and Data}
+\label{app:repl-code}
+
+\begin{itemize}
+\item \textbf{Code repository.} The full source tree, including
+preprocessing, training, evaluation, and figure-generation scripts, is
+released alongside the manuscript. Critical scripts:
+\texttt{scripts/evaluation/run\_decoder\_quick\_test.py} (training
+driver), \texttt{scripts/analysis/aggregate\_v8\_results.py}
+(metric aggregator), and the experiment shells under
+\texttt{scripts/experiments/}.
+\item \textbf{Dataset.} The 120-file V8 corpus is released under the same
+license as the encoder paper~\cite{encoder_paper}. Per-fold preprocessed
+NPZ files are available at \TBD{data\_release\_url}.
+\item \textbf{Hyperparameter sweep records.} All 34 cells of the 3-stage
+HP sweep are recorded under \texttt{outputs/decoder20260511/checkpoints/}
+with per-cell metrics.json. The composite-winner selection logic is in
+\texttt{scripts/analysis/aggregate\_hp\_sweep\_all\_stages.py}.
+\end{itemize}
+
+\subsection{Random Seeds and Determinism}
+\label{app:repl-seeds}
+
+\begin{itemize}
+\item \textbf{Decoder training seed.} 42 unless noted (all reported
+5-fold experiments).
+\item \textbf{Seed-variance estimate.} Three additional seeds were
+trained as part of Stage 3 of the HP sweep on the Stage-1 winner config:
+\{123, 456, 2024\}. Command-accuracy spans 0.293--0.337 across the three
+seeds, vs.\ the seed-42 baseline of 0.325. The reported headline number
+falls within this seed-variance envelope.
+\item \textbf{Data-shuffle seed.} The data loader uses
+\texttt{torch.Generator.manual\_seed(seed)} where applicable. CUDNN
+deterministic mode is NOT enforced (the small non-determinism it adds
+is dominated by the seed-variance envelope reported above).
+\end{itemize}
+
+\subsection{Hardware}
+\label{app:repl-hardware}
+
+\begin{itemize}
+\item \textbf{GPUs.} NVIDIA RTX A6000, 48~GB VRAM. Two GPUs were used
+during the HP sweep with parallel dispatch (one decoder cell per GPU).
+\item \textbf{CPU + RAM.} The host has approximately 100 CPU cores and
+1~TB of system RAM. The encoder-memory caching step uses up to ~16~GB
+RAM per cell; the full multi-cell parallel sweep peaked at ~120~GB.
+\item \textbf{Storage.} The corpus, checkpoints, audit JSONs, and W\&B
+logs occupy approximately 80~GB of disk.
+\end{itemize}
+
+\subsection{Training Time and Compute Budget}
+\label{app:repl-compute}
+
+\begin{itemize}
+\item \textbf{Single fold, decoder only.} ~30 minutes on one A6000
+at the headline configuration ($d_{\text{model}}=384$, $n_{\text{layers}}=8$,
+batch size 64, max\_token\_len=32 or 1400 depending on target mode,
+300 epochs cap, patience 75).
+\item \textbf{Five-fold cross-validation, decoder only.} ~2.5~hours
+sequential on one GPU.
+\item \textbf{Hyperparameter sweep (34 cells).} ~12--15~hours wall-clock
+on two GPUs in parallel.
+\item \textbf{End-to-end remediation (this paper).} ~3 days of GPU
+compute including the audit phase, two preprocessing modes, the HP
+sweep, the headline 5-fold, ablations, and Phase F preparation.
+\end{itemize}
+
+\subsection{Software Versions}
+\label{app:repl-software}
+
+\begin{itemize}
+\item Python 3.10
+\item PyTorch 2.x with CUDA 12.x
+\item scikit-learn (for HGB baseline + metric reporting + StandardScaler);
+SciPy (for ANOVA); XGBoost (failed on CPU-only host, replaced with sklearn
+HGB --- see Section~\ref{sec:results-baseline})
+\item Weights and Biases (project \texttt{gcode-decoder-2026}, public link
+\TBD{wandb\_project\_url}) for hyperparameter-sweep tracking
+\end{itemize}
+
+\subsection{Hyperparameter Ranges Explored}
+\label{app:repl-hp-ranges}
+
+The 3-stage HP sweep explored the following ranges; the composite winner
+within each is bolded.
+
+\begin{itemize}
+\item Learning rate: \{$1\!\times\!10^{-4}$, $\mathbf{5\!\times\!10^{-5}}$, $2\!\times\!10^{-5}$, $1\!\times\!10^{-5}$, $5\!\times\!10^{-6}$\}
+\item Batch size: \{$\mathbf{64}$, 128\}
+\item Model dimension $d_{\text{model}}$: \{$\mathbf{384}$, 512\}
+\item Decoder layers: \{$\mathbf{8}$, 10, 12\}
+\item Dropout: \{0.05, $\mathbf{0.1}$, 0.2, 0.3\}
+\item Weight decay: 0.05 (fixed)
+\item Legacy token loss weight: \{1.0, $\mathbf{3.0}$\}
+\item Digit loss weight: \{$\mathbf{1.0}$, 3.0\}
+\item Warmup epochs: \{0, $\mathbf{10}$\}
+\item Scheduled sampling probability: \{0.0, 0.1, 0.2, $\mathbf{0.5}$, 1.0\}
+\item Label smoothing: \{0.0, 0.1, 0.2\} (winner: 0.0)
+\item Focal-loss $\gamma$: \{0.0, 2.0\} (winner: 0.0)
+\item Curriculum schedule: \{none, 3-phase\} (winner: none)
+\item Output mode: \{per\_row, $\mathbf{full\_window}$\}
+\item Encoder fine-tuning: \{frozen, e2e at $1\!\times\!10^{-5}$, e2e at $5\!\times\!10^{-6}$\} (winner: frozen; e2e diverged at lr$\ge\!1\!\times\!10^{-5}$)
+\item Position metadata exposed: \{$\mathbf{false}$, true\}
+\end{itemize}
+
+\subsection{Statistical Methodology}
+\label{app:repl-stats}
+
+\begin{itemize}
+\item \textbf{Cross-validation.} File-level 5-fold stratified by operation
+class. G-code-line coverage between train and test splits is repaired via
+the algorithm in Appendix~\ref{app:coverage-repair}.
+\item \textbf{ANOVA.} One-way ANOVA across the 5 folds of each ablation
+versus the no-shortcuts baseline. Implemented with
+\texttt{scipy.stats.f\_oneway}.
+\item \textbf{Effect size.} Cohen's $d$ using pooled variance.
+\item \textbf{Bootstrap CI.} 10{,}000 percentile-method resamples on the
+5-fold means.
+\item \textbf{Multiple-comparisons correction.} Holm-Bonferroni applied
+across all (ablation, metric) pairs reported in
+Table~\ref{tab:anova}. BH-FDR also computed for the less-conservative
+reading. Significance at $\alpha=0.05$ is reported under both
+adjustments.
+\end{itemize}
+
+\subsection{Inference Cost}
+\label{app:repl-inference}
+
+\begin{itemize}
+\item \textbf{Decoder forward pass.} $\sim$\TBD{decoder\_flops\_per\_token} FLOPs per generated token.
+\item \textbf{Single-row inference latency.} $\sim$\TBD{decoder\_latency\_ms\_row} ms on one A6000 at batch size 1, sequence length 32 (per-row mode) or up to 1{,}400 (full-window mode).
+\item \textbf{Memory footprint.} The decoder + frozen encoder uses approximately \TBD{decoder\_mem\_mb}~MB of VRAM at inference time.
+\end{itemize}
