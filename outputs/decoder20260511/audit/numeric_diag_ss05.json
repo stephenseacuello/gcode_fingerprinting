@@ -1,0 +1,80 @@
+{
+  "per_fold": [
+    {
+      "n_samples": 7937,
+      "n_positions": 6,
+      "per_position": [
+        {
+          "n_observed": 17718,
+          "accuracy": 0.999943560221244,
+          "mean_abs_digit_error": 5.6439778756067275e-05,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 0.0
+        },
+        {
+          "n_observed": 17718,
+          "accuracy": 0.7920194152838921,
+          "mean_abs_digit_error": 0.3852014900101592,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 3.0
+        },
+        {
+          "n_observed": 17718,
+          "accuracy": 0.5610114008353088,
+          "mean_abs_digit_error": 1.4385370809346427,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 7.0
+        },
+        {
+          "n_observed": 17718,
+          "accuracy": 0.5061519358844113,
+          "mean_abs_digit_error": 1.786996274974602,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 7.0
+        },
+        {
+          "n_observed": 17718,
+          "accuracy": 0.5057004176543628,
+          "mean_abs_digit_error": 1.6422846822440456,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 6.0
+        },
+        {
+          "n_observed": 17718,
+          "accuracy": 0.7784738683824359,
+          "mean_abs_digit_error": 1.9013432667343944,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 9.0
+        }
+      ],
+      "per_axis": {
+        "X": {
+          "digit_accuracy": 0.5217525822266648,
+          "full_value_correct_pct": 0.07025560474082536,
+          "n_value_positions": 7003
+        },
+        "Y": {
+          "digit_accuracy": 0.7526842539960161,
+          "full_value_correct_pct": 0.4369625419035126,
+          "n_value_positions": 6861
+        },
+        "Z": {
+          "digit_accuracy": 0.9202516233766234,
+          "full_value_correct_pct": 0.7199675324675324,
+          "n_value_positions": 2464
+        },
+        "J": {
+          "digit_accuracy": 0.8245678110542976,
+          "full_value_correct_pct": 0.6829802775748721,
+          "n_value_positions": 1369
+        },
+        "I": {
+          "digit_accuracy": 0.9920634920634921,
+          "full_value_correct_pct": 0.9523809523809523,
+          "n_value_positions": 21
+        }
+      },
+      "fold": 1
+    }
+  ]
+}

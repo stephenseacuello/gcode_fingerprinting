@@ -1,0 +1,605 @@
+{
+  "per_fold": [
+    {
+      "n_samples": 7937,
+      "n_exact_match": 67,
+      "mean_edit_distance": 1.544538238629205,
+      "median_edit_distance": 1.0,
+      "worst_samples": [
+        {
+          "sample_idx": 2221,
+          "edit_distance": 5,
+          "true_tokens": [
+            19,
+            5,
+            1109,
+            7,
+            68,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            5,
+            5,
+            98,
+            7,
+            1398,
+            2,
+            26,
+            2
+          ]
+        },
+        {
+          "sample_idx": 2253,
+          "edit_distance": 5,
+          "true_tokens": [
+            19,
+            5,
+            1109,
+            7,
+            68,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            5,
+            5,
+            98,
+            7,
+            1398,
+            2,
+            26,
+            2
+          ]
+        },
+        {
+          "sample_idx": 2833,
+          "edit_distance": 5,
+          "true_tokens": [
+            5,
+            1437,
+            9,
+            63,
+            2
+          ],
+          "pred_tokens": [
+            6,
+            8,
+            7,
+            200,
+            12
+          ]
+        },
+        {
+          "sample_idx": 2848,
+          "edit_distance": 5,
+          "true_tokens": [
+            5,
+            1437,
+            9,
+            63,
+            2
+          ],
+          "pred_tokens": [
+            17,
+            8,
+            7,
+            200,
+            12
+          ]
+        },
+        {
+          "sample_idx": 6199,
+          "edit_distance": 5,
+          "true_tokens": [
+            5,
+            1437,
+            9,
+            63,
+            2
+          ],
+          "pred_tokens": [
+            19,
+            8,
+            7,
+            200,
+            12
+          ]
+        },
+        {
+          "sample_idx": 2080,
+          "edit_distance": 4,
+          "true_tokens": [
+            13,
+            5,
+            92,
+            7,
+            144,
+            2
+          ],
+          "pred_tokens": [
+            5,
+            9,
+            148,
+            7,
+            319,
+            2
+          ]
+        },
+        {
+          "sample_idx": 2083,
+          "edit_distance": 4,
+          "true_tokens": [
+            6,
+            9,
+            137,
+            55,
+            103,
+            2
+          ],
+          "pred_tokens": [
+            5,
+            5,
+            63,
+            584,
+            103,
+            2
+          ]
+        },
+        {
+          "sample_idx": 2154,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            268,
+            7,
+            1724,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            5,
+            5,
+            98,
+            7,
+            1517,
+            2,
+            118,
+            2
+          ]
+        },
+        {
+          "sample_idx": 2178,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            268,
+            7,
+            1724,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            5,
+            5,
+            98,
+            7,
+            1517,
+            2,
+            118,
+            2
+          ]
+        },
+        {
+          "sample_idx": 2205,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            268,
+            7,
+            1724,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            5,
+            5,
+            98,
+            7,
+            1517,
+            2,
+            118,
+            2
+          ]
+        },
+        {
+          "sample_idx": 2237,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            268,
+            7,
+            1724,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            5,
+            5,
+            98,
+            7,
+            1517,
+            2,
+            118,
+            2
+          ]
+        },
+        {
+          "sample_idx": 2859,
+          "edit_distance": 4,
+          "true_tokens": [
+            5,
+            1437,
+            9,
+            63,
+            2
+          ],
+          "pred_tokens": [
+            5,
+            257,
+            7,
+            200,
+            584
+          ]
+        },
+        {
+          "sample_idx": 3751,
+          "edit_distance": 4,
+          "true_tokens": [
+            9,
+            63,
+            584,
+            2
+          ],
+          "pred_tokens": [
+            6,
+            126,
+            5,
+            55
+          ]
+        },
+        {
+          "sample_idx": 3794,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            35,
+            7,
+            707,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            6,
+            5,
+            98,
+            7,
+            889,
+            12,
+            21,
+            2
+          ]
+        },
+        {
+          "sample_idx": 3812,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            35,
+            7,
+            707,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            6,
+            5,
+            98,
+            7,
+            889,
+            12,
+            21,
+            2
+          ]
+        },
+        {
+          "sample_idx": 3835,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            35,
+            7,
+            707,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            6,
+            5,
+            98,
+            7,
+            889,
+            12,
+            21,
+            2
+          ]
+        },
+        {
+          "sample_idx": 3863,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            35,
+            7,
+            707,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            6,
+            5,
+            98,
+            7,
+            889,
+            12,
+            21,
+            2
+          ]
+        },
+        {
+          "sample_idx": 3884,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            1109,
+            7,
+            68,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            6,
+            5,
+            98,
+            7,
+            889,
+            12,
+            21,
+            2
+          ]
+        },
+        {
+          "sample_idx": 3887,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            718,
+            7,
+            54,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            6,
+            5,
+            98,
+            7,
+            194,
+            12,
+            21,
+            2
+          ]
+        },
+        {
+          "sample_idx": 3891,
+          "edit_distance": 4,
+          "true_tokens": [
+            19,
+            5,
+            65,
+            7,
+            2144,
+            12,
+            118,
+            2
+          ],
+          "pred_tokens": [
+            6,
+            5,
+            98,
+            7,
+            889,
+            12,
+            21,
+            2
+          ]
+        }
+      ],
+      "top_token_confusions": [
+        {
+          "predicted_id": 5,
+          "true_id": 7,
+          "count": 739
+        },
+        {
+          "predicted_id": 6,
+          "true_id": 19,
+          "count": 301
+        },
+        {
+          "predicted_id": 19,
+          "true_id": 5,
+          "count": 236
+        },
+        {
+          "predicted_id": 6,
+          "true_id": 17,
+          "count": 211
+        },
+        {
+          "predicted_id": 6,
+          "true_id": 5,
+          "count": 191
+        },
+        {
+          "predicted_id": 5,
+          "true_id": 6,
+          "count": 161
+        },
+        {
+          "predicted_id": 8,
+          "true_id": 10,
+          "count": 152
+        },
+        {
+          "predicted_id": 19,
+          "true_id": 17,
+          "count": 110
+        },
+        {
+          "predicted_id": 8,
+          "true_id": 11,
+          "count": 95
+        },
+        {
+          "predicted_id": 19,
+          "true_id": 6,
+          "count": 71
+        },
+        {
+          "predicted_id": 21,
+          "true_id": 53,
+          "count": 70
+        },
+        {
+          "predicted_id": 5,
+          "true_id": 17,
+          "count": 65
+        },
+        {
+          "predicted_id": 5,
+          "true_id": 19,
+          "count": 56
+        },
+        {
+          "predicted_id": 5,
+          "true_id": 9,
+          "count": 55
+        },
+        {
+          "predicted_id": 2,
+          "true_id": 12,
+          "count": 45
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 64,
+          "count": 42
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 167,
+          "count": 39
+        },
+        {
+          "predicted_id": 5,
+          "true_id": 13,
+          "count": 36
+        },
+        {
+          "predicted_id": 257,
+          "true_id": 276,
+          "count": 34
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 173,
+          "count": 32
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 177,
+          "count": 32
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 139,
+          "count": 32
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 121,
+          "count": 31
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 246,
+          "count": 30
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 141,
+          "count": 30
+        },
+        {
+          "predicted_id": 9,
+          "true_id": 5,
+          "count": 29
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 105,
+          "count": 29
+        },
+        {
+          "predicted_id": 6,
+          "true_id": 13,
+          "count": 29
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 212,
+          "count": 28
+        },
+        {
+          "predicted_id": 59,
+          "true_id": 291,
+          "count": 28
+        }
+      ],
+      "fold": 1
+    }
+  ]
+}

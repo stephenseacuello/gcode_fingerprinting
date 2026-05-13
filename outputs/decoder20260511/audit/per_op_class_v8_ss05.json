@@ -1,0 +1,128 @@
+{
+  "per_fold": [
+    {
+      "fold": 1,
+      "breakdown": {
+        "adaptive": {
+          "n_test_samples": 1840,
+          "sequence_accuracy": 0.004347826086956522,
+          "token_accuracy": 0.7703880302532062,
+          "n_total_tokens": 12164
+        },
+        "adaptive150025": {
+          "n_test_samples": 2131,
+          "sequence_accuracy": 0.003754106053496011,
+          "token_accuracy": 0.7226202661207779,
+          "n_total_tokens": 9770
+        },
+        "damageadaptive": {
+          "n_test_samples": 529,
+          "sequence_accuracy": 0.007561436672967864,
+          "token_accuracy": 0.7422807739810622,
+          "n_total_tokens": 2429
+        },
+        "damageface": {
+          "n_test_samples": 95,
+          "sequence_accuracy": 0.010526315789473684,
+          "token_accuracy": 0.7374810318664643,
+          "n_total_tokens": 659
+        },
+        "damagepocket": {
+          "n_test_samples": 206,
+          "sequence_accuracy": 0.0,
+          "token_accuracy": 0.5156537753222836,
+          "n_total_tokens": 1086
+        },
+        "face": {
+          "n_test_samples": 584,
+          "sequence_accuracy": 0.02910958904109589,
+          "token_accuracy": 0.7331319234642497,
+          "n_total_tokens": 3972
+        },
+        "face150025": {
+          "n_test_samples": 354,
+          "sequence_accuracy": 0.0480225988700565,
+          "token_accuracy": 0.7096908939014203,
+          "n_total_tokens": 2394
+        },
+        "pocket": {
+          "n_test_samples": 890,
+          "sequence_accuracy": 0.0044943820224719105,
+          "token_accuracy": 0.7939844760672704,
+          "n_total_tokens": 6184
+        },
+        "pocket150025": {
+          "n_test_samples": 1308,
+          "sequence_accuracy": 0.0061162079510703364,
+          "token_accuracy": 0.6509228309838686,
+          "n_total_tokens": 6881
+        }
+      }
+    }
+  ],
+  "aggregate": {
+    "adaptive": {
+      "sequence_accuracy_mean": 0.004347826086956522,
+      "sequence_accuracy_std": 0.0,
+      "token_accuracy_mean": 0.7703880302532062,
+      "token_accuracy_std": 0.0,
+      "n_test_samples_total": 1840
+    },
+    "adaptive150025": {
+      "sequence_accuracy_mean": 0.003754106053496011,
+      "sequence_accuracy_std": 0.0,
+      "token_accuracy_mean": 0.7226202661207779,
+      "token_accuracy_std": 0.0,
+      "n_test_samples_total": 2131
+    },
+    "damageadaptive": {
+      "sequence_accuracy_mean": 0.007561436672967864,
+      "sequence_accuracy_std": 0.0,
+      "token_accuracy_mean": 0.7422807739810622,
+      "token_accuracy_std": 0.0,
+      "n_test_samples_total": 529
+    },
+    "damageface": {
+      "sequence_accuracy_mean": 0.010526315789473684,
+      "sequence_accuracy_std": 0.0,
+      "token_accuracy_mean": 0.7374810318664643,
+      "token_accuracy_std": 0.0,
+      "n_test_samples_total": 95
+    },
+    "damagepocket": {
+      "sequence_accuracy_mean": 0.0,
+      "sequence_accuracy_std": 0.0,
+      "token_accuracy_mean": 0.5156537753222836,
+      "token_accuracy_std": 0.0,
+      "n_test_samples_total": 206
+    },
+    "face": {
+      "sequence_accuracy_mean": 0.02910958904109589,
+      "sequence_accuracy_std": 0.0,
+      "token_accuracy_mean": 0.7331319234642497,
+      "token_accuracy_std": 0.0,
+      "n_test_samples_total": 584
+    },
+    "face150025": {
+      "sequence_accuracy_mean": 0.0480225988700565,
+      "sequence_accuracy_std": 0.0,
+      "token_accuracy_mean": 0.7096908939014203,
+      "token_accuracy_std": 0.0,
+      "n_test_samples_total": 354
+    },
+    "pocket": {
+      "sequence_accuracy_mean": 0.0044943820224719105,
+      "sequence_accuracy_std": 0.0,
+      "token_accuracy_mean": 0.7939844760672704,
+      "token_accuracy_std": 0.0,
+      "n_test_samples_total": 890
+    },
+    "pocket150025": {
+      "sequence_accuracy_mean": 0.0061162079510703364,
+      "sequence_accuracy_std": 0.0,
+      "token_accuracy_mean": 0.6509228309838686,
+      "token_accuracy_std": 0.0,
+      "n_test_samples_total": 1308
+    }
+  }
+}

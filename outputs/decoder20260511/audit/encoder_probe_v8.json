@@ -1,0 +1,25 @@
+{
+  "config": {
+    "memory_root": "/home/seacuello/Documents/gcode_fingerprinting/outputs/decoder20260511/checkpoints/hp_sweep_stage2/scheduled_sampling_0.5/fold_1/encoder_memory",
+    "data_root": "/home/seacuello/Documents/gcode_fingerprinting/outputs/decoder20260511/preprocessed_f98/per_row/fold_1",
+    "epochs": 80
+  },
+  "probe_results": {
+    "probe_command_acc": 0.7735920548439026,
+    "probe_has_X_acc": 0.8853471279144287,
+    "probe_has_Y_acc": 0.8663222789764404,
+    "probe_has_Z_acc": 0.9269245266914368,
+    "probe_has_F_acc": 0.9943303465843201,
+    "probe_has_S_acc": 1.0,
+    "probe_sign_X_acc": 0.8210911154747009,
+    "probe_sign_Y_acc": 0.8578808307647705,
+    "probe_sign_Z_acc": 0.803956151008606,
+    "probe_operation_type_acc": 0.8457855582237244,
+    "probe_val_X_rmse": 0.9741799855416292,
+    "probe_val_Y_rmse": 0.799461244429877,
+    "probe_val_Z_rmse": 0.09676600947058069
+  },
+  "n_train": 19584,
+  "n_val": 7273,
+  "n_test": 7937
+}

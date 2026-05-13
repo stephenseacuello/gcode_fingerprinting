@@ -1,0 +1,76 @@
+{
+  "samples": [
+    {
+      "sample_idx": 2221,
+      "edit_distance": 5,
+      "true_str": "G2 X NUM_X_2607 Y NUM_Y_2594 R NUM_R_0128 EOS",
+      "pred_str": "X X NUM_X_-200 Y NUM_Y_0849 EOS Y0. EOS"
+    },
+    {
+      "sample_idx": 2253,
+      "edit_distance": 5,
+      "true_str": "G2 X NUM_X_2607 Y NUM_Y_2594 R NUM_R_0128 EOS",
+      "pred_str": "X X NUM_X_-200 Y NUM_Y_0849 EOS Y0. EOS"
+    },
+    {
+      "sample_idx": 2833,
+      "edit_distance": 5,
+      "true_str": "X NUM_X_-150 Z NUM_Z_0025 EOS",
+      "pred_str": "G1 NUM_X_-125 Y NUM_Z_0010 R"
+    },
+    {
+      "sample_idx": 2848,
+      "edit_distance": 5,
+      "true_str": "X NUM_X_-150 Z NUM_Z_0025 EOS",
+      "pred_str": "G3 NUM_X_-125 Y NUM_Z_0010 R"
+    },
+    {
+      "sample_idx": 6199,
+      "edit_distance": 5,
+      "true_str": "X NUM_X_-150 Z NUM_Z_0025 EOS",
+      "pred_str": "G2 NUM_X_-125 Y NUM_Z_0010 R"
+    },
+    {
+      "sample_idx": 2080,
+      "edit_distance": 4,
+      "true_str": "G0 X NUM_X_1860 Y NUM_Y_-138 EOS",
+      "pred_str": "X Z NUM_X_-026 Y NUM_Y_0775 EOS"
+    },
+    {
+      "sample_idx": 2083,
+      "edit_distance": 4,
+      "true_str": "G1 Z NUM_Z_0039 F NUM_F_0013 EOS",
+      "pred_str": "X X NUM_Z_0025 F40. NUM_F_0013 EOS"
+    },
+    {
+      "sample_idx": 2154,
+      "edit_distance": 4,
+      "true_str": "G2 X NUM_X_0524 Y NUM_Y_2899 R NUM_R_0128 EOS",
+      "pred_str": "X X NUM_X_-200 Y NUM_Y_0388 EOS NUM_R_0128 EOS"
+    },
+    {
+      "sample_idx": 2178,
+      "edit_distance": 4,
+      "true_str": "G2 X NUM_X_0524 Y NUM_Y_2899 R NUM_R_0128 EOS",
+      "pred_str": "X X NUM_X_-200 Y NUM_Y_0388 EOS NUM_R_0128 EOS"
+    },
+    {
+      "sample_idx": 2205,
+      "edit_distance": 4,
+      "true_str": "G2 X NUM_X_0524 Y NUM_Y_2899 R NUM_R_0128 EOS",
+      "pred_str": "X X NUM_X_-200 Y NUM_Y_0388 EOS NUM_R_0128 EOS"
+    },
+    {
+      "sample_idx": 2237,
+      "edit_distance": 4,
+      "true_str": "G2 X NUM_X_0524 Y NUM_Y_2899 R NUM_R_0128 EOS",
+      "pred_str": "X X NUM_X_-200 Y NUM_Y_0388 EOS NUM_R_0128 EOS"
+    },
+    {
+      "sample_idx": 2859,
+      "edit_distance": 4,
+      "true_str": "X NUM_X_-150 Z NUM_Z_0025 EOS",
+      "pred_str": "X NUM_X_3085 Y NUM_Z_0010 F40."
+    }
+  ]
+}
