@@ -280,9 +280,9 @@ Default weights are $\lambda_{\text{tok}}=\lambda_{\text{legacy}}=$ \TBD{legacy\
 
 \paragraph{Type head.} A 4-way classifier over \{SPECIAL, COMMAND, PARAM, NUMERIC\} on each output position. Trained against the type of the target token at that position. This is the coarsest classification head and the easiest task; its accuracy is therefore an upper bound on the structural sanity of the decoded sequence.
 
-\paragraph{Motion-command head.} A 6-way classifier over \{G0, G1, G2, G3, G53, OTHER\}, evaluated against the target's command token at COMMAND positions. Distinguishes rapid moves (G0), linear cuts (G1), and clockwise/counter-clockwise arcs (G2/G3).
+\paragraph{Motion-command head.} A 6-way classifier over \{G0, G1, G2, G3, G53, M30\}, evaluated against the target's command token at COMMAND positions. Distinguishes rapid moves (G0), linear cuts (G1), clockwise/counter-clockwise arcs (G2/G3), the work-coordinate-cancel command (G53), and program-end (M30). G53 and M30 have small per-fold supports ($n \le 90$); the per-class F1 in Table~\ref{tab:per_class_command} is correspondingly underpowered for these classes (see Section~\ref{sec:lim-power}).
 
-\paragraph{Parameter-type head.} A 10-way classifier over \{X, Y, Z, I, J, K, R, F, S, P\}, evaluated against the target's address letter at PARAM positions.
+\paragraph{Parameter-type head.} A 10-way classifier over \{X, Y, Z, I, J, K, R, F, S, P\}, evaluated against the target's address letter at PARAM positions. On the present corpus only X, Y, Z, R, and F have positive support in the test splits (see Table~\ref{tab:data_coverage} for per-field frequencies); the remaining trained labels (I, J, K, S, P) do not appear in the test data and therefore do not have per-class entries in Table~\ref{tab:per_class_param_type}.
 
 \paragraph{Sign head.} A 3-way classifier over \{POSITIVE, NEGATIVE, ABSENT\} that predicts the sign of the most recent axis-value. This head provides direct supervision on motion direction independently of the discretised numeric value.
 
