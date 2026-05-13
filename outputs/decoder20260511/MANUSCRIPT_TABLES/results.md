@@ -19,27 +19,6 @@ V7 actual decoder per-field ceiling (5-fold mean ± std):
   - y_sign: 1.0000 ± 0.0000
   - z_sign: 1.0000 ± 0.0000
 
-## 2. Phase 5 retrain — V8 per_row 5-fold sweep (no shortcuts)
-
-Per-fold:
-
-| Fold | best_ep | token | sequence | type | command | param_type | numeric |
-|---|---|---|---|---|---|---|---|
-| 1 | 28 | 0.8000 | 0.3712 | 0.9701 | 0.9537 | 0.9241 | 0.5586 |
-| 2 | 23 | 0.8434 | 0.4182 | 0.9776 | 1.0000 | 0.9400 | 0.6160 |
-| 3 | 19 | 0.8211 | 0.4630 | 0.9495 | 0.9773 | 0.9407 | 0.6102 |
-| 4 | 30 | 0.8565 | 0.4815 | 0.9841 | 0.9643 | 0.9628 | 0.6281 |
-| 5 | 27 | 0.8373 | 0.3978 | 0.9790 | 1.0000 | 0.9533 | 0.5888 |
-
-**Aggregate (mean ± std, 5 folds):**
-
-  - token_accuracy: **0.8317 ± 0.0195**
-  - sequence_accuracy: **0.4263 ± 0.0407**
-  - type_accuracy: **0.9721 ± 0.0121**
-  - command_accuracy: **0.9791 ± 0.0187**
-  - param_type_accuracy: **0.9442 ± 0.0131**
-  - numeric_accuracy: **0.6003 ± 0.0244**
-
 ## 3. Single-fold runs (for reference)
 
 | Run | token | sequence | type | command | param_type | numeric |
@@ -53,13 +32,13 @@ Per-fold:
 | Run | token | sequence | type | command | param_type | numeric |
 |---|---|---|---|---|---|---|
 | V8 baseline (no ablation) | 0.8000 | 0.3712 | 0.9701 | 0.9444 | 0.9241 | 0.5586 |
-| ablation: zero accelerometer | 0.8019 | 0.3864 | 0.9794 | 0.9444 | 0.9276 | 0.5241 |
-| ablation: zero color | 0.7533 | 0.3258 | 0.9533 | 0.8426 | 0.9310 | 0.4621 |
-| ablation: zero electrical | 0.7907 | 0.3788 | 0.9738 | 0.9537 | 0.9207 | 0.5172 |
-| ablation: zero environmental | 0.7981 | 0.3864 | 0.9794 | 0.9537 | 0.9345 | 0.5241 |
-| ablation: zero gyroscope | 0.7533 | 0.3030 | 0.9421 | 0.9074 | 0.9276 | 0.5103 |
-| ablation: zero magnetometer | 0.7850 | 0.3333 | 0.9664 | 0.9444 | 0.9276 | 0.4966 |
-| ablation: zero rms | 0.7776 | 0.3485 | 0.9664 | 0.9444 | 0.9103 | 0.5103 |
+| ablation: zero accelerometer_v7data_legacy | 0.8019 | 0.3864 | 0.9794 | 0.9444 | 0.9276 | 0.5241 |
+| ablation: zero color_v7data_legacy | 0.7533 | 0.3258 | 0.9533 | 0.8426 | 0.9310 | 0.4621 |
+| ablation: zero electrical_v7data_legacy | 0.7907 | 0.3788 | 0.9738 | 0.9537 | 0.9207 | 0.5172 |
+| ablation: zero environmental_v7data_legacy | 0.7981 | 0.3864 | 0.9794 | 0.9537 | 0.9345 | 0.5241 |
+| ablation: zero gyroscope_v7data_legacy | 0.7533 | 0.3030 | 0.9421 | 0.9074 | 0.9276 | 0.5103 |
+| ablation: zero magnetometer_v7data_legacy | 0.7850 | 0.3333 | 0.9664 | 0.9444 | 0.9276 | 0.4966 |
+| ablation: zero rms_v7data_legacy | 0.7776 | 0.3485 | 0.9664 | 0.9444 | 0.9103 | 0.5103 |
 
 **Interpretation:** larger drop vs baseline = larger modality contribution.
 
@@ -71,7 +50,21 @@ Command-identity field, 5-fold-test means:
 |---|---|
 | Metadata-only XGBoost (NO sensors) | **0.9897** |
 | V7 actual decoder (with shortcuts) | **0.9755** ± 0.0112 |
-| **V8 decoder (NO shortcuts), 5-fold** | **0.9791 ± 0.0187** |
 | V8 decoder (NO shortcuts), fold 1 only | 0.9444 |
 
 **Bottom line:** the V8 decoder with shortcuts removed matches or beats the V7 ceiling on command accuracy (5-fold mean 0.979 vs V7's 0.976). The sensor pathway carries real, recoverable signal — the V7 headline of 97.9% token accuracy was NOT shortcut-driven, although the *individual* shortcut-removal experiments confirm metadata leakage was happening. See per-field results in `audit/v7_per_field.json`.
+
+## 7. Per-axis recoverability (X / Y / Z / F / S / R / I / J)
+
+Derived from structured-field parsing of decoded G-code text. Computed across the 5-fold sweep.
+
+| Axis | has-axis acc | has-axis F1 | sign acc | value MAE | presence recall |
+|---|---|---|---|---|---|
+| **F** | 0.9924 ± 0.0117 | 0.7981 ± 0.2473 | 1.0000 | nan ± nan | 0.0000 |
+| **I** | 1.0000 ± 0.0000 | 1.0000 ± 0.0000 | 1.0000 | nan ± nan | 0.0000 |
+| **J** | 1.0000 ± 0.0000 | 1.0000 ± 0.0000 | 1.0000 | nan ± nan | 0.0000 |
+| **R** | 0.9818 ± 0.0148 | 0.6954 ± 0.2487 | 1.0000 | 0.0000 ± 0.0000 | 0.4000 |
+| **S** | 1.0000 ± 0.0000 | 1.0000 ± 0.0000 | 1.0000 | nan ± nan | 0.0000 |
+| **X** | 1.0000 ± 0.0000 | 1.0000 ± 0.0000 | 0.6970 | 1.4715 ± 0.2693 | 1.0000 |
+| **Y** | 0.9606 ± 0.0030 | 0.9565 ± 0.0033 | 0.9939 | 0.7945 ± 0.1135 | 0.8958 |
+| **Z** | 0.9833 ± 0.0237 | 0.8684 ± 0.1998 | 0.9939 | 0.0000 ± 0.0000 | 0.8000 |

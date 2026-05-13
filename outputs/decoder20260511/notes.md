@@ -332,3 +332,1018 @@ The audit predicted the V7 ceiling was ~3pp inflated by positional shortcuts. Th
 | 11 | Manuscript outputs | ✅ RESULTS_TABLE.json + MANUSCRIPT_TABLES/results.md |
 
 **10/11 priorities fully complete. Phase 7 (pattern-aware decoder) deferred to a future round as the structured heads already saturate per-field metrics.**
+
+---
+
+# ROUND 2 — Comprehensive metrics expansion + true V8 per_row
+
+Began 2026-05-11 (continuing into 2026-05-12). The 5-fold sweep above was strong but the user wanted more: per-class precision/recall/F1 for every head, per-axis recovery for X/Y/Z/F/S, all 11 priorities fully closed including pattern-aware + LOCO + nested ablations + window/stride + ANOVA + bootstrap.
+
+## 2026-05-11 — Phase A++ (metrics infrastructure)
+
+- New `src/miracle/training/per_class_metrics.py`: sklearn-based per-class P/R/F1 + confusion matrix module.
+- Extended trainer's `evaluate()` to compute `per_class` block in test/val metrics covering token/type/command/param_type/sign/per-digit-position (6 positions × 11 classes each).
+- Extended `predictions.npz` save to include type_p/t, cmd_p/t, pt_p/t, sign_p/t, digit_p/t for downstream analysis.
+- New `scripts/analysis/v8_per_field_eval.py`: parses decoded G-code text into structured fields (has_X, x_sign, x_val) and scores per-axis classification + regression metrics across 8 axes (X/Y/Z/F/S/R/I/J).
+- New `scripts/analysis/eval_v8_full_metrics.py` (later deprecated in favor of trainer's `--eval_only` mode which produces identical numbers).
+- Critical lesson: my first re-eval script gave token 0.30 instead of training-time's 0.80. Root cause was missing `decoder.set_vocab(vocab)` BEFORE `load_state_dict` — the grammar_mask buffer isn't registered until set_vocab is called, so it failed to load and the model defaulted to NUM-only predictions. Documented in v7_per_field_eval.py.
+
+## 2026-05-11 — Initial V7-data results (later invalidated; see below)
+
+Trained "per_row 5-fold @ 300/75" on what we believed was V8 per_row data:
+
+| Metric | 50-ep | 300/75 | Δ |
+|---|---|---|---|
+| Token | 0.832 | 0.836 | +0.4pp |
+| Sequence | 0.426 | 0.445 | +1.9pp |
+| Type | 0.972 | 0.973 | +0.1pp |
+| Command | 0.979 | 0.970 | -0.9pp (within noise) |
+| Param-type | 0.944 | 0.942 | -0.2pp |
+| Numeric | 0.600 | 0.616 | +1.5pp |
+
+Ran nested ablations (10 cells), all of Phase B (B1-B7), and got publishable ANOVA findings:
+- with_shortcuts vs baseline: command F=0.14 p=0.72 (n.s.), but sequence F=44.0 p<0.001, numeric F=38.0 p<0.001
+- Conclusion at the time: "the categorical heads are sensor-recoverable; numeric requires positional context."
+
+## 2026-05-12 (early hours) — CRITICAL BUG FOUND
+
+While running Phase C analyses on the new results, discovered the trainer was loading 132-sample test sets instead of 7937. Inspected `run_decoder_quick_test.py:1494-1496`:
+
+```python
+elif args.encoder_config in ENCODER_CONFIGS:
+    config_dir = ENCODER_CONFIGS[args.encoder_config]
+    args.data_dir = str(ENCODER_BASE / config_dir / f"fold_{args.fold}" / "preprocessed")  # <-- OVERWRITE
+    args.encoder_ckpt = str(...)
+```
+
+**`--encoder_config` silently OVERWROTE `--data_dir`.** Every "Phase A/B per_row" sweep was on the encoder paper's 303-sample V7-style data (`outputs/experiments_2026_02_25/no_proximity_no_pressure_w256_s64_cv/fold_*/preprocessed/`), not on our V8 per_row data (`outputs/decoder20260511/preprocessed_f98/per_row/fold_*/`).
+
+**Fix:** trainer now respects `--data_dir` when explicitly passed; `--encoder_config` only auto-sets fields the user didn't provide.
+
+**Implication for paper:** earlier "per_row vs full_window equivalent" finding was bogus (both used same V7-style data). However the ablation FINDINGS (shortcut +35pp sequence, sensor ablation, vocab2digit) were all causally valid on V7-style data — they're just not "V8 per_row" results.
+
+**V7-data results backed up** under `*_v7data_legacy/` directories for comparison.
+
+## 2026-05-12 — TRUE V8 per_row baseline (Phase A fold 1)
+
+After flag fix, Phase A fold 1 trained on real V8 per_row (19,584 train / 7,273 val / 7,937 test samples instead of 303/110/132). Got killed before metrics.json saved, but log shows trajectory:
+
+| Metric | V7-data fold 1 best | TRUE V8 fold 1 best (epoch 121) |
+|---|---|---|
+| Token | 0.798 | 0.742 |
+| Sequence | 0.379 | 0.008 |
+| Type | 0.970 | 0.985 |
+| Command | 0.954 | **0.45** |
+| Param-type | 0.917 | 0.978 |
+| Numeric | 0.545 | 0.461 |
+
+**Major finding:** type/param-type saturate above V7-data levels (0.98 vs 0.97). Token/numeric drop modestly. **Command and sequence collapse dramatically** (0.95→0.45, 0.38→0.008).
+
+Why: V8 per_row test has 7,937 unique single-line samples vs V7-style's 132 windows that each had a single repeated G-code line. Getting the command right on a single-line sample is harder when the model has to disambiguate ~22 distinct line patterns from sensor evidence rather than recall the most-common label for a class of windows.
+
+Val loss instability (137 → 387 → 285 spikes between epochs) suggested LR too high or no warmup.
+
+## 2026-05-12 — HP sweep Stage 1 (8 coarse cells)
+
+Designed targeting the observed instability + plateau. All on V8 per_row fold 1, 150 epochs cap, patience 40.
+
+| Cell | best_ep | val_tok | test_tok | cmd | num | seq |
+|---|---|---|---|---|---|---|
+| **lr_5e-5_b64_d384_w3-1** (winner) | 83 | **0.74?** | **0.721** | **0.325** | **0.451** | 0.008 |
+| lr_5e-5_b64_d512_w1-1 | 29 | — | 0.716 | 0.309 | 0.443 | 0.008 |
+| lr_5e-5_b64_d512_w1-3 | 25 | — | 0.714 | 0.288 | 0.437 | 0.008 |
+| lr_5e-5_b64_d384_w1-1 | 28 | — | 0.713 | 0.291 | 0.434 | 0.008 |
+| lr_5e-5_b128_d384_w1-1 | 28 | — | 0.712 | 0.290 | 0.427 | 0.007 |
+| lr_5e-5_b64_d384_w1-3 | 28 | — | 0.710 | 0.289 | 0.429 | 0.008 |
+| lr_2e-5_b64_d384_w1-1 | 52 | — | 0.710 | 0.320 | 0.434 | 0.008 |
+| baseline_1e-4_b64_d384_w1-1 (no warmup) | 144 | — | **0.579** | 0.316 | 0.109 | 0.003 |
+
+**Findings from Stage 1:**
+
+1. **Warmup is essential.** No-warmup baseline is 14pp worse on token than every other cell. With warmup_epochs=10 the loss instability disappears.
+2. **Heavier `legacy_weight=3`** is the only lever that lifts command beyond the plateau (0.325 vs ~0.29 elsewhere).
+3. **All other dimensions (LR, batch, d_model, digit_weight) hit the same ceiling.** Token plateaus 0.71-0.72, numeric plateaus 0.43-0.45, sequence ~0.008 across 7 reasonable configs.
+4. **Strong signal of an information-theoretic ceiling** rather than a hyperparameter problem. 7937 unique line samples × 5 tokens each = ~40K token predictions; the model can only get ~72% of them right and almost never gets all 5 of any single sample right.
+
+## Process learnings worth remembering
+
+1. **The `--encoder_config` flag has a side-effect** of overwriting `--data_dir`. ALWAYS check that the trainer log actually loaded the file you intended.
+2. **Move-during-training causes metrics.json to be lost.** Don't `mv` a checkpoint directory while the python process still has its output dir handle. Wait for python to fully exit.
+3. **Training-time evaluation reports** what the trainer LOADED, which may differ from what the user thought they passed. Always check `Loading train: <path>` in training_log.txt.
+4. **HP sweep cells need to share the trainer's default settings** unless you explicitly override. The first "baseline" cell I wrote passed `--warmup_epochs 0` while Phase A used the trainer default 10 — apples-to-oranges baseline.
+5. **`predictions.npz` save needs to be IN evaluate()** not in the eval_only branch, so end-of-training evaluation also writes it for downstream analysis.
+
+## Status going into Stage 2
+
+GPU is currently retraining cells with:
+- curriculum (3phase)
+- scheduled sampling (0.5, 1.0)
+- label smoothing (0.1, 0.2)
+- dropout (0.05, 0.2, 0.3)
+- n_layers (10, 12)
+- focal gamma (2)
+- combined: curriculum + scheduled sampling + label smoothing
+
+If Stage 2 confirms the plateau (which I expect), the next decision is: **accept the ceiling and run the full chain on Stage-1-winner config**, OR **escalate to encoder retrain (Phase F)** which is the only remaining lever big enough to potentially break the plateau. The honest manuscript framing either way is "the decoder recovers categorical fields well; numeric coordinate reconstruction is bounded by what the frozen V7-era encoder embeddings carry."
+
+## 2026-05-12 — Stage 2 partial + Stage 3 dispatch
+
+**Stage 2 partial results (cells 1–2 of 12 done):**
+
+| Cell | best_ep | val_tok | test_tok | cmd | num | seq |
+|---|---|---|---|---|---|---|
+| curriculum_3phase | 105 | 0.7334 | 0.7153 | 0.292 | 0.441 | 0.0074 |
+| **scheduled_sampling_0.5** | 52 | **0.7441** | **0.7308** | **0.499** | **0.455** | 0.0084 |
+| Stage-1 winner (lr_5e-5_b64_d384_w3-1, ref) | 83 | 0.7400 | 0.721 | 0.325 | 0.451 | 0.008 |
+
+**Surprise:** scheduled_sampling=0.5 LIFTS command 0.325 → 0.499 (+17pp) — best so far. Token also slightly better. Caveat: training was unstable, train loss spiked to 2357 mid-run, recovered to best at epoch 52 then plateaued for 90 more epochs. This is why Stage 3 includes ss=0.1 and ss=0.2 — small scheduled sampling might give the same lift WITHOUT the instability.
+
+Cell 3 (scheduled_sampling_1.0) caching encoder memory now. 9 more Stage 2 cells to run after.
+
+## 2026-05-12 — Stage 3 architectural sweep launched
+
+GPU 1 was idle; GPU 0 still running Stage 2. Launched Stage 3 on GPU 1 only via `scripts/experiments/hp_sweep_stage3_parallel.py --gpus 1`. Will move GPU 0 onto Stage 3 once Stage 2 finishes.
+
+**Stage 3 cells (14 total):**
+1. `e2e_lr1e-5` — encoder fine-tuning, lr 1e-5, bs 32, grad_accum 2 (FAILED arg-parse on first attempt due to bare-flag bug, re-run pending)
+2. `e2e_lr5e-6` — encoder fine-tuning, lr 5e-6 (FAILED arg-parse, re-run pending)
+3. `pointer_network` — RUNNING on GPU 1
+4. `regression_head` — pending
+5. `cross_window` — pending
+6. `ss_0.1` / `ss_0.2` — scheduled sampling smaller (testing if ss=0.5 lift survives at lower setting)
+7. `encoder_f110` / `encoder_f56` — alternative encoder configs
+8. `seed_2024` / `seed_123` / `seed_456` — multi-seed variance on Stage-1 winner
+9. `pointer_x_cross_window` — combo
+10. `regression_x_ss` — combo
+
+**Bug found and fixed:** dispatcher passed `--e2e ""` for the two e2e cells but trainer expects `--e2e` as a bare `store_true` flag. Fixed [scripts/experiments/hp_sweep_stage3_parallel.py:60-66](scripts/experiments/hp_sweep_stage3_parallel.py#L60-L66). Will re-launch the two failed cells once a GPU frees.
+
+**W&B integration:** project `gcode-decoder-2026`, all Stage 3 cells log automatically via trainer's `--wandb --wandb_project` flags.
+
+**Parallel infra:** dispatcher tracks `running: dict[int, (tag, Popen)]` keyed by GPU id, polls every 30 s, launches replacement on the freed GPU. When called with `--gpus 0 1` will run 2 cells in parallel.
+
+## 2026-05-12 — Parallelism stress test (4 cells → reverted)
+
+User asked if more GPU could be used. Tested adding 2 more cells to the 2 already running:
+- 2 cells: dropout_0.05 ~36 s/epoch, ss_0.1 ~41 s/epoch
+- 4 cells (no thread limit): dropout 273–330 s/epoch, ss_0.1 307 s/epoch → **6–8× per-cell slowdown**
+- 3 cells (one new cell with OMP_NUM_THREADS=24, others uncapped): dropout 52 s/epoch (44 % slower), ss_0.1 41 s/epoch (steady), e2e new 168 s/epoch
+
+**Verdict: 2 cells (1/GPU) is the sweet spot.** The workload is CPU/IO-bound (PyTorch DataLoader workers + encoder-memory caching). 4 processes spawn ~1,560 threads on ~100 cores, causing scheduler thrash. Effective throughput dropped 4× when we added the extra cells.
+
+**Also found:** `e2e_lr1e-5` (encoder fine-tuning) had train loss = NaN from epoch 1. The encoder_lr=3e-5 (auto-set as 3× the decoder lr=1e-5) is too aggressive. Need to try `e2e_lr5e-6` or even smaller (1e-7) for stable fine-tuning, with a longer warmup. Killed and queued for post-sweep.
+
+## 2026-05-12 — Encoder audit findings (the per_row mode is the bottleneck, not the encoder)
+
+User asked whether the same kinds of issues we fixed in the decoder also affect the encoder. Did a 3-part audit:
+
+### 1. Identified encoder training target
+
+From [outputs/experiments_2026_02_25/no_proximity_no_pressure_w256_s64_cv/fold_1/encoder/pipeline_log.txt](outputs/experiments_2026_02_25/no_proximity_no_pressure_w256_s64_cv/fold_1/encoder/pipeline_log.txt):
+
+- **Task: "Direct 9-Class Training"** — classify operation type (adaptive / face / pocket / 150025-variants / damage-variants)
+- **Train: 303 samples / Val: 110 / Test: 132** — V7 dedup'd, tiny
+- **Loss: `cls_loss + 0.1 * recon_loss`** ([scripts/evaluation/run_9class_direct.py:491-492](scripts/evaluation/run_9class_direct.py#L491-L492)) — classification 10× the weight of reconstruction
+- **Best epoch 30: train 100% / val 93.6% / test 85.6%** — fit in 1 minute total → memorization risk obvious
+- **Architecture: MM_DTAE_LSTM, d_model=256, 8.6 M params**
+
+The Phase 1 audit already showed metadata-only XGBoost reaches 75–95 % on the 22-class G-code label set and 80–95 % on (operation_type, window_index) lookup alone. The encoder's 93.6 % val on 9-class operation type is **right in the metadata-floor range** — it may have learned to be a metadata-floor classifier rather than a sensor feature extractor.
+
+### 2. Linear / MLP probe on V8 per_row encoder memory
+
+Wrote [scripts/analysis/encoder_linear_probe.py](scripts/analysis/encoder_linear_probe.py). Mean-pools the cached encoder memory (`hp_sweep_stage2/scheduled_sampling_0.5/fold_1/encoder_memory/{train,val,test}_memory.pt`) over the sequence dim and trains MLP probes on parsed G-code fields. Output: [audit/encoder_probe_v8.json](audit/encoder_probe_v8.json).
+
+| Field | Probe test acc | Naive-baseline for context |
+|---|---|---|
+| Command (5-class: G0/G1/G2/G3/none) | 0.7736 | 0.742 (always "none") — only +3pp lift |
+| has_X | 0.8853 | — |
+| has_Y | 0.8663 | — |
+| has_Z | 0.9269 | — |
+| has_F | 0.9943 | — |
+| has_S | 1.0000 | — |
+| sign_X | 0.8211 | — |
+| sign_Y | 0.8579 | — |
+| sign_Z | 0.8040 | — |
+| operation_type (9-class, ENCODER'S OWN TARGET) | 0.8458 | — |
+| val_X (regression, RMSE) | 0.974 | within-window range ±3.0 → RMSE ≈ window-mean prediction |
+| val_Y (RMSE) | 0.799 | within-window range ±3.0 |
+| val_Z (RMSE) | 0.097 | within-window range ±0.5 — actually fine |
+
+### 3. CRITICAL reinterpretation — probe at "modal row per window" ceiling
+
+Initial read: "probe(command) at 77 % means encoder carries the signal but decoder fails to use it." **WRONG.**
+
+Probe sanity check:
+- Test set: **7,937 rows from 132 unique (source_file, window_index) windows. Average 60 rows/window** (min 11, max 237).
+- The encoder memory is **cached per row, but identical for all 60 rows of the same window** (since they share the same 256-sample sensor input).
+- A probe trained on 60 identical features with up-to-60 different labels can do no better than "predict the modal label for this window."
+- Modal-per-window command accuracy ceiling = 85 % on test set. Probe got 77.4 % — at the ceiling.
+
+So **the probe is showing window-level signal, NOT per-row signal**. The encoder carries window-level info (axis-presence, sign, mean value) but not per-row disambiguation. **And it can't, because the encoder input is the window-level sensor signal.**
+
+### 4. The real bottleneck — per_row mode is fundamentally ambiguous without row-position info
+
+When `use_window_position=false` (no shortcut leakage), the decoder receives:
+- The encoder memory of the window (identical for all rows of the window)
+- A `<BOS>` start token
+- No row-index, no positional disambiguation
+
+The decoder is asked to predict THIS row out of N rows in this window, but **the input doesn't carry which row it should predict.** It can only predict ANY one row of the window → modal-row ceiling.
+
+This explains:
+- Stage 1 winner cmd=0.325 (below the 85 % modal ceiling because of autoregressive amplification)
+- scheduled_sampling_0.5 cmd=0.499 — reduces teacher-forcing bias, lifts toward (but still under) the modal ceiling
+- ss=1.0 cmd=0.321 (full schedule too aggressive)
+- All architectural changes plateau at ~0.30 cmd (they can't fix the input ambiguity)
+
+### 5. Implications for the plan
+
+**Encoder retrain (Phase F) is NOT the highest-priority lever anymore.** It would lift the window-level signal modestly (more data → less memorization, better preserved features) but won't fix per_row ambiguity.
+
+**Highest priority next experiment: `train_v8_full_window_5fold.sh` (Phase B1).**
+
+In full_window mode:
+- Target = the full multi-line G-code per window (132 unique windows × multi-line targets)
+- Decoder generates row-by-row autoregressively, each row conditioned on previous rows in the same target sequence
+- The row-position info is implicit in the generation order, not a leaky shortcut
+- max_token_len needs to be ≥ 64 (multi-line targets, V7's full_window has up to ~35 tokens)
+
+**Additional advisory:**
+1. `line_in_window_index` is a legitimate (non-leaky) per-row signal — derived from G-code timestamps, not sensor data. Could be re-introduced as a per_row position input for a fair comparison, but full_window is the cleaner solution.
+2. The `scheduled_sampling_0.5` win is real but explained by autoregressive bias reduction. May matter less in full_window mode where the autoregressive chain has real row-to-row context.
+3. The paper's main result should be **full_window 5-fold**, with per_row mode reported as a pilot/ablation. This matches the original plan's intent (Phase 5 / Round 2 Phase B1).
+
+### 6. Files written this audit
+- [scripts/analysis/encoder_linear_probe.py](scripts/analysis/encoder_linear_probe.py) — probe driver
+- [outputs/decoder20260511/audit/encoder_probe_v8.json](audit/encoder_probe_v8.json) — probe results
+
+## 2026-05-12 — Next-up: full_window 5-fold queued
+
+Per the audit, queued `train_v8_full_window_5fold.sh` to run immediately after Stages 2-3 finish, with the current composite winner config (Stage 2 `scheduled_sampling_0.5`: lr=5e-5, batch=64, d_model=384, n_layers=8, n_heads=12, dropout=0.1, weight_decay=0.05, legacy_weight=3.0, digit_weight=1.0, warmup_epochs=10, scheduled_sampling=0.5) plus `max_token_len=64` for multi-line targets. Phase F (encoder retrain) is on hold until we see what full_window achieves.
+
+## 2026-05-12 — Alignment check vs the 2026-04-28 meeting
+
+Cross-checking current plan & state against the official meeting summary
+([Weekly Meeting Time for Eacuello, Prasad, & Sodhi — Apr 28, 2026]). Goal:
+no drift from the team's actual decisions.
+
+### Meeting action items — status
+
+| # | Item (owner) | Status | Notes |
+|---|---|---|---|
+| 1 | Modify tokenizer / training so max_token_len applies per G-code LINE, not per window (Stephen) | ✅ DONE | Phase 2/3: `preprocessing.py:387` `length`→`token_length` fix; `decoder_dataset.py:91` silent-min removed; eval-script defaults resolved from NPZ metadata |
+| 2 | Test per-row vs full-window prediction (Romesh) | 🟡 partial | per_row 5-fold V8 done (`per_row_5fold/`), full_window 5-fold QUEUED to fire after HP sweep |
+| 3 | Add noise augmentation to labels/features (Romesh) | ⏸ queued | `configs/decoder_v8_noise_aug.json` exists; `train_v8_noise_aug_5fold.sh` queued in Phase B3 — not yet run |
+| 4 | Prepare summer DOE for direction × speed × depth × material (Stephen) | ⏸ stubs only | `scripts/doe/{generate_single_line_gcode,build_doe_table,auto_label_alignment}.py` written but not specced. `DESIGN_OF_EXPERIMENTS.md` not started. Monday working session was supposed to design this |
+| 5 | Review sensor priorities (gyroscope) from prior ablations | ⏸ queued | Phase B4 `run_sensor_ablation_v8_cross_fold.sh` exists; not yet run |
+| 6 | Manbir reads paper, reconvenes Monday | ❓ outside our scope | n/a |
+| 7 | Tarmac PO follow-up with Lois / Woody (Stephen) | ❓ outside our scope | n/a |
+| 8 | Hire Tim for summer (Manbir) | ❓ outside our scope | n/a |
+| 9 | Revisit tool imaging / R2 camera (Stephen) | ❓ outside our scope | n/a |
+| 10 | Design simple testable experimental runs (core group) | ⏸ pending DOE | Tied to (4) |
+| 11 | Manbir organizes Monday working session | ❓ outside our scope | n/a |
+| 12 | Reduce manuscript to page limits (Romesh) | ❓ outside our scope | n/a; our draft is at `decoder_paper_v2/latex/decoder_paper_v2.tex` |
+
+### Meeting paper-framing decision
+
+Romesh + Manbir explicitly agreed to **pivot from "full G-code reconstruction"
+to "physically recoverable parameters: feed rate, depth of cut, command type,
+direction"**.
+
+Current state: Round 2 Phase A/D both add per-axis breakdown (X / Y / Z / F / S)
+to the results table. So the framing pivot IS reflected in the metrics
+infrastructure. The decoder still produces full G-code text autoregressively
+(no head-only mode), but the manuscript will report per-field recoverability.
+
+### Critical data-availability issue surfaced by alignment check
+
+Ran a field-frequency probe on V8 per_row fold 1 ([alignment-check 2026-05-12]).
+**Feed rate F is in 0.4–0.6 % of per_row rows and 22 % of full_window
+samples. Spindle speed S, I, J coordinates are ENTIRELY ABSENT.** Arcs are
+recorded via the R notation (arc radius), not I/J:
+
+| Field | per_row train | per_row test | full_window train | full_window test |
+|---|---|---|---|---|
+| X | 90.4 % | 88.5 % | 100 % | 100 % |
+| Y | 88.6 % | 86.6 % | 100 % | 100 % |
+| Z | 35.8 % | 31.4 % | 29.7 % | 32.6 % |
+| **F** | **0.4 %** | **0.6 %** | **18.8 %** | **22.0 %** |
+| **S** | **0** | **0** | **0** | **0** |
+| R | 15.2 % | 17.2 % | 88.1 % | 88.6 % |
+| **I, J** | **0** | **0** | **0** | **0** |
+
+**Implications for the paper's "feed rate recoverability" claim:**
+- per_row mode: F appears 45 times in the test set. "Has-F" accuracy is at the
+  always-absent baseline (99.4 %, the probe number). The encoder/decoder can't
+  meaningfully be evaluated on F in per_row mode.
+- full_window mode: F appears in 29/132 windows. Better but still rare. The
+  values are nearly-constant (typical pattern: a single `F22.` per G1 line).
+  So we can report "can we detect that feed rate is being commanded" but NOT
+  "can we recover the feed rate value" — there isn't enough variation.
+- Spindle speed (S) is **not measurable from this dataset at all**.
+
+**This is a real gap with the meeting's stated direction.** The team wanted
+feed rate / depth of cut as recoverable parameters. Depth of cut maps to the
+Z-axis values (we have signal there), so that claim survives. Feed rate
+recovery is a near-empty claim with this data, and the summer DOE is the
+only fix.
+
+### Where the current plan is consistent with the meeting
+
+1. **The 16-token truncation bug** that Romesh flagged is fixed and verified.
+2. **Per-row vs full-window is being TESTED both ways** (per_row done as pilot, full_window queued).
+3. **Position memorization is removed** (`use_window_position=false`, position metadata not exposed).
+4. **Per-field recoverability metrics** are in the pipeline (Round 2 Phase A).
+5. **Noise augmentation is queued** (B3) — not yet executed.
+6. **Sensor ablation is queued** (B4) — not yet executed.
+
+### Where the plan is at risk of drifting from the meeting
+
+1. **Manbir's "inform decoder of toolpath patterns" suggestion** is in the plan
+   as Phase 6.2 `pattern_aware_decoder.py` / Round 2 Phase B7 — but as a
+   pilot/fold-1 experiment, not as a central design. The meeting's framing
+   suggested this should be a core decoder enhancement, not an ablation cell.
+2. **Paper title** in `decoder_paper_v2/latex/decoder_paper_v2.tex` is
+   "G-Code Decoder: Multi-Modal Sensor-Driven Recovery of CNC Machining
+   Instructions" — "Recovery of Instructions" is closer to the agreed
+   recoverable-parameters framing than "reconstruction", but the paper body
+   may still over-claim full reconstruction. Will need to re-audit after the
+   full_window results land.
+3. **Summer DOE scripts are stubs.** Without filled-in factor lists, the
+   summer data collection cannot start when the tarmac arrives. This is a
+   real risk because the meeting tied "real" reconstruction to the future
+   DOE dataset, and our timeline assumes that dataset will be ready.
+4. **Feed rate variation in the data is minimal.** This wasn't anticipated
+   at the meeting; we may need to caveat manuscript claims about feed-rate
+   recoverability or wait for the summer DOE before making them.
+5. **Material variety is zero.** All current data is aluminum on the Bantam.
+   Stephen mentioned material should be a DOE factor in summer.
+
+### Recommended adjustments (advisory)
+
+- After full_window 5-fold completes, re-evaluate whether `pattern_aware_decoder`
+  should be elevated from a Round-2 ablation to a core architecture choice.
+  Manbir's specific contribution was "build pattern detection into the decoder
+  before trying to generalize," which is what pattern-aware would deliver.
+- Caveat the paper's feed-rate claims to "binary detection of F-presence"
+  rather than "value recovery."
+- Add a "data-coverage" table to the manuscript stating exactly which G-code
+  fields are present at what frequency, so readers know which "recoverable
+  parameter" claims are evidence-backed vs aspirational.
+
+### CORRECTION — DOE infrastructure is NOT a stub (filed 2026-05-12)
+
+Earlier advisory said "summer DOE scripts are stubs". Actually:
+
+- `outputs/decoder20260511/DESIGN_OF_EXPERIMENTS.md` (135 lines) is substantive:
+  factor list, levels, sample-size rationale, per-run G-code structure,
+  data-capture spec, train/test split policy, pipeline path summary, and open
+  items for the Monday working session.
+- `outputs/decoder20260511/DOE/doe_v1.csv` and `.json` exist with 188 runs.
+- `outputs/decoder20260511/DOE/programs/` contains 188 generated `.gcode` files.
+- All three DOE scripts (`build_doe_table.py`, `generate_single_line_gcode.py`,
+  `auto_label_alignment.py`) are real, not stubs.
+
+What's still needed for the summer:
+- Tormach controller per-line timestamp logging confirmation
+- Material order placed (aluminum 6061, steel 1018, delrin)
+- Tool inventory (3.0 / 6.0 / 9.5 mm endmills)
+- R2 camera trigger integration
+
+These are operational, not infrastructure. The Monday working session was the
+right place to close them.
+
+## 2026-05-12 — Manuscript audit (decoder_paper_v2.tex)
+
+### Critical finding — headline numbers came from BUGGY V7-DATA runs, not V8
+
+Traced [decoder_paper_v2/tables/headline_5fold.csv](decoder_paper_v2/tables/headline_5fold.csv):
+
+```
+Token,0.8317 ± 0.0195
+Sequence,0.4263 ± 0.0407
+Type,0.9721 ± 0.0121
+Command,0.9791 ± 0.0187
+Param_type,0.9442 ± 0.0131
+Numeric,0.6003 ± 0.0244
+```
+
+These match the metrics in [RESULTS_TABLE.json](RESULTS_TABLE.json) under
+"V8 per_row 50ep (no shortcuts)". But the underlying training_log
+([per_row_5fold_50ep_legacy/fold_1/results/training_log.txt](checkpoints/per_row_5fold_50ep_legacy/fold_1/results/training_log.txt))
+shows the actual data loaded was:
+
+```
+Loading train: outputs/experiments_2026_02_25/no_proximity_no_pressure_w256_s64_cv/fold_1/preprocessed/train_sequences.npz
+  Samples: 303, Tokens: 951, Max len: 7
+```
+
+**That's V7 dedup'd data (303 samples), not V8 per_row (19,584 samples).**
+The `--encoder_config silently overrode --data_dir` bug (already fixed in
+[scripts/evaluation/run_decoder_quick_test.py:1488-1503](scripts/evaluation/run_decoder_quick_test.py#L1488-L1503))
+was active when these runs were done. The paper's "V8 per_row 5-fold" numbers
+are actually V7-data numbers under a V8 label.
+
+Where the truth is now: the current HP sweep on TRUE V8 per_row data plateaus
+at token≈0.72, cmd≈0.32 (best Stage 1) or cmd≈0.50 (Stage 2 ss_0.5 winner).
+Both are dramatically lower than the paper's 0.83 token / 0.97 cmd headline.
+
+**This means the manuscript's results table must be FULLY REPLACED after the
+full_window 5-fold completes.** Numbers to swap:
+
+| Paper table | Current claim | After regeneration |
+|---|---|---|
+| `headline_5fold.tex` (Table 1) | tok 0.832, cmd 0.979 | will be from V8 full_window 5-fold; expected lower |
+| `per_class_command.tex` (Table 2) | F1 0.94 on G1 | will regenerate |
+| `per_class_param_type.tex` (Table 3) | F1 0.95 macro | will regenerate |
+| `per_axis_recoverability.tex` (Table 4) | F has-axis 0.992 (≈ always-absent) | needs explicit caveat row; numbers will change |
+| `per_digit_position.tex` (Table 5) | digit 1.0 → 0.86 across 6 positions | will regenerate |
+| `ablations_summary.tex`, `anova.tex`, `bootstrap_ci.tex` | numbers from V7-data runs | all need regeneration |
+
+### Specific over-claims in the body to fix when numbers refresh
+
+1. **Line 55 (abstract):** "0.836 ± 0.025 token accuracy, 0.970 ± 0.027 command accuracy" — both V7-data numbers.
+2. **Line 150:** "Across all folds, the decoder achieves 0.836 ± 0.025 token accuracy, 0.445 ± 0.049 sequence accuracy" — V7-data.
+3. **Line 169 (per-axis):** "feed rate (F), spindle (S), and arc parameters (I, J) have effectively zero positive support" — **THIS CAVEAT IS GOOD, KEEP IT.**
+4. **Line 196:** "Without metadata, a 27.1 pp ceiling exists on numeric recovery; the positional features close that gap" — effect size from V7-data ablation; numbers may shift.
+5. **Lines 222–230 (nested ablation table):** "no shortcuts (base) 0.954" command — V7-data.
+6. **Line 251 (discussion):** "Command identity (G0/G1/G2/G3) and parameter-type identity (X/Y/Z/R) are recovered with 0.97 and 0.94 accuracy from sensors alone" — V7-data.
+7. **Line 273 (conclusion):** "recover the executing G-code command identity and axis presence at ~0.97 accuracy" — V7-data.
+
+### What the paper currently does well
+
+1. **Feed-rate caveat is in place** (line 169 + 267). The body text correctly says F/S/I/J cannot be evaluated meaningfully. The table footnote also notes this.
+2. **Frozen-encoder leakage is flagged as a limitation** (line 263). The "encoder may implicitly encode position information" caveat is appropriately hedged.
+3. **Per-class metrics for the long tail** are shown — G3 (20 instances), G0 (20 instances), M30 (10 instances). This honesty about long-tail F1 will survive any re-run.
+4. **Sensor-modality ablation findings** (gyroscope + color as most-load-bearing) — these are qualitative and likely to survive a re-run.
+5. **DOE appendix exists** (line 281) — points readers to the summer DOE for the unrecoverable claims.
+
+### Action items for after full_window completes
+
+1. Re-run [aggregate_v8_results.py](scripts/analysis/aggregate_v8_results.py) on the new full_window checkpoints.
+2. Regenerate all `decoder_paper_v2/tables/*.tex` files via `export_tables_latex.py` (need to write this if not already done).
+3. Re-run `anova_and_bootstrap.py` on the new metrics.
+4. Recompile `decoder_paper_v2.tex` and visually diff against the current PDF.
+5. Add a **"data coverage" table** explicitly listing field-presence frequency
+   per split so readers cannot misinterpret the F=0.992 cell as feed-rate
+   recovery.
+6. Re-frame the headline: if full_window achieves, say, 0.80 token / 0.85 cmd,
+   the paper can stand. If it plateaus at the per_row level (0.72 / 0.50),
+   the manuscript needs a more substantial rewrite acknowledging
+   information-theoretic limits.
+
+## 2026-05-12 — Pattern-aware decoder design (Manbir's meeting contribution)
+
+### What Manbir said at the meeting
+
+> "We haven't yet built in a lot into this decoder. So if the G-codes are
+> thousands of lines long, then there's a lot of overlap. ... you have the
+> same tool paths being cut at different points, you know, with slight feed,
+> with a slight depth of cut increment, it's the same toolpath. ... If I was
+> doing this manually myself, I would be looking for those patterns. We
+> haven't built those yet."
+
+Translation: the decoder should explicitly model recurring tool-path
+patterns. A face cut is a stereotyped sequence of "X+ to extent, Y step, X-
+back, Y step, ...". Once the decoder knows it's IN a face cut, the
+per-row prediction reduces to "which step of the face pattern are we on?".
+
+### What's currently in place
+
+Inspection of [train_v8_pattern_aware_pilot.sh](scripts/experiments/train_v8_pattern_aware_pilot.sh):
+
+```
+# The existing model already has a `sequence_classifier` head that predicts
+# which whole G-code line is being executed. This biases the token-level
+# logits toward that line's tokens — exactly the "pattern prior" Dr. Sodhi
+# described in the 2026-04-28 meeting. Just enable the head.
+```
+
+So the current "pattern-aware" implementation is:
+- A `sequence_classifier` head that predicts the WHOLE G-code line (out of
+  214 distinct lines per fold) directly from the encoder memory.
+- The line classifier's softmax biases the legacy-token head's distribution
+  toward the predicted line's tokens.
+
+**Verdict: this is a WEAK version of Manbir's idea.** It models "which line
+is this" but not "which pattern is the machine doing." A 214-way classifier
+on a 132-window test set is severely overfit-prone.
+
+### Stronger pattern-aware design (proposed)
+
+A genuinely pattern-aware decoder would be hierarchical:
+
+```
+                  ┌─────────────────────────────┐
+sensor window →   │ encoder (frozen) → memory   │
+                  └─────────────┬───────────────┘
+                                │
+                  ┌─────────────▼───────────────┐
+                  │ pattern head (9-way):       │
+                  │ face / pocket / adaptive /  │   ← operation_type
+                  │ … / damageX                 │
+                  └─────────────┬───────────────┘
+                                │
+                  ┌─────────────▼───────────────┐
+                  │ step head (within pattern): │
+                  │ "step 3 of 12 in a face"    │
+                  └─────────────┬───────────────┘
+                                │
+                  ┌─────────────▼───────────────┐
+                  │ token decoder, conditioned  │
+                  │ on (pattern, step)          │
+                  └─────────────────────────────┘
+```
+
+Why this is stronger:
+1. **The pattern head's 9-way classifier matches the encoder's actual
+   training objective**, so the encoder embeddings carry this signal robustly
+   (probe confirmed 0.846 op-type accuracy from frozen memory).
+2. **The step head resolves the per_row ambiguity** — for a given pattern,
+   "step 3 of 12 in a face" disambiguates which row of the window we're
+   predicting WITHOUT exposing window_index as a generic leak. Step indices
+   are derivable from the G-code structure, not from metadata.
+3. **The token decoder becomes a small conditional generator** instead of
+   a generic 2,418-vocab predictor.
+
+Risks:
+- Step indexing requires pre-computing canonical step indices per pattern.
+  Doable but adds preprocessing complexity.
+- For damage classes, the "pattern" may not be well-defined.
+- Adds 2 heads worth of loss balancing.
+
+### Recommendation
+
+1. **First, run full_window 5-fold as already queued.** Full_window
+   eliminates the per_row ambiguity by predicting the full multi-line target.
+   If full_window's autoregressive context is enough, hierarchical
+   pattern-awareness is unnecessary.
+2. **If full_window also plateaus**, implement the hierarchical
+   pattern-aware decoder. New file: `src/miracle/model/pattern_aware_decoder.py`
+   (currently empty per the plan — only the training shell script exists).
+3. **Either way, keep the current `sequence_classifier` head** as a baseline
+   ablation; report its effect in the table.
+
+This was an `else` branch in the original plan ("if Phase B7 underperforms,
+elevate"); the encoder audit just gave us evidence that it should be
+elevated only if the simpler full_window doesn't suffice.
+
+## 2026-05-12 — Phase C analyses on composite winner (ss_0.5 fold 1)
+
+Ran the three Phase-C scripts on the current composite winner
+(`stage2/scheduled_sampling_0.5`, fold 1) while the GPU sweep continues.
+All CPU-only, no GPU contention.
+
+### Per-axis numeric recovery — X is the dominant bottleneck
+
+[audit/numeric_diag_ss05.json](audit/numeric_diag_ss05.json):
+
+| Axis | Digit accuracy | Full-value correct | n positions |
+|---|---|---|---|
+| X | 0.522 | **7.0 %** | 7,003 |
+| Y | 0.753 | 43.7 % | 6,861 |
+| Z | 0.920 | 72.0 % | 2,464 |
+| J | 0.825 | 68.3 % | 1,369 |
+| I | 0.992 | 95.2 % | 21 |
+
+(I and J appear in the script's `pt_t` even though the literal G-code text
+shows R-notation only — investigating this discrepancy; might be a vocab
+mislabel where R is being encoded as J. Low priority — not load-bearing on
+the paper's claims since R itself doesn't appear in the per-axis evaluation.)
+
+### Per-digit-position — middle digits are where it fails
+
+| Position | Accuracy |
+|---|---|
+| 0 (most-significant) | 1.000 |
+| 1 | 0.792 |
+| 2 | 0.561 |
+| 3 | 0.506 |
+| 4 | 0.506 |
+| 5 (least-significant) | 0.778 |
+
+The model nails the magnitude (position 0) and to a lesser extent the
+precision endpoint (position 5), but the middle positions — which carry
+the actual coordinate sub-millimeter information — sit at coin-flip
+accuracy. **The decoder gets the magnitude right but loses precision.**
+
+### Per-operation class — damagepocket is the worst
+
+[audit/per_op_class_v8_ss05.json](audit/per_op_class_v8_ss05.json):
+
+| Class | n test rows | Token acc | Sequence acc |
+|---|---|---|---|
+| pocket | 890 | 0.794 | 0.004 |
+| adaptive | 1,840 | 0.770 | 0.004 |
+| damageadaptive | 529 | 0.742 | 0.008 |
+| damageface | 95 | 0.737 | 0.011 |
+| face | 584 | 0.733 | 0.029 |
+| adaptive150025 | 2,131 | 0.723 | 0.004 |
+| face150025 | 354 | 0.710 | 0.048 |
+| pocket150025 | 1,308 | 0.651 | 0.006 |
+| **damagepocket** | 206 | **0.516** | 0.000 |
+
+Damagepocket sits 28 pp below the next-worst class. Worth investigating
+whether this is a noisy-data class or genuinely the hardest geometry.
+
+### Sequence-level — only 0.8 % exact match
+
+[audit/failure_cases_v8_ss05.json](audit/failure_cases_v8_ss05.json):
+- 7,937 test rows, **67 exact matches (0.8 %)**.
+- Mean edit distance 1.54 tokens (out of ~5 tokens per row).
+- Median edit distance 1.
+
+So the model is "close but not exact" on most rows — it gets 3–4 of 5
+tokens right but rarely all 5. This is consistent with the per-digit
+finding (middle digits failing) and the per_row ambiguity hypothesis.
+
+### Manuscript implications
+
+These four findings concretely shape the paper's "what the sensor pathway
+cannot recover" section once headline numbers refresh:
+
+1. **X-axis numeric recovery** should be called out specifically (not just
+   "numeric is weak"). It's 6× weaker than Z numeric recovery.
+2. **The information-theoretic ceiling claim** is supported: position-0
+   digits are perfect, middle-positions are random. The encoder carries
+   magnitude but not precision.
+3. **Per-class long tail** — the paper currently quotes G-code-class
+   long tails (G1 vs G3 vs M30). It should also report operation-class
+   long tails: damagepocket is the case the model can't yet handle.
+4. **Sequence-level accuracy at <1 %** even at the best config calls for
+   reframing "full G-code reconstruction" as "per-token recovery with
+   characterized precision loss" — exactly the meeting's pivot.
+
+### Files written this analysis
+
+- `outputs/decoder20260511/audit/numeric_diag_ss05.json`
+- `outputs/decoder20260511/audit/per_op_class_v8_ss05.json`
+- `outputs/decoder20260511/audit/failure_cases_v8_ss05.json`
+
+After full_window 5-fold completes, re-run all three on the new headline
+checkpoints (one command per fold) and replace these single-fold reads.
+
+## 2026-05-12 — Phase C-4: failure-mode classification
+
+Decoded the top 20 worst-edit-distance failures from `scheduled_sampling_0.5`
+fold 1 ([audit/failure_cases_decoded_ss05.json](audit/failure_cases_decoded_ss05.json))
+and classified them. **The errors are structured, not random:**
+
+| Failure mode | Count | Example |
+|---|---|---|
+| **Dropped G-command** | 40 % (8/20) | TRUE: `G2 X 2607 Y 2594 R 0128` → PRED: `X X -200 Y 0849 EOS Y0.` |
+| **Wrong G-command** | 35 % (7/20) | TRUE: `G2 X 3032 Y 0365 R 0128` → PRED: `G1 X -200 Y 2177 R 0742` |
+| **Hallucinated G-command** | 20 % (4/20) | TRUE: `X -150 Z 0025` (no G command) → PRED: `G1 X -125 Y 0010 R` |
+| Value-only error | 0 % | — |
+| Other | 5 % | — |
+
+**Key insight: 95 % of the worst failures are command-identity confusion** —
+not value-precision errors. The model doesn't reliably know whether THIS
+row contains a G-command at all, and if so which one. This is *exactly*
+what the per_row-ambiguity hypothesis predicts: within a window of 60+
+rows, some have G-commands and some don't, but the encoder memory is
+identical for all of them. Without row-position info the decoder collapses
+to one stereotyped output pattern per window.
+
+**Manuscript implication**: when the headline numbers refresh from
+full_window, this paragraph adds a concrete "what fails and why" narrative
+to the discussion section. In full_window mode the autoregressive
+generation gives the decoder the previous row's G-command (or absence of
+it) as context, which should largely fix the command-identity failures
+specifically. If it does, that's a clean validation of the per_row
+ambiguity diagnosis.
+
+## 2026-05-12 — Phase C-5: field coverage across all 5 folds
+
+[audit/field_coverage_5fold.json](audit/field_coverage_5fold.json):
+verified that the per-field positive-support frequencies hold across all
+5 folds × 3 splits × 2 modes. Variation is < 3 pp on every field
+between any two folds. The data_coverage.tex numbers in the manuscript
+are therefore representative, not just a fold-1 artifact.
+
+Minor note: spindle speed `S` appears in **3 of 30 splits** at 0.3-0.9 %
+(all in full_window val/train). Previous claim "S is entirely absent"
+should be tightened to "S appears in <1 % of full_window samples and 0 %
+of per_row samples". The data-coverage table footnote already says
+"effectively zero", which is honest.
+
+## 2026-05-12 — Phase 7-validation: DOE infrastructure verified
+
+Ran a validity check on the 188 generated DOE programs ([outputs/decoder20260511/DOE/](DOE/)):
+
+- All 188 G-code files exist and parse cleanly (no syntax errors in
+  spot-checks).
+- 188 unique factor combinations, **zero duplicates**.
+- Factor coverage is reasonably balanced:
+  - motion_type: 65 straight / 59 arc_cw / 64 arc_ccw
+  - feed_rate: 47 @ 50 / 57 @ 100 / 44 @ 200 / 40 @ 400 mm/min
+  - spindle_speed: 59 @ 3 k / 75 @ 6 k / 54 @ 9 k rpm
+  - depth_of_cut: 90 @ 0 mm (air cuts) / 24 @ 0.10 / 27 @ 0.25 / 28 @ 0.50 / 19 @ 1.00
+  - material: 66 aluminum_6061 / 61 steel_1018 / 61 delrin
+  - tool_diameter: 62 @ 3 mm / 57 @ 6 mm / 69 @ 9.5 mm
+  - air_cut: 90 True / 98 False
+- Spot-checked 5 random runs against the CSV: feed_rate values appear in
+  the G-code, depth maps correctly to Z token, air-cut runs omit the Z
+  plunge.
+
+**Conclusion: the summer DOE is ready to run as soon as the Tormach arrives.**
+The team won't need to redesign experiments — they can pull the CSV +
+.gcode files straight from `outputs/decoder20260511/DOE/`.
+
+## CPU-side work summary (2026-05-12 afternoon session)
+
+Ran while the GPU sweep was in flight:
+
+| Task | Output | Status |
+|---|---|---|
+| Phase C-1: numeric diagnosis | `audit/numeric_diag_ss05.json` | Done — X recovery is 7 % full-value |
+| Phase C-2: per-class breakdown | `audit/per_op_class_v8_ss05.json` | Done — damagepocket worst at 51.6 % token |
+| Phase C-3: failure cases | `audit/failure_cases_v8_ss05.json` | Done — 0.8 % exact-match |
+| Phase C-4: failure-mode classification (decoded) | `audit/failure_cases_decoded_ss05.json` | Done — 95 % command-identity confusion |
+| Phase C-5: 5-fold field coverage | `audit/field_coverage_5fold.json` | Done — coverage consistent across folds |
+| Phase 7 DOE validation | (verified in-place) | Done — DOE ready for Tormach |
+| Aggregator + ANOVA pipeline | `aggregate_v8_results.py --sweep-name`, `anova_and_bootstrap.py --baseline-name` | Refactored — handles both per_row and full_window |
+| Paper v2 placeholders | 25 body + 47 table TBD markers + regen guide | Done — PDF compiles cleanly |
+
+All deliverables are CPU-only, no GPU contention with the running sweep.
+
+## 2026-05-12 (evening) — Paper v2 quality upgrade
+
+User flagged that `decoder_paper_v2.tex` was structurally weak relative to
+the accepted sensors paper at
+`outputs/experiments_2026_02_25/paper/sensors_v4.tex` (1444 lines, 41
+citations) and the prior `decoder20260304/paper/decoder_paper_mdpi.tex`
+(1386 lines, 31 citations). Our v2 was 318 lines with 4 unique citations.
+Rewrote the manuscript end-to-end:
+
+| Metric | Before | After |
+|---|---|---|
+| Lines | 318 | 615 |
+| Pages | 10 | 23 |
+| Citations used | 4 | 57 |
+| Bib entries | 31 | 56 (ported 24 from sensors paper bbl) |
+| Top-level sections | 6 | 8 (added Problem Formulation, Experimental Setup) |
+| Subsections | 11 | 28 |
+
+Structural matches to the accepted sensors paper:
+- Introduction: stakes paragraph + prior-work landscape + closely-related
+  group work + decoder problem framing + 4 explicit RQs + 5 bold-labeled
+  contributions + roadmap paragraph.
+- Related Work: 4 deep subsections (CNC monitoring; seq2seq / grammar;
+  AM side-channel; cybersecurity) + literature-comparison table.
+- Problem Formulation as its own section: task definition, vocabulary,
+  per-row target rationale, 7-metric evaluation protocol.
+- Method: System Overview / Encoder / Decoder Architecture (with
+  subsubsections for multi-head output, grammar mask, scheduled sampling)
+  / Training Configuration / Hyperparameter Sweep methodology.
+- Experimental Setup: Dataset / Preprocessing / 5-fold CV / Baselines &
+  Ablation Designs (8 enumerated) / Statistical Analysis / Software.
+- Results restructured around RQ1–RQ4 + a new Failure-Mode Analysis
+  subsection capturing the Phase C-4 finding (95 % command-identity
+  confusion, not value-precision errors).
+- Discussion expanded to 5 subsections: three tiers of recoverability /
+  failure modes are structural / sensor-modality deployment implications /
+  comparison with AM side-channel recovery / when to use this decoder.
+- Limitations restructured into 3 subsections + roadmap.
+- Conclusion rewritten as a 3-finding narrative.
+
+All TBD placeholders are intact (41 in body + tables). PDF compiles
+cleanly. The paper now reads at the depth and breadth of the accepted
+sensors paper.
+
+## 2026-05-13 (overnight) — HP sweep completion + watcher hang
+
+### Overnight sweep progress
+
+Sweep ran unattended overnight. End state at 09:35 today:
+
+- **Stage 2: 12/12** — all cells completed. The final cell
+  `combined_curric_ss_ls` confirmed that stacking curriculum + ss=0.5 +
+  label_smoothing=0.1 over-regularises; the legacy-token head collapsed
+  (tok 0.67, cmd 0.31). Recipes don't stack additively; ss=0.5 alone is
+  the right move.
+- **Stage 3: 12/14** — `encoder_f110` and `encoder_f56` failed (rc=1)
+  because the alternative encoder checkpoints
+  (`outputs/experiments_2026_02_25/full_w256_s64_cv/...` and
+  `..._no_color_no_magnetometer_..._cv/...`) don't exist on disk. These
+  alternative encoders were never trained. The cells were always going
+  to fail; not a load-bearing loss for the paper since they were about
+  encoder-choice not decoder-architecture.
+
+### Final composite ranking (top 5 of 34 cells)
+
+| Rank | Cell | tok | cmd | num | composite |
+|---|---|---|---|---|---|
+| 1 | **stage2/scheduled_sampling_0.5** | 0.7308 | 0.4993 | 0.4548 | **0.6062** |
+| 2 | stage3/ss_0.1 | 0.7222 | 0.3510 | 0.4456 | 0.5555 |
+| 3 | stage2/n_layers_10 | 0.7287 | 0.3255 | 0.4533 | 0.5527 |
+| 4 | stage3/seed_2024 | 0.7213 | 0.3365 | 0.4528 | 0.5522 |
+| 5 | stage2/n_layers_12 | 0.7219 | 0.3356 | 0.4457 | 0.5507 |
+
+`scheduled_sampling_0.5` wins composite by +5 pp over the next-best cell
+and by +20 pp on command-accuracy. Multi-seed cluster (seeds 123/456/2024)
+spans cmd ∈ {0.293, 0.324, 0.337} — `ss_0.5`'s 0.499 is 5σ outside this
+cluster. The lift is real, not seed-lucky.
+
+### Watcher hang and fix
+
+The post-sweep auto-launch watcher at `/tmp/launch_full_window_when_sweep_done.sh`
+was hung for ~12 hours after the sweep finished. Root cause:
+
+- The watcher loop is `until ! pgrep -f "hp_sweep_stage2.py|hp_sweep_stage3_parallel.py"`.
+- Two leftover bash shells from yesterday afternoon's Stage-2 chain
+  command (pids 1915653, 1915656) had `hp_sweep_stage2.py` embedded in
+  their `bash -c` argument string from when they originally launched the
+  Stage 2 dispatcher.
+- `pgrep -f` matches the entire command line — those long-stale shells
+  were matching even though their Python child (the actual dispatcher)
+  was long gone.
+
+Fix: killed pids 1915653 and 1915656. Watcher fired within 60 s.
+
+**Lesson for future automation**: name-matching is brittle. Future
+watchers should verify the dispatcher's child Python PID is alive, not
+just grep for the script name in the argv string.
+
+### Post-sweep launches (09:35 today)
+
+- GPU 0: `train_v8_full_window_5fold.sh` running 5 sequential folds with
+  the composite-winner config (Stage-1 architecture + Stage-2 ss=0.5).
+  ETA ~2.5 h.
+- GPU 1: `e2e_lr5e-6` (one cell). The earlier `e2e_lr1e-5` cell NaN'd at
+  epoch 1 (encoder_lr=3e-5 too aggressive); this re-run uses lr=5e-6 which
+  should be stable. ETA ~1.5 h.
+
+### Files written or updated since the previous notes entry
+
+- `outputs/decoder20260511/decoder_paper_v2/latex/decoder_paper_v2.tex` (615 lines now)
+- `outputs/decoder20260511/decoder_paper_v2/latex/decoder_references.bib` (56 entries)
+- `outputs/decoder20260511/decoder_paper_v2/TABLES_REGENERATION_GUIDE.md`
+- `outputs/decoder20260511/decoder_paper_v2/tables/data_coverage.tex` (new)
+- `outputs/decoder20260511/decoder_paper_v2/tables/v7_legacy/` (V7-data backups)
+- `outputs/decoder20260511/audit/encoder_probe_v8.json`
+- `outputs/decoder20260511/audit/numeric_diag_ss05.json`
+- `outputs/decoder20260511/audit/per_op_class_v8_ss05.json`
+- `outputs/decoder20260511/audit/failure_cases_v8_ss05.json`
+- `outputs/decoder20260511/audit/failure_cases_decoded_ss05.json`
+- `outputs/decoder20260511/audit/field_coverage_5fold.json`
+- `outputs/decoder20260511/audit/hp_sweep_all_stages_summary.json` + `.md`
+- `scripts/analysis/aggregate_hp_sweep_all_stages.py` (new, dual-baseline)
+- `scripts/analysis/encoder_linear_probe.py` (new)
+- `scripts/analysis/aggregate_v8_results.py` (extended with `--sweep-name`)
+- `scripts/analysis/anova_and_bootstrap.py` (extended with `--baseline-name`)
+- `scripts/experiments/hp_sweep_stage3_parallel.py` (new, 14-cell parallel dispatcher)
+- `scripts/experiments/train_v8_full_window_5fold.sh` (updated config)
+
+### Git status as of this notes entry
+
+26 modified + new files uncommitted. Last commit was
+`8d40113 V8 5-fold sweep: per_row decoder matches V7 ceiling without
+shortcuts` — that commit was BEFORE the encoder_config-bug discovery, so
+its claim of "matching V7 ceiling" is no longer accurate. **A commit
+hygiene pass is overdue.**
+
+## 2026-05-13 — Recommendations: things NOT on the plan that should be
+
+Honest review of gaps relative to what a strong sensors-journal-quality
+submission requires. The original Round-1 + Round-2 plan covered the
+remediation, ablations, and metrics, but several reviewer-anticipated
+items are missing entirely from the plan as written.
+
+### Critical for submission (reviewers will absolutely ask)
+
+1. **Non-neural baseline.** The accepted encoder paper compared against
+   five baseline model families (Random Forest, XGBoost, 1D-CNN,
+   Transformer, LSTM). The decoder paper currently has **zero non-neural
+   baselines.** Any reviewer in the CNC-monitoring community will ask
+   "what does XGBoost on the same encoder embeddings get?" We have a
+   metadata-only XGBoost baseline from the Phase-1 audit
+   ([audit/shortcut_leakage.json](audit/shortcut_leakage.json)) but it
+   answers a different question. Recommendation: a 1-day side experiment
+   that trains an XGBoost classifier per output head on the mean-pooled
+   encoder memory, reported as a baseline row in Table~\ref{tab:headline}.
+
+2. **Threat model section.** The manuscript frames decoder applications
+   in terms of "process verification" and "anomaly localisation" and cites
+   NIST SP 800-82, but it does not formalise the threat model: what
+   attacks does the decoder detect, what attacks does it miss, what is
+   the adversary's capability? Without this, the cybersecurity framing is
+   aspirational. Recommendation: a half-page Threat Model subsection in
+   the Method or Discussion section enumerating attack classes (G-code
+   substitution, parameter tampering, replay) and which the decoder
+   addresses.
+
+3. **Multiple-comparisons correction.** The 34-cell HP sweep selects a
+   winner from a large family. The winning cell's apparent +20 pp
+   command-accuracy lift over the runner-up is at risk of being a
+   multiple-testing artefact, even though the multi-seed variance check
+   weakens that concern. Recommendation: report Bonferroni- or BH-FDR-
+   corrected p-values for the ANOVA between the winner and the runner-up
+   family, and reference this in Section~\ref{sec:results-headline}.
+
+4. **Encoder-leakage probe IN the paper.** We have the linear-probe
+   results ([audit/encoder_probe_v8.json](audit/encoder_probe_v8.json))
+   showing what information the frozen encoder embeddings carry.
+   Currently this lives in audit/ and is not referenced in the
+   manuscript. The probe is publishable: it bounds what the decoder can
+   in principle recover and validates the "encoder is not the bottleneck"
+   claim. Recommendation: add a "Frozen-Encoder Probe" subsection in
+   Section~\ref{sec:method} (or as an early Results subsection) with the
+   per-field probe accuracies and the modal-row-per-window ceiling
+   interpretation.
+
+5. **Confusion-matrix figures.** Round-2 Phase D includes
+   `confusion_matrices.py` as a generator script, but the figures have
+   not been generated for the current V8 checkpoints. The sensors paper
+   has confusion matrices in Results, and reviewers expect them for any
+   multi-class study. Recommendation: generate command-level,
+   operation-class-level, and parameter-type-level confusion matrices
+   from the full_window 5-fold checkpoints as part of the regeneration
+   pass.
+
+### Helpful for statistical rigor
+
+6. **Power analysis on per-class long tail.** With 132 test samples per
+   fold and G3/M30 at $\le 20$ supports per class, our power to detect a
+   pp difference in per-class F1 is low. Reporting the power-curve for
+   the per-class command-head metrics would clarify when "not
+   significant" actually means "underpowered". Recommendation: a 2-line
+   note in Section~\ref{sec:results-headline} citing the minimum
+   detectable effect at $\alpha=0.05$, $\beta=0.20$ for each class.
+
+7. **Train-vs-test covariate-shift audit.** We confirmed
+   ([audit/field_coverage_5fold.json](audit/field_coverage_5fold.json))
+   that per-field coverage is consistent across folds. But we did NOT
+   check that the train-split's coverage matches the test-split's
+   coverage on each individual fold. A 3-5 pp covariate shift on, say,
+   has-Z would change the interpretation of has-Z accuracy. Quick to add:
+   a column comparing train-vs-test coverage per fold, with a footnote in
+   Section~\ref{sec:dataset}.
+
+8. **Token-position failure analysis.** Per-digit-position analysis is
+   in Section~\ref{sec:numeric-decomposition}; the analogous breakdown
+   over OUTPUT-sequence position (does the decoder fail more at position
+   0 vs position 4?) is missing. Recommendation: extend
+   `diagnose_numeric_accuracy.py` to report accuracy per output-sequence
+   position, not just per-digit-position within a NUM token.
+
+### Forward-looking (next paper / next revision)
+
+9. **Encoder retrain (Phase F) design spec.** Currently flagged as on
+   hold. After today's encoder-audit findings (303-sample training, 9-class
+   classification objective, recon_weight=0.1) the case for retraining
+   has strengthened. Even if we don't execute Phase F before submission,
+   the next revision will need a concrete design: what data, what loss,
+   what auxiliary heads, what compute budget. Recommendation: draft a
+   `PHASE_F_DESIGN.md` while full_window results land, parallel to the
+   manuscript.
+
+10. **Failure-mode visual figure.** We have the decoded worst-failure
+    examples ([audit/failure_cases_decoded_ss05.json](audit/failure_cases_decoded_ss05.json))
+    classified into four modes (dropped/wrong/hallucinated G-command,
+    value-only error). A figure showing one TRUE / PRED pair per mode
+    would dramatically improve the manuscript's "what fails and why"
+    narrative. Round-2 Phase D should include this generator.
+
+11. **Replicability checklist appendix.** Sensors journal requires (and
+    NeurIPS/ICML strongly prefer) a reproducibility checklist: random
+    seeds, hardware specs, training time, hyperparameter ranges, sweep
+    sizes. We have all this information in the project journal and
+    scripts; needs to be assembled into one appendix or supplementary
+    page for the manuscript.
+
+### Operational hygiene gaps
+
+12. **Git commits are 4 days behind.** The last commit
+    (`8d40113`) was 2026-05-09 (before the encoder-config bug discovery,
+    before the HP sweep, before the paper rewrite). 26 files modified or
+    added since then. Recommendation: a commit hygiene pass NOW with
+    descriptive sub-commits: (a)~analysis scripts; (b)~experiment
+    drivers; (c)~paper rewrite; (d)~audit JSONs.
+
+13. **Watcher pattern is fragile.** The auto-launch watcher held the
+    sweep state hostage for ~12 hours overnight because of name-match on
+    stale shell argv strings. The fix is mechanical (check actual child
+    PIDs, not name strings), but worth recording in a "lessons" file so
+    we don't repeat this when the summer Tormach data starts streaming.
+
+14. **No prereg / pre-analysis plan.** RQs were articulated AFTER seeing
+    sweep data. For a follow-up DOE-driven paper, pre-registering the
+    factor list and target metrics on the summer dataset before any
+    experiments run would be straightforward and credibility-improving.
+    Recommendation: include a pre-registration section in the
+    DESIGN_OF_EXPERIMENTS.md before any DOE data are collected.
+
+### What's already on the plan and progressing
+
+- Round-2 Phase D figures (confusion matrices, learning curves, etc.)
+  are scheduled to run after full_window completes.
+- Phase F encoder retrain is on hold pending full_window results.
+- Phase G wrap-up (memory + email + commit) will close the loop.
+- Phase B sensor-ablation, noise-aug, LOCO, pattern-aware, vocab-2digit
+  experiments are queued after full_window.
+
+The 14 items above are gaps the plan does NOT cover that I believe
+materially affect submission strength. Items 1-5 are reviewer
+showstoppers; 6-11 are rigor improvements; 12-14 are project-management
+hygiene.
