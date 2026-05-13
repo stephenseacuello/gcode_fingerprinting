@@ -1,0 +1,7 @@
+Head,Test (mean ± std)
+Token,0.8317 ± 0.0195
+Sequence,0.4263 ± 0.0407
+Type,0.9721 ± 0.0121
+Command,0.9791 ± 0.0187
+Param_type,0.9442 ± 0.0131
+Numeric,0.6003 ± 0.0244

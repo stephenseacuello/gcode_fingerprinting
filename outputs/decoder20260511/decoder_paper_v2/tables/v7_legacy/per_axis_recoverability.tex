@@ -1,0 +1,19 @@
+\begin{table}[h]
+\centering
+\caption{Per-axis G-code recoverability across 5 folds. \emph{has-axis} is whether the axis appears in the decoded text; \emph{sign} is the direction of the motion (POSITIVE / NEGATIVE / ABSENT); \emph{value MAE} is the regression mean absolute error of the numeric value, computed only over samples where both the predicted and true G-code carry the axis.}
+\label{tab:per_axis}
+\begin{tabular}{l r r r r r}
+\toprule
+Axis & has-axis Acc & has-axis F1 & Sign Acc & Value MAE & Presence Recall \\
+\midrule
+X & $1.000$           & $1.000$           & $0.697$ & $1.47$ & $1.000$ \\
+Y & $0.961 \pm 0.003$ & $0.957 \pm 0.003$ & $0.994$ & $0.79$ & $0.896$ \\
+Z & $0.983 \pm 0.024$ & $0.868 \pm 0.200$ & $0.994$ & $0.00$ & $0.800$ \\
+R & $0.982 \pm 0.015$ & $0.695 \pm 0.249$ & $1.000$ & $0.00$ & $0.400$ \\
+F & $0.992 \pm 0.012$ & $0.798 \pm 0.247$ & $1.000$ & ---    & $0.000$ \\
+S, I, J & $1.000$       & $1.000$            & $1.000$ & ---    & $0.000$ \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\textit{F, S, I, J have effectively zero positive support in the corpus.}
+\end{table}

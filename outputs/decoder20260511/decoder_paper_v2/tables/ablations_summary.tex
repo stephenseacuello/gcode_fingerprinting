@@ -1,0 +1,33 @@
+% PLACEHOLDER — regenerate from V8 full_window 5-fold + Phase B ablation runs.
+% Cells should pull from:
+%   Baseline:                 outputs/decoder20260511/checkpoints/full_window_5fold/
+%   +positional metadata:     outputs/decoder20260511/checkpoints/per_row_5fold_with_shortcuts/
+%                             (and a parallel with_shortcuts on full_window)
+%   +sequence classifier:     outputs/decoder20260511/checkpoints/per_row_pattern_aware/
+%                             (or full_window_pattern_aware once it runs)
+%   sensor zero-outs:         outputs/decoder20260511/ablations/sensor/zero_{group}/
+% Backup: tables/v7_legacy/ablations_summary.tex
+\begin{table}[h]
+\centering
+\caption{Ablation matrix. The baseline row matches Table~\ref{tab:headline}. Each subsequent row toggles one factor.}
+\label{tab:ablations}
+\small
+\begin{tabular}{l r r r r r r}
+\toprule
+Ablation & Token & Sequence & Type & Command & Param-type & Numeric \\
+\midrule
+Baseline (no shortcuts)  & \TBD{abl\_base\_tok}  & \TBD{abl\_base\_seq}  & \TBD{abl\_base\_type}  & \TBD{abl\_base\_cmd}  & \TBD{abl\_base\_param}  & \TBD{abl\_base\_num}  \\
++ positional metadata    & \TBD{abl\_sc\_tok}    & \TBD{abl\_sc\_seq}    & \TBD{abl\_sc\_type}    & \TBD{abl\_sc\_cmd}    & \TBD{abl\_sc\_param}    & \TBD{abl\_sc\_num}    \\
++ sequence classifier    & \TBD{abl\_pat\_tok}   & \TBD{abl\_pat\_seq}   & \TBD{abl\_pat\_type}   & \TBD{abl\_pat\_cmd}   & \TBD{abl\_pat\_param}   & \TBD{abl\_pat\_num}   \\
+$-$ gyroscope            & \TBD{abl\_nogyro\_tok}  & --                  & \TBD{abl\_nogyro\_type}  & \TBD{abl\_nogyro\_cmd}  & \TBD{abl\_nogyro\_param}  & --                    \\
+$-$ color                & \TBD{abl\_nocol\_tok}   & --                  & \TBD{abl\_nocol\_type}   & \TBD{abl\_nocol\_cmd}   & \TBD{abl\_nocol\_param}   & --                    \\
+$-$ accelerometer        & \TBD{abl\_noacc\_tok}   & --                  & \TBD{abl\_noacc\_type}   & \TBD{abl\_noacc\_cmd}   & \TBD{abl\_noacc\_param}   & --                    \\
+$-$ environmental        & \TBD{abl\_noenv\_tok}   & --                  & \TBD{abl\_noenv\_type}   & \TBD{abl\_noenv\_cmd}   & \TBD{abl\_noenv\_param}   & --                    \\
+$-$ RMS audio            & \TBD{abl\_norms\_tok}   & --                  & \TBD{abl\_norms\_type}   & \TBD{abl\_norms\_cmd}   & \TBD{abl\_norms\_param}   & --                    \\
+$-$ magnetometer         & \TBD{abl\_nomag\_tok}   & --                  & \TBD{abl\_nomag\_type}   & \TBD{abl\_nomag\_cmd}   & \TBD{abl\_nomag\_param}   & --                    \\
+$-$ electrical           & \TBD{abl\_noelec\_tok}  & --                  & \TBD{abl\_noelec\_type}  & \TBD{abl\_noelec\_cmd}  & \TBD{abl\_noelec\_param}  & --                    \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\textit{Sequence and numeric accuracy are filled only where the cross-fold sweep is complete; modality ablations are reported on fold-1 for the corresponding sensor groups and pooled across folds for the two most impactful modalities.}
+\end{table}

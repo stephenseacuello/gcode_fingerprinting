@@ -1,0 +1,26 @@
+% =========================================================================
+% PLACEHOLDER — regenerate after V8 full_window 5-fold completes.
+% Source of truth: scripts/analysis/v8_per_field_eval.py output applied to
+% full_window 5-fold checkpoints. The F / S / I / J rows are EXPECTED to
+% remain "insufficient support" — cross-check against tables/data_coverage.tex.
+% Backup of previous (V7-data) version: tables/v7_legacy/per_axis_recoverability.tex
+% =========================================================================
+\begin{table}[h]
+\centering
+\caption{Per-axis G-code recoverability across 5 folds. \emph{has-axis} is whether the axis appears in the decoded text; \emph{sign} is the direction of the motion (POSITIVE / NEGATIVE / ABSENT); \emph{value MAE} is the regression mean absolute error of the numeric value, computed only over samples where both the predicted and true G-code carry the axis. Read this table together with Table~\ref{tab:data_coverage} --- rows for fields with near-zero positive support cannot be meaningfully interpreted.}
+\label{tab:per_axis}
+\begin{tabular}{l r r r r r}
+\toprule
+Axis & has-axis Acc & has-axis F1 & Sign Acc & Value MAE & Presence Recall \\
+\midrule
+X       & \TBD{has\_X\_acc} & \TBD{has\_X\_f1} & \TBD{sign\_X\_acc} & \TBD{val\_X\_mae} & \TBD{presence\_X\_recall} \\
+Y       & \TBD{has\_Y\_acc} & \TBD{has\_Y\_f1} & \TBD{sign\_Y\_acc} & \TBD{val\_Y\_mae} & \TBD{presence\_Y\_recall} \\
+Z       & \TBD{has\_Z\_acc} & \TBD{has\_Z\_f1} & \TBD{sign\_Z\_acc} & \TBD{val\_Z\_mae} & \TBD{presence\_Z\_recall} \\
+R       & \TBD{has\_R\_acc} & \TBD{has\_R\_f1} & \TBD{sign\_R\_acc} & \TBD{val\_R\_mae} & \TBD{presence\_R\_recall} \\
+F       & \emph{insufficient support; see Table~\ref{tab:data_coverage}} & --- & --- & --- & --- \\
+S, I, J & \emph{insufficient support; see Table~\ref{tab:data_coverage}} & --- & --- & --- & --- \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\textit{F, S, I, J have effectively zero positive support in the corpus (see Table~\ref{tab:data_coverage}). Reporting an accuracy number for these fields would be dominated by the always-absent baseline.}
+\end{table}

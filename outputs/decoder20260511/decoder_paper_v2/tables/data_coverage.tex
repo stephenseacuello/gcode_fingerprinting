@@ -1,0 +1,29 @@
+% =========================================================================
+% Data-coverage table — REGENERATED 2026-05-12 from V8 per_row + full_window
+% data via scripts/analysis/check_field_coverage.py (TODO: write this script).
+%
+% Source numbers come from a direct grep of the V8 preprocessed NPZ files:
+%   outputs/decoder20260511/preprocessed_f98/per_row/fold_1/{train,test}_sequences.npz
+%   outputs/decoder20260511/preprocessed_f98/full_window/fold_1/{train,test}_sequences.npz
+% =========================================================================
+\begin{table}[h]
+\centering
+\caption{Per-field positive-support frequency in the V8 corpus. Accuracy numbers for a field with near-zero support (e.g.\ F, S, I, J in per\_row mode) are dominated by the always-absent baseline and cannot be interpreted as evidence of sensor-driven recoverability. Source: direct count over the V8 preprocessed NPZ files, fold 1.}
+\label{tab:data_coverage}
+\begin{tabular}{l r r r r}
+\toprule
+Field & per\_row train & per\_row test & full\_window train & full\_window test \\
+\midrule
+X  & $90.4\%$           & $88.5\%$           & $100.0\%$          & $100.0\%$          \\
+Y  & $88.6\%$           & $86.6\%$           & $100.0\%$          & $100.0\%$          \\
+Z  & $35.8\%$           & $31.4\%$           & $29.7\%$           & $32.6\%$           \\
+F  & $\mathbf{0.4\%}$   & $\mathbf{0.6\%}$   & $18.8\%$           & $22.0\%$           \\
+S  & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   \\
+R  & $15.2\%$           & $17.2\%$           & $88.1\%$           & $88.6\%$           \\
+I  & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   \\
+J  & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\textit{Bold cells indicate fields whose accuracy in Table~\ref{tab:per_axis} cannot be meaningfully evaluated due to insufficient positive support; recovery of these fields is a target of the summer DOE dataset (Appendix~\ref{app:doe}).}
+\end{table}
