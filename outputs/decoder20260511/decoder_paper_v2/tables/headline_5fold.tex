@@ -8,6 +8,7 @@
 \centering
 \caption{Headline test-set metrics for the G-Code Decoder under 5-fold cross-validation, no positional metadata exposed. Mean $\pm$ std over 5 folds.}
 \label{tab:headline}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{l r r r r}
 \toprule
 Head & Accuracy & Macro Precision & Macro Recall & Macro F1 \\
@@ -20,7 +21,8 @@ Param-type  & \TBD{paramtype\_acc\_5fold}   & \TBD{paramtype\_macro\_p}   & \TBD
 Sign        & \TBD{sign\_acc\_5fold}        & \TBD{sign\_macro\_p}        & \TBD{sign\_macro\_r}        & \TBD{sign\_macro\_f1}        \\
 Numeric (overall digit) & \TBD{digit\_acc\_pooled} & \TBD{digit\_macro\_p} & \TBD{digit\_macro\_r} & \TBD{digit\_macro\_f1} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \par\smallskip
 \footnotesize\textit{Macro precision/recall/F1 are unweighted means over all observed classes. Numeric is the digit-head accuracy pooled across all six digit positions; per-position breakdown in Table~\ref{tab:per_digit_position}.}
 \end{table}

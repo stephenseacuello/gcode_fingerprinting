@@ -9,6 +9,7 @@
 \centering
 \caption{Per-axis G-code recoverability across 5 folds. \emph{has-axis} is whether the axis appears in the decoded text; \emph{sign} is the direction of the motion (POSITIVE / NEGATIVE / ABSENT); \emph{value MAE} is the regression mean absolute error of the numeric value, computed only over samples where both the predicted and true G-code carry the axis. Read this table together with Table~\ref{tab:data_coverage} --- rows for fields with near-zero positive support cannot be meaningfully interpreted.}
 \label{tab:per_axis}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{l r r r r r}
 \toprule
 Axis & has-axis Acc & has-axis F1 & Sign Acc & Value MAE & Presence Recall \\
@@ -20,7 +21,8 @@ R       & \TBD{has\_R\_acc} & \TBD{has\_R\_f1} & \TBD{sign\_R\_acc} & \TBD{val\_
 F       & \emph{insufficient support; see Table~\ref{tab:data_coverage}} & --- & --- & --- & --- \\
 S, I, J & \emph{insufficient support; see Table~\ref{tab:data_coverage}} & --- & --- & --- & --- \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \par\smallskip
 \footnotesize\textit{F, S, I, J have effectively zero positive support in the corpus (see Table~\ref{tab:data_coverage}). Reporting an accuracy number for these fields would be dominated by the always-absent baseline.}
 \end{table}

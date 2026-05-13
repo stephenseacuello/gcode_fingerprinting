@@ -12,6 +12,7 @@
 \caption{Ablation matrix. The baseline row matches Table~\ref{tab:headline}. Each subsequent row toggles one factor.}
 \label{tab:ablations}
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{l r r r r r r}
 \toprule
 Ablation & Token & Sequence & Type & Command & Param-type & Numeric \\
@@ -27,7 +28,8 @@ $-$ RMS audio            & \TBD{abl\_norms\_tok}   & --                  & \TBD{
 $-$ magnetometer         & \TBD{abl\_nomag\_tok}   & --                  & \TBD{abl\_nomag\_type}   & \TBD{abl\_nomag\_cmd}   & \TBD{abl\_nomag\_param}   & --                    \\
 $-$ electrical           & \TBD{abl\_noelec\_tok}  & --                  & \TBD{abl\_noelec\_type}  & \TBD{abl\_noelec\_cmd}  & \TBD{abl\_noelec\_param}  & --                    \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \par\smallskip
 \textit{Sequence and numeric accuracy are filled only where the cross-fold sweep is complete; modality ablations are reported on fold-1 for the corresponding sensor groups and pooled across folds for the two most impactful modalities.}
 \end{table}

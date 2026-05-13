@@ -461,6 +461,7 @@ encoder embedding the decoder consumes. The decoder's headline numbers
 appear in Table~\ref{tab:headline}.}
 \label{tab:baselines}
 \small
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{l r r r r}
 \toprule
                 & \multicolumn{2}{c}{HGB (sklearn)} & \multicolumn{2}{c}{MLP probe (2-layer, 256-d)} \\
@@ -476,7 +477,8 @@ sign-Y (3-class)   & $0.8579$ & $0.3078$ & $0.8579$ & \TBD{probe\_sign\_Y\_macro
 sign-Z (3-class)   & $0.7834$ & $0.5054$ & $0.8040$ & \TBD{probe\_sign\_Z\_macro\_f1} \\
 operation-type (9) & \TBD{hgb\_op\_acc} & \TBD{hgb\_op\_f1} & $0.8458$ & \TBD{probe\_op\_macro\_f1} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \par\smallskip
 \textit{HGB = scikit-learn HistGradientBoostingClassifier with
 max\_depth=6, 300~iterations, default learning rate, early stopping.
@@ -630,9 +632,7 @@ Re-training the decoder \emph{with} positional metadata exposed (window index, t
 \subsubsection{Target-Mode Ablation (Per-Row vs.\ Full-Window)}
 \label{sec:abl-target-mode}
 
-The per-row target formulation (Section~\ref{sec:per-row}) leaves the decoder without a within-window row-identification signal: every row of a given window shares the same encoder memory, and the decoder must predict a specific row from that shared input. A natural alternative is full-window targeting, in which the supervisory signal is the entire multi-line G-code that fired within the window, generated autoregressively. Row identification then comes from the decoder's own output context: row $r$ is predicted conditional on rows $1\!\dots\!r-1$.
-
-\input{../tables/ablations_summary.tex}
+The per-row target formulation (Section~\ref{sec:per-row}) leaves the decoder without a within-window row-identification signal: every row of a given window shares the same encoder memory, and the decoder must predict a specific row from that shared input. A natural alternative is full-window targeting, in which the supervisory signal is the entire multi-line G-code that fired within the window, generated autoregressively. Row identification then comes from the decoder's own output context: row $r$ is predicted conditional on rows $1\!\dots\!r-1$. The corresponding row in Table~\ref{tab:ablations} reports the resulting accuracies.
 
 The per-row vs.\ full-window comparison \TBD{target\_mode\_qualitative} (token: \TBD{abl\_base\_tok} vs.\ \TBD{abl\_fw\_tok}; command: \TBD{abl\_base\_cmd} vs.\ \TBD{abl\_fw\_cmd}; numeric: \TBD{abl\_base\_num} vs.\ \TBD{abl\_fw\_num}). \TBD{target\_mode\_interpretation\_phrase}. The per-row vs.\ full-window contrast is exactly the design choice the underlying meeting that motivated this remediation flagged~\cite{encoder_paper}, and both modes are reported here so that downstream practitioners can pick the formulation that matches their deployment pattern (streaming per-row inference vs.\ post-hoc window reconstruction).
 
