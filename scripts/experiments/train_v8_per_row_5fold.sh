@@ -8,7 +8,8 @@ REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO"
 
 VOCAB="${VOCAB:-data/gcode_vocab_v8.json}"
-EPOCHS="${EPOCHS:-50}"
+EPOCHS="${EPOCHS:-300}"
+PATIENCE="${PATIENCE:-75}"
 OUT_ROOT="${OUT_ROOT:-outputs/decoder20260511/checkpoints/per_row_5fold}"
 
 for F in 1 2 3 4 5; do
@@ -26,6 +27,7 @@ for F in 1 2 3 4 5; do
     --vocab "${VOCAB}" \
     --output_dir "${OUT}" \
     --epochs "${EPOCHS}" \
+    --patience "${PATIENCE}" \
     --batch_size 64 \
     --lr 1e-4 \
     --weight_decay 0.05 \
