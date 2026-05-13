@@ -48,10 +48,20 @@ METRIC_KEYS = ["token_accuracy", "sequence_accuracy", "type_accuracy",
 
 
 def _load_fold_metrics(fold_dir: Path) -> dict | None:
-    m = fold_dir / "results" / "metrics.json"
-    if not m.exists():
-        return None
-    return json.loads(m.read_text())
+    """Load metrics.json from a fold dir, handling the wandb-subdir layout.
+
+    Supports:
+      fold_N/results/metrics.json                  (no wandb)
+      fold_N/<wandb_run_id>/results/metrics.json   (wandb on; trainer wraps run)
+    """
+    direct = fold_dir / "results" / "metrics.json"
+    if direct.exists():
+        return json.loads(direct.read_text())
+    candidates = list(fold_dir.glob("*/results/metrics.json"))
+    if candidates:
+        candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+        return json.loads(candidates[0].read_text())
+    return None
 
 
 def collect_baseline_5fold(baseline_name: str = DEFAULT_BASELINE_NAME) -> dict[str, list[float]]:

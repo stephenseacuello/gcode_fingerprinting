@@ -35,6 +35,23 @@ def _load_metrics(path: Path) -> dict[str, Any] | None:
     return json.loads(path.read_text())
 
 
+def _find_fold_metrics(fold_dir: Path) -> Path | None:
+    """Return the metrics.json path for a fold, handling the wandb-subdir case.
+
+    Layouts supported (in priority order):
+      fold_N/results/metrics.json                  (no wandb)
+      fold_N/<wandb_run_id>/results/metrics.json   (wandb on; trainer wraps run)
+    """
+    direct = fold_dir / "results" / "metrics.json"
+    if direct.exists():
+        return direct
+    candidates = list(fold_dir.glob("*/results/metrics.json"))
+    if candidates:
+        candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+        return candidates[0]
+    return None
+
+
 def _row(name: str, m: dict) -> dict:
     t = m.get("test_metrics", {})
     v = m.get("val_metrics", {})
@@ -73,7 +90,8 @@ def collect_5fold_results(sweep_name: str = "per_row_5fold") -> dict:
 
     rows = []
     for F in [1, 2, 3, 4, 5]:
-        m = _load_metrics(sweep_root / f"fold_{F}" / "results/metrics.json")
+        m_path = _find_fold_metrics(sweep_root / f"fold_{F}")
+        m = _load_metrics(m_path) if m_path else None
         if not m:
             continue
         t = m.get("test_metrics", {}) or {}
@@ -143,9 +161,12 @@ def collect_per_class_5fold(sweep_name: str = "per_row_5fold") -> dict:
         # Phase-A++: new training runs write per_class straight into metrics.json.
         # Older eval_only runs put it under beam_0_metrics.json. Prefer the
         # post-training metrics.json so we use the BEST checkpoint's metrics.
-        bm = _load_metrics(sweep_root / f"fold_{F}" / "results/metrics.json")
+        m_path = _find_fold_metrics(sweep_root / f"fold_{F}")
+        bm = _load_metrics(m_path) if m_path else None
         if not bm or "per_class" not in bm.get("test_metrics", {}):
-            bm = _load_metrics(sweep_root / f"fold_{F}" / "results/beam_0_metrics.json")
+            # Fall back to beam_0_metrics.json (older eval_only output)
+            beam_path = sweep_root / f"fold_{F}" / "results/beam_0_metrics.json"
+            bm = _load_metrics(beam_path)
         if not bm:
             continue
         per_class = bm.get("test_metrics", {}).get("per_class", {})
