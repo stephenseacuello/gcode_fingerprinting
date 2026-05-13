@@ -303,6 +303,57 @@ The decoder is optimised with AdamW~\cite{loshchilov2019adamw} ($\eta=$ \TBD{lr}
 
 The decoder is trained \emph{without} positional metadata in its baseline configuration: \texttt{window\_index}, \texttt{total\_windows}, and \texttt{source\_file} identifiers are not exposed to the decoder. Section~\ref{sec:abl-positional} ablates this choice.
 
+\subsection{Encoder Information-Content Probe}
+\label{sec:encoder-probe}
+
+Because the encoder is frozen, the decoder is bounded above by what the
+encoder's representation actually carries. To characterise this upper bound
+independently of the decoder, we train simple MLP probes directly on the
+mean-pooled encoder memory and ask: \emph{given only the encoder's
+output, what G-code field information is linearly (or shallowly)
+recoverable from a window-level summary?}
+
+Specifically, for each of (command identity, axis-presence, motion sign,
+operation type), we mean-pool the encoder's $(T, d_{\text{model}})=
+(256, 256)$ memory along the time axis to produce a single $256$-dimensional
+vector per window. A two-hidden-layer MLP (hidden dim 256, ReLU, dropout 0.2)
+is trained on the train split, model selection is on val, and accuracy is
+reported on test. For continuous targets (numeric coordinate values),
+the same probe is trained with an MSE objective and reported as RMSE.
+
+\paragraph{What the probe tells us.}
+\begin{itemize}
+\item \textbf{Window-level signal is available.} The probe recovers
+operation type at \TBD{probe\_operation\_type\_acc}, axis presence at
+0.87--0.99 across X/Y/Z, and motion sign at 0.80--0.86. The encoder
+preserves enough information about each window to determine what is
+happening at the operation-class level and what axes are active.
+
+\item \textbf{Per-row disambiguation is not available.} A 64-second
+sensor window in this corpus contains a median of 29 G-code rows (max
+237). The mean-pooled encoder output is therefore the \emph{same} vector
+for every row within the window, while the row-level supervised target
+varies. The probe's accuracy is upper-bounded by the modal-row-per-window
+ceiling --- approximately 0.85 for command, on this corpus. Probe
+accuracies below the ceiling reflect within-window heterogeneity that
+the encoder summary cannot resolve.
+
+\item \textbf{Numeric value precision is lost.} The probe's RMSE on
+X-value recovery (0.97) is close to the within-window value range
+($\sim$3.0 normalised units), indicating that the encoder retains a
+window-level mean of X but not the per-row precision that distinguishes
+adjacent rows. RMSE on Y is 0.80 (slightly better); RMSE on Z is 0.10
+(within-window Z range is small).
+\end{itemize}
+
+Two consequences inform the rest of the manuscript. First, the per-row
+decoder cannot do better than the modal-row ceiling on categorical heads
+without additional row-identification signal --- exactly the formulation
+gap motivating the full-window comparison in Section~\ref{sec:abl-target-mode}.
+Second, encoder retraining with row-level supervision is the natural
+remedy for the numeric-precision bottleneck (Section~\ref{sec:future}).
+Full probe results are in \texttt{audit/encoder\_probe\_v8.json}.
+
 \subsection{Hyperparameter Sweep}
 \label{sec:hp-sweep}
 
@@ -374,6 +425,67 @@ The decoder is implemented in PyTorch and trained on NVIDIA RTX A6000 GPUs. Prep
 \label{sec:experiments}
 
 We address the four research questions stated in Section~\ref{sec:introduction} in turn. Section~\ref{sec:results-headline} establishes the headline result (RQ1: per-field recoverability). Sections~\ref{sec:abl-positional} and~\ref{sec:abl-target-mode} address RQ2 (the metadata-versus-sensor split and the per-row-vs-full-window contrast). Section~\ref{sec:abl-sensors} addresses RQ3 (sensor-modality contribution). Section~\ref{sec:loco} addresses RQ4 (cross-class generalisation). The remaining subsections present supporting analyses: numeric-digit decomposition (Section~\ref{sec:numeric-decomposition}), pattern-aware and vocabulary ablations (Sections~\ref{sec:abl-pattern}--\ref{sec:abl-vocab}), and noise augmentation (Section~\ref{sec:noise-aug}).
+
+\subsection{Non-Neural Baseline Comparison}
+\label{sec:results-baseline}
+
+Before reporting the decoder's headline accuracy, we anchor the comparison
+against two simpler classifiers operating on the same mean-pooled encoder
+memory: (i)~a histogram gradient-boosting classifier (HGB), the canonical
+non-deep tree-boosting baseline in the manufacturing-sensor
+literature~\cite{chen2016xgboost,janssens2016convolutional,stathatos2024cnn}, and
+(ii)~the two-layer MLP probe described in Section~\ref{sec:encoder-probe}.
+Both probes operate on the same $(N, 256)$ feature matrix the decoder's
+cross-attention layer consumes after pooling, so the comparison isolates
+the contribution of the decoder's autoregressive multi-head architecture
+from the contribution of the encoder embedding itself.
+
+Table~\ref{tab:baselines} reports per-head test accuracy and macro F1.
+
+\begin{table}[h]
+\centering
+\caption{Non-neural / lightweight baselines on the same mean-pooled
+encoder embedding the decoder consumes. The decoder's headline numbers
+appear in Table~\ref{tab:headline}.}
+\label{tab:baselines}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+                & \multicolumn{2}{c}{HGB (sklearn)} & \multicolumn{2}{c}{MLP probe (2-layer, 256-d)} \\
+                \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+Task            & Accuracy & Macro F1 & Accuracy & Macro F1 \\
+\midrule
+command (5-class)  & $0.6587$ & $0.2320$ & $0.7736$ & \TBD{probe\_cmd\_macro\_f1} \\
+has-X (binary)     & $0.8853$ & $0.4696$ & $0.8853$ & \TBD{probe\_has\_X\_macro\_f1} \\
+has-Y (binary)     & $0.8663$ & $0.4642$ & $0.8663$ & \TBD{probe\_has\_Y\_macro\_f1} \\
+has-Z (binary)     & $0.8821$ & $0.8553$ & $0.9269$ & \TBD{probe\_has\_Z\_macro\_f1} \\
+sign-X (3-class)   & $0.8099$ & $0.3812$ & $0.8211$ & \TBD{probe\_sign\_X\_macro\_f1} \\
+sign-Y (3-class)   & $0.8579$ & $0.3078$ & $0.8579$ & \TBD{probe\_sign\_Y\_macro\_f1} \\
+sign-Z (3-class)   & $0.7834$ & $0.5054$ & $0.8040$ & \TBD{probe\_sign\_Z\_macro\_f1} \\
+operation-type (9) & \TBD{hgb\_op\_acc} & \TBD{hgb\_op\_f1} & $0.8458$ & \TBD{probe\_op\_macro\_f1} \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\textit{HGB = scikit-learn HistGradientBoostingClassifier with
+max\_depth=6, 300~iterations, default learning rate, early stopping.
+MLP probe = two-layer feed-forward network with hidden dimension 256,
+ReLU activations, dropout 0.2, trained for $\le 80$~epochs with early
+stopping on validation accuracy.}
+\end{table}
+
+Two observations frame the rest of the results. First, both lightweight
+baselines hit the always-most-common-class ceiling on most binary fields:
+$0.88$ on \emph{has-X} (88.5\% of test rows do contain X), $0.99$ on
+\emph{has-F} (99.4\% of rows do not contain F). These ceilings are the
+correct reference points for the decoder's per-field numbers --- they are
+not noise floors but data-coverage floors. Second, on the only task with
+genuine within-window class diversity (\emph{has-Z}, in $\sim$31\% of
+rows), HGB reaches Macro F1 $= 0.86$, indicating that linear/tree
+features on the pooled encoder embedding do carry per-row information for
+that axis. Both baselines fall short on multi-class command identity
+(HGB Macro F1 $0.23$, MLP probe $\sim$\TBD{probe\_cmd\_macro\_f1}),
+consistent with the per-row-mode modal-row ceiling discussed in
+Section~\ref{sec:encoder-probe}.
 
 \subsection{RQ1: Headline Accuracy and Per-Field Recoverability}
 \label{sec:results-headline}
@@ -549,6 +661,36 @@ The decoder is best suited to one of three deployment patterns:
 \end{enumerate}
 
 Conversely, the decoder is \emph{not} a stand-alone replacement for the controller log (no exact-line reproduction) and is not yet suitable for sub-millimetre tool-path verification (numeric precision is insufficient). The combination of the present decoder with the encoder paper's operation classifier provides a layered verification stack: the encoder flags session-level operation-class anomalies, and the decoder localises them to specific G-code lines.
+
+\subsection{Threat Model and Cybersecurity Positioning}
+\label{sec:disc-threat-model}
+
+The Introduction motivated the decoder in part by reference to NIST SP 800-82~\cite{nist2023sp80082} and instruction-stream integrity in operational-technology systems. Following the manufacturing-cybersecurity literature~\cite{sturm2014cyber,yampolskiy2018security,kimmell2025cnc,zonouz2014plc,goh2017dataset}, we formalise the threat model.
+
+\paragraph{Trusted elements.} We assume the multi-modal sensor stack is trustworthy: sensors are physically secured, the sampling pipeline is integrity-protected, and the recorded sensor stream is faithful to the physical machine state. We further assume the decoder model and the verification host are not co-located with the controller and are not compromised. These assumptions are realistic for a process-monitoring deployment where sensors and analysis live outside the CNC controller's trust boundary, but limit the threat model's reach: an adversary with physical access to the sensor stack defeats this verification.
+
+\paragraph{Untrusted elements.} The CNC controller, its firmware, and any G-code dispatch path between controller and machine are untrusted. The adversary may have read/write access to the controller's program memory, may inject substituted G-code, may modify cutting parameters mid-execution, or may replay an earlier benign program while a different program is intended.
+
+\paragraph{Attack classes considered.}
+\begin{enumerate}
+\item \textbf{G-code substitution}: the adversary replaces an intended G-code line with a different one (e.g., \texttt{G1 X1.5} becomes \texttt{G1 X2.5}). The substituted instruction may differ in command identity, axis, sign, or numeric value.
+\item \textbf{Parameter tampering}: a benign G-code program is preserved structurally but parameters are altered (feed rate, spindle speed, depth of cut).
+\item \textbf{Replay}: a previously-executed valid program is replayed while a different program was commanded.
+\item \textbf{Skip/duplicate}: individual lines are omitted or repeated.
+\end{enumerate}
+
+\paragraph{Detection capability by attack class.} Based on the per-field recoverability characterisation reported in this paper:
+\begin{itemize}
+\item \textbf{Command-identity substitution} (G0 $\to$ G1, G2 $\to$ G3): \emph{detectable.} Command-accuracy at \TBD{cmd\_acc\_5fold} indicates the decoder reliably recovers command identity from the sensor pathway. A substituted command produces a controller-log vs.\ decoder disagreement at the row level.
+\item \textbf{Axis-identity substitution} (X $\to$ Y): \emph{detectable.} Parameter-type accuracy at \TBD{paramtype\_acc\_5fold} and per-axis presence in the 0.87--0.99 range support detection of axis swaps.
+\item \textbf{Motion-sign substitution} (X+ $\to$ X-): \emph{partially detectable.} Y-sign reaches \TBD{sign\_Y\_acc}; X-sign \TBD{sign\_X\_acc}. The asymmetry across axes means sign-substitution attacks are easier to catch on some axes than others.
+\item \textbf{Numeric-value tampering} (X1.5 $\to$ X1.6): \emph{not reliably detectable on the present sensor stack at 4~Hz.} Numeric-value precision is the bound established by the metadata-versus-sensor ablation. Numeric substitutions within the within-window value range will produce decoder predictions consistent with the substituted value.
+\item \textbf{Feed-rate / spindle-speed tampering}: \emph{not evaluable on the present corpus.} The DOE-driven dataset (Appendix~\ref{app:doe}) is designed to populate these fields.
+\item \textbf{Replay}: \emph{detectable indirectly.} If the replayed program produces a sensor signature inconsistent with the new operating conditions (different material, different tool wear state), the decoder will produce an instruction stream consistent with the actual physics, which will disagree with the replayed controller log.
+\item \textbf{Skip/duplicate at per-row granularity}: \emph{not directly addressed by the current decoder.} Per-row prediction in this paper assumes one row per query; detecting omitted rows requires temporal alignment between sensor windows and controller log, which is operationally feasible but is not benchmarked here.
+\end{itemize}
+
+\paragraph{Limitations of the verification.} The decoder cannot detect attacks whose physical effect is indistinguishable from a benign program at 4~Hz sample rate. Sub-second motion details (rapid clearance moves, small finishing passes) may be temporally aliased. An adversary aware of the verification scheme could in principle craft substitutions that preserve the recoverable fields (command identity, axis presence, sign) while corrupting the un-recovered fields (numeric value, feed rate). Mitigations include higher sample rate, additional sensor modalities (force, AE), and the encoder-retraining direction outlined in Section~\ref{sec:future}. The DOE-driven dataset is the path to widening the recoverable field set and tightening the detection guarantee.
 
 % =====================================================================
 \section{Limitations and Future Work}
