@@ -1542,3 +1542,87 @@ recommendations beyond the original 14:
 
 Items 15-19 are forward-looking, post-full_window-completion. Each is
 ~1-2 hours of work; items 17 and 19 are the highest-impact.
+
+## 2026-05-13 — Meeting alignment check #2 (after full_window fold 1+2)
+
+Re-checking against the 2026-04-28 meeting summary now that we have the
+full_window result, the paper-v2 quality upgrade, and items 1-9 of the
+gap-recommendation list closed. This refresh of the alignment table:
+
+### Meeting action items — current status
+
+| # | Item (owner) | Status today | Δ since last check |
+|---|---|---|---|
+| 1 | Tokenizer / training: max_token_len applies per G-code LINE, not per window (Stephen) | ✅ DONE | unchanged |
+| 2 | Test per-row vs full-window prediction (Romesh) | ✅ DONE for fold 1+2 (full_window beats per_row by +27 to +41 pp on command) | **CHANGED: now empirically confirmed** |
+| 3 | Add noise augmentation to labels/features (Romesh) | ⏸ queued | now in extended post-fullwindow watcher chain |
+| 4 | Prepare summer DOE for direction × speed × depth × material (Stephen) | ✅ infrastructure DONE: 188 runs spec'd, .gcode emitted, validator clean. Still pending Tarmac hardware + procurement | minor: paper now cites Appendix DOE |
+| 5 | Review sensor priorities (gyroscope) from prior ablations (Team) | ⏸ queued | now in extended watcher chain |
+| 6 | Manbir reads paper, reconvenes Monday | ❓ outside scope | unchanged |
+| 7 | Tarmac PO follow-up with Lois / Woody (Stephen) | ❓ outside scope | unchanged |
+| 8 | Hire Tim for summer (Manbir) | ❓ outside scope | unchanged |
+| 9 | Revisit tool imaging / R2 camera (Stephen) | ❓ outside scope | unchanged |
+| 10 | Design simple testable experimental runs (core group) | ⏸ pending DOE rollout | unchanged |
+| 11 | Monday working session for summer planning (Manbir) | ❓ outside scope | unchanged |
+| 12 | Reduce manuscript to page limit (Romesh) | ⚠️ MISSED so far: paper is 28 pages; Sensors limit is 16 (two-column) / 20 (single). Need to compile into two-column or trim content | **NEW GAP** |
+
+### Meeting paper-framing decisions — status
+
+| Decision | Status |
+|---|---|
+| Pivot from "full G-code reconstruction" to "physically recoverable parameters" | ✅ paper now organised around per-field recoverability (Sec 4.2 Per-Axis Recoverability) |
+| Cybersecurity / process verification framing | ✅ formal Threat Model section added (Sec 6.6 sec:disc-threat-model) |
+| Feed rate, depth of cut as recoverable parameters | ⚠️ caveat: F is in 0.4–22 % of samples; only "F-presence" is evaluable, not "F-value recovery." Z (depth of cut proxy) IS well recovered (≥ 0.99 param_type, ≥ 0.99 sign). Paper documents this transparency in Sec 5.4 sec:lim-dataset |
+| Decoder needs pattern recognition (Manbir's specific contribution) | ⏸ pattern_aware pilot queued in extended watcher chain |
+| Per-row vs full-window test (Romesh's specific recommendation) | ✅ DONE; full_window is the headline result |
+
+### Meeting-implied items that remained gaps
+
+| Gap | Status |
+|---|---|
+| Page limit (16/20 pp) | ⚠️ paper at 28 pp. Either (a) trim, (b) submit to a different venue with no page limit, or (c) recompile in MDPI two-column format. The body text targets ~20 pp in single-column; in two-column compile this becomes ~14 pp. Recommendation: keep adding content for now; trim after full_window 5-fold lands |
+| Noise augmentation (item 3) | ⏸ now queued in extended watcher chain (step d) |
+| Sensor-priority ablation (item 5) | ⏸ now queued in extended watcher chain (step c) |
+| Pattern-aware decoder (Manbir) | ⏸ now queued in extended watcher chain (step f) |
+| Vocabulary precision (item 6 from Round-2 plan) | ⏸ now queued in extended watcher chain (step g) |
+| Tool imaging (item 9) | ❓ operational, not modeling |
+| Per-line timestamp logging from Tormach | ❓ operational, pending hardware |
+| Material ordering (aluminum / steel / delrin) | ❓ operational, pending hardware |
+
+### Items DONE since the previous alignment check yesterday
+
+1. (#1 from gap-list) Non-neural baseline (HGB) — ✅
+2. (#2) Threat model section — ✅
+3. (#3) Multi-comparisons correction (Holm-Bonferroni + BH-FDR) — ✅
+4. (#4) Encoder-leakage probe in paper — ✅
+5. (#6) Power analysis on long tail — ✅
+6. (#7) Train-vs-test covariate-shift audit — ✅
+7. (#8) Token-position failure analysis — ✅
+8. (#9) Phase F design spec — ✅
+9. (#11) Replicability checklist appendix — ✅
+10. (#12) Git commit pass (12 commits) — ✅
+11. (#16/17) Full_window + shortcuts, full_window + no_ss queued — armed in watcher
+12. Abstract rewritten with hook and professional tone — ✅
+13. Full_window fold 1 + 2 done: command jumps 0.50 → 0.78/0.91 — empirical validation
+14. Watcher extended to chain ALL remaining ablations (steps c through h) — ✅
+
+### Outstanding gaps that block submission
+
+1. **Page limit (item 12 from meeting)**. 28 pp single column. Sensors requires 16 pp two-column or 20 pp single-column. Critical.
+2. **Figures not included in .tex** (\#5 from gap-list). The seven generators exist, the PNG/PDFs exist (but stale), but `decoder_paper_v2.tex` has zero `\includegraphics` calls. Reviewers will flag immediately.
+3. **5-fold mean ± std** isn't in the paper yet — placeholders. Auto-fill when watcher's regen pass runs.
+4. **All ablations on V8 data** — currently queued in watcher chain (sensor, noise, LOCO, pattern-aware, vocab); about 10-12 hours of additional GPU time.
+
+### What the extended watcher chain delivers
+
+After it completes (estimated 14-18 hours total from now), every queued
+ablation will have V8 numbers. Then the only manual steps remaining are:
+
+a. Fill the TBD placeholders in the paper (mechanical — see TABLES_REGENERATION_GUIDE.md)
+b. Add `\includegraphics` calls in the appropriate Results subsections
+c. Decide on page-limit response (trim, two-column, or alternate venue)
+d. Optional: failure-mode visual figure (item 10 from gap-list)
+e. Optional: narrative rewrite framing around the per_row → full_window discovery (item 19)
+
+The watcher's final step (h) regenerates all figures from the final
+checkpoints, so by morning the figure PDFs should be V8-consistent.
