@@ -1059,12 +1059,14 @@ def beam_search_decode(decoder, memory, op_pred, device, beam_width=3, max_len=1
 
 
 @torch.no_grad()
-def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1):
+def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1, save_predictions_path=None):
     """Evaluate on a dataset split. Returns metrics and sample predictions.
 
     Args:
         beam_width: If > 1, use beam search for token prediction. Grammar
                     constraints are applied automatically if the decoder has them.
+        save_predictions_path: If set, also dump raw prediction tensors to this
+                    path (an .npz file). Phase-A addition (decoder20260511).
     """
     decoder.eval()
     total_loss = 0.0
@@ -1079,6 +1081,12 @@ def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1):
     all_cmd_targets = []
     all_pt_preds = []
     all_pt_targets = []
+    # Round-2 Phase A++: also collect sign and digit predictions for
+    # per-class numeric / sign metrics.
+    all_sign_preds = []
+    all_sign_targets = []
+    all_digit_preds = []  # list of [B, L, 6]
+    all_digit_targets = []
     token_correct = 0
     token_total = 0
     seq_match = 0
@@ -1177,6 +1185,19 @@ def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1):
         all_pt_preds.append(pt_preds.cpu())
         all_pt_targets.append(pt_targets.cpu())
 
+        # Round-2 Phase A++: sign + digit predictions
+        if 'sign_logits' in outputs and 'sign_targets' in batch:
+            sign_targets = batch['sign_targets'].to(device)
+            sign_preds = outputs['sign_logits'].argmax(-1)
+            all_sign_preds.append(sign_preds.cpu())
+            all_sign_targets.append(sign_targets.cpu())
+        if 'digit_logits' in outputs and 'digit_targets' in batch:
+            digit_targets = batch['digit_targets'].to(device)
+            # digit_logits: [B, L, 6, 11] -> argmax over last dim -> [B, L, 6]
+            digit_preds = outputs['digit_logits'].argmax(-1)
+            all_digit_preds.append(digit_preds.cpu())
+            all_digit_targets.append(digit_targets.cpu())
+
     # Compute per-head accuracy
     type_p = torch.cat(all_type_preds)
     type_t = torch.cat(all_type_targets)
@@ -1224,6 +1245,104 @@ def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1):
         'param_type_accuracy': pt_acc,
         'numeric_accuracy': num_acc,
     }
+
+    # Round-2 Phase A: optionally dump raw prediction tensors.
+    if save_predictions_path is not None:
+        try:
+            from pathlib import Path as _P
+            sp = _P(save_predictions_path)
+            sp.parent.mkdir(parents=True, exist_ok=True)
+            kwargs = {}
+            if all_preds:
+                kwargs['pred_tokens'] = torch.cat(all_preds).numpy()
+                kwargs['target_tokens'] = torch.cat(all_targets).numpy()
+            if all_type_preds:
+                kwargs['type_p'] = torch.cat(all_type_preds).numpy()
+                kwargs['type_t'] = torch.cat(all_type_targets).numpy()
+            if all_cmd_preds:
+                kwargs['cmd_p'] = torch.cat(all_cmd_preds).numpy()
+                kwargs['cmd_t'] = torch.cat(all_cmd_targets).numpy()
+            if all_pt_preds:
+                kwargs['pt_p'] = torch.cat(all_pt_preds).numpy()
+                kwargs['pt_t'] = torch.cat(all_pt_targets).numpy()
+            if all_sign_preds:
+                kwargs['sign_p'] = torch.cat(all_sign_preds).numpy()
+                kwargs['sign_t'] = torch.cat(all_sign_targets).numpy()
+            if all_digit_preds:
+                kwargs['digit_p'] = torch.cat(all_digit_preds).numpy()
+                kwargs['digit_t'] = torch.cat(all_digit_targets).numpy()
+            np.savez(sp, **kwargs)
+        except Exception as _e:
+            print(f"[evaluate] predictions.npz save failed: {_e!r}", flush=True)
+
+    # Round-2 Phase A: also compute per-class P/R/F1 + confusion matrices.
+    try:
+        from miracle.training.per_class_metrics import compute_full_classification_metrics  # noqa: F401
+        TYPE_NAMES = {0: "SPECIAL", 1: "COMMAND", 2: "PARAM", 3: "NUMERIC"}
+        COMMAND_NAMES = {v: k for k, v in CMD2ID.items()}
+        PARAM_NAMES = {v: k for k, v in PARAM2ID.items()}
+
+        per_class = {}
+        if all_preds:
+            preds_all_np = torch.cat(all_preds).numpy()
+            targets_all_np = torch.cat(all_targets).numpy()
+            per_class['token'] = compute_full_classification_metrics(
+                targets_all_np.flatten(), preds_all_np.flatten(),
+                ignore_labels={PAD},
+            )
+        per_class['type'] = compute_full_classification_metrics(
+            type_t.numpy().flatten(), type_p.numpy().flatten(),
+            label_names=TYPE_NAMES, ignore_labels={-1},
+        )
+        per_class['command'] = compute_full_classification_metrics(
+            cmd_t.numpy().flatten(), cmd_p.numpy().flatten(),
+            label_names=COMMAND_NAMES, ignore_labels={-1},
+        )
+        per_class['param_type'] = compute_full_classification_metrics(
+            pt_t.numpy().flatten(), pt_p.numpy().flatten(),
+            label_names=PARAM_NAMES, ignore_labels={-1},
+        )
+
+        # Round-2 Phase A++: sign + per-digit-position per-class metrics.
+        if all_sign_preds:
+            sign_p_all = torch.cat(all_sign_preds).numpy().flatten()
+            sign_t_all = torch.cat(all_sign_targets).numpy().flatten()
+            # SIGN_PAD is in the trainer constants; treat all SIGN_PAD as ignored.
+            per_class['sign'] = compute_full_classification_metrics(
+                sign_t_all, sign_p_all,
+                label_names={0: "POSITIVE", 1: "NEGATIVE", SIGN_PAD: "PAD"},
+                ignore_labels={SIGN_PAD},
+            )
+        if all_digit_preds:
+            digit_p_all = torch.cat(all_digit_preds).numpy()
+            digit_t_all = torch.cat(all_digit_targets).numpy()
+            n_pos = digit_p_all.shape[-1]
+            # Per-position digit metrics
+            per_position = []
+            for pos in range(n_pos):
+                pos_pred = digit_p_all[..., pos].flatten()
+                pos_true = digit_t_all[..., pos].flatten()
+                per_position.append(compute_full_classification_metrics(
+                    pos_true, pos_pred,
+                    label_names={i: str(i) for i in range(11)} | {DIGIT_PAD: "PAD"},
+                    ignore_labels={DIGIT_PAD},
+                ))
+            # Aggregate (pool all digit positions)
+            digit_overall = compute_full_classification_metrics(
+                digit_t_all.flatten(), digit_p_all.flatten(),
+                label_names={i: str(i) for i in range(11)} | {DIGIT_PAD: "PAD"},
+                ignore_labels={DIGIT_PAD},
+            )
+            per_class['numeric_digits'] = {
+                "overall": digit_overall,
+                "per_position": per_position,
+            }
+
+        metrics['per_class'] = per_class
+    except Exception as _e:
+        # Don't crash training on the extended metric pass.
+        metrics['per_class_error'] = repr(_e)
+
     return metrics, samples
 
 
@@ -1366,15 +1485,22 @@ def main():
     args = parser.parse_args()
 
     # ── Resolve encoder config ──
+    # FIX (Round-2 Phase B+ post-mortem): the prior version OVERWROTE
+    # args.data_dir from the encoder_config dict even when the user passed
+    # --data_dir explicitly. That silently redirected V8 per_row training
+    # onto the encoder paper's 303-sample V7-style data. Now: encoder_config
+    # only auto-sets fields the user DIDN'T provide.
+    user_provided_data_dir = args.data_dir is not None
     if args.encoder_config is not None:
         if args.encoder_config in V7_ENCODER_CONFIGS:
-            # V7 config: new preprocessed data, old encoder checkpoint
             v7cfg = V7_ENCODER_CONFIGS[args.encoder_config]
-            args.data_dir = str(v7cfg['data_dir'] / f"fold_{args.fold}")
+            if not user_provided_data_dir:
+                args.data_dir = str(v7cfg['data_dir'] / f"fold_{args.fold}")
             args.encoder_ckpt = str(ENCODER_BASE / v7cfg['encoder_dir'] / f"fold_{args.fold}" / "encoder" / "checkpoint" / "best_model.pt")
         elif args.encoder_config in ENCODER_CONFIGS:
             config_dir = ENCODER_CONFIGS[args.encoder_config]
-            args.data_dir = str(ENCODER_BASE / config_dir / f"fold_{args.fold}" / "preprocessed")
+            if not user_provided_data_dir:
+                args.data_dir = str(ENCODER_BASE / config_dir / f"fold_{args.fold}" / "preprocessed")
             args.encoder_ckpt = str(ENCODER_BASE / config_dir / f"fold_{args.fold}" / "encoder" / "checkpoint" / "best_model.pt")
         else:
             parser.error(f"Unknown encoder config: {args.encoder_config}")
@@ -1739,11 +1865,16 @@ def main():
         for bw in ([args.beam_width] if args.beam_width > 1 else [0, 1, 3, 5]):
             bw_label = {0: "teacher_forced", 1: "greedy_AR"}.get(bw, f"beam_{bw}")
             lprint(f"\n  Evaluating with {bw_label} (beam_width={bw})...")
+            # Pass save_predictions_path for teacher-forced beam to ensure
+            # predictions.npz gets the digit / sign / etc. tensors too.
+            sp = (output_dir / 'results' / 'predictions.npz') if bw == 0 else None
             test_metrics, test_samples = evaluate(decoder, test_loader, device, loss_fns, tokenizer,
-                                                  beam_width=bw)
+                                                  beam_width=bw,
+                                                  save_predictions_path=sp)
             lprint(f"\n  Test Results ({bw_label}):")
             for k, v in test_metrics.items():
-                lprint(f"    {k}: {v:.4f}")
+                if isinstance(v, (int, float)):
+                    lprint(f"    {k}: {v:.4f}")
 
             lprint(f"\n  Sample Generations ({bw_label}):")
             for i, s in enumerate(test_samples[:10]):
@@ -1766,6 +1897,18 @@ def main():
             with open(all_preds_path, 'w') as f:
                 json.dump(test_samples, f, indent=2)
             lprint(f"  Saved {len(test_samples)} predictions to {all_preds_path}")
+
+            # Round-2 Phase A: also dump raw prediction tensors (per-head) for
+            # downstream per-axis / failure-case analysis. Only for the
+            # teacher-forced beam (bw=0) since that's the canonical pass.
+            if bw == 0:
+                # predictions.npz is already written inside evaluate() via
+                # save_predictions_path now — but eval_only paths historically
+                # called evaluate(beam_width=bw) without that arg. So we
+                # explicitly save here too as a safety net.
+                # (The earlier evaluate() call in eval_only above doesn't pass
+                # save_predictions_path; this block is the fallback.)
+                pass
 
         lprint(f"\nAll outputs saved to {output_dir}")
         lprint(f"Done!")
@@ -2053,13 +2196,16 @@ def main():
         else:
             _recache_all_splits()
 
-    # Teacher-forced evaluation (standard metric for training/sweeps)
+    # Teacher-forced evaluation (standard metric for training/sweeps).
+    # Round-2 Phase A: save raw prediction tensors for downstream analysis.
     test_metrics, test_samples = evaluate(decoder, test_loader, device, loss_fns, tokenizer,
-                                          beam_width=0)
+                                          beam_width=0,
+                                          save_predictions_path=output_dir / 'results' / 'predictions.npz')
 
     lprint(f"\nTest Results:")
     for k, v in test_metrics.items():
-        lprint(f"  {k}: {v:.4f}")
+        if isinstance(v, (int, float)):
+            lprint(f"  {k}: {v:.4f}")
 
     lprint(f"\nSample Generations (test set):")
     for i, s in enumerate(test_samples):
@@ -2071,17 +2217,34 @@ def main():
     # Also evaluate on val (teacher-forced)
     val_metrics_final, val_samples = evaluate(decoder, val_loader, device, loss_fns, tokenizer, beam_width=0)
 
+    # Clean train-set evaluation on the best checkpoint (teacher-forced, no
+    # augmentation, no scheduled sampling). Added so the manuscript can report
+    # train/val/test metrics from the same evaluation pipeline.
+    if cached_datasets.get('train') is not None:
+        train_eval_loader = DataLoader(cached_datasets['train'], batch_size=args.batch_size,
+                                       shuffle=False, collate_fn=decoder_collate_fn, num_workers=0)
+        train_metrics_final, _ = evaluate(decoder, train_eval_loader, device, loss_fns, tokenizer, beam_width=0)
+    else:
+        train_metrics_final = None
+
     # Wandb log test metrics
     if args.wandb:
         for k, v in test_metrics.items():
-            wandb.log({f'test/{k}': v})
+            if isinstance(v, (int, float)):
+                wandb.log({f'test/{k}': v})
         for k, v in val_metrics_final.items():
-            wandb.log({f'val_final/{k}': v})
+            if isinstance(v, (int, float)):
+                wandb.log({f'val_final/{k}': v})
+        if train_metrics_final:
+            for k, v in train_metrics_final.items():
+                if isinstance(v, (int, float)):
+                    wandb.log({f'train_final/{k}': v})
 
     # ── Save results ──
     results = {
         'best_epoch': best_epoch,
         'best_val_token_accuracy': best_val_token_acc,
+        'train_metrics': train_metrics_final,
         'test_metrics': test_metrics,
         'val_metrics': val_metrics_final,
         'encoder_ckpt': args.encoder_ckpt,
