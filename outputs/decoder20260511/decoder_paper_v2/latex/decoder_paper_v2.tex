@@ -522,6 +522,31 @@ The digit head achieves \TBD{digit\_acc\_pooled} mean accuracy pooled across all
 
 The pattern is consistent with an information-bottlenecked numeric pathway: structure tokens at sequence endpoints (the most-significant magnitude digit, the least-significant precision digit) are well-determined by the sensor signature, while middle digits --- which encode the fine-grained coordinate value --- are not.
 
+\subsection{Output-Position Failure Distribution}
+\label{sec:output-position-failure}
+
+A token-position breakdown of decoder accuracy locates where in the output sequence the model fails. We compute per-token accuracy at each output position from 0 to the max sequence length, over the test set (\texttt{audit/extended\_rigor\_audits.json}, key \texttt{rec8\_token\_position\_failure}). For the composite-winner configuration on V8 per\_row fold 1:
+
+\begin{center}
+\small
+\begin{tabular}{r r r}
+\toprule
+Output position & $n$ observed & Accuracy \\
+\midrule
+0 (command / BOS-region) & 7,937 & 0.7606 \\
+1 (first param letter) & 7,937 & \textbf{0.2399} \\
+2 (first numeric value) & 7,924 & 0.8141 \\
+3 & 7,289 & 0.7429 \\
+4 & 6,180 & 0.9285 \\
+5 & 3,737 & 0.8924 \\
+6 & 3,675 & 0.9633 \\
+7 & 856 & 1.0000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Position 1 --- the position immediately following the command token, where the first address letter (X/Y/Z) appears --- is recovered at 24\% accuracy, a sharp drop from the surrounding positions. Position 0 (the command itself) and position 2 (the first numeric value) both reach $\ge 0.76$. The pattern is consistent with the per-row-mode ambiguity discussed in Section~\ref{sec:disc-failure-mode}: the model gets the command identity right approximately as often as expected from the modal-row ceiling, but the \emph{which address letter is the first param} decision is where the within-window-row ambiguity bites hardest. Each window contains rows that begin with different axes (one row starts with X, another with Y), and the per-row encoder summary cannot distinguish them. Section~\ref{sec:abl-target-mode}'s full-window result is expected to dramatically lift position-1 accuracy in particular.
+
 \subsection{Failure-Mode Analysis}
 \label{sec:failure-modes}
 
@@ -713,6 +738,34 @@ The Introduction motivated the decoder in part by reference to NIST SP 800-82~\c
 \paragraph{Sampling rate.} Sensor data is recorded at 4~Hz. Cutting events with sub-second duration (rapid moves, small finishing passes) may be temporally aliased at this rate. A higher-rate sensor stack (deferred to the DOE follow-up) is expected to improve numeric-precision recovery in particular.
 
 \paragraph{Window length.} The 256-sample window length was inherited from the encoder paper's classification configuration~\cite{encoder_paper} to ensure consistent encoder inputs. A full window/stride sweep requires retraining the encoder for each $(\text{window}, \text{stride})$ pair and is deferred to the same encoder-retraining ablation as above.
+
+\subsection{Statistical Power Limitations}
+\label{sec:lim-power}
+
+Per-class metrics for the command head are computed on small per-class supports in the test split: G0 ($n\!=\!86$), G1 ($n\!=\!1{,}095$), G2 ($n\!=\!475$), G3 ($n\!=\!395$), none ($n\!=\!5{,}886$). A power analysis (\texttt{audit/extended\_rigor\_audits.json}, key \texttt{rec6\_power\_analysis}) computes the minimum detectable effect (MDE) at $\alpha\!=\!0.05$, $\beta\!=\!0.20$ for each class:
+
+\begin{itemize}
+\item G0 ($n\!=\!86$, baseline $\sim$0.40): MDE $\approx 18.8$~pp. Differences below this size are not statistically distinguishable from sampling noise.
+\item G1 ($n\!=\!1{,}095$, baseline $\sim$0.94): MDE $\approx 2.3$~pp.
+\item G2 ($n\!=\!475$, baseline $\sim$0.50): MDE $\approx 8.0$~pp.
+\item G3 ($n\!=\!395$, baseline $\sim$0.30): MDE $\approx 8.4$~pp.
+\item none ($n\!=\!5{,}886$, baseline $\sim$0.95): MDE $\approx 0.9$~pp.
+\item param-types X, Y, Z, R: MDE $\le 1.5$~pp (large supports).
+\end{itemize}
+
+\noindent ``Not significant'' on the long-tail classes (G0, G3) often means \emph{underpowered}, not \emph{equivalent}. The DOE-driven dataset (Appendix~\ref{app:doe}) is designed to lift per-class supports to where the per-class differences in F1 are statistically resolvable.
+
+\subsection{Covariate-Shift Audit}
+\label{sec:lim-covariate}
+
+For each fold we compare per-field positive-support frequency between the train and test splits. The audit (\texttt{audit/extended\_rigor\_audits.json}, keys \texttt{rec7\_covariate\_shift\_*}) flags any field shifted by $\ge 3$~pp:
+
+\begin{itemize}
+\item \emph{Per-row} mode: fold 1 shows Z at $-4.4$~pp (less Z in test than train). Folds 2--5: no flagged fields.
+\item \emph{Full-window} mode: fold 1 shows F at $+3.2$~pp and fold 5 at $-5.3$~pp. Folds 2--4: no flagged fields.
+\end{itemize}
+
+\noindent The flagged shifts are modest (under 6~pp) and concentrated on the already-low-support fields (Z, F). The per-axis recoverability results in Section~\ref{sec:per-axis} should be read with this caveat in mind: small fold-to-fold variation in field coverage contributes to the cross-fold standard deviation reported in Table~\ref{tab:per_axis}.
 
 \subsection{Evaluation Limitations}
 \label{sec:lim-eval}

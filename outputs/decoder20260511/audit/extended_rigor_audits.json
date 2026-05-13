@@ -1,0 +1,472 @@
+{
+  "rec6_power_analysis": {
+    "command_G0": {
+      "n_support": 86,
+      "baseline_acc": 0.4,
+      "minimum_detectable_delta_pp": 18.84,
+      "interpretation": "With n=86 test samples at p_0=0.40, the smallest accuracy difference detectable at \u03b1=0.05, \u03b2=0.20 is 18.8 pp. Differences below this size cannot be statistically distinguished from sampling noise."
+    },
+    "command_G1": {
+      "n_support": 1095,
+      "baseline_acc": 0.94,
+      "minimum_detectable_delta_pp": 2.28,
+      "interpretation": "With n=1095 test samples at p_0=0.94, the smallest accuracy difference detectable at \u03b1=0.05, \u03b2=0.20 is 2.3 pp. Differences below this size cannot be statistically distinguished from sampling noise."
+    },
+    "command_G2": {
+      "n_support": 475,
+      "baseline_acc": 0.5,
+      "minimum_detectable_delta_pp": 8.03,
+      "interpretation": "With n=475 test samples at p_0=0.50, the smallest accuracy difference detectable at \u03b1=0.05, \u03b2=0.20 is 8.0 pp. Differences below this size cannot be statistically distinguished from sampling noise."
+    },
+    "command_G3": {
+      "n_support": 395,
+      "baseline_acc": 0.3,
+      "minimum_detectable_delta_pp": 8.38,
+      "interpretation": "With n=395 test samples at p_0=0.30, the smallest accuracy difference detectable at \u03b1=0.05, \u03b2=0.20 is 8.4 pp. Differences below this size cannot be statistically distinguished from sampling noise."
+    },
+    "command_none": {
+      "n_support": 5886,
+      "baseline_acc": 0.95,
+      "minimum_detectable_delta_pp": 0.95,
+      "interpretation": "With n=5886 test samples at p_0=0.95, the smallest accuracy difference detectable at \u03b1=0.05, \u03b2=0.20 is 1.0 pp. Differences below this size cannot be statistically distinguished from sampling noise."
+    },
+    "paramtype_X": {
+      "n_support": 7000,
+      "baseline_acc": 0.94,
+      "minimum_detectable_delta_pp": 0.96,
+      "interpretation": "With n=7000 test samples at p_0=0.94, the smallest accuracy difference detectable at \u03b1=0.05, \u03b2=0.20 is 1.0 pp. Differences below this size cannot be statistically distinguished from sampling noise."
+    },
+    "paramtype_Y": {
+      "n_support": 6800,
+      "baseline_acc": 0.87,
+      "minimum_detectable_delta_pp": 1.4,
+      "interpretation": "With n=6800 test samples at p_0=0.87, the smallest accuracy difference detectable at \u03b1=0.05, \u03b2=0.20 is 1.4 pp. Differences below this size cannot be statistically distinguished from sampling noise."
+    },
+    "paramtype_Z": {
+      "n_support": 2500,
+      "baseline_acc": 1.0,
+      "minimum_detectable_delta_pp": 0.0,
+      "interpretation": "With n=2500 test samples at p_0=1.00, the smallest accuracy difference detectable at \u03b1=0.05, \u03b2=0.20 is 0.0 pp. Differences below this size cannot be statistically distinguished from sampling noise."
+    },
+    "paramtype_R": {
+      "n_support": 1370,
+      "baseline_acc": 1.0,
+      "minimum_detectable_delta_pp": 0.0,
+      "interpretation": "With n=1370 test samples at p_0=1.00, the smallest accuracy difference detectable at \u03b1=0.05, \u03b2=0.20 is 0.0 pp. Differences below this size cannot be statistically distinguished from sampling noise."
+    }
+  },
+  "rec7_covariate_shift_per_row": {
+    "fold_1": {
+      "train_frequency": {
+        "X": 90.44,
+        "Y": 88.56,
+        "Z": 35.76,
+        "F": 0.39,
+        "S": 0.0,
+        "R": 15.19,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 88.53,
+        "Y": 86.63,
+        "Z": 31.37,
+        "F": 0.57,
+        "S": 0.0,
+        "R": 17.25,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": -1.91,
+        "Y": -1.93,
+        "Z": -4.39,
+        "F": 0.18,
+        "S": 0.0,
+        "R": 2.06,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {
+        "Z": -4.39
+      }
+    },
+    "fold_2": {
+      "train_frequency": {
+        "X": 89.78,
+        "Y": 87.98,
+        "Z": 34.05,
+        "F": 0.4,
+        "S": 0.0,
+        "R": 15.69,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 90.16,
+        "Y": 88.33,
+        "Z": 33.36,
+        "F": 0.44,
+        "S": 0.0,
+        "R": 14.57,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": 0.39,
+        "Y": 0.35,
+        "Z": -0.69,
+        "F": 0.04,
+        "S": 0.0,
+        "R": -1.12,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {}
+    },
+    "fold_3": {
+      "train_frequency": {
+        "X": 89.76,
+        "Y": 88.0,
+        "Z": 33.19,
+        "F": 0.4,
+        "S": 0.0,
+        "R": 15.3,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 90.17,
+        "Y": 88.13,
+        "Z": 35.75,
+        "F": 0.46,
+        "S": 0.0,
+        "R": 16.03,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": 0.4,
+        "Y": 0.14,
+        "Z": 2.56,
+        "F": 0.06,
+        "S": -0.0,
+        "R": 0.73,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {}
+    },
+    "fold_4": {
+      "train_frequency": {
+        "X": 89.67,
+        "Y": 87.81,
+        "Z": 33.41,
+        "F": 0.42,
+        "S": 0.0,
+        "R": 15.67,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 90.32,
+        "Y": 88.17,
+        "Z": 35.82,
+        "F": 0.46,
+        "S": 0.0,
+        "R": 16.0,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": 0.65,
+        "Y": 0.36,
+        "Z": 2.41,
+        "F": 0.04,
+        "S": -0.0,
+        "R": 0.33,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {}
+    },
+    "fold_5": {
+      "train_frequency": {
+        "X": 90.27,
+        "Y": 88.37,
+        "Z": 35.0,
+        "F": 0.41,
+        "S": 0.0,
+        "R": 15.21,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 90.64,
+        "Y": 88.92,
+        "Z": 35.46,
+        "F": 0.36,
+        "S": 0.0,
+        "R": 14.58,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": 0.37,
+        "Y": 0.56,
+        "Z": 0.47,
+        "F": -0.05,
+        "S": -0.0,
+        "R": -0.63,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {}
+    }
+  },
+  "rec7_covariate_shift_full_window": {
+    "fold_1": {
+      "train_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 29.7,
+        "F": 18.81,
+        "S": 0.0,
+        "R": 88.12,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 32.58,
+        "F": 21.97,
+        "S": 0.0,
+        "R": 88.64,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 2.87,
+        "F": 3.16,
+        "S": 0.0,
+        "R": 0.52,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {
+        "F": 3.16
+      }
+    },
+    "fold_2": {
+      "train_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 30.28,
+        "F": 19.27,
+        "S": 0.0,
+        "R": 88.07,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 30.0,
+        "F": 21.82,
+        "S": 0.0,
+        "R": 86.36,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": -0.28,
+        "F": 2.55,
+        "S": 0.0,
+        "R": -1.71,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {}
+    },
+    "fold_3": {
+      "train_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 30.21,
+        "F": 18.73,
+        "S": 0.3,
+        "R": 87.31,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 30.19,
+        "F": 21.7,
+        "S": 0.0,
+        "R": 88.68,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": -0.02,
+        "F": 2.97,
+        "S": -0.3,
+        "R": 1.37,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {}
+    },
+    "fold_4": {
+      "train_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 30.23,
+        "F": 20.06,
+        "S": 0.29,
+        "R": 87.79,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 31.48,
+        "F": 19.44,
+        "S": 0.0,
+        "R": 88.89,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 1.25,
+        "F": -0.61,
+        "S": -0.29,
+        "R": 1.1,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {}
+    },
+    "fold_5": {
+      "train_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 29.69,
+        "F": 20.31,
+        "S": 0.31,
+        "R": 87.81,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "test_frequency": {
+        "X": 100.0,
+        "Y": 100.0,
+        "Z": 30.11,
+        "F": 15.05,
+        "S": 0.0,
+        "R": 87.1,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "delta_pp": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 0.42,
+        "F": -5.26,
+        "S": -0.31,
+        "R": -0.72,
+        "I": 0.0,
+        "J": 0.0
+      },
+      "flagged_fields_above_3pp": {
+        "F": -5.26
+      }
+    }
+  },
+  "rec8_token_position_failure": {
+    "n_samples": 7937,
+    "max_seq_len": 32,
+    "per_position": [
+      {
+        "position": 0,
+        "n_observed": 7937,
+        "accuracy": 0.7606
+      },
+      {
+        "position": 1,
+        "n_observed": 7937,
+        "accuracy": 0.2399
+      },
+      {
+        "position": 2,
+        "n_observed": 7924,
+        "accuracy": 0.8141
+      },
+      {
+        "position": 3,
+        "n_observed": 7289,
+        "accuracy": 0.7429
+      },
+      {
+        "position": 4,
+        "n_observed": 6180,
+        "accuracy": 0.9285
+      },
+      {
+        "position": 5,
+        "n_observed": 3737,
+        "accuracy": 0.8924
+      },
+      {
+        "position": 6,
+        "n_observed": 3675,
+        "accuracy": 0.9633
+      },
+      {
+        "position": 7,
+        "n_observed": 856,
+        "accuracy": 1.0
+      },
+      {
+        "position": 8,
+        "n_observed": 4,
+        "accuracy": 1.0
+      },
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  }
+}
