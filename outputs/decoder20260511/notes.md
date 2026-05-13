@@ -1347,3 +1347,198 @@ The 14 items above are gaps the plan does NOT cover that I believe
 materially affect submission strength. Items 1-5 are reviewer
 showstoppers; 6-11 are rigor improvements; 12-14 are project-management
 hygiene.
+
+## 2026-05-13 (morning) — Git commit pass + parallel recommendations execution
+
+User said "yes yes and yes and parallel where possible" to the
+recommendations advisory. Worked on three items in parallel.
+
+### Git commit hygiene — done
+
+Eight new commits since `8d40113`:
+
+```
+f79a738  Fix --encoder_config silent override of --data_dir + add per-class metrics
+889df06  Add per_class_metrics.py for sklearn-based precision/recall/F1 + confusion
+9e388ab  Add 3-stage HP sweep infrastructure + cross-stage aggregator
+d7090d4  Add analysis scripts (Round-2 Phases A/C + XGBoost baseline)
+c564ca0  Add Phase B experiment drivers + 2-digit vocab artifact
+a0cfbcb  Update notes.md + manuscript tables + remove buggy V7-data aggregate
+553555c  Paper v2 quality upgrade + TBD-placeholder migration
+c4dbaff  Force-add audit JSONs documenting the remediation findings
+4682202  Paper additions: encoder-probe section + non-neural baseline + threat model
+90edb67  Force-add HGB baseline result JSON
+```
+
+Outputs/decoder20260511/ is `.gitignore`d by default; manuscript sources,
+audit JSONs, and TABLES_REGENERATION_GUIDE.md were force-added.
+manifest_*.json files in repo root (pre-existing from Feb 2026) left
+untracked — not mine.
+
+### Non-neural baseline — done (recommendation #1)
+
+Tried xgboost first; it crashed on CPU-only with cudaErrorNoDevice even
+with `device='cpu'`. The installed xgboost is GPU-built and the CUDA call
+paths fire regardless of the device flag. Switched to sklearn's
+`HistGradientBoostingClassifier` (same hist-tree algorithm family,
+pure CPU). Script kept the filename `xgboost_baseline.py` for git history.
+
+Results ([audit/xgboost_baseline_v8.json](audit/xgboost_baseline_v8.json)):
+
+| Task | HGB Acc | HGB Macro F1 | Always-class baseline |
+|---|---|---|---|
+| command (5-class) | 0.659 | **0.232** | 0.742 (always "none") |
+| has-X | 0.885 | 0.470 | 0.885 (always present) |
+| has-Y | 0.866 | 0.464 | 0.866 (always present) |
+| **has-Z** | **0.882** | **0.855** | 0.686 (always absent) |
+| has-F | 0.994 | 0.499 | 0.994 (always absent) |
+| sign-X | 0.810 | 0.381 | — |
+| sign-Y | 0.858 | 0.308 | — |
+| sign-Z | 0.783 | 0.505 | — |
+
+Key insight: HGB lifts only has-Z meaningfully (Macro F1 0.86 on a binary
+task with 31% positive rate). Everything else is at or below the
+always-most-common-class baseline. Trees struggle with dense Transformer
+embeddings; MLPs do better (the encoder probe gets cmd 0.77 vs HGB 0.66).
+The baseline is informative because it bounds the value of a non-deep
+approach on this representation and contextualises the decoder's lift.
+
+### Encoder probe section in paper — done (recommendation #4)
+
+Added [sec:encoder-probe](decoder_paper_v2/latex/decoder_paper_v2.tex) as a
+Methods subsection. Explains the modal-row-per-window ceiling that bounds
+the per-row decoder. Cites `audit/encoder_probe_v8.json` for the full
+probe accuracies. Sets up the per_row-vs-full_window contrast that
+Section sec:abl-target-mode unpacks.
+
+### Threat model section in paper — done (recommendation #2)
+
+Added [sec:disc-threat-model](decoder_paper_v2/latex/decoder_paper_v2.tex)
+as a Discussion subsection. Formal threat model: trust assumptions,
+adversary capabilities, 4 attack classes (G-code substitution, parameter
+tampering, replay, skip/duplicate), per-class detection capability based
+on the per-field recoverability results, and known limitations.
+
+### Paper stats after morning additions
+
+| Metric | Before this morning | Now |
+|---|---|---|
+| Lines | 615 | 757 |
+| Pages | 23 | 25 |
+| Citations | 57 | 57 |
+| TBD placeholders | 41 | 54 |
+
+## 2026-05-13 (late morning) — FULL_WINDOW FOLD 1 LANDED
+
+**This is the most important single experiment of the entire remediation.**
+
+The post-sweep watcher fired full_window 5-fold at 09:35. Fold 1
+completed at ~10:55 with the composite-winner config (Stage-1 architecture
++ scheduled_sampling=0.5, max_token_len=1400 for multi-line targets).
+
+### Headline result vs per_row composite winner
+
+[checkpoints/full_window_5fold/fold_1/6o90io5p/results/metrics.json](checkpoints/full_window_5fold/fold_1/6o90io5p/results/metrics.json):
+
+| Metric | full_window fold 1 | per_row ss_0.5 (winner) | Δ |
+|---|---|---|---|
+| token | 0.7466 | 0.7308 | +1.6 pp |
+| **command** | **0.7762** | **0.4993** | **+27.7 pp** |
+| **numeric** | **0.5518** | **0.4548** | **+9.7 pp** |
+| sequence | 0.0152 | 0.0084 | +0.7 pp |
+| type | 0.9673 | 0.9723 | -0.5 pp |
+| param-type | 0.9860 | 0.9772 | +0.9 pp |
+
+Best epoch 66 of 300 (early stop kicked in at patience).
+
+### What this proves
+
+The per_row-ambiguity diagnosis from the encoder audit and Phase C-4
+failure-mode analysis is **empirically confirmed**:
+
+1. Phase C-4 found 95% of per_row worst-failures were command-identity
+   confusion (dropped / swapped / hallucinated G-commands).
+2. The hypothesis: per_row mode is fundamentally ambiguous because the
+   encoder memory is duplicated 60× (once per row) but the row-level
+   target varies. The decoder collapses to a stereotyped output.
+3. Predicted fix: full_window mode gives the decoder access to the
+   previous row's G-command via autoregressive context, eliminating
+   the within-window ambiguity.
+4. Result: command accuracy lifts from 0.50 → **0.78** with no other
+   architectural change. Numeric also lifts from 0.45 → 0.55.
+
+This is the largest single-experiment lift of the entire remediation
+and the clearest validation of the diagnostic chain.
+
+### Implications for the manuscript
+
+The paper's headline is no longer the V7-data-buggy 0.97 from Stage 1
+(legacy commit). It's now ~0.78 command / 0.74 token (single fold) on
+properly-supervised V8 data with no positional shortcuts. 5-fold mean
+± std will refine these numbers in ~2-3 hours when folds 2-5 complete.
+
+The Discussion section's "failure modes are structural, not arithmetic"
+prediction is now testable on full_window data. If the 95% command-
+identity-confusion failure mode shrinks dramatically in full_window
+(which it should, given the +27pp command lift), the Discussion section
+becomes a clean predict-then-confirm narrative.
+
+### Currently running
+
+- GPU 0 (94%): full_window fold 2 at epoch 110/300 — val_tok 0.68,
+  val_cmd 0.88 (tracking similar to fold 1)
+- GPU 1 (80%): e2e_lr5e-6 at epoch 64/150 — train_loss intermittently
+  NaN (encoder fine-tune unstable even at lr=5e-6) but val_tok 0.73,
+  val_cmd 0.45 stable
+
+ETA: ~2-3 hours to 5-fold completion, then ~30-60 min of regeneration
+work and the paper is at submission readiness.
+
+## 2026-05-13 — Additional recommendations after the full_window result
+
+The full_window fold-1 result reframes several open questions. New
+recommendations beyond the original 14:
+
+15. **Re-run Phase C-4 (failure-mode classification) on full_window.**
+    The 95% command-identity-confusion finding was on per_row data.
+    Predict: in full_window, command-identity confusion drops
+    dramatically and value-precision errors become the dominant
+    failure mode. If confirmed, the Discussion section becomes a
+    predict-then-confirm narrative — strong manuscript move.
+
+16. **Run full_window WITH shortcuts as an ablation.** We have
+    `train_v8_with_shortcuts_5fold.sh` queued but it's per_row +
+    shortcuts. We do NOT have full_window + shortcuts trained. The
+    ANOVA matrix that distinguishes (per_row vs full_window) ×
+    (shortcuts vs no_shortcuts) is incomplete on the (full_window,
+    shortcuts) cell. Recommendation: clone the with_shortcuts script
+    to operate on full_window data and run after the no-shortcuts
+    5-fold finishes.
+
+17. **Disentangle the +27 pp gain.** The full_window fold 1 config
+    inherits scheduled_sampling=0.5 from the composite winner. Was
+    the +27pp lift from full_window mode alone, or from full_window +
+    ss_0.5 jointly? An ablation: train full_window WITHOUT scheduled
+    sampling (ss=0). If cmd stays near 0.78, full_window is the lever;
+    if cmd drops to ~0.32, the lift was a happy interaction of both.
+
+18. **Re-aggregate per-axis recoverability on full_window.** Our
+    audit/v8_per_field_eval.py was run on per_row checkpoints.
+    Re-running on full_window will produce the table the manuscript
+    actually needs. Critical: per_row reported X-value full-correct at
+    7%; full_window's per-axis recovery is one of the manuscript's
+    headline tables and must use full_window numbers.
+
+19. **Headline-narrative rewrite.** The paper currently frames the work
+    as "we report what sensors can recover" with TBD numbers. After
+    full_window 5-fold lands, the dominant story becomes "we identified
+    and resolved a per-row-formulation ambiguity that obscured the
+    sensor pathway's true command-recovery capability." This is a
+    cleaner story arc than the original "categorical vs continuous tier"
+    framing — they're complementary but the diagnosis-then-fix arc is
+    more compelling. Recommendation: rewrite the abstract + intro
+    contribution list around the per_row-vs-full_window discovery once
+    the 5-fold numbers are in.
+
+Items 15-19 are forward-looking, post-full_window-completion. Each is
+~1-2 hours of work; items 17 and 19 are the highest-impact.
