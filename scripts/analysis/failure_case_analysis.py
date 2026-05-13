@@ -102,8 +102,18 @@ def main() -> int:
 
     per_fold = []
     for F in [1, 2, 3, 4, 5]:
-        pred_npz = args.sweep_root / f"fold_{F}" / "results" / "predictions.npz"
-        samples_json = args.sweep_root / f"fold_{F}" / "results" / "beam_0_all_predictions.json"
+        # Handle wandb-subdir layout: prefer direct, fall back to <run_id>/
+        direct_npz = args.sweep_root / f"fold_{F}" / "results" / "predictions.npz"
+        if direct_npz.exists():
+            pred_npz = direct_npz
+            samples_json = args.sweep_root / f"fold_{F}" / "results" / "beam_0_all_predictions.json"
+        else:
+            cands = list((args.sweep_root / f"fold_{F}").glob("*/results/predictions.npz"))
+            if not cands:
+                continue
+            cands.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            pred_npz = cands[0]
+            samples_json = pred_npz.parent / "beam_0_all_predictions.json"
         if not pred_npz.exists():
             continue
         rep = analyze_fold(pred_npz, samples_json)

@@ -1543,6 +1543,163 @@ recommendations beyond the original 14:
 Items 15-19 are forward-looking, post-full_window-completion. Each is
 ~1-2 hours of work; items 17 and 19 are the highest-impact.
 
+## 2026-05-13 — Full_window 5-fold COMPLETE + headline numbers locked
+
+All 5 folds of `train_v8_full_window_5fold.sh` finished. Fold-5's Python
+process is still in its sample-by-sample decode dump (slow tail, ~93/132
+samples through), but `metrics.json` is fully written for every fold, so
+the 5-fold aggregator and ANOVA can run now.
+
+### Headline 5-fold results (V8 full_window, no positional metadata)
+
+[outputs/decoder20260511/RESULTS_TABLE.json](RESULTS_TABLE.json),
+[outputs/decoder20260511/audit/bootstrap_ci.json](audit/bootstrap_ci.json):
+
+| Head | Accuracy | Macro F1 | Bootstrap 95 % CI |
+|---|---|---|---|
+| Token       | $0.7811 \pm 0.0216$ | $0.390 \pm 0.041$ | $[0.7633, 0.7988]$ |
+| Sequence    | $0.0263 \pm 0.0185$ | -- | $[0.0113, 0.0428]$ |
+| Type        | $0.9838 \pm 0.0085$ | $0.883 \pm 0.045$ | $[0.9753, 0.9896]$ |
+| **Command** | $\mathbf{0.8875 \pm 0.0558}$ | $0.879 \pm 0.108$ | $[0.8316, 0.9186]$ |
+| **Param-type** | $\mathbf{0.9931 \pm 0.0036}$ | $0.986 \pm 0.013$ | $[0.9895, 0.9952]$ |
+| **Sign**       | $\mathbf{0.9888 \pm 0.0063}$ | $0.972 \pm 0.016$ | -- |
+| Numeric (digit) | $0.5850 \pm 0.0331$ | -- | $[0.5575, 0.6131]$ |
+
+### Per-fold detail
+
+| Fold | tok | cmd | num | seq | best_ep |
+|---|---|---|---|---|---|
+| 1 | 0.747 | 0.776 | 0.552 | 0.015 | 66 |
+| 2 | 0.774 | 0.914 | 0.561 | 0.000 | 86 |
+| 3 | 0.776 | 0.922 | 0.561 | 0.028 | 82 |
+| 4 | 0.806 | 0.908 | 0.627 | 0.056 | 89 |
+| 5 | 0.803 | 0.918 | 0.624 | 0.032 | 101 |
+
+All folds early-stop comfortably before the patience-75 budget. Fold 1
+is the outlier on command (0.776 vs $\geq$0.91 for folds 2-5); plausibly
+a fold-1 file-split idiosyncrasy worth investigating but doesn't change
+the headline.
+
+### Per-class command head (6 classes evaluated)
+
+G0 / G1 / G2 / G3 / G53 / M30 — all present in the test splits. G53 and
+M30 supports are tiny ($n \le 13$) and their per-fold F1 has high
+variance, but the head DOES emit them: G53 F1 = $0.876 \pm 0.206$;
+M30 F1 = $0.836 \pm 0.150$. The 8.4-pp Section sec:lim-power MDE
+threshold applies.
+
+### Per-axis param-type head (5 classes evaluated)
+
+X / Y / Z / R / F — all F1 $\ge 0.96$. F support is $\sim$40 per fold
+(constant `F22.` in G1 lines); high F1 reflects "detected when present"
+not "feed-rate value recovery." I, J, K, S, P never appear in test
+splits.
+
+### Per-digit-position 5-fold
+
+| Position | Accuracy |
+|---|---|
+| 0 (magnitude) | $1.000 \pm 0.0001$ |
+| 1 | $0.924 \pm 0.021$ |
+| 2 | $0.754 \pm 0.033$ |
+| 3 | $0.557 \pm 0.032$ |
+| 4 | $0.461 \pm 0.032$ |
+| 5 (least sig.) | $0.769 \pm 0.019$ |
+
+Clean U-shape across folds: encoder preserves magnitude (position 0
+perfect) and precision endpoint (position 5 strong), but middle digits
+(2–4) hover near coin-flip. Same shape as the per_row pilot. This is
+the encoder-side bottleneck.
+
+### Output-position diagnosis: the per_row $\to$ full_window lift is empirically validated
+
+Per_row position-1 accuracy was 0.24 (Section C-4 finding — the smoking
+gun for within-window row-identification ambiguity). Full_window 5-fold
+position-1: $0.62 \pm 0.03$. **A $+$38 pp lift.** Confirms the
+diagnose-then-fix arc: the autoregressive context in full_window mode
+resolves what the per-row encoder summary could not. Once past position
+10, accuracy stabilises at $0.90$+ — the autoregressive chain has fully
+disambiguated subsequent rows.
+
+### e2e_lr5e-6: encoder fine-tuning at lr=5e-6 did not help
+
+tok 0.7164 / cmd 0.3423 / num 0.4444 — substantially worse than the
+frozen-encoder full_window baseline. Confirms naive end-to-end is not
+the right Phase F approach; the auxiliary-head route documented in
+PHASE_F_DESIGN.md is the recommended design.
+
+### Bug fixes landed today
+
+1. `aggregate_v8_results.py` and `anova_and_bootstrap.py`: both had the
+   same wandb-subdir blindness as the earlier HP-sweep aggregator
+   (`fold_N/<wandb_run_id>/results/metrics.json` instead of
+   `fold_N/results/metrics.json`). Fixed both with a `_find_fold_metrics`
+   helper.
+2. `scripts/analysis/figures/confusion_matrices.py` was pointing at
+   `per_row_5fold` and only checked `beam_0_metrics.json`. Now points at
+   `full_window_5fold` and uses the wandb-aware path lookup.
+3. `scripts/analysis/failure_case_analysis.py` had the same wandb-subdir
+   bug. Fixed.
+4. Paper had `$\le$\le 5$$\%` typo in failure-mode paragraph. Fixed.
+
+### Paper fill status
+
+112 of 144 TBD placeholders filled with real V8 numbers:
+- Abstract, intro, headline table, per-class tables, per-digit table,
+  bootstrap CI, output-position table — all populated.
+- Per-axis recoverability has 5 axes' P/R/F1 from the param_type head.
+
+32 placeholders remain, all dependent on ablations still queued in the
+watcher chain (LOCO, noise aug, vocab2digit, nested ablations,
+with-shortcuts ANOVA F/p/$\Delta$).
+
+### Figures regenerated
+
+All 13 figure PDFs in `decoder_paper_v2/figures/` now built from V8
+full_window 5-fold data, not the legacy V7-data run:
+- per_class_metrics_{command, param_type, type}
+- per_axis_recoverability
+- five_fold_spread
+- sensor_ablation_bars (still uses pilot data; will refresh post-sensor-ablation)
+- learning_curves
+- confusion_matrix_{command, param_type, type} (counts + normalized variants)
+
+Paper now 31 pages with all V8-derived figures included.
+
+### Failure cases on full_window
+
+[audit/failure_cases_fullwindow.json](audit/failure_cases_fullwindow.json):
+
+| Fold | n_samples | exact_match | exact% | median_edit |
+|---|---|---|---|---|
+| 1 | 132 | 2 | 1.5% | 34.5 |
+| 2 | 110 | 0 | 0.0% | 19.5 |
+| 3 | 106 | 3 | 2.8% | 17.5 |
+| 4 | 108 | 6 | 5.6% | 15.5 |
+| 5 | 93 | 3 | 3.2% | 16.0 |
+
+Exact-match across the full multi-line target is rare (≤ 6%), but the
+median edit distance is 15-35 tokens out of median sequence length
+$\sim$130, meaning most of the multi-line is reconstructed correctly.
+
+### What's still pending (waiting on watcher chain)
+
+The watcher (pid 3990952) is still blocked on fold-5's slow-tail Python
+process exiting (currently at sample 93/132 of the decode dump). Once
+that exits, the chain runs the queued ablations:
+
+(a) regen pipeline (already done manually here)
+(b) full_window + shortcuts ‖ full_window + no_ss (in parallel)
+(c) sensor-modality ablation cross-fold
+(d) noise-augmentation 5-fold
+(e) LOCO 9-class
+(f) pattern-aware pilot
+(g) 2-digit vocab pilot
+(g2) window/stride sweep with encoder retrain
+(h) final aggregator + figures pass
+
+ETA: 14-22 hours of GPU once fold-5's tail exits.
+
 ## 2026-05-13 — Meeting alignment check #2 (after full_window fold 1+2)
 
 Re-checking against the 2026-04-28 meeting summary now that we have the

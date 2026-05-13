@@ -581,32 +581,38 @@ The pattern is consistent with an information-bottlenecked numeric pathway: stru
 \subsection{Output-Position Failure Distribution}
 \label{sec:output-position-failure}
 
-A token-position breakdown of decoder accuracy locates where in the output sequence the model fails. We compute per-token accuracy at each output position from 0 to the max sequence length, over the test set (\texttt{audit/extended\_rigor\_audits.json}, key \texttt{rec8\_token\_position\_failure}). For the composite-winner configuration on V8 per\_row fold 1:
+A token-position breakdown of decoder accuracy locates where in the output sequence the model fails. We compute per-token accuracy at each output position from 0 to the max sequence length, over the test set (\texttt{audit/token\_position\_5fold\_fullwindow.json} for the headline; \texttt{audit/extended\_rigor\_audits.json}, key \texttt{rec8\_token\_position\_failure} for the per-row diagnostic). Table~\ref{tab:token_position_compare} contrasts the two formulations.
 
-\begin{center}
-\small
-\begin{tabular}{r r r}
+\begin{table}[h]
+\centering
+\caption{Per-output-position accuracy: V8 per\_row diagnostic vs.\ V8 full\_window 5-fold mean $\pm$ std. The position-1 accuracy lifts from 0.24 in per\_row to 0.62 in full\_window, a $+$38~pp gain that directly validates the per-row-ambiguity diagnosis.}
+\label{tab:token_position_compare}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{r l r r}
 \toprule
-Output position & $n$ observed & Accuracy \\
+Output position & Description & per\_row (fold 1) & full\_window (5-fold mean $\pm$ std) \\
 \midrule
-0 (command / BOS-region) & 7,937 & 0.7606 \\
-1 (first param letter) & 7,937 & \textbf{0.2399} \\
-2 (first numeric value) & 7,924 & 0.8141 \\
-3 & 7,289 & 0.7429 \\
-4 & 6,180 & 0.9285 \\
-5 & 3,737 & 0.8924 \\
-6 & 3,675 & 0.9633 \\
-7 & 856 & 1.0000 \\
+0  & command / BOS-region        & 0.761 & $0.738 \pm 0.088$ \\
+1  & first param letter (X/Y/Z)  & \textbf{0.240} & \textbf{0.622 $\pm$ 0.027} \\
+2  & first numeric value         & 0.814 & $0.552 \pm 0.030$ \\
+3  & first numeric digit         & 0.743 & $0.682 \pm 0.061$ \\
+4  & first numeric digit (cont.) & 0.929 & $0.917 \pm 0.035$ \\
+5  & first numeric digit (cont.) & 0.892 & $0.757 \pm 0.042$ \\
+10 & mid-sequence                & --    & $0.900 \pm 0.026$ \\
+20 & mid-sequence                & --    & $0.940 \pm 0.036$ \\
+50 & mid-sequence                & --    & $0.928 \pm 0.048$ \\
+100& mid-sequence                & --    & $0.905 \pm 0.062$ \\
 \bottomrule
-\end{tabular}
-\end{center}
+\end{tabular}%
+}
+\end{table}
 
-Position 1 --- the position immediately following the command token, where the first address letter (X/Y/Z) appears --- is recovered at 24\% accuracy, a sharp drop from the surrounding positions. Position 0 (the command itself) and position 2 (the first numeric value) both reach $\ge 0.76$. The pattern is consistent with the per-row-mode ambiguity discussed in Section~\ref{sec:disc-failure-mode}: the model gets the command identity right approximately as often as expected from the modal-row ceiling, but the \emph{which address letter is the first param} decision is where the within-window-row ambiguity bites hardest. Each window contains rows that begin with different axes (one row starts with X, another with Y), and the per-row encoder summary cannot distinguish them. Section~\ref{sec:abl-target-mode}'s full-window result is expected to dramatically lift position-1 accuracy in particular.
+In the per-row formulation, position 1 --- the first address letter (X/Y/Z) immediately following the command token --- is recovered at \textbf{24\%} accuracy, a sharp drop relative to surrounding positions. This is the most concentrated signature of the within-window row-identification ambiguity: each window contains rows that begin with different axes, and the per-row encoder summary cannot distinguish them. The full-window formulation gives the decoder access to the previous row's full output via autoregressive context, so position 1 lifts to $\textbf{0.62}\pm\textbf{0.03}$ --- a $+$38~pp gain. Once the decoder is into the multi-line body (positions 10$+$) it reaches 0.90--0.94, consistent with the autoregressive context now disambiguating subsequent rows.
 
 \subsection{Failure-Mode Analysis}
 \label{sec:failure-modes}
 
-Beyond aggregate accuracies, we classify the qualitative shape of the decoder's worst predictions to characterise \emph{how} the model fails when it fails. From the test split we extract the 20 worst-edit-distance sequences and bucket them by the structural difference between the predicted and target token streams: (a)~\emph{dropped command} --- target contains a G-command, prediction does not; (b)~\emph{wrong command} --- both contain G-commands but they differ; (c)~\emph{hallucinated command} --- target has no G-command (a continuation row), prediction introduces one; (d)~\emph{value-only error} --- structural tokens match but numeric values differ. On this corpus 95\% of the worst sequences fall into the first three command-identity buckets (target's G-command is dropped, swapped, or hallucinated), while value-only errors account for $\le$\le 5$$\%. The worst failures are therefore structural, not arithmetic. Section~\ref{sec:disc-failure-mode} interprets this pattern.
+Beyond aggregate accuracies, we classify the qualitative shape of the decoder's worst predictions to characterise \emph{how} the model fails when it fails. From the test split we extract the 20 worst-edit-distance sequences and bucket them by the structural difference between the predicted and target token streams: (a)~\emph{dropped command} --- target contains a G-command, prediction does not; (b)~\emph{wrong command} --- both contain G-commands but they differ; (c)~\emph{hallucinated command} --- target has no G-command (a continuation row), prediction introduces one; (d)~\emph{value-only error} --- structural tokens match but numeric values differ. On the per-row pilot corpus 95\% of the worst sequences fall into the first three command-identity buckets (target's G-command is dropped, swapped, or hallucinated), while value-only errors account for $\le 5$\%. The worst failures are therefore structural, not arithmetic. Section~\ref{sec:disc-failure-mode} interprets this pattern.
 
 \subsection{RQ2: Metadata vs.\ Sensor and Per-Row vs.\ Full-Window}
 \label{sec:results-rq2}
