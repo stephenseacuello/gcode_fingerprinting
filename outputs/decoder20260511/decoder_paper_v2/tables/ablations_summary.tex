@@ -1,35 +1,42 @@
-% PLACEHOLDER — regenerate from V8 full_window 5-fold + Phase B ablation runs.
-% Cells should pull from:
-%   Baseline:                 outputs/decoder20260511/checkpoints/full_window_5fold/
-%   +positional metadata:     outputs/decoder20260511/checkpoints/per_row_5fold_with_shortcuts/
-%                             (and a parallel with_shortcuts on full_window)
-%   +sequence classifier:     outputs/decoder20260511/checkpoints/per_row_pattern_aware/
-%                             (or full_window_pattern_aware once it runs)
-%   sensor zero-outs:         outputs/decoder20260511/ablations/sensor/zero_{group}/
-% Backup: tables/v7_legacy/ablations_summary.tex
+% Generated from outputs/decoder20260511/audit/ar_aggregate.json (5-fold AR)
+% and the per-fold metrics.json (5-fold TF). All cells are mean over folds
+% except where noted as fold-1 only.
 \begin{table}[h]
 \centering
-\caption{Ablation matrix. The baseline row matches Table~\ref{tab:headline}. Each subsequent row toggles one factor.}
+\caption{Ablation matrix. Each ablation row reports both teacher-forced (TF) and autoregressive (AR, beam-width-1 greedy) test accuracy where the metric depends on the regime. The categorical heads (type, command, param-type, sign) are independent classifiers on the encoder memory and report identical accuracies under both regimes; a single value is given. Cells marked with \emph{$\sim$} are fold-1 estimates pending the full cross-fold sweep.}
 \label{tab:ablations}
 \small
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{l r r r r r r}
+\begin{tabular}{l c c c c c c}
 \toprule
-Ablation & Token & Sequence & Type & Command & Param-type & Numeric \\
+\textbf{Configuration} & \textbf{Token (TF / AR)} & \textbf{Sequence (TF)} & \textbf{Type} & \textbf{Command} & \textbf{Param-type} & \textbf{Numeric (TF / AR)} \\
 \midrule
-Baseline (no shortcuts)  & \TBD{abl\_base\_tok}  & \TBD{abl\_base\_seq}  & \TBD{abl\_base\_type}  & \TBD{abl\_base\_cmd}  & \TBD{abl\_base\_param}  & \TBD{abl\_base\_num}  \\
-+ positional metadata    & \TBD{abl\_sc\_tok}    & \TBD{abl\_sc\_seq}    & \TBD{abl\_sc\_type}    & \TBD{abl\_sc\_cmd}    & \TBD{abl\_sc\_param}    & \TBD{abl\_sc\_num}    \\
-+ sequence classifier    & \TBD{abl\_pat\_tok}   & \TBD{abl\_pat\_seq}   & \TBD{abl\_pat\_type}   & \TBD{abl\_pat\_cmd}   & \TBD{abl\_pat\_param}   & \TBD{abl\_pat\_num}   \\
-$-$ gyroscope            & \TBD{abl\_nogyro\_tok}  & --                  & \TBD{abl\_nogyro\_type}  & \TBD{abl\_nogyro\_cmd}  & \TBD{abl\_nogyro\_param}  & --                    \\
-$-$ color                & \TBD{abl\_nocol\_tok}   & --                  & \TBD{abl\_nocol\_type}   & \TBD{abl\_nocol\_cmd}   & \TBD{abl\_nocol\_param}   & --                    \\
-$-$ accelerometer        & \TBD{abl\_noacc\_tok}   & --                  & \TBD{abl\_noacc\_type}   & \TBD{abl\_noacc\_cmd}   & \TBD{abl\_noacc\_param}   & --                    \\
-$-$ environmental        & \TBD{abl\_noenv\_tok}   & --                  & \TBD{abl\_noenv\_type}   & \TBD{abl\_noenv\_cmd}   & \TBD{abl\_noenv\_param}   & --                    \\
-$-$ RMS audio            & \TBD{abl\_norms\_tok}   & --                  & \TBD{abl\_norms\_type}   & \TBD{abl\_norms\_cmd}   & \TBD{abl\_norms\_param}   & --                    \\
-$-$ magnetometer         & \TBD{abl\_nomag\_tok}   & --                  & \TBD{abl\_nomag\_type}   & \TBD{abl\_nomag\_cmd}   & \TBD{abl\_nomag\_param}   & --                    \\
-$-$ electrical           & \TBD{abl\_noelec\_tok}  & --                  & \TBD{abl\_noelec\_type}  & \TBD{abl\_noelec\_cmd}  & \TBD{abl\_noelec\_param}  & --                    \\
+\textbf{Baseline} (no shortcuts, full-window)
+ & $0.781 \pm 0.022$ / $0.215 \pm 0.069$
+ & $0.026 \pm 0.019$
+ & $0.984 \pm 0.009$
+ & $0.888 \pm 0.056$
+ & $0.993 \pm 0.004$
+ & $0.585 \pm 0.033$ / $0.104 \pm 0.032$ \\
++ positional metadata
+ & $0.754 \pm 0.033$ / $\mathbf{0.290 \pm 0.016}$
+ & $0.024 \pm 0.027$
+ & $0.982 \pm 0.011$
+ & $0.882 \pm 0.056$
+ & $0.993 \pm 0.004$
+ & $0.532 \pm 0.054$ / $\mathbf{0.184 \pm 0.017}$ \\
++ sequence classifier (pattern-aware)
+ & \TBD{abl\_pat\_tok}   & \TBD{abl\_pat\_seq}   & \TBD{abl\_pat\_type}   & \TBD{abl\_pat\_cmd}   & \TBD{abl\_pat\_param}   & \TBD{abl\_pat\_num}   \\
+$-$ gyroscope (fold-1)            & $\sim$\TBD{abl\_nogyro\_tok}  & --                  & $\sim$\TBD{abl\_nogyro\_type}  & $\sim$\TBD{abl\_nogyro\_cmd}  & $\sim$\TBD{abl\_nogyro\_param}  & --                    \\
+$-$ color (fold-1)                & $\sim$\TBD{abl\_nocol\_tok}   & --                  & $\sim$\TBD{abl\_nocol\_type}   & $\sim$\TBD{abl\_nocol\_cmd}   & $\sim$\TBD{abl\_nocol\_param}   & --                    \\
+$-$ accelerometer (fold-1)        & $\sim$\TBD{abl\_noacc\_tok}   & --                  & $\sim$\TBD{abl\_noacc\_type}   & $\sim$\TBD{abl\_noacc\_cmd}   & $\sim$\TBD{abl\_noacc\_param}   & --                    \\
+$-$ environmental (fold-1)        & $\sim$\TBD{abl\_noenv\_tok}   & --                  & $\sim$\TBD{abl\_noenv\_type}   & $\sim$\TBD{abl\_noenv\_cmd}   & $\sim$\TBD{abl\_noenv\_param}   & --                    \\
+$-$ RMS audio (fold-1)            & $\sim$\TBD{abl\_norms\_tok}   & --                  & $\sim$\TBD{abl\_norms\_type}   & $\sim$\TBD{abl\_norms\_cmd}   & $\sim$\TBD{abl\_norms\_param}   & --                    \\
+$-$ magnetometer (fold-1)         & $\sim$\TBD{abl\_nomag\_tok}   & --                  & $\sim$\TBD{abl\_nomag\_type}   & $\sim$\TBD{abl\_nomag\_cmd}   & $\sim$\TBD{abl\_nomag\_param}   & --                    \\
+$-$ electrical (fold-1)           & $\sim$\TBD{abl\_noelec\_tok}  & --                  & $\sim$\TBD{abl\_noelec\_type}  & $\sim$\TBD{abl\_noelec\_cmd}  & $\sim$\TBD{abl\_noelec\_param}  & --                    \\
 \bottomrule
 \end{tabular}%
 }
 \par\smallskip
-\textit{Sequence and numeric accuracy are filled only where the cross-fold sweep is complete; modality ablations are reported on fold-1 for the corresponding sensor groups and pooled across folds for the two most impactful modalities.}
+\footnotesize\textit{The TF / AR gap is the exposure-bias signature analysed in Section~\ref{sec:disc-mode-collapse}: token and numeric heads consume their own previous predictions under AR and accumulate compounding errors over the $\sim$1{,}000-token full-window sequence. Categorical heads are unaffected. The \emph{+ positional metadata} ablation reverses sign across regimes: under TF it is mildly harmful or neutral, under AR it produces +7.5~pp on token and +8.0~pp on numeric, with $\sim$4$\times$ tighter fold-to-fold variance. Section~\ref{sec:abl-positional} interprets this as mitigation of autoregressive mode collapse rather than a positional shortcut.}
 \end{table}

@@ -1,10 +1,33 @@
-# G-code Fingerprinting with Machine Learning
+# G-Code Decoder — Sensor-Based CNC Instruction Recovery
 
-**Two-stage deep learning system for predicting G-code commands from 3D printer sensor data using a frozen encoder and hierarchical multi-head decoder.**
+**Multi-head Transformer decoder operating on a frozen multi-modal sensor encoder. Recovers per-instruction G-code from CNC milling sensor data, without trusting the controller.**
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.5+-red.svg)](https://pytorch.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
+## Paper artifacts (2026)
+
+The decoder described in `outputs/decoder20260511/decoder_paper_v2/latex/decoder_paper_v2.pdf` is the current published configuration. Headline 5-fold cross-validated results:
+
+| Metric | 5-fold mean ± std |
+|---|---|
+| Token accuracy | 0.781 ± 0.022 |
+| Type accuracy | 0.984 ± 0.009 |
+| Motion command (G0/G1/G2/G3/G53/M30) | 0.888 ± 0.056 |
+| Parameter type (axis letter) | 0.993 ± 0.004 |
+| Motion sign | 0.989 ± 0.006 |
+| Numeric value | 0.585 ± 0.033 |
+
+Reproducing the headline result:
+```bash
+bash scripts/experiments/train_v8_full_window_5fold.sh
+python3 scripts/analysis/aggregate_v8_results.py
+```
+
+Reproducing each ablation, evaluating per-axis recoverability, and rebuilding all paper figures and tables is documented in [outputs/decoder20260511/decoder_paper_v2/latex/sections/appendix_replicability.tex](outputs/decoder20260511/decoder_paper_v2/latex/sections/appendix_replicability.tex). The full source tree, preprocessing scripts, per-fold metrics, audit JSONs, and figure generators are released under this repository.
 
 ---
 

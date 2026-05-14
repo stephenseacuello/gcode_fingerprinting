@@ -1,157 +1,211 @@
 ---
 to: Romesh Satish Prasad <romeshsatish.prasad@uri.edu>
 from: Stephen Eacuello <seacuello@uri.edu>
-subject: Decoder audit + V8 retrain — you were right
-date: 2026-05-11
+subject: Decoder remediation update — full_window 5-fold done, paper rewritten
+date: 2026-05-13
 ---
 
 Romesh,
 
-Big update before Monday. I went all the way through the decoder
-remediation we talked about — full audit, fixed the bugs, retrained on
-the corrected pipeline, sensor ablation. Putting the highlights here so
-you have something concrete to react to before our working session.
+Bigger update than the last one. Two important corrections to my email
+from 2026-05-11, plus the headline results from the full_window 5-fold
+that just finished.
 
-Everything lives in `outputs/decoder20260511/`. Master log is at
-`notes.md`, plain-English writeup at `AUDIT_REPORT.md`, and the
-manuscript tables are at `MANUSCRIPT_TABLES/results.md`.
+Everything is in `outputs/decoder20260511/`. Master log is `notes.md`.
+The new manuscript is at
+`decoder_paper_v2/latex/decoder_paper_v2.pdf` — 31 pages, compiles
+cleanly. Audit JSONs under `audit/`.
 
-## The bugs you found
+## Two corrections to the previous email
 
-Both real:
+**The 0.979 command accuracy I reported was from a buggy run.** The
+trainer's `--encoder_config` flag was silently overwriting
+`--data_dir`, so my "V8 5-fold" was actually training on the V7
+dedup'd data (303 samples) with the V8 encoder. I caught it after the
+email went out. Fix is in
+`scripts/evaluation/run_decoder_quick_test.py:1488-1503`.
 
-- `preprocessing.py:387` saved `lengths = window_size = 256` (sensor
-  length) into a field that's supposed to be token length.
-- `decoder_dataset.py:91` consumed that wrong field with
-  `max_token_len=16` and silently truncated targets to 14 tokens.
-- Five eval scripts hardcoded `max_token_len=16`.
+When the bug was fixed and the model was actually trained on V8 per_row
+data (19,584 samples per fold), per_row plateaued at command accuracy
+~0.50, not 0.97. The 0.979 was an artifact.
 
-Fixed, with hard assertions added so it can't come back silently.
-Refusing to load a V7 NPZ now raises a clear error pointing at the
-audit. 14 pytest tests pass.
+**The per_row formulation has a fundamental ambiguity** I missed
+before. A 64-second sensor window contains 60+ G-code rows on average;
+in per_row mode, every row of the same window shares the *same*
+encoder memory but has a *different* target. The decoder has no way to
+tell which row of the window it's supposed to predict, so it collapses
+to predicting the modal row.
 
-## The twist
+This is what tanked per_row's accuracy below the V7-paper number, and
+it's what the full_window formulation resolves.
 
-On V7 data the 16-cap is dormant — the preprocessing was already
-collapsing every 256-sample window to ONE G-code line before the cap
-could bite. V7 tokens shape was (303, 6), gcode_texts was always a
-single line, only 22 distinct lines across the whole train set.
+## The real headline
 
-Same data through the fixed pipeline now gives `tokens.shape =
-(303, 1339)` and 214 distinct lines per fold in full_window mode.
-Per_row mode (one sample per distinct line per window, which is what
-you proposed) ends up with 19,584 train samples per fold.
+I retrained on V8 full_window 5-fold using the composite-winner
+config from a 34-cell HP sweep (Stage 1 architecture + scheduled
+sampling=0.5). 5-fold mean ± std, no positional metadata exposed:
 
-So you were right about the bug, just one layer deeper than it
-looked — two failures hiding each other.
+| Metric      | V8 full_window 5-fold | per_row equivalent | Δ      |
+|-------------|-----------------------|--------------------|--------|
+| Token       | **0.781 ± 0.022**     | 0.731              | +5.0 pp |
+| Sequence    | 0.026 ± 0.019         | 0.008              | +1.8 pp |
+| Type        | 0.984 ± 0.009         | 0.972              | +1.2 pp |
+| **Command** | **0.888 ± 0.056**     | **0.499**          | **+38.9 pp** |
+| Param-type  | 0.993 ± 0.004         | 0.977              | +1.6 pp |
+| **Sign**    | **0.989 ± 0.006**     | 0.978              | +1.1 pp |
+| Numeric     | 0.585 ± 0.033         | 0.455              | +13.0 pp |
 
-## How much did shortcuts contribute
+The +38.9 pp jump on command accuracy from per_row to full_window is
+the strongest single experimental result of the remediation. It's not
+a hyperparameter difference — it's the same config, just with
+multi-line targets so each row's prediction is conditioned on the
+previous rows in the same window via autoregressive context. The
+within-window ambiguity that crippled per_row is resolved.
 
-Trained XGBoost on metadata alone — `window_index`, `total_windows`,
-`operation_type`, `source_file_hash`, NO sensors. It hits 75-95% test
-accuracy on the 22-class label set. The published V7 paper headline
-of 97.9% token accuracy was sitting mostly on top of that.
+Folds 2-5 all hit command accuracy ≥ 0.91. Fold 1 is the outlier at
+0.78, which is probably a file-split idiosyncrasy worth investigating
+but doesn't change the headline.
 
-Per-field comparison (5-fold mean):
+Bootstrap 95% CI from 10,000 resamples: command [0.832, 0.919], token
+[0.763, 0.799], sign [0.973, 0.998], numeric [0.558, 0.613].
 
-| Field    | Metadata-only XGB | V7 actual (with shortcuts) | V8 no-shortcuts (fold 1) |
-|----------|-------------------|----------------------------|--------------------------|
-| command  | 0.99             | 0.976                       | **0.944**                |
-| has_x    | 0.87-0.98        | 1.000                       | (in token acc)           |
-| has_y    | 0.95-0.98        | 0.992                       |                          |
-| x_val MAE| 0.13-0.32        | 0.20                        |                          |
+## The diagnose-then-fix arc is solid
 
-The V8 decoder with `use_window_position=False` and no
-`window_index/source_file` exposed reaches **94.4% command accuracy
-on fold 1** — only 3pp below the V7 ceiling and 5pp below the metadata
-floor. So the sensor pathway IS doing real work, it's just not 97.9%
-worth. The 3pp gap between V7 and V8-no-shortcuts is the shortcut
-contribution we removed.
+I want to make sure the chain is clear because it's going to be the
+paper's main narrative thread:
 
-Per_row 5-fold sweep results (50 epochs each, no shortcuts):
+1. **Phase C-4 failure-mode analysis** on per_row found that 95% of
+   the worst-edit failures were *command-identity confusion* (dropped
+   / wrong / hallucinated G-command). Not value-precision errors —
+   structural errors.
+2. **Token-position analysis** localised it: per_row position-1
+   accuracy was **24%** (the first address letter after the command).
+   Position 0 (the command itself) and position 2 (the first numeric)
+   were both 76-81%. Position 1 was the sharp drop.
+3. **Per-row ambiguity hypothesis**: this is exactly what would happen
+   if the encoder memory carries window-level context but no row-level
+   disambiguation. Different rows in a window start with different
+   axes (X, Y, Z), so the decoder can't tell which to emit.
+4. **Encoder probe** confirmed it: a linear probe on the frozen
+   encoder memory reaches the modal-row-per-window ceiling (~85%) but
+   can't go higher because the encoder memory is identical for all
+   60+ rows of a window. The encoder is NOT the bottleneck.
+5. **Full_window 5-fold validation**: position-1 lifts from 0.24 to
+   **0.62 ± 0.03** (+38 pp), in line with the lift on command
+   accuracy. Once past position 10 the decoder reaches 0.90+ —
+   autoregressive context disambiguates subsequent rows cleanly.
 
-| Metric            | V8 (no shortcuts) | V7 ceiling (with shortcuts) |
-|-------------------|-------------------|------------------------------|
-| Token accuracy    | **0.832 ± 0.020** | —                            |
-| Sequence accuracy | 0.426 ± 0.041     | —                            |
-| Type accuracy     | 0.972 ± 0.012     | —                            |
-| **Command**       | **0.979 ± 0.019** | 0.976 ± 0.011                |
-| Param-type        | 0.944 ± 0.013     | —                            |
-| Numeric           | 0.600 ± 0.024     | —                            |
+The Discussion section now reads as predict-then-confirm.
 
-This is the headline: V8 with shortcuts REMOVED slightly beats V7 with
-shortcuts on command accuracy (0.979 vs 0.976). Folds 2 and 5 both hit
-100% command. The shortcut path was real, but the sensor pathway is
-also real — once we fix the data structure AND remove shortcuts AND
-refresh the vocab, the decoder still reaches V7-level command accuracy.
+## What the encoder probe says about Phase F
 
-So the manuscript shifts from "decoder achieves 97.9%" (true but
-unattributed) to something like "decoder achieves 97.9 ± 1.9% from
-sensor signal alone, no positional metadata, on a label set 10×
-richer than V7's" — much stronger claim.
+Linear/MLP probes on the frozen encoder memory:
+- 9-class operation type: 0.85 (matches the encoder paper's val-set
+  number)
+- has-X / has-Y / has-Z presence: 0.88 / 0.87 / 0.93
+- command identity: 0.77 (basically at the modal-row ceiling)
+- X-value RMSE: 0.97 (within-window X range is ~3 units, so essentially
+  no per-row precision)
 
-Full_window mode hits basically identical numbers — token 0.793,
-cmd 0.944 (fold 1 only). So per_row vs full_window are empirically
-equivalent on this data; the 65× sample-count difference in per_row
-doesn't translate to better generalization because all those samples
-derive from the same windows.
+So:
+- Encoder preserves categorical / window-level signal fine.
+- Encoder does NOT preserve per-row numeric precision.
+- Phase F (encoder retrain) should keep the operation-classification
+  head and ADD auxiliary row-level heads (per-row G-command, per-row
+  axis-presence, per-row sign, per-row value MSE) at recon weight ≥ 0.5
+  (currently 0.1). Design spec in `PHASE_F_DESIGN.md`.
 
-## Sensor ablation — your gyroscope hunch was right
+End-to-end fine-tune at lr=5e-6 didn't help (tok 0.72 / cmd 0.34). The
+naive e2e route diverges; the auxiliary-head route is the right Phase
+F design.
 
-Leave-one-modality-out at encoder input, V8 per_row fold 1, 30
-epochs each (`outputs/decoder20260511/ablations/sensor/`):
+## Sensor ablation update
 
-| Modality removed | Δ Token acc | Δ Cmd acc |
-|------------------|-------------|-----------|
-| Gyroscope        | **−4.7pp**  | −3.7pp    |
-| Color (RGBA)     | **−4.7pp**  | **−10.2pp** |
-| RMS (audio)      | −2.2pp      | 0         |
-| Magnetometer     | −1.5pp      | 0         |
-| Electrical       | −0.9pp      | +0.9pp    |
-| Accelerometer    | +0.2pp      | 0         |
-| Environmental    | −0.2pp      | +1.0pp    |
+The 5-fold sensor ablation cross-fold runs are queued and currently
+firing in a watcher chain (gyroscope, color, magnetometer,
+environmental, accelerometer, RMS audio, electrical). Will refresh the
+table when they land — should be roughly consistent with the per-row
+pilot direction (gyroscope + color most-load-bearing). Estimated
+~1.5h.
 
-Gyroscope confirms your earlier finding. Color (RGBA) was a surprise
-— biggest single drop in command accuracy at 10pp. Probably encoding
-material signature. Accelerometer and environmental are essentially
-fungible — removing them changes nothing.
+## Where the manuscript stands
 
-## Data findings
+`outputs/decoder20260511/decoder_paper_v2/`:
 
-A few things from the data itself that matter for the manuscript:
+- **Title**: "Structured Multi-Head Decoding for Computer Numerical
+  Control G-Code Recovery from Multi-Modal Sensor Embeddings: A
+  Cross-Validated Per-Field Recoverability Study" (mirrors the
+  Machines paper title structure)
+- **Abstract**: rewritten with the verification framing + sharp
+  factorisation result
+- **Introduction**: rewritten with stronger hook + 4 research
+  questions + 5 itemised contributions
+- **Related Work**: 4 deep subsections + literature-comparison table
+- **Problem Formulation**: new section (task / vocabulary / per-row /
+  metrics)
+- **Methods**: now includes Encoder Information-Content Probe
+  subsection
+- **Experimental Setup**: now its own section (CV / baselines /
+  statistical methodology / software)
+- **Results**: organised by RQ1-RQ4 + new Failure-Mode Analysis +
+  Output-Position Failure subsections (the +38pp validation table)
+- **Discussion**: 5 subsections — three tiers of recoverability /
+  failure modes are structural / sensor-modality deployment / AM
+  side-channel comparison / when to use this decoder / formal threat
+  model
+- **Limitations**: 3 subsections (dataset, methodology, evaluation)
+  + power analysis caveats for the per-class long tail
+- **Replicability appendix**: random seeds, hardware, hyperparameter
+  ranges, statistical methodology, code/data release
 
-- V7's labels HAD feed rate `F` filtered out by the preprocessing, but
-  it's actually in the underlying CSVs — the rebuilt V8 vocab has
-  NUM_F tokens (just 2 of them, so F varies almost not at all in the
-  current data). We can keep F in the new vocab, but real F
-  recoverability has to wait for the summer DOE.
-- V7 train has only 22 distinct G-code lines. V8 has ~214 per fold.
-  That's a 10× richer label set on the same data, just because the
-  multi-line truncation got fixed.
+57 unique citations (24 ported from the encoder paper's bib).
+Includes 13 figures generated from the V8 5-fold checkpoints. The
+non-neural baseline (sklearn HistGradientBoostingClassifier — xgboost
+crashed on the CPU-only host) and a formal threat model are now in
+the paper as their own sections.
 
-## Where I left things for the manuscript
+Statistical work: one-way ANOVA + Cohen's d + Holm-Bonferroni +
+BH-FDR multiple-comparisons correction across the macro-metric grid
+AND the drilled per-class / per-axis / per-position grid (~3,500
+tests total once the full Phase B ablations land).
 
-- AUDIT_REPORT.md — full 11-priority writeup with file:line
-- MANUSCRIPT_TABLES/results.md — the comparison tables, NOW WITH 5-FOLD
-  ERROR BARS
-- DESIGN_OF_EXPERIMENTS.md — DOE spec for the summer Tormach work, 188
-  sample runs generated already with single-line G-code programs
-- 14 pytest tests pinning down the V8 NPZ schema so the bug can't come
-  back silently
+## What's still running (no input needed from you)
 
-The framing has to shift. We can't lead with "97.9% token
-reconstruction" anymore — but the per-field story is stronger
-anyway. Saying "the sensor pathway adds N pp on field X over a
-positional baseline" is more defensible than one accuracy number that
-turns out to be mostly shortcut.
+A watcher chain queued the remaining ablations and will run them
+unattended (~14-20 hours total):
 
-If you want to look at any of this before Monday:
+- (b) full_window+shortcuts 5-fold ‖ full_window+no_ss pilot (in flight)
+- (c) sensor-modality ablation cross-fold
+- (d) noise augmentation 5-fold (your meeting suggestion)
+- (e) leave-one-class-out across 9 operation classes
+- (f) pattern-aware (sequence_classifier head) pilot (Dr. Sodhi's
+  meeting suggestion)
+- (g) 2-digit vocabulary pilot
+- (g2) window/stride sweep with encoder retrain per cell, no-prox
+  no-pressure feature set (matches the encoder paper recipe)
+- (h) regenerate the final figures + aggregator + ANOVA on the
+  full result set
 
-- `outputs/decoder20260511/AUDIT_REPORT.md`
-- `outputs/decoder20260511/MANUSCRIPT_TABLES/results.md`
-- `outputs/decoder20260511/notes.md` (full chronological log)
-- `outputs/decoder20260511/DESIGN_OF_EXPERIMENTS.md`
+The remaining 32 TBD placeholders in the paper are all wired to
+ablations in this chain.
 
-Thanks for catching this. Talk Monday.
+## Files to look at if you have time
+
+- `decoder_paper_v2/latex/decoder_paper_v2.pdf` — current paper (31 pp)
+- `notes.md` — full chronological log
+- `audit/encoder_probe_v8.json` — the probe results
+- `audit/token_position_5fold_fullwindow.json` — the +38 pp lift table
+- `audit/failure_cases_decoded_ss05.json` — the per_row failure modes
+- `PHASE_F_DESIGN.md` — encoder retrain design spec for if/when we
+  decide to execute it
+- `DESIGN_OF_EXPERIMENTS.md` — summer Tormach DOE spec (188 runs
+  generated)
+
+The two recent commit notes worth reading are:
+- `5b82151 Fill paper with V8 full_window 5-fold headline numbers`
+- `a5bffc3 Regenerate figures from V8 full_window 5-fold + token-position lift table`
+
+Glad we caught the encoder_config bug. The framing is much cleaner
+now and the diagnose-then-fix arc is empirically supported.
 
 Stephen

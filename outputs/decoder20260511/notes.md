@@ -1783,3 +1783,256 @@ e. Optional: narrative rewrite framing around the per_row → full_window discov
 
 The watcher's final step (h) regenerates all figures from the final
 checkpoints, so by morning the figure PDFs should be V8-consistent.
+
+---
+
+## 2026-05-13 (late evening) — paper-side gap closure + Phase F-lite armed
+
+After the 4-agent audit (figures, citations, numeric accuracy, internal
+consistency) closed the critical paper gaps, I worked through all the
+non-GPU-blocked items the audit surfaced. Logging here so future me /
+future Claude can pick up cleanly.
+
+### Audit fixes applied to manuscript
+
+Framing-leak removals:
+- Stripped 18-line internal AUDIT NOTICE comment block at top of .tex
+  (was leaking the V7-bug story).
+- Removed "V8" from `tab:token_position_compare` caption.
+- Replaced "the underlying meeting that motivated this remediation"
+  paragraph at §6.4 with a clean target-mode-ablation rewrite.
+
+Broken-reference fixes:
+- `\ref{fig:system-overview}`: figure now exists (TikZ diagram drawn).
+- `\ref{sec:abl-pattern}`, `\ref{sec:abl-vocab}`: labels added.
+- `\ref{alg:coverage-repair}`: replaced placeholder appendix body with a
+  full procedural description; in-text `\ref` retargeted to
+  `app:coverage-repair`.
+- `tab:per_class_command`: wrapped previously-bare-tabular file with
+  proper `\begin{table}` + `\label{}`.
+
+Fabricated-number corrections:
+- X-sign 0.973 / Y-sign 0.992 were not in any V8 ground-truth.
+  Replaced with pooled sign acc $0.989 \pm 0.006$ and
+  POSITIVE/NEGATIVE recall asymmetry ($0.992$ vs $0.968$).
+- X-presence 0.997 / Y-presence 0.993 — replaced with per-class
+  param-type F1 range ($0.96$--$0.99$).
+- Command "long-tail" narrative contradicted the table (G0/G3 F1
+  $0.92$, not "substantially less well"). Rewrote.
+- Per-class command support counts G1 ~900 → ~830, G53/M30 ~10 → ~6.
+- Per-digit middle range 0.461--0.754 → 0.461--0.924 (position 1
+  is actually high).
+
+New artifacts built tonight:
+- `audit/v8_per_field_fullwindow.json` — per-axis recoverability sourced
+  from full_window 5-fold beam predictions (the per_axis_recoverability
+  table is now real, not \TBD).
+- `tables/per_axis_recoverability.tex` — filled with real numbers
+  (X-sign 0.942±0.033, Y-sign 0.997±0.006, Z-sign 0.938±0.023,
+  X MAE 0.277, Y MAE 0.179, Z MAE 0.042, R MAE 0.018, F MAE 8.89).
+- TikZ system-overview figure at top of §4.1.
+- Failure-case figure (`figures/failure_case_examples.pdf`) showing
+  TRUE/PRED pairs per failure-mode bucket.
+- Threat-model tamper-injection FPR/FNR added to §7.6:
+  command-swap FPR 0.246 / TPR 0.915; sign-flip 0.290 / 0.738;
+  feed-edit 0.015 / 0.838. Script:
+  `scripts/analysis/threat_model_tamper_injection.py`.
+- Bootstrap CI for ablations at `audit/bootstrap_ci_ablations.json`.
+- Compute-budget audit at `audit/compute_budget.json` (~57 GPU-h,
+  ~17 kWh, ~7 kg CO2 across 106 training runs).
+- LICENSE file (MIT) + README header rewrite with V8 headline numbers.
+
+Replicability appendix filled:
+- Decoder params 31.28M, ~188 MFLOPs/token, 30-60 ms per-row latency,
+  ~500 MB VRAM at batch=1.
+- System: Python 3.10.12, PyTorch 2.5.1, CUDA 12.1, driver 590.48.01,
+  RTX A6000 with 48 GB VRAM.
+
+Figures regenerated to use full_window 5-fold data:
+- `learning_curves.py` SWEEP path was per_row → switched to
+  full_window_5fold + wandb-subdir handling added. Output now shows
+  real loss/acc curves across 5 folds.
+- `five_fold_spread.py` same fix; boxplot now shows the 7 metrics.
+- `confusion_matrices.py` already pointed at full_window after morning
+  fix; type-head matrix now included as third panel of `fig:confusion`.
+- `per_axis_recoverability.py` PER_FIELD_JSON path switched from the
+  legacy per_row audit to `v8_per_field_fullwindow.json`.
+
+### Watcher / Phase F status
+
+Chain pid 3990952 (~8h elapsed) — still firing the full sequence on
+GPU 0 via the original launcher. Remaining: sensor cross-fold, noise-aug
+5-fold, LOCO 9-class, vocab2digit, window/stride.
+
+no_ss 5-fold extension I launched on GPU 1 (`train_v8_full_window_no_ss_5fold.sh`):
+fold 2 done (cmd 0.945 / num 0.855), fold 3 done (cmd 0.946 / num 0.888).
+Folds 1, 4, 5 in flight. If the pattern holds the numeric column moves
+from 0.585 to ~0.85 — significant enough to re-anchor the headline.
+
+with_shortcuts 5-fold: folds 1-4 done. Mean cmd 0.873 ± 0.071
+(vs baseline 0.888 ± 0.056). Shortcuts are not load-bearing — a clean
+negative result that lets §6.7.1 land as "metadata-versus-sensor split
+favors sensor".
+
+Phase F-lite autolauncher pid 3339438 armed and waiting for no_ss to
+complete; will fire `phase_f_lite_encoder_retrain.sh` (recon_weight 1.0,
+V8 per_row data, 5 folds, ~30-60 min) then
+`phase_f_decoder_retrain.sh` (~2.5h) on GPU 1.
+
+Full Phase F with auxiliary row-level heads still requires source code
+changes to MM_DTAE_LSTM; deferring those to Paper 3 unless Phase F-lite
+shows clear lift.
+
+### Paper state
+
+34 pages, clean compile (0 undefined refs, 0 errors). 8 figures, all
+populated with real data. 5 inline tables filled with real numbers. 13
+\TBD placeholders remain, all ablation-dependent (vocab2digit, LOCO,
+noise-aug, with-shortcuts ANOVA F/p/Δ, nested ablations). These fill
+when the watcher chain completes.
+
+
+---
+
+## 2026-05-14 — Critical TF vs AR eval bias discovered
+
+**The whole paper's token / numeric / sequence headline numbers are
+teacher-forced (beam_width=0) — inflated by ~50pp vs deployment-true
+autoregressive (beam_width=1) evaluation.**
+
+Discovery path:
+1. no_ss 5-fold (ss=0.0) reported test_metrics tok 0.918 / num 0.853,
+   apparently +13pp / +27pp over the baseline. User caught the
+   smell of "too good to be true."
+2. Side-by-side config diff: only `scheduled_sampling` differed between
+   baseline and no_ss. Same data, encoder, seed, vocab, architecture.
+3. Audited `evaluate()` in `run_decoder_quick_test.py`. Confirmed
+   that the standard test_metrics path (line 2201) uses
+   `beam_width=0`, which is TEACHER-FORCED — at each step the
+   model is given the ground-truth previous token, not its own
+   prediction.
+4. Re-ran fold_1 of baseline + no_ss with `--eval_only --beam_width 1`:
+   - Baseline fold_1: TF tok 0.747 / num 0.552 → AR tok 0.204 / num 0.103
+   - no_ss   fold_1: TF tok 0.896 / num 0.835 → AR tok 0.314 / num 0.183
+5. Inspected actual decoded AR predictions: model collapses to a
+   canned modal sequence across different test samples. Pure
+   exposure-bias mode collapse.
+
+**Heads NOT affected** (independent classifiers on encoder memory):
+- type accuracy
+- command accuracy
+- param-type accuracy
+- sign accuracy
+- per-axis has-X/Y/Z/R/F (independent param-type per position)
+- per-axis sign
+
+**Heads AFFECTED** (autoregressive):
+- token accuracy
+- sequence accuracy
+- numeric accuracy
+- digit-position accuracy
+- value-MAE
+
+Decision (user: "yes all of the above" + "option A"):
+- Re-eval all 10 fold checkpoints (5 baseline + 5 with-shortcuts) with
+  beam_width=1. Per_row 5-fold legacy already has beam_1 metrics.
+- Drop no_ss from headline consideration; it was a TF artifact.
+- Rewrite paper headline numbers to use AR.
+- Add §3.4 paragraph distinguishing TF vs AR (DONE).
+- Revise per_row vs full_window narrative: +38.9pp command lift is
+  robust (command head is independent), but token/numeric lift was
+  largely TF inflation (DONE).
+- Recompute threat-model FPR/FNR on AR predictions (DONE for fold_1,
+  pending for full 5-fold).
+- Threat-model under AR (fold_1): command_swap FPR 0.30 / TPR 0.91;
+  sign_flip FPR 0.49 / TPR 0.55; feed_edit FPR 0.00 / TPR 0.10.
+  Sign and feed-rate detection are not viable under AR; command-swap
+  remains usable.
+
+AR re-eval batch script: `scripts/experiments/ar_reeval_batch.sh`.
+Runs on GPU 1 sequentially, ~10-15 min per fold, ~2 hours total.
+
+
+---
+
+## 2026-05-14 (late afternoon) — AR re-eval complete, with_shortcuts narrative reversal
+
+**Both 5-fold AR re-evals finished.** All 10 checkpoints (5 baseline + 5
+with_shortcuts) now have beam_1_metrics.json + beam_1_all_predictions.json
+under their canonical wandb-subdir locations.
+
+### Final 5-fold AR means (paper headline table)
+
+| Metric        | Baseline (TF)     | Baseline (AR)     | + shortcuts (TF)  | + shortcuts (AR)  |
+|---------------|-------------------|-------------------|-------------------|-------------------|
+| Token         | 0.7811 ± 0.0216   | 0.2148 ± 0.0685   | 0.7544 ± 0.0331   | 0.2895 ± 0.0161   |
+| Sequence      | 0.0263 ± 0.0185   | ~0.02             | 0.0237 ± 0.0271   | ~0.02             |
+| Type          | 0.9838 ± 0.0085   | 0.9838 ± 0.0085   | 0.9823 ± 0.0107   | 0.9811 ± 0.0114   |
+| Command       | 0.8875 ± 0.0558   | 0.8875 ± 0.0558   | 0.8803 ± 0.0564   | 0.8818 ± 0.0562   |
+| Param-type    | 0.9931 ± 0.0036   | 0.9931 ± 0.0036   | 0.9923 ± 0.0037   | 0.9928 ± 0.0040   |
+| Sign          | 0.9888 ± 0.0063   | 0.9888 ± 0.0063   | 0.9869 ± 0.0070   | 0.9869 ± 0.0070   |
+| Numeric       | 0.5850 ± 0.0331   | 0.1038 ± 0.0322   | 0.5319 ± 0.0539   | 0.1835 ± 0.0173   |
+
+Key observations:
+1. **Categorical heads** (type / command / param-type / sign) are
+   identical TF and AR across both configurations. They are independent
+   classifiers on encoder memory; not affected by AR mode collapse.
+2. **Autoregressive-token heads** drop catastrophically TF → AR
+   (~58 pp on token, ~48 pp on numeric for baseline). Mode collapse
+   to canned facing-pattern modal sequence.
+3. **TF / AR reversal on positional metadata**:
+   - Under TF eval, with_shortcuts is mildly *worse* than baseline.
+   - Under AR eval, with_shortcuts is *better* by +7.5 pp token, +8.0 pp
+     numeric, AND has ~4× tighter fold-to-fold variance (std 0.016 vs
+     0.069 on token).
+   - Mechanism: position metadata gives the AR decoder a per-window
+     anchor that breaks the modal trajectory on a fraction of samples.
+   - This reframes "positional metadata" from "shortcut that cheats"
+     to "anchor that mitigates exposure bias."
+
+### AR threat-model recomputed
+
+5-fold AR predictions, both configurations:
+
+| Attack        | Baseline (FPR / TPR) | + shortcuts (FPR / TPR) |
+|---------------|----------------------|--------------------------|
+| command_swap  | 0.299 / 0.921        | 0.222 / 0.948            |
+| sign_flip     | 0.350 / 0.703        | 0.244 / 0.798            |
+| feed_edit     | 0.004 / 0.126        | 0.015 / 0.514            |
+
+With_shortcuts is strictly better at tamper detection on every attack
+class. Feed-edit TPR 4× higher (0.13 → 0.51).
+
+### Paper sections updated this round
+
+- §3.4: TF vs AR methodology paragraph (NEW)
+- §4.2.2: Grammar FSM disclosure paragraph (NEW)
+- §6.7.1: Positional-Metadata rewrite — AR/TF reversal narrative
+- §6.7.X (NEW): Mode Collapse subsection with concrete TRUE/PRED samples
+- §7.5: Deployment recommendation — per-row mode + with-shortcuts for security
+- §7.6: Threat model expanded with both-config FPR/TPR
+- §8: Conclusion AR-anchored
+- Abstract: AR numbers (0.21 / 0.10) reported alongside TF (0.78 / 0.59)
+- Tables: headline_5fold.tex + ablations_summary.tex now dual-column TF/AR
+- Figure: five_fold_spread.pdf now shows TF (blue) vs AR (red) boxplots
+
+### Grammar FSM fix (inference-only)
+
+- Added `_build_fsm_forbidden_params()` in run_decoder_quick_test.py
+- beam_search_decode tracks active_command per beam, applies FSM mask
+  before softmax, updates state on emitted command tokens
+- New `--fsm_grammar` CLI flag (off by default)
+- Methods section discloses the bigram-mask limitation honestly
+- No retraining needed; FSM is inference-time only
+
+### What's still pending
+
+1. Option B FSM re-eval (~50 min on GPU 1) — would produce FSM-applied
+   AR numbers for the paper. Expected to be similar to current AR
+   numbers since mode collapse is the dominant problem, not grammar
+   violations. Worth running for completeness but not blocking.
+2. Final figure regen (per_class_metrics, learning_curves, sensor_ablation)
+   to align with new headline numbers.
+3. Watcher chain remaining (sensor cross-fold, noise-aug, LOCO,
+   vocab2digit, window/stride) — still pending; chain pid 3990952 may
+   have stalled, needs checking.

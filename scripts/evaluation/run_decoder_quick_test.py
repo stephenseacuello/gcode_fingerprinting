@@ -973,8 +973,39 @@ def train_epoch_e2e(encoder, decoder, loader, optimizer, device, loss_fns,
 # ── Evaluation ─────────────────────────────────────────────────────────────────
 
 @torch.no_grad()
+def _build_fsm_forbidden_params(vocab):
+    """Build a {command_id -> set(forbidden_param_ids)} map encoding higher-order
+    grammar rules the per-step bigram mask cannot enforce. The bigram mask in
+    sensor_multihead_decoder._build_grammar_masks lumps every move-command
+    together and allows any subsequent param letter; this FSM layer is the
+    semantic refinement at inference time.
+
+    Rules encoded:
+      - G0 (rapid)  : forbid R, I, J (linear move; no arc params)
+      - G1 (linear) : forbid R, I, J
+      - G2/G3 (arc) : forbid F-only sequences with no I/J/R (cannot enforce
+                       presence requirements with a mask; this only forbids
+                       things, so we skip the positive constraint here)
+      - M30 (end)   : forbid all params and other commands
+    """
+    PARAM_LETTERS = ('X', 'Y', 'Z', 'F', 'R', 'S', 'I', 'J', 'K')
+
+    def _ids(letters):
+        return {vocab[l] for l in letters if l in vocab}
+
+    forbidden = {}
+    # G0, G1: forbid R, I, J (arc-only params)
+    for cmd in ('G0', 'G1'):
+        if cmd in vocab:
+            forbidden[vocab[cmd]] = _ids(('R', 'I', 'J'))
+    # M30 ends the program; nothing should legally follow except EOS.
+    if 'M30' in vocab:
+        forbidden[vocab['M30']] = _ids(PARAM_LETTERS)
+    return forbidden
+
+
 def beam_search_decode(decoder, memory, op_pred, device, beam_width=3, max_len=16,
-                       extra_kwargs=None, length_penalty=0.6):
+                       extra_kwargs=None, length_penalty=0.6, fsm_forbidden=None):
     """Autoregressive beam search decoding with grammar constraints.
 
     Args:
@@ -986,10 +1017,23 @@ def beam_search_decode(decoder, memory, op_pred, device, beam_width=3, max_len=1
         max_len: Maximum sequence length
         extra_kwargs: Dict with window_index, total_windows, etc. per sample [B]
         length_penalty: Length normalization alpha (0=no norm, 1=full)
+        fsm_forbidden: {command_token_id -> set(forbidden_param_token_ids)} that
+            extends the per-step bigram mask with command-state-dependent
+            forbidden-following-token rules (e.g., G0 forbids R).
 
     Returns:
         best_sequences: [B, max_len] tensor of predicted token IDs
     """
+    MOVE_CMD_NAMES = {'G0', 'G1', 'G2', 'G3', 'G53', 'G55', 'G17', 'G90', 'G94'}
+    # Vocab lookup for active-command tracking
+    move_cmd_ids = set()
+    if fsm_forbidden:
+        move_cmd_ids = set(fsm_forbidden.keys())
+        if hasattr(decoder, 'vocab') and decoder.vocab:
+            for name in MOVE_CMD_NAMES:
+                if name in decoder.vocab:
+                    move_cmd_ids.add(decoder.vocab[name])
+
     B = memory.size(0)
     all_best = []
 
@@ -1004,14 +1048,17 @@ def beam_search_decode(decoder, memory, op_pred, device, beam_width=3, max_len=1
                 if isinstance(v, torch.Tensor) and v.dim() >= 1:
                     sample_extra[k] = v[b:b+1]
 
-        # Each beam: (log_prob, token_sequence)
-        beams = [(0.0, [BOS])]
+        # Each beam: (log_prob, token_sequence, active_command_id)
+        # active_command_id tracks the most recent move-command token; the
+        # FSM layer uses it to forbid command-state-dependent transitions
+        # (e.g., R after G0/G1).
+        beams = [(0.0, [BOS], None)]
 
         for step in range(max_len - 1):
             candidates = []
-            for score, seq in beams:
+            for score, seq, active_cmd in beams:
                 if seq[-1] == EOS or seq[-1] == PAD:
-                    candidates.append((score, seq))
+                    candidates.append((score, seq, active_cmd))
                     continue
 
                 # Forward pass with current sequence
@@ -1027,18 +1074,29 @@ def beam_search_decode(decoder, memory, op_pred, device, beam_width=3, max_len=1
                 )
 
                 # Get logits at the last position
-                logits = outputs['legacy_logits'][0, -1]  # [vocab_size]
+                logits = outputs['legacy_logits'][0, -1].clone()  # [vocab_size]
+
+                # FSM layer: apply command-state-dependent forbidden-following rules.
+                # The bigram grammar mask in the decoder forbids type-class
+                # transitions, but cannot encode "R is arc-only because G2/G3
+                # is active." This block does that.
+                if fsm_forbidden and active_cmd is not None and active_cmd in fsm_forbidden:
+                    for forbidden_id in fsm_forbidden[active_cmd]:
+                        logits[forbidden_id] = -1e4
+
                 log_probs = torch.log_softmax(logits, dim=-1)
 
                 # Get top-k tokens
                 topk_probs, topk_ids = log_probs.topk(beam_width)
                 for lp, tid in zip(topk_probs.tolist(), topk_ids.tolist()):
                     new_score = score + lp
-                    candidates.append((new_score, seq + [tid]))
+                    # Update active_command if the emitted token is a move-command
+                    new_active = tid if tid in move_cmd_ids else active_cmd
+                    candidates.append((new_score, seq + [tid], new_active))
 
             # Length-normalize scores for ranking
             def norm_score(item):
-                s, seq = item
+                s, seq, _ = item
                 length = len(seq)
                 return s / ((5 + length) / 6) ** length_penalty
 
@@ -1046,7 +1104,7 @@ def beam_search_decode(decoder, memory, op_pred, device, beam_width=3, max_len=1
             beams = candidates[:beam_width]
 
             # Early stop if all beams ended
-            if all(s[-1] in (EOS, PAD) for _, s in beams):
+            if all(s[1][-1] in (EOS, PAD) for s in beams):
                 break
 
         # Pad best beam to max_len
@@ -1059,7 +1117,8 @@ def beam_search_decode(decoder, memory, op_pred, device, beam_width=3, max_len=1
 
 
 @torch.no_grad()
-def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1, save_predictions_path=None):
+def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1,
+             save_predictions_path=None, fsm_forbidden=None):
     """Evaluate on a dataset split. Returns metrics and sample predictions.
 
     Args:
@@ -1137,6 +1196,7 @@ def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1, save_pr
                     decoder, memory, op_pred, device,
                     beam_width=max(beam_width, 1), max_len=target_tokens.size(1),
                     extra_kwargs=extra_kwargs,
+                    fsm_forbidden=fsm_forbidden,
                 )
                 # Beam search returns BOS-prefixed sequences; shift to match targets
                 # targets are shifted left by 1 relative to inputs
@@ -1399,6 +1459,14 @@ def main():
                         default=False, help="Enable numeric regression head")
     parser.add_argument("--regression_weight", type=float, default=1.0,
                         help="Weight for regression loss")
+    parser.add_argument("--fsm_grammar", action="store_true",
+                        help="Apply higher-order grammar rules in beam search "
+                             "(e.g., G0/G1 forbid R/I/J). Inference-time only; "
+                             "no retraining needed.")
+    parser.add_argument("--beam_widths", type=str, default=None,
+                        help="Comma-separated list of beam widths to evaluate in eval_only "
+                             "mode, e.g. '1' (AR-only, fastest) or '0,1' (TF + AR-only). "
+                             "Overrides the legacy 0,1,3,5 sweep behaviour.")
     parser.add_argument("--beam_width", type=int, default=1,
                         help="Beam search width for evaluation (1=greedy)")
     parser.add_argument("--multi_window_context", type=int, default=0,
@@ -1862,15 +1930,26 @@ def main():
                 lprint(f"  Copied {key}: {ckpt_w.shape} -> {cur_w.shape} ({n_copy} rows)")
         lprint(f"  Loaded from epoch {ckpt_data.get('epoch', '?')}")
 
-        for bw in ([args.beam_width] if args.beam_width > 1 else [0, 1, 3, 5]):
+        # When --beam_widths is explicitly set (comma-separated), run those
+        # exact values. Otherwise fall back to historical behaviour: a single
+        # beam_width >1 runs only that one; bw <=1 runs the four-up sweep.
+        if getattr(args, 'beam_widths', None):
+            bw_loop = [int(x) for x in args.beam_widths.split(',')]
+        elif args.beam_width > 1:
+            bw_loop = [args.beam_width]
+        else:
+            bw_loop = [0, 1, 3, 5]
+        for bw in bw_loop:
             bw_label = {0: "teacher_forced", 1: "greedy_AR"}.get(bw, f"beam_{bw}")
             lprint(f"\n  Evaluating with {bw_label} (beam_width={bw})...")
             # Pass save_predictions_path for teacher-forced beam to ensure
             # predictions.npz gets the digit / sign / etc. tensors too.
             sp = (output_dir / 'results' / 'predictions.npz') if bw == 0 else None
+            fsm = _build_fsm_forbidden_params(tokenizer.vocab) if args.fsm_grammar else None
             test_metrics, test_samples = evaluate(decoder, test_loader, device, loss_fns, tokenizer,
                                                   beam_width=bw,
-                                                  save_predictions_path=sp)
+                                                  save_predictions_path=sp,
+                                                  fsm_forbidden=fsm)
             lprint(f"\n  Test Results ({bw_label}):")
             for k, v in test_metrics.items():
                 if isinstance(v, (int, float)):

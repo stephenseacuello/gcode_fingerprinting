@@ -1,28 +1,24 @@
-% =========================================================================
-% PLACEHOLDER — regenerate after V8 full_window 5-fold completes.
-% Source of truth: scripts/analysis/v8_per_field_eval.py output applied to
-% full_window 5-fold checkpoints. The F / S / I / J rows are EXPECTED to
-% remain "insufficient support" — cross-check against tables/data_coverage.tex.
-% Backup of previous (V7-data) version: tables/v7_legacy/per_axis_recoverability.tex
-% =========================================================================
+% Per-axis recoverability, full_window 5-fold, sourced from
+% outputs/decoder20260511/audit/v8_per_field_fullwindow.json (built from
+% beam_0_all_predictions.json via npz_to_beam_predictions.py).
 \begin{table}[h]
 \centering
-\caption{Per-axis G-code recoverability across 5 folds. \emph{has-axis} is whether the axis appears in the decoded text; \emph{sign} is the direction of the motion (POSITIVE / NEGATIVE / ABSENT); \emph{value MAE} is the regression mean absolute error of the numeric value, computed only over samples where both the predicted and true G-code carry the axis. Read this table together with Table~\ref{tab:data_coverage} --- rows for fields with near-zero positive support cannot be meaningfully interpreted.}
+\caption{Per-axis G-code recoverability across 5 folds (mean $\pm$ std). \emph{has-axis Acc} / \emph{F1} are the classification metrics for whether the axis is present in the decoded text; \emph{sign} is the direction of motion (POSITIVE / NEGATIVE / ABSENT); \emph{value MAE} is the mean absolute error of the numeric value, computed only on samples where both the predicted and true G-code carry the axis. The F row has thin support; I, J, S have effectively zero positive support and are omitted (see Table~\ref{tab:data_coverage}).}
 \label{tab:per_axis}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{l r r r r r}
 \toprule
 Axis & has-axis Acc & has-axis F1 & Sign Acc & Value MAE & Presence Recall \\
 \midrule
-X       & \TBD{has\_X\_acc} & \TBD{has\_X\_f1} & \TBD{sign\_X\_acc} & \TBD{val\_X\_mae} & \TBD{presence\_X\_recall} \\
-Y       & \TBD{has\_Y\_acc} & \TBD{has\_Y\_f1} & \TBD{sign\_Y\_acc} & \TBD{val\_Y\_mae} & \TBD{presence\_Y\_recall} \\
-Z       & \TBD{has\_Z\_acc} & \TBD{has\_Z\_f1} & \TBD{sign\_Z\_acc} & \TBD{val\_Z\_mae} & \TBD{presence\_Z\_recall} \\
-R       & \TBD{has\_R\_acc} & \TBD{has\_R\_f1} & \TBD{sign\_R\_acc} & \TBD{val\_R\_mae} & \TBD{presence\_R\_recall} \\
-F       & \emph{insufficient support; see Table~\ref{tab:data_coverage}} & --- & --- & --- & --- \\
+X   & $1.000 \pm 0.000$ & $1.000 \pm 0.000$ & $0.942 \pm 0.033$ & $0.277 \pm 0.152$ & $1.000 \pm 0.000$ \\
+Y   & $1.000 \pm 0.000$ & $1.000 \pm 0.000$ & $0.997 \pm 0.006$ & $0.179 \pm 0.072$ & $1.000 \pm 0.000$ \\
+Z   & $1.000 \pm 0.000$ & $1.000 \pm 0.000$ & $0.938 \pm 0.023$ & $0.042 \pm 0.025$ & $1.000 \pm 0.000$ \\
+R   & $0.994 \pm 0.012$ & $0.983 \pm 0.034$ & $1.000 \pm 0.000$ & $0.018 \pm 0.010$ & $1.000 \pm 0.000$ \\
+F   & $0.960 \pm 0.023$ & $0.936 \pm 0.038$ & $1.000 \pm 0.000$ & $8.886 \pm 2.765$ & $0.851 \pm 0.093$ \\
 S, I, J & \emph{insufficient support; see Table~\ref{tab:data_coverage}} & --- & --- & --- & --- \\
 \bottomrule
 \end{tabular}%
 }
 \par\smallskip
-\footnotesize\textit{F, S, I, J have effectively zero positive support in the corpus (see Table~\ref{tab:data_coverage}). Reporting an accuracy number for these fields would be dominated by the always-absent baseline.}
+\footnotesize\textit{X, Y, Z, R presence is fully recovered. Sign asymmetry is clean: Y reaches near-perfect ($0.997$) while X and Z drop to $0.942$ and $0.938$ respectively, indicating that the sensor pathway distinguishes signed motion along Y more reliably than along X or Z on this geometry. Value MAE is sub-millimetre for Z ($0.042$) and R ($0.018$); X and Y MAE are $0.18$--$0.28$ units in the corpus coordinate space. The F-row MAE is on a different scale because feed-rate values themselves are larger ($\sim$10--100 mm/min).}
 \end{table}

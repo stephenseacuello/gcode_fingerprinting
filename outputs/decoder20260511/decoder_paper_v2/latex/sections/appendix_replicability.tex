@@ -19,9 +19,10 @@ released alongside the manuscript. Critical scripts:
 driver), \texttt{scripts/analysis/aggregate\_v8\_results.py}
 (metric aggregator), and the experiment shells under
 \texttt{scripts/experiments/}.
-\item \textbf{Dataset.} The 120-file V8 corpus is released under the same
-license as the encoder paper~\cite{encoder_paper}. Per-fold preprocessed
-NPZ files are available at \TBD{data\_release\_url}.
+\item \textbf{Dataset.} The 120-file corpus is released under the same
+license as the encoder paper~\cite{encoder_paper}; per-fold preprocessed
+NPZ files and decoded prediction JSONs are released alongside the code,
+with a DOI assigned at submission time.
 \item \textbf{Hyperparameter sweep records.} All 34 cells of the 3-stage
 HP sweep are recorded under \texttt{outputs/decoder20260511/checkpoints/}
 with per-cell metrics.json. The composite-winner selection logic is in
@@ -70,22 +71,28 @@ batch size 64, max\_token\_len=32 or 1400 depending on target mode,
 sequential on one GPU.
 \item \textbf{Hyperparameter sweep (34 cells).} ~12--15~hours wall-clock
 on two GPUs in parallel.
-\item \textbf{End-to-end remediation (this paper).} ~3 days of GPU
-compute including the audit phase, two preprocessing modes, the HP
-sweep, the headline 5-fold, ablations, and Phase F preparation.
+\item \textbf{End-to-end project compute.} 106 training runs were
+recorded across the audit, preprocessing-validation, hyperparameter sweep,
+headline 5-fold, and ablation phases. Aggregate wall-clock $\sim$44~h on
+the host with up to two A6000 GPUs running in parallel; equivalent
+GPU-hours $\sim$57. At the A6000's $\sim$300~W TDP this corresponds to
+$\sim$17~kWh of electrical energy, with an associated carbon footprint of
+$\sim$7~kg CO$_2$ at the U.S.-average grid emissions factor of 0.4~kg
+CO$_2$/kWh.
 \end{itemize}
 
 \subsection{Software Versions}
 \label{app:repl-software}
 
 \begin{itemize}
-\item Python 3.10
-\item PyTorch 2.x with CUDA 12.x
+\item Python 3.10.12; PyTorch 2.5.1 with CUDA 12.1; NVIDIA driver 590.48.01.
 \item scikit-learn (for HGB baseline + metric reporting + StandardScaler);
-SciPy (for ANOVA); XGBoost (failed on CPU-only host, replaced with sklearn
-HGB --- see Section~\ref{sec:results-baseline})
-\item Weights and Biases (project \texttt{gcode-decoder-2026}, public link
-\TBD{wandb\_project\_url}) for hyperparameter-sweep tracking
+SciPy (for ANOVA); XGBoost was a CUDA-only build that failed on the
+CPU-only inference host and was replaced with sklearn HistGradientBoostingClassifier
+(see Section~\ref{sec:results-baseline}).
+\item Weights and Biases project \texttt{gcode-decoder-2026} for
+hyperparameter-sweep tracking. Project log access is included with the
+code release.
 \end{itemize}
 
 \subsection{Hyperparameter Ranges Explored}
@@ -146,14 +153,31 @@ ten digit-value classes (0--9). The grid contains approximately
 results are emitted to \texttt{audit/anova\_per\_class\_results.json}.
 Per-class results with $n_{\text{support}} \le 50$ are flagged as
 underpowered (Section~\ref{sec:lim-power}); the headline-significance
-claims rely on the larger-support classes only.
+claims rely on the larger-support classes only. The drilled grid
+contains approximately 3{,}500 (ablation, drilled-metric) tests at
+full Phase~B completion; BH-FDR is the appropriate adjustment for a
+grid this size.
 \end{itemize}
 
 \subsection{Inference Cost}
 \label{app:repl-inference}
 
 \begin{itemize}
-\item \textbf{Decoder forward pass.} $\sim$\TBD{decoder\_flops\_per\_token} FLOPs per generated token.
-\item \textbf{Single-row inference latency.} $\sim$\TBD{decoder\_latency\_ms\_row} ms on one A6000 at batch size 1, sequence length 32 (per-row mode) or up to 1{,}400 (full-window mode).
-\item \textbf{Memory footprint.} The decoder + frozen encoder uses approximately \TBD{decoder\_mem\_mb}~MB of VRAM at inference time.
+\item \textbf{Decoder parameter count.} 31.28~M trainable parameters at
+the headline configuration. The Transformer-decoder stack accounts for 61\%
+of the parameter budget (18.9~M), the grammar-mask + sensor-prior
+machinery for 19\% (5.8~M), and the six output heads + token embedding +
+positional encodings for the remaining 20\%.
+\item \textbf{Decoder forward pass.} Approximately $6N \approx 188$~MFLOPs
+per generated token (Chinchilla scaling estimate; $N$ is the decoder
+parameter count).
+\item \textbf{Single-row inference latency.} Approximately 30--60~ms on
+one A6000 at batch size 1, sequence length 32 (per-row mode);
+1.5--3~seconds at sequence length up to 1{,}400 (full-window mode).
+Latencies include the grammar-mask multiply at every step.
+\item \textbf{Memory footprint.} The decoder weight checkpoint is
+$\sim$125~MB; together with the frozen 8.6~M-parameter encoder, the
+combined inference graph uses $\sim$160~MB of VRAM for weights and
+remains below 500~MB total at batch size 1 including KV cache and
+encoder-memory tensors.
 \end{itemize}

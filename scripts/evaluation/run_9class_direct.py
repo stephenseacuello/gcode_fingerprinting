@@ -654,6 +654,9 @@ if __name__ == '__main__':
                         help='Early stopping patience')
     parser.add_argument('--seed', type=int, default=42,
                         help='Random seed')
+    parser.add_argument('--recon_weight', type=float, default=0.1,
+                        help='Reconstruction-loss weight. Encoder paper uses 0.1; '
+                             'Phase F-lite bumps to 1.0 to balance with classification.')
     parser.add_argument('--modality_dropout', type=float, default=0.1,
                         help='Modality dropout during training')
     parser.add_argument('--d_model', type=int, default=256,
@@ -746,6 +749,7 @@ if __name__ == '__main__':
         'lr': args.lr,
         'label_smoothing': args.label_smoothing,
         'modality_dropout': args.modality_dropout,
+        'recon_weight': args.recon_weight,
         'ablation': args.ablation,
     }
 
