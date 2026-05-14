@@ -2110,3 +2110,67 @@ ablations, LOCO, noise_aug).
    stats (47 files, +2196/-8).
 
 Paper at 42 pages, clean compile.
+
+---
+
+## 2026-05-14 (late evening) — session-end snapshot
+
+### Where the paper stands
+
+- **43 pages**, clean compile, 0 undefined references.
+- **21 figures**, all referenced exactly once in body.
+- **9 TBD placeholders** remain, all genuinely waiting on watcher chain.
+- Two paper-wide methodological findings landed this session:
+  - **TF vs AR eval bias** exposed and corrected; headline table reports
+    both regimes.
+  - **Grammar FSM** added (inference-only), eliminating G0/G1→R
+    violations at zero accuracy cost.
+
+### Six commits in this session (oldest first)
+
+1. `b2d7d5c` — TF/AR eval-bias discovery, grammar FSM fix, full 5-fold AR
+   re-eval (37 files, +1641 / −360)
+2. `3215e24` — Ranked figure pass: 8 new figures, FSM threat-model,
+   ANOVA stats (47 files, +2196 / −8)
+3. `2cee67f` — Audit cleanup: critical/high fixes (sign asymmetry,
+   TF/AR labels, orphan refs) (2 files)
+4. `906a587` — Section-overview reframe + email_to_romesh_v3 (2 files)
+5. `95b885c` — M-tier polish (1 file)
+6. `f0b9754` — L7 float specifiers [h] → [ht] (10 files)
+
+### Watcher chain still in flight
+
+pid 3990952, 28h+ elapsed. Currently on noise_aug fold 3
+(per_row + noise + augmentation). Folds 1-2 done with concerning
+preliminary results:
+- fold_1 (TF): tok 0.713, cmd 0.266, num 0.439
+- fold_2 (TF): tok 0.729, cmd 0.391, num 0.436
+
+vs baseline per_row legacy (TF): tok 0.74, cmd 0.86, num 0.45.
+
+So noise augmentation is HURTING command accuracy ~50 pp on per_row
+fold 1-2 (TF). This will read as a clean negative result for
+noise-aug on this corpus once folds 3-5 confirm. Then the chain runs
+LOCO 9-class, vocab2digit, and the window/stride sweep. About
+10 hours of background compute remain.
+
+### Open future-work items (NOT blocking this submission)
+
+- Phase F encoder retrain with auxiliary row-level heads (1-2 days
+  GPU). Designed in PHASE_F_DESIGN.md. Phase F-lite scripts exist but
+  never fired.
+- True ECE calibration plot (deferred; requires logit-dump re-eval).
+- Sensor ablation cross-fold across all 7 modalities (currently gyro
+  + color only in 5-fold; others pilot-fold-only).
+- Code release prep (GitHub public + Zenodo DOI for V8 corpus).
+
+### Things future-me / future-Claude should NOT redo
+
+- Do not propose no_ss as a headline lift — it was a TF artifact.
+- Do not propose retraining the model to fix grammar violations — the
+  FSM is inference-only and is already in place.
+- Do not propose "deeper" mode-collapse fixes by changing the encoder
+  architecture; the encoder probe + t-SNE already show the encoder
+  preserves class-level signal cleanly. The fix is at the sequence
+  head, not the encoder. The DOE-driven dataset for the next paper
+  addresses the data-side limits.
