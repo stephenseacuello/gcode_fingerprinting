@@ -3,7 +3,7 @@
 % report identical accuracies under both regimes because they are
 % independent classifiers on the encoder memory. The autoregressive-token
 % heads (token, sequence, numeric) drop under AR due to exposure bias.
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \caption{Headline test-set metrics for the G-Code Decoder under 5-fold file-level cross-validation, full-window targets, no positional metadata exposed. Mean $\pm$ std over 5 folds. Two evaluation regimes are reported: teacher-forced (TF), where each step receives the ground-truth previous token, and autoregressive (AR, greedy / beam-width 1), where the decoder consumes its own previous predictions. The categorical heads --- type, command, parameter-type, sign --- report identical accuracies under both regimes because they are independent per-position classifiers on the encoder memory; only the autoregressive-token heads (token, sequence, numeric) diverge.}
 \label{tab:headline}

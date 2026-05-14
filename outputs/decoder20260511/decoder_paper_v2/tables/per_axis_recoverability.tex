@@ -1,7 +1,7 @@
 % Per-axis recoverability, full_window 5-fold, sourced from
 % outputs/decoder20260511/audit/v8_per_field_fullwindow.json (built from
 % beam_0_all_predictions.json via npz_to_beam_predictions.py).
-\begin{table}[h]
+\begin{table}[ht]
 \centering
 \caption{Per-axis G-code recoverability across 5 folds (mean $\pm$ std). \emph{has-axis Acc} / \emph{F1} are the classification metrics for whether the axis is present in the decoded text; \emph{sign} is the direction of motion (POSITIVE / NEGATIVE / ABSENT); \emph{value MAE} is the mean absolute error of the numeric value, computed only on samples where both the predicted and true G-code carry the axis. The F row has thin support; I, J, S have effectively zero positive support and are omitted (see Table~\ref{tab:data_coverage}).}
 \label{tab:per_axis}
