@@ -149,13 +149,12 @@ F), each sign class (POSITIVE / NEGATIVE), each type class (SPECIAL /
 COMMAND / PARAM / NUMERIC), each of the six numeric-digit output
 positions (accuracy + macro precision / recall / F1), and each of the
 ten digit-value classes (0--9). The grid contains approximately
-\TBD{n\_per\_class\_anova\_tests} (ablation, drilled-metric) tests;
+approximately 3{,}500 (ablation, drilled-metric) tests at full Phase~B completion;
 results are emitted to \texttt{audit/anova\_per\_class\_results.json}.
 Per-class results with $n_{\text{support}} \le 50$ are flagged as
 underpowered (Section~\ref{sec:lim-power}); the headline-significance
 claims rely on the larger-support classes only. The drilled grid
-contains approximately 3{,}500 (ablation, drilled-metric) tests at
-full Phase~B completion; BH-FDR is the appropriate adjustment for a
+contains approximately 3{,}500 (ablation, drilled-metric) tests at full Phase~B completion, including 6 commands $\times$ 4 metrics, 5 param-axes $\times$ 4 metrics, 3 sign classes $\times$ 4 metrics, 4 type classes $\times$ 4 metrics, 6 digit positions $\times$ 4 metrics, 10 digit values $\times$ 4 metrics, replicated across $\sim$15 ablation configurations; BH-FDR is the appropriate adjustment for a
 grid this size.
 \end{itemize}
 

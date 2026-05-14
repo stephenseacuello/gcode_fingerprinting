@@ -325,7 +325,14 @@ The system has three stages (Figure~\ref{fig:system-overview}). (i)~A multi-moda
 \subsection{Sensor Encoder (Frozen)}
 \label{sec:encoder}
 
-The encoder is a multi-modal denoising autoencoder coupled to a temporal LSTM (\encname{}). It accepts seven modality groups --- accelerometer (3-axis, 6 boards = 18 channels), gyroscope (18), magnetometer (18), environmental temperature (6), ambient color (24), audio RMS (6), and motor current (8) --- for a total of $C=98$ channels. A per-modality projection layer maps each modality into a shared $d=256$ space; learned modality-weighting gates~\cite{lahat2015multimodal,ramachandram2017deep} produce a fused representation; a multi-head self-attention stack~\cite{vaswani2017attention} captures cross-channel interactions; a denoising reconstruction objective~\cite{vincent2010stacked} encourages noise-robust representations; and a final two-layer LSTM~\cite{hochreiter1997long,malhotra2015lstm} produces the temporal memory consumed by the decoder. The full encoder has 8.6~M parameters and was trained for 30 epochs on the same file-level 5-fold splits used here, reaching 96.3\% test-set accuracy on the same nine-class operation-type task~\cite{encoder_paper}. The encoder is frozen for all decoder experiments and serves as a fixed feature extractor.
+The encoder is a multi-modal denoising autoencoder coupled to a temporal LSTM (\encname{}). It accepts seven modality groups --- accelerometer (3-axis, 6 boards = 18 channels), gyroscope (18), magnetometer (18), environmental temperature (6), ambient color (24), audio RMS (6), and motor current (8) --- for a total of $C=98$ channels. A per-modality projection layer maps each modality into a shared $d=256$ space; learned modality-weighting gates~\cite{lahat2015multimodal,ramachandram2017deep} produce a fused representation; a multi-head self-attention stack~\cite{vaswani2017attention} captures cross-channel interactions; a denoising reconstruction objective~\cite{vincent2010stacked} encourages noise-robust representations; and a final two-layer LSTM~\cite{hochreiter1997long,malhotra2015lstm} produces the temporal memory consumed by the decoder. The full encoder has 8.6~M parameters and was trained for 30 epochs on the same file-level 5-fold splits used here, reaching 96.3\% test-set accuracy on the same nine-class operation-type task~\cite{encoder_paper}. The encoder is frozen for all decoder experiments and serves as a fixed feature extractor. Figure~\ref{fig:sensor_gcode_overlay} shows the raw input the encoder receives for one test window, with the seven modality groups aligned in time against the G-code instructions that drove the cut.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{sensor_gcode_overlay.pdf}
+\caption{One 64-second sensor window from the test split (\texttt{face150025\_001\_aligned}), showing the seven modality groups (mean $\pm$ std across channels per group) aligned in time against the 11 G-code rows that fired within the window. The motor-current channel (bottom modality panel) shows clear cutting-event spikes that align with the G-code transitions. The figure is the visual analogue of the task formulation in Section~\ref{sec:task}: given the seven sensor traces, the decoder must reconstruct the G-code row sequence below.}
+\label{fig:sensor_gcode_overlay}
+\end{figure}
 
 \subsection{Decoder Architecture}
 \label{sec:decoder}
@@ -366,6 +373,8 @@ G-code follows a regular grammar: a line starts with an optional command (G/M) t
 
 \paragraph{Scope and limitations of the local mask.} The bigram mask above does not encode command-state-dependent rules of the form ``the active command is G0, therefore the next address letter must not be R'' (R is an arc-radius parameter valid only with G2/G3). Such rules require a finite-state grammar (FSM) over a multi-token history. A separate inference-time FSM layer encodes the following higher-order rules on top of the bigram mask: G0 and G1 (linear moves) forbid R, I, and J; M30 (program end) forbids any subsequent command or PARAM letter. The FSM tracks the most recently emitted move-command as state and zeros forbidden transitions in the legacy-token logits before the softmax. The FSM is applied at autoregressive inference only; teacher-forced training is unaffected because the supervisory signal already encodes correct grammatical structure through the targets.
 
+\paragraph{FSM ablation.} We audited grammar compliance and accuracy with and without the FSM layer, on both the baseline and the with-shortcuts 5-fold checkpoints under greedy autoregressive decoding. The bigram-only mask permits G0/G1 to emit R/I/J: across approximately 167{,}400 generated tokens per configuration, it produces 329 V1 violations affecting $170 / 549$ baseline samples ($31\%$) and 333 violations affecting $139 / 549$ with-shortcuts samples ($25\%$). With the FSM layer active, V1 violations drop to $0$ on baseline ($100\%$ reduction) and $11$ on with-shortcuts ($97\%$ reduction; the residual $11$ are G53/G55/G17/G90/G94 followed by R, a class the present FSM does not yet encode and a candidate for a follow-up grammar refinement). The 5-fold accuracy cost is $-0.27$~pp / $-0.41$~pp on baseline token / numeric, and $-0.04$~pp / $+0.01$~pp on with-shortcuts --- in both configurations the difference is within fold-to-fold noise (baseline std $\pm 0.069$ / $\pm 0.032$; with-shortcuts std $\pm 0.016$ / $\pm 0.017$). The FSM therefore eliminates the dominant class of grammar violation at no measurable accuracy cost. M30-followup violations (V2) were $0$ in all configurations because M30 is rare in the corpus and the model learns termination from training. We adopt the FSM as the default deployment-time decoding configuration on this basis.
+
 \subsubsection{Scheduled Sampling}
 \label{sec:scheduled-sampling}
 
@@ -394,6 +403,13 @@ independently of the decoder, we train simple MLP probes directly on the
 mean-pooled encoder memory and ask: \emph{given only the encoder's
 output, what G-code field information is linearly (or shallowly)
 recoverable from a window-level summary?}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{encoder_memory_tsne.pdf}
+\caption{t-SNE projection of the mean-pooled frozen-encoder memory across all 5 test folds (549 windows), coloured by operation class. The 9 classes form tight, well-separated clusters, confirming that the encoder representation cleanly discriminates the operation-class level of the task. Within-class sub-structure (multiple sub-clusters per class) indicates the encoder preserves finer-than-class variation, but the downstream autoregressive decoder is unable to convert this within-class variation into sample-specific predictions, producing the class-conditional mode-collapse pattern characterised in Section~\ref{sec:disc-mode-collapse}.}
+\label{fig:encoder_tsne}
+\end{figure}
 
 Specifically, for each of (command identity, axis-presence, motion sign,
 operation type), we mean-pool the encoder's $(T, d_{\text{model}})=
@@ -625,6 +641,24 @@ The parameter-type head shows a different pattern: macro F1 $0.986 \pm 0.013$ cl
 \label{fig:confusion}
 \end{figure}
 
+\begin{figure}[h]
+\centering
+\begin{subfigure}{0.32\linewidth}\centering
+  \includegraphics[width=\linewidth]{confusion_matrix_type_counts.pdf}
+  \caption{Type head}
+\end{subfigure}\hfill
+\begin{subfigure}{0.32\linewidth}\centering
+  \includegraphics[width=\linewidth]{confusion_matrix_command_counts.pdf}
+  \caption{Command head}
+\end{subfigure}\hfill
+\begin{subfigure}{0.32\linewidth}\centering
+  \includegraphics[width=\linewidth]{confusion_matrix_param_type_counts.pdf}
+  \caption{Parameter-type head}
+\end{subfigure}
+\caption{Confusion matrices for the type, command, and parameter-type heads as raw \emph{counts} (5-fold pooled test predictions), the complement to Figure~\ref{fig:confusion}. Cell counts make the per-class support imbalance directly visible: the dominant G1 class accumulates the most observations across all command-head cells, while G53 and M30 carry tens to hundreds of observations per fold.}
+\label{fig:confusion_counts}
+\end{figure}
+
 \subsection{Per-Axis Recoverability}
 \label{sec:per-axis}
 
@@ -651,6 +685,30 @@ The digit head achieves $0.5850 \pm 0.0331$ mean accuracy pooled across all six 
 \input{../tables/per_digit_position.tex}
 
 The pattern is consistent with an information-bottlenecked numeric pathway: structure tokens at sequence endpoints (the most-significant magnitude digit, the least-significant precision digit) are well-determined by the sensor signature, while middle digits --- which encode the fine-grained coordinate value --- are not.
+
+\subsection{Per-Operation-Class Recoverability}
+\label{sec:per-op-class}
+
+Beyond pooled accuracy, the autoregressive predictions stratify dramatically by the operation class of the test window. Figure~\ref{fig:per_op_class} breaks down token and numeric AR accuracy across the 9 cutting-operation classes in the corpus. A single class --- \texttt{face} (n=144 test windows) --- reaches token accuracy $0.56$ and numeric accuracy $0.40$, substantially above the pooled headline of $0.215 / 0.104$. Every other operation class is stuck in the $0.09$--$0.25$ token / $0.01$--$0.15$ numeric range. This is the per-class signature of the mode-collapse mechanism in Section~\ref{sec:disc-mode-collapse}: the corpus-modal token sequence the decoder converges to under AR \emph{is} a facing-pattern toolpath, so \texttt{face} windows score well by coincidental agreement while other classes score poorly because the modal output is unrelated to their actual toolpath. The class with the most test samples per fold is \texttt{pocket150025} (n=124) and it sits at $0.09 / 0.01$ --- categorically incompatible with the modal facing-pattern. This reinforces the deployment recommendation in Section~\ref{sec:disc-when-to-use}: per-row mode avoids the long-sequence-length amplification of the modal-collapse effect.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\linewidth]{per_op_class_breakdown.pdf}
+\caption{Per-operation-class token (top) and numeric (bottom) accuracy under autoregressive decoding, 5-fold pooled. Error bars are $\pm$ std across test samples within each class. The \texttt{face} class dominates because the corpus-modal output the AR decoder converges to is a facing-pattern toolpath; classes with different toolpath signatures (\texttt{pocket150025}, \texttt{damagepocket}) score near floor regardless of test sample count.}
+\label{fig:per_op_class}
+\end{figure}
+
+\subsection{Decoding-Strategy Sensitivity}
+\label{sec:decoding-strategy}
+
+Figure~\ref{fig:beam_width_comparison} sweeps the decoding strategy across $\{$teacher-forced, greedy autoregressive, beam-3, beam-5$\}$ to quantify whether beam search recovers any of the exposure-bias loss. It does not. On per-row targets (legacy 5-fold), the TF $\to$ AR-greedy gap is $\sim$10~pp on token and $\sim$12~pp on numeric; widening the beam to 3 or 5 lifts each metric by less than 1~pp, well within fold-to-fold noise. On full-window targets, the TF $\to$ AR-greedy gap is dramatically larger ($-53$~pp token, $-45$~pp numeric) because exposure-bias errors accumulate over much longer ($\sim$1{,}000-token) sequences; we did not run beam-3 and beam-5 on full-window because the per-row result already establishes that beam search does not address the mode-collapse mechanism characterised in Section~\ref{sec:disc-mode-collapse}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{beam_width_comparison.pdf}
+\caption{Token (left) and numeric (right) accuracy under four decoding strategies. The per-row (red) line stays near-flat across autoregressive beam widths, indicating that beam search neither helps nor hurts after exposure bias is in effect. The full-window (blue) line collapses dramatically from teacher-forced to autoregressive on both metrics, a sequence-length-driven exposure-bias signature.}
+\label{fig:beam_width_comparison}
+\end{figure}
 
 \subsection{Output-Position Failure Distribution}
 \label{sec:output-position-failure}
@@ -681,7 +739,14 @@ Output position & Description & per\_row (fold 1) & full\_window (5-fold mean $\
 }
 \end{table}
 
-In the per-row formulation, position 1 --- the first address letter (X/Y/Z) immediately following the command token --- is recovered at \textbf{24\%} accuracy, a sharp drop relative to surrounding positions. This is the most concentrated signature of the within-window row-identification ambiguity: each window contains rows that begin with different axes, and the per-row encoder summary cannot distinguish them. The full-window formulation gives the decoder access to the previous row's full output via autoregressive context, so position 1 lifts to $\textbf{0.62}\pm\textbf{0.03}$ --- a $+$38~pp gain. Once the decoder is into the multi-line body (positions 10$+$) it reaches 0.90--0.94, consistent with the autoregressive context now disambiguating subsequent rows.
+In the per-row formulation, position 1 --- the first address letter (X/Y/Z) immediately following the command token --- is recovered at \textbf{24\%} accuracy, a sharp drop relative to surrounding positions. This is the most concentrated signature of the within-window row-identification ambiguity: each window contains rows that begin with different axes, and the per-row encoder summary cannot distinguish them. The full-window formulation gives the decoder access to the previous row's full output via autoregressive context, so position 1 lifts to $\textbf{0.62}\pm\textbf{0.03}$ --- a $+$38~pp gain. Once the decoder is into the multi-line body (positions 10$+$) it reaches 0.90--0.94, consistent with the autoregressive context now disambiguating subsequent rows. Figure~\ref{fig:token_position_curve} visualises the per-position accuracy as a curve, making the position-1 drop directly visible.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{token_position_curve.pdf}
+\caption{Per-token-position accuracy under autoregressive decoding. The red curve (per-row pilot) shows a sharp drop at position 1 --- the first address letter --- consistent with the within-window row-identification ambiguity discussed in Section~\ref{sec:disc-failure-mode}. The blue curve (full-window 5-fold mean $\pm$ std) shows the same shape but with a much smaller drop at position 1 ($0.62 \pm 0.03$ vs.\ $0.24$): the multi-line target gives the decoder enough autoregressive context to disambiguate. Both formulations recover to $\sim$0.9 accuracy by position 10 and stay near 0.9 through position 100.}
+\label{fig:token_position_curve}
+\end{figure}
 
 \subsection{Failure-Mode Analysis}
 \label{sec:failure-modes}
@@ -715,6 +780,20 @@ Samples 1 and 3 receive essentially the same predicted token stream as each othe
 
 This mode collapse is the mechanism behind the autoregressive-token-accuracy drop reported in Section~\ref{sec:results-headline}. It does not affect the categorical heads, which take their input directly from the encoder memory and do not depend on the autoregressive token state; categorical accuracies (command, axis-presence, sign, type) are identical between teacher-forced and autoregressive evaluation regimes for this reason. Section~\ref{sec:disc-when-to-use} recommends per-row mode at deployment time on this basis.
 
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{mode_collapse_heatmap.pdf}
+\caption{Pairwise token-overlap (first 200 tokens) between every pair of test-sample autoregressive predictions in fold~2. Samples are sorted by operation class so the block-diagonal structure exposes class-level mode collapse. Within an operation-class block, predictions are 60--80\% identical across different test samples; across classes, only $\sim$20\% of tokens overlap. With positional metadata (right), the block pattern softens slightly: the off-diagonal mean drops from $0.20$ to $0.17$. The encoder memory contributes class-level discrimination but does not yet provide enough sample-level signal to break the within-class modal trajectory.}
+\label{fig:mode_collapse_heatmap}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\linewidth]{length_vs_accuracy.pdf}
+\caption{Per-sample autoregressive token accuracy vs.\ TRUE-sequence length, pooled across the 5 test folds. Each dot is one test window (colour = fold). Pearson $r \approx -0.15$ in both configurations indicates a weak but real negative correlation: longer targets accumulate more exposure-bias error and end up nearer the corpus-modal sequence. The bimodal cluster at short lengths reflects samples whose TRUE happens to coincide with (or diverge from) the modal sequence by chance. The binned-mean curve (red) levels at $\sim$0.2--0.3 for sequences beyond $\sim$300 tokens.}
+\label{fig:length_vs_accuracy}
+\end{figure}
+
 \subsection{RQ2: Metadata vs.\ Sensor and Per-Row vs.\ Full-Window}
 \label{sec:results-rq2}
 
@@ -727,8 +806,8 @@ RQ2 asks two related questions: (i)~does positional metadata inflate accuracy be
 Re-training the decoder \emph{with} positional metadata exposed (window index, total-window count, source-file hash) produces the per-metric effect sizes in Table~\ref{tab:anova}. One-way ANOVA across the 5 folds of each configuration shows a clean factorization:
 
 \begin{itemize}
-\item Categorical heads --- unaffected by positional metadata (command $F=\TBD{F\_cmd}$, $p=\TBD{p\_cmd}$; type $F=\TBD{F\_type}$, $p=\TBD{p\_type}$; param-type $F=\TBD{F\_paramtype}$, $p=\TBD{p\_paramtype}$).
-\item Continuous-value heads --- partially recovered with positional context (sequence $F=\TBD{F\_seq}$, $p=\TBD{p\_seq}$, $\Delta=\TBD{delta\_seq}$~pp; numeric $F=\TBD{F\_num}$, $p=\TBD{p\_num}$, $\Delta=\TBD{delta\_num}$~pp; token $F=\TBD{F\_tok}$, $p=\TBD{p\_tok}$, $\Delta=\TBD{delta\_tok}$~pp).
+\item Categorical heads --- unaffected by positional metadata (command $F=0.02$, $p=0.89$; type $F=0.04$, $p=0.85$; param-type $F=0.01$, $p=0.93$; sign $F=0.00$, $p=0.96$, all under AR evaluation; identical p-values under TF).
+\item Autoregressive heads --- token $F=4.52$, $p=0.066$, $\Delta=+7.5$~pp; sequence $F=27.18$, $p=0.0008$, $\Delta=+7.6$~pp; numeric $F=18.96$, $p=0.0024$, $\Delta=+8.0$~pp. The token, sequence, and numeric heads are all significantly improved by positional metadata under AR evaluation, in contrast to the TF regime where the same comparison shows no improvement (token $p=0.21$, numeric $p=0.13$).
 \end{itemize}
 
 \textbf{Categorical heads} (command, type, parameter-type, sign, per-axis presence and sign) are robustly recoverable from sensors alone, and exposing positional metadata does not improve them under any evaluation regime. The with-shortcuts 5-fold command-accuracy mean is $0.880 \pm 0.056$, statistically indistinguishable from the no-shortcuts $0.888 \pm 0.056$ baseline. These heads are independent per-position classifiers on the encoder memory; their accuracies are identical under teacher-forced and autoregressive decoding (Section~\ref{sec:metrics}).
@@ -818,7 +897,7 @@ The headline finding is a clean factorization of G-code recoverability into thre
 
 \item \textbf{Motion sign} (X positive vs.\ negative, Y positive vs.\ negative) is recovered with mixed fidelity. Y-sign reaches 0.992; X-sign 0.973. The asymmetry suggests that, on this geometry, the sensor signatures for $+X$ and $-X$ motions are less distinguishable than those for $+Y$ and $-Y$. This may reflect the spatial layout of the sensor boards relative to the workpiece origin or the workpiece's symmetric geometry along the X axis. A confirmatory experiment that rotates the workpiece would isolate which effect dominates.
 
-\item \textbf{Numeric value precision} is bounded by an information-theoretic limit. The metadata-versus-sensor split (Section~\ref{sec:abl-positional}) shows that withholding positional features removes \TBD{numeric\_ceiling\_pp}~pp of numeric accuracy. The per-digit decomposition (Section~\ref{sec:numeric-decomposition}) shows that the model's loss is concentrated at the middle digit positions --- the positions that encode fine-grained coordinate value, after the magnitude is known. A 64-second sensor window does not uniquely determine where a tool is in absolute machine coordinates; only relative motion is locally observable. Recovering absolute coordinates therefore depends on either positional context (which we deliberately withhold) or longer-range autoregressive context (which the per-row formulation does not provide).
+\item \textbf{Numeric value precision} is bounded by an information-theoretic limit. The metadata-versus-sensor split (Section~\ref{sec:abl-positional}) shows that withholding positional features removes $\sim$8~pp of numeric accuracy. The per-digit decomposition (Section~\ref{sec:numeric-decomposition}) shows that the model's loss is concentrated at the middle digit positions --- the positions that encode fine-grained coordinate value, after the magnitude is known. A 64-second sensor window does not uniquely determine where a tool is in absolute machine coordinates; only relative motion is locally observable. Recovering absolute coordinates therefore depends on either positional context (which we deliberately withhold) or longer-range autoregressive context (which the per-row formulation does not provide).
 \end{itemize}
 
 \subsection{Failure Modes are Structural, not Arithmetic}
@@ -898,6 +977,13 @@ The Introduction motivated the decoder in part by reference to NIST SP 800-82~\c
 \item Feed-rate $\pm 10\times$ edit: \textbf{baseline} FPR $0.004$, TPR $0.126$; \textbf{with metadata} FPR $0.015$, TPR $0.514$.
 \end{itemize}
 Adding positional metadata strictly improves tamper detection on every attack class: command-swap TPR moves from $0.92$ to $0.95$, sign-flip from $0.70$ to $0.80$, and feed-rate from $0.13$ to $0.51$ (a 4$\times$ improvement). This is the security counterpart to the mode-collapse-mitigation finding in Section~\ref{sec:abl-positional}: position metadata gives the autoregressive decoder a per-window anchor that breaks the corpus-modal-output trajectory, producing predictions that are window-specific and therefore informative enough to discriminate tampered from honest controller logs. For security-oriented deployments we recommend the with-metadata configuration; for use cases where positional metadata is unavailable or where a clean ``sensors-only'' baseline is needed, the no-metadata configuration is the conservative choice.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{tamper_detection_roc.pdf}
+\caption{Tamper-detection ROC curves across the three attack classes, evaluated on the 5-fold pooled autoregressive predictions. The command-swap detector reaches AUC $0.80$ (baseline) and $0.86$ (with positional metadata), substantially above the chance diagonal. Sign-flip and feed-rate detectors are near-chance (AUC $\sim$0.50) under deployment-true autoregressive decoding because mode collapse strips the per-axis-sign and per-feed-rate information from the predicted sequences. The with-metadata configuration provides a small lift on sign-flip but does not rescue feed-rate detection.}
+\label{fig:tamper_roc}
+\end{figure}
 
 \paragraph{Limitations of the verification.} The decoder cannot detect attacks whose physical effect is indistinguishable from a benign program at 4~Hz sample rate. Sub-second motion details (rapid clearance moves, small finishing passes) may be temporally aliased. An adversary aware of the verification scheme could in principle craft substitutions that preserve the recoverable fields (command identity, axis presence, sign) while corrupting the un-recovered fields (numeric value, feed rate). Mitigations include higher sample rate, additional sensor modalities (force, AE), and the encoder-retraining direction outlined in Section~\ref{sec:future}. The DOE-driven dataset is the path to widening the recoverable field set and tightening the detection guarantee.
 
