@@ -2036,3 +2036,77 @@ class. Feed-edit TPR 4× higher (0.13 → 0.51).
 3. Watcher chain remaining (sensor cross-fold, noise-aug, LOCO,
    vocab2digit, window/stride) — still pending; chain pid 3990952 may
    have stalled, needs checking.
+
+---
+
+## 2026-05-14 (evening) — ranked-figure pass + ANOVA fills
+
+User asked for all 9 ranked figures plus 2 bonus items. Delivered 10 of
+11 (calibration deferred). Paper now 42 pages.
+
+### Figures added this round
+
+| Figure | Where | Finding |
+|---|---|---|
+| beam_width_comparison.pdf | §6.6 | Beam search does NOT fix exposure bias; full-window TF->AR drop is 53 pp |
+| tamper_detection_roc.pdf | §7.6 | cmd-swap AUC 0.80/0.86; sign+feed near chance under AR |
+| per_op_class_breakdown.pdf | §6.5 (new) | 'face' class dominates 0.56/0.40; others stuck at 0.10-0.25 |
+| mode_collapse_heatmap.pdf | §6.7 | Class-conditional mode collapse; off-diag 0.20 -> 0.17 with shortcuts |
+| sensor_gcode_overlay.pdf | §4.2 | Concrete data viz: 7 modalities + 11 G-code rows in one window |
+| length_vs_accuracy.pdf | §6.7 | r=-0.15 (weak negative) between length and AR accuracy |
+| encoder_memory_tsne.pdf | §4.4 | 9 op-classes form tight clusters; within-class sub-structure |
+| token_position_curve.pdf | §6.6 | Visual companion to token_position_compare table |
+| confusion_matrix_counts | §6.1 (new fig:confusion_counts) | Cell counts complement normalized matrices |
+| calibration_plot | DROPPED | Per-class precision proxy is tautological |
+
+### Audits + scripts written
+
+- `scripts/analysis/grammar_violation_audit.py` — counts V1 (G0/G1->R/I/J)
+  and V2 (M30->param/cmd) violations across folds, both bigram-only and
+  FSM-equipped predictions.
+- `scripts/analysis/threat_model_fsm_audit.py` — adapter that runs the
+  threat-model audit on *_fsm/results/beam_1_all_predictions.json paths.
+
+### FSM threat-model
+
+5-fold AR results essentially identical to bigram-only:
+- cmd-swap: 0.30/0.92 -> 0.30/0.92 (baseline), 0.22/0.95 -> 0.22/0.95 (shortcuts)
+- sign-flip: 0.35/0.70 -> 0.35/0.70 (baseline), 0.24/0.80 -> 0.24/0.80 (shortcuts)
+- feed-edit: 0.00/0.13 -> 0.01/0.22 (baseline), 0.01/0.51 -> 0.01/0.53 (shortcuts)
+
+Tiny lift on feed-edit; otherwise within rounding. Consistent with "FSM
+eliminates grammar violations at no accuracy cost" story.
+
+### ANOVA F/p across 5 folds (baseline vs with-shortcuts)
+
+| Metric | Regime | F | p | Δ |
+|---|---|---|---|---|
+| Token | AR | 4.52 | 0.066 | +7.5 pp |
+| Sequence | AR | 27.18 | 0.0008 | +7.6 pp |
+| Numeric | AR | 18.96 | 0.0024 | +8.0 pp |
+| Command | AR | 0.02 | 0.89 | -0.6 pp |
+| Type | AR | 0.04 | 0.85 | -0.1 pp |
+| Param-type | AR | 0.01 | 0.93 | -0.0 pp |
+| Sign | AR | 0.00 | 0.96 | 0.0 pp |
+
+Categorical heads p > 0.78 (no significant shortcut effect — robust to
+deployment regime). Autoregressive heads significantly improved by
+shortcuts under AR (p < 0.01 for sequence and numeric, p = 0.066 token).
+
+### TBD placeholders filled this round
+
+- 6 ANOVA F/p (cmd/type/paramtype/seq/num/tok)
+- 3 numeric_ceiling_pp (~8 pp)
+- 1 n_per_class_anova_tests (~3,500)
+
+Remaining 9 placeholders depend on watcher chain (vocab2digit, nested
+ablations, LOCO, noise_aug).
+
+### Commits in this session
+
+1. b2d7d5c — TF/AR eval-bias discovery, grammar FSM fix, full 5-fold AR
+   re-eval (37 files, +1641/-360).
+2. 3215e24 — Ranked figure pass: 8 new figures, FSM threat-model, ANOVA
+   stats (47 files, +2196/-8).
+
+Paper at 42 pages, clean compile.
