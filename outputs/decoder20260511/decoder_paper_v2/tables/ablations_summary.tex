@@ -3,7 +3,7 @@
 % except where noted as fold-1 only.
 \begin{table}[ht]
 \centering
-\caption{Ablation matrix. Each ablation row reports both teacher-forced (TF) and autoregressive (AR, beam-width-1 greedy) test accuracy where the metric depends on the regime. The categorical heads (type, command, param-type, sign) are independent classifiers on the encoder memory and report identical accuracies under both regimes; a single value is given. Cells marked with \emph{$\sim$} are fold-1 estimates pending the full cross-fold sweep.}
+\caption{Ablation matrix. Each ablation row reports both teacher-forced (TF) and autoregressive (AR, beam-width-1 greedy) test accuracy where the metric depends on the regime. The categorical heads (type, command, param-type, sign) are independent classifiers on the encoder memory and report identical accuracies under both regimes; a single value is given. The pattern-aware row is a fold-1 pilot (Section~\ref{sec:abl-pattern}); the sensor-modality effect is summarised here and broken out per modality at full 5-fold in Table~\ref{tab:sensor_ablation}.}
 \label{tab:ablations}
 \small
 \resizebox{\textwidth}{!}{%
@@ -25,15 +25,15 @@
  & $0.882 \pm 0.056$
  & $0.993 \pm 0.004$
  & $0.532 \pm 0.054$ / $\mathbf{0.184 \pm 0.017}$ \\
-+ sequence classifier (pattern-aware)
- & \TBD{abl\_pat\_tok}   & \TBD{abl\_pat\_seq}   & \TBD{abl\_pat\_type}   & \TBD{abl\_pat\_cmd}   & \TBD{abl\_pat\_param}   & \TBD{abl\_pat\_num}   \\
-$-$ gyroscope (fold-1)            & $\sim$\TBD{abl\_nogyro\_tok}  & --                  & $\sim$\TBD{abl\_nogyro\_type}  & $\sim$\TBD{abl\_nogyro\_cmd}  & $\sim$\TBD{abl\_nogyro\_param}  & --                    \\
-$-$ color (fold-1)                & $\sim$\TBD{abl\_nocol\_tok}   & --                  & $\sim$\TBD{abl\_nocol\_type}   & $\sim$\TBD{abl\_nocol\_cmd}   & $\sim$\TBD{abl\_nocol\_param}   & --                    \\
-$-$ accelerometer (fold-1)        & $\sim$\TBD{abl\_noacc\_tok}   & --                  & $\sim$\TBD{abl\_noacc\_type}   & $\sim$\TBD{abl\_noacc\_cmd}   & $\sim$\TBD{abl\_noacc\_param}   & --                    \\
-$-$ environmental (fold-1)        & $\sim$\TBD{abl\_noenv\_tok}   & --                  & $\sim$\TBD{abl\_noenv\_type}   & $\sim$\TBD{abl\_noenv\_cmd}   & $\sim$\TBD{abl\_noenv\_param}   & --                    \\
-$-$ RMS audio (fold-1)            & $\sim$\TBD{abl\_norms\_tok}   & --                  & $\sim$\TBD{abl\_norms\_type}   & $\sim$\TBD{abl\_norms\_cmd}   & $\sim$\TBD{abl\_norms\_param}   & --                    \\
-$-$ magnetometer (fold-1)         & $\sim$\TBD{abl\_nomag\_tok}   & --                  & $\sim$\TBD{abl\_nomag\_type}   & $\sim$\TBD{abl\_nomag\_cmd}   & $\sim$\TBD{abl\_nomag\_param}   & --                    \\
-$-$ electrical (fold-1)           & $\sim$\TBD{abl\_noelec\_tok}  & --                  & $\sim$\TBD{abl\_noelec\_type}  & $\sim$\TBD{abl\_noelec\_cmd}  & $\sim$\TBD{abl\_noelec\_param}  & --                    \\
++ sequence classifier (pattern-aware, fold-1)
+ & $0.694$ / --
+ & $0.010$
+ & $0.975$
+ & $0.536$
+ & $0.952$
+ & $0.392$ / -- \\
+$-$ any single sensor modality (5-fold)
+ & \multicolumn{6}{c}{\footnotesize command $0.449$--$0.484$ (uniform $-40$ to $-44$~pp; between-modality ANOVA $p=0.998$); token $\sim$0.74; type / param-type within $\sim$1--4~pp of baseline. Full per-modality breakdown: Table~\ref{tab:sensor_ablation}.} \\
 \bottomrule
 \end{tabular}%
 }

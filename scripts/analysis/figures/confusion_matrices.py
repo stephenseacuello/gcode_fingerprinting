@@ -91,6 +91,36 @@ def plot_cm(cm: np.ndarray, labels: list[str], title: str, out_stem: Path,
     plt.close()
 
 
+def _digit_confusion(out_dir: Path) -> None:
+    """10x10 digit-value confusion (0-9) aggregated from predictions.npz
+    across the 5-fold sweep. digit_p / digit_t are (N, T, 6) arrays."""
+    agg = np.zeros((10, 10), dtype=np.int64)
+    found = 0
+    for F in [1, 2, 3, 4, 5]:
+        cands = list((SWEEP / f"fold_{F}").glob("*/results/predictions.npz"))
+        cands = [c for c in cands if "_fsm" not in str(c)]
+        if not cands:
+            continue
+        d = np.load(cands[0], allow_pickle=True)
+        if "digit_p" not in d.files or "digit_t" not in d.files:
+            continue
+        dp = d["digit_p"].reshape(-1)
+        dt = d["digit_t"].reshape(-1)
+        mask = (dt >= 0) & (dt <= 9) & (dp >= 0) & (dp <= 9)
+        for t, p in zip(dt[mask], dp[mask]):
+            agg[int(t), int(p)] += 1
+        found += 1
+    if found == 0:
+        print("  skip digit confusion: no predictions.npz with digit_p/digit_t")
+        return
+    labels = [str(i) for i in range(10)]
+    plot_cm(agg, labels, "Digit-value head — confusion matrix (0–9, 5-fold aggregate)",
+            out_dir / "confusion_matrix_digit_normalized", normalize=True)
+    plot_cm(agg, labels, "Digit-value head — confusion matrix (0–9, 5-fold aggregate counts)",
+            out_dir / "confusion_matrix_digit_counts", normalize=False)
+    print(f"  wrote digit confusion matrix (10 classes, sum={agg.sum()}, {found} folds)")
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--out-dir", type=Path, default=FIG_DIR)
@@ -101,6 +131,7 @@ def main() -> int:
         ("type", "Type head — confusion matrix (5-fold aggregate)"),
         ("command", "Command head — confusion matrix (5-fold aggregate)"),
         ("param_type", "Param-type head — confusion matrix (5-fold aggregate)"),
+        ("sign", "Sign head — confusion matrix (5-fold aggregate)"),
     ]:
         cm, labels = _aggregate_confusion(head)
         if cm is None:
@@ -110,6 +141,9 @@ def main() -> int:
         plot_cm(cm, labels, title.replace("5-fold aggregate", "5-fold aggregate counts"),
                 args.out_dir / f"confusion_matrix_{head}_counts", normalize=False)
         print(f"  wrote {head} confusion matrix ({len(labels)} classes, sum={cm.sum()})")
+
+    # ---- digit-value confusion (0-9) computed from predictions.npz ----
+    _digit_confusion(args.out_dir)
 
     print(f"\nFigures saved to {args.out_dir}")
     return 0

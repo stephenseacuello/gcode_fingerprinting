@@ -133,7 +133,7 @@ versus the no-shortcuts baseline. Implemented with
 \item \textbf{Effect size.} Cohen's $d$ using pooled variance.
 \item \textbf{Bootstrap CI.} 10{,}000 percentile-method resamples on the
 5-fold means.
-\item \textbf{Multiple-comparisons correction.} Holm-Bonferroni and BH-FDR
+\item \textbf{Multiple-comparisons correction.} Holm-Bonferroni~\cite{holm1979simple} and BH-FDR~\cite{benjamini1995controlling}
 applied across all (ablation, macro-metric) pairs reported in
 Table~\ref{tab:anova}, AND separately across the drilled per-class /
 per-axis / per-position grid below. Significance at $\alpha=0.05$ is
@@ -148,14 +148,17 @@ per-class metrics: precision, recall, and F1 for each command class
 F), each sign class (POSITIVE / NEGATIVE), each type class (SPECIAL /
 COMMAND / PARAM / NUMERIC), each of the six numeric-digit output
 positions (accuracy + macro precision / recall / F1), and each of the
-ten digit-value classes (0--9). The grid contains approximately
-approximately 3{,}500 (ablation, drilled-metric) tests at full Phase~B completion;
-results are emitted to \texttt{audit/anova\_per\_class\_results.json}.
-Per-class results with $n_{\text{support}} \le 50$ are flagged as
-underpowered (Section~\ref{sec:lim-power}); the headline-significance
-claims rely on the larger-support classes only. The drilled grid
-contains approximately 3{,}500 (ablation, drilled-metric) tests at full Phase~B completion, including 6 commands $\times$ 4 metrics, 5 param-axes $\times$ 4 metrics, 3 sign classes $\times$ 4 metrics, 4 type classes $\times$ 4 metrics, 6 digit positions $\times$ 4 metrics, 10 digit values $\times$ 4 metrics, replicated across $\sim$15 ablation configurations; BH-FDR is the appropriate adjustment for a
-grid this size.
+ten digit-value classes (0--9). The grid as run contains $630$
+(ablation, drilled-metric) tests: $105$ drilled metrics replicated
+across the $8$ ablation configurations (noise augmentation and the
+seven zeroed-modality ablations), emitted to
+\texttt{audit/anova\_per\_class\_results.json}. Of these, $320$ are
+significant under BH-FDR and $72$ under Holm-Bonferroni at
+$\alpha=0.05$. Per-class results with $n_{\text{support}} \le 50$ are
+flagged as underpowered (Section~\ref{sec:lim-power}); the
+headline-significance claims rely on the larger-support classes only.
+BH-FDR is the appropriate adjustment for a grid of this size and is
+reported alongside the more conservative Holm-Bonferroni throughout.
 \end{itemize}
 
 \subsection{Inference Cost}
@@ -179,4 +182,14 @@ $\sim$125~MB; together with the frozen 8.6~M-parameter encoder, the
 combined inference graph uses $\sim$160~MB of VRAM for weights and
 remains below 500~MB total at batch size 1 including KV cache and
 encoder-memory tensors.
+\item \textbf{CPU inference cost (host CPU, no GPU).} A single
+teacher-forced forward pass at batch~1 takes 36~ms median (per-row,
+32-token output), 61~ms median (256-token output), and 234~ms median
+(1024-token output) on the host machine's CPU. Autoregressive greedy
+generation on CPU is dramatically slower at $\sim$1.45~s for 32 tokens
+and $\sim$14~s for 256 tokens, reflecting the per-step transformer
+overhead (\texttt{audit/inference\_cost\_cpu.json}). For edge deployment
+without GPU, per-row mode with teacher-forced-style streaming (where
+the controller log supplies the previous token) is the only realistic
+configuration; autoregressive deployment requires GPU acceleration.
 \end{itemize}

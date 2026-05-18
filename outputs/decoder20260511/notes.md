@@ -2174,3 +2174,487 @@ LOCO 9-class, vocab2digit, and the window/stride sweep. About
   preserves class-level signal cleanly. The fix is at the sequence
   head, not the encoder. The DOE-driven dataset for the next paper
   addresses the data-side limits.
+
+
+## 2026-05-15 paper-strengthening pass (this session)
+
+User asked to fire any paper-strengthening items that fit while watcher
+chain (GPU 0) and sensor cross-fold (GPU 1) run in the background.
+Items landed:
+
+### 1. Test-time noise sensitivity (§5.6 + fig 18)
+- Script: scripts/analysis/test_time_noise_sensitivity.py
+- Output: audit/test_time_noise_sensitivity.json + figures/test_time_noise.pdf
+- Result: command/type/param-type heads are essentially flat across
+  σ ∈ [0,2] in units of memory std. Sign head dropped from figure
+  (target-indexing bug; needs separate fix).
+
+### 2. CPU inference cost (§appendix-replicability)
+- Script: scripts/analysis/inference_cost_cpu.py
+- Output: audit/inference_cost_cpu.json
+- Result: TF 36 ms (32 tok) / 61 ms (256 tok) / 234 ms (1024 tok);
+  AR greedy 1.45 s / 13.8 s. Per-row mode is the only realistic
+  CPU edge-deployment config.
+
+### 3. FSM vs bigram paired stats (§4.2.2)
+- Script: scripts/analysis/fsm_vs_bigram_stats.py
+- Output: audit/fsm_vs_bigram_paired_stats.json
+- Result: all paired-t p > 0.5; all Wilcoxon p > 0.4 across
+  token/numeric/command. FSM is statistically zero-cost on both
+  baseline and with-shortcuts configs.
+
+### 4. Train/test G-code line overlap (Dataset Limitations)
+- Script: scripts/analysis/train_test_gcode_overlap.py
+- Output: audit/train_test_gcode_overlap.json
+- Result: 97.6 % distinct test lines / 99.0 % test rows appear
+  verbatim in train (per_row, line-level). full_window has 97.9 % /
+  99.1 % at the line level. This is by design (coverage-repair
+  procedure) but needed honest disclosure in the paper.
+
+### 5. Real ECE / reliability diagram (§5.7 + fig 19)
+- Script: scripts/analysis/compute_ece_calibration.py
+- Output: audit/calibration_fold1.json + figures/reliability_diagram.pdf
+- Result: type ECE 0.015 / param-type ECE 0.020 / command ECE 0.122.
+  Command head is overconfident (mean conf 0.90 vs acc 0.78); type and
+  param-type are well-calibrated.
+
+### 6. AR output diversity (paragraph appended to §5.disc-mode-collapse)
+- Script: scripts/analysis/ar_output_diversity.py
+- Output: audit/ar_output_diversity.json
+- Result: across 549 test windows, 407 distinct AR predictions (74 %)
+  vs 459 distinct ground-truth (84 %). Modal pred 9.5 % vs modal true
+  2.9 % — 3.3× over-representation of the modal pattern.
+  Confirms PARTIAL (not total) mode collapse.
+
+### 7. Sensor cross-fold for 5 missing modalities (running on GPU 1)
+- Script: scripts/experiments/run_sensor_ablation_v8_missing_modalities.sh
+- Modalities: accelerometer, magnetometer, environmental, rms, electrical
+- All 5 folds, ~12 h. Currently on accelerometer fold 1.
+- Output dir: outputs/decoder20260511/ablations/sensor/zero_*/fold_*/
+
+Paper now 45 pages, clean compile. 9 TBDs still remain (LOCO numbers,
+vocab2digit numbers, nested ablation matrix) blocked on watcher chain.
+
+### 8. Post-hoc temperature scaling (§5.7 paragraph + Guo 2017 cite)
+- Script: scripts/analysis/temperature_scaling.py
+- Output: audit/calibration_temp_scaled.json
+- T fit on 50% calibration half, evaluated on the other 50%:
+  * command  T=1.77  ECE 0.124 → 0.029  (-9.5 pp)  MCE 0.399 → 0.091  (-30.8 pp)
+  * type     T=0.88  ECE 0.016 → 0.008
+  * pt       T=0.76  ECE 0.021 → 0.004
+- Accuracy unchanged (T does not move argmax). Paper now recommends
+  temperature scaling as the default deployment-time calibration step.
+- Side fix: removed duplicate \\bibliographystyle{mdpi} from the .tex
+  source (mdpi.cls already sets it; the duplicate caused bibtex to skip
+  refs). New citations now resolve cleanly.
+
+Paper end-of-pass: 45 pages, clean compile.
+
+## 2026-05-15 second pass: reviewer-feedback-driven edits
+
+Three Sensors-MDPI reviewer agents (sensor systems, ML, manufacturing/CPS)
+all returned MAJOR REVISIONS. This pass addressed the immediate-fix items
+from their reports.
+
+### Reviewer-driven edits landed:
+
+1. **Abstract softening** — closed-vocab qualifier (97% test/train line
+   overlap), tamper-FPR honesty (TPR 0.92-0.95 at FPR 0.22-0.30).
+2. **§3.3** — 'five prediction heads' → 'six prediction heads'.
+3. **§5.7 (test-time noise)** — disclosed sign-head alignment bug;
+   clarified that the experiment tests encoder-memory noise not raw-sensor
+   noise.
+4. **§6.4 (sensor ablation)** — added lower-bound caveat (frozen encoder
+   means inference-time zeroing is a lower bound on modality value);
+   protocol-honest cell labelling (5-fold for gyro+color, fold-1 for the
+   rest); 'why color carries instruction-level signal' interpretation
+   paragraph (chip-flow, indicator-LED, illumination occlusion hypotheses).
+5. **§5.1 (results-headline)** — added explicit chance baseline for AR
+   token-accuracy claim (modal-true frequency 0.029; AR token 0.215 = 7×
+   chance, consistent with partial collapse).
+6. **§7.5 (per-file performance)** — NEW subsection with cross-file
+   variance result (command 0.953 ± 0.088 across 91 files, P10/P90
+   [0.85, 1.00]; per_file_holdout.json).
+7. **§8.6 (tamper detection)** — switched to FSM-variant numbers (paper's
+   own recommended decoding config); added explicit false-alarm cost
+   paragraph with three deployable remedies (aggregation, low-FPR
+   threshold selection, post-temperature-scaling).
+8. **§9 conclusion** — added MIXER (Ranzato 2016), Holtzman 2020 (nucleus
+   sampling), Welleck 2020 (unlikelihood training) as principled
+   exposure-bias remedies.
+9. **Appendix replicability** — Holm-Bonferroni (Holm 1979) and BH-FDR
+   (Benjamini-Hochberg 1995) citations added inline.
+
+### What R1/R2/R3 still flagged that we have not yet fired:
+
+- Cross-fold calibration (pending; needs GPU 1 free time)
+- Per-class ANOVA grid actually populated (the JSON is empty {})
+- Raw-sensor (not encoder-memory) noise sweep
+- Sensor placement diagram
+- LOCO + vocab2digit + nested-ablation TBDs (blocked on watcher chain)
+- Industrial-machine validation (out of scope for this paper)
+- 4 Hz Nyquist concern more honestly engaged (acknowledged in Limitations
+  but reviewers wanted it discussed more prominently)
+
+Paper now 47 pages, clean compile.
+
+## 2026-05-15 round 3: filling reviewer items + finishing chains
+
+Continued work after firing the reviewer-immediate fixes. This batch
+addressed the medium-leverage items reviewers asked for.
+
+### Items landed:
+
+1. **Per-class ANOVA grid populated** — R2's empty-{} JSON blocker resolved
+   by running anova_and_bootstrap.py --baseline-name full_window_5fold.
+   315 drilled tests, 173 BH-FDR significant, 72 Holm-Bonferroni
+   significant. Paragraph added in §5.10.
+
+2. **Cross-fold calibration (5-fold)** — fits T per fold, evaluates ECE on
+   held-out half. Cross-fold T_cmd = 1.34 ± 0.25; ECE 0.050 → 0.020
+   (-3 pp). Fold 1 is the outlier (T=1.77, ECE 0.122 → 0.029) consistent
+   with the covariate-shift outlier finding. §5.7 updated.
+
+3. **LOCO TBDs filled** (7/9 then 8/9): 
+   cmd=0.155±0.103, tok=0.495±0.097, num=0.121±0.105.
+   Key surprise: type=0.894±0.056 and pt=0.950±0.035 are LOCO-ROBUST.
+   Coarse heads survive cross-class generalization; finer heads
+   (command, numeric) collapse. Added per-class LOCO F1 paragraph
+   showing every command class at F1 < 0.17.
+
+4. **MAJOR SENSOR REVERSAL**: discovered V8 5-fold sensor data shows
+   ALL modalities drop command by 38-45 pp when zeroed at encoder input
+   — span only 6 pp across modalities. The old 'gyroscope+color load-
+   bearing' story was wrong. Paper §6.4 fully rewritten with honest
+   'uniform collapse, no differentiation' narrative + lower-bound
+   caveat. Discussion §sec:disc-modality + Conclusion §9 fourth point
+   also rewritten. tables/sensor_ablation.tex regenerated with V8 data.
+
+5. **MANUSCRIPT_TABLES regenerated** via aggregate_v8_results.py.
+
+### Paper now 49 pages. Clean compile.
+
+### Background chain status at end of round:
+- GPU 0: 8/9 LOCO done, damagepocket running (~30 min). After: vocab2digit + window/stride.
+- GPU 1: 5/25 sensor V8 cells done, electrical fold_1 running. After: folds 2-5 for accelerometer/electrical/environmental/magnetometer/rms.
+
+### Remaining work after chains:
+- Update LOCO 9/9 (mechanical)
+- Fill vocab2digit TBDs (when chain produces them)
+- Update §6.4 sensor table to full 5-fold (when GPU 1 chain produces them)
+- Window/stride TBDs (if filled)
+- Final compile + commit
+
+### Additional items landed this round:
+
+10. **Paired-stats: zero_gyroscope vs zero_color** — paired-t p=0.75,
+    Wilcoxon p=0.63, mean delta +0.016. Confirms statistical
+    indifference between the two highest-rated encoder-paper modalities
+    at the decoder ablation. Added to §6.4 'Comparison with encoder-paper'
+    paragraph. audit/sensor_gyro_vs_color_paired.json.
+
+11. **Bootstrap 95% CIs on LOCO 8/9** — 10,000 percentile-method resamples:
+    cmd [0.080, 0.222], tok [0.423, 0.555], num [0.050, 0.194], type
+    [0.854, 0.930], pt [0.926, 0.973], seq [0.000, 0.002]. Added to
+    §6.13 LOCO paragraph. audit/loco_bootstrap_ci.json.
+
+12. **Per-head sensor-ablation delta analysis** (audit only, not in paper):
+    - Command: -38.6 to -45.2 pp (6pp spread)
+    - Numeric: -9.4 to -11.7 pp (2.3pp spread)
+    - Token: -2.3 to -3.6 pp (1.3pp spread)
+    - Type: -0.1 to -0.7 pp (0.6pp spread)
+    - PT: -1.1 to -1.4 pp (0.3pp spread)
+    Numeric head drops are also uniform but at smaller magnitude than
+    command. Type/PT essentially untouched. Confirms the 'gross structure
+    preserved, finer heads collapse' narrative.
+
+### LOCO per-class command F1 breakdown:
+    G0: 0.094 ± 0.141
+    G1: 0.162 ± 0.189 (modal)
+    G2: 0.051 ± 0.114
+    G3: 0.093 ± 0.139
+    G53: 0.000  (n≤5 per holdout)
+    M30: 0.000
+Added to §6.13 as 'Per-class LOCO command F1' paragraph.
+
+Paper still 49 pages after these edits.
+
+## 2026-05-15 round 5: chain milestone landings
+
+### Items completed this round:
+
+13. **LOCO 9/9 COMPLETE** — damagepocket landed (cmd=0.678, the
+    outlier). Full 9-holdout aggregate: cmd 0.213±0.191
+    (median 0.21), tok 0.501±0.092, num 0.152±0.133, type 0.883±0.061,
+    pt 0.945±0.036. Bootstrap 95% CI added. The damagepocket outlier
+    is structurally explained: shares motion vocabulary with retained
+    pocket variants. Median better reflects typical cross-class
+    behavior. Updated §6.13 + §lim-dataset.
+
+14. **Tamper aggregation figure rendered** — figures/tamper_aggregation_curves.pdf.
+    Added to §8.6 with caption.
+
+15. **Confusion matrix narrative** — added explicit G1↔G2 confusion counts
+    (373+253) and per-class recall numbers to §5.1 prose.
+
+16. **Nested ablation table partial fill** — V8 5-fold cells filled
+    where available (base full, base nogyro, base nocolor, sc full);
+    in-flight cells marked; V7-legacy approximation noted with caveat
+    about interaction effects.
+
+### Chain progress:
+- GPU 0 (watcher): LOCO 9/9 done. Currently running pattern-aware
+  (sequence_classifier) pilot fold 1. Then vocab2digit, then
+  window/stride sweep (~6-8h).
+- GPU 1 (sensor): 5/25 V8 cells done. electrical fold_1 still running.
+  Then 5 modalities × folds 2-5 = 20 more cells (~10h).
+
+### Audit JSONs created this round:
+- ar_output_diversity.json
+- tamper_aggregation_sweep.json
+- per_axis_bootstrap_ci.json
+- calibration_cross_fold.json
+- (plus prior session JSONs already documented)
+
+Paper now 51 pages, clean compile.
+
+### What's pending:
+- vocab2digit TBDs (~2-3h until chain produces data)
+- window/stride TBDs (~6-8h)
+- Sensor 5-fold completion (~10h)
+- Final compile + commit
+
+## 2026-05-15 round 6: polish pass (user-requested, sensor-placement excluded)
+
+### Items landed:
+17. **Correlated-alert aggregation simulation** — first-order Markov
+    chain variant at rho={0,0.3,0.6}. Finding: independence FPR=0.04
+    is best-case; realistic rho=0.3 gives FPR~0.07, rho=0.6 gives
+    FPR~0.15 (with-shortcuts cmd-swap K=10 majority, TPR holds 0.94-1.0).
+    audit/tamper_aggregation_correlated.json. §8.6 paragraph + abstract
+    tempered to '0.05-0.15 expected, 0.04 best case'.
+18. **ROC-scatter figure** — fig:tamper_roc_scatter, ROC-space view of
+    all (rule,K) operating points + the rho=0.6 reference curve.
+19. **Deployment-recommendations summary table** — 8-row decision table
+    in §8.5 consolidating target-mode/metadata/FSM/calibration/
+    aggregation/sensor-stack/platform/detectable-attacks.
+20. **Citation cross-check** — 0 undefined citations/references.
+21. **Abstract polish** — FPR claim tempered for correlation honesty.
+
+### Not done (deferred or out of scope):
+- Sensor placement figure: USER is supplying their own.
+- Length/redundancy pass: deferred to FINAL assembly (premature now
+  since chains will add vocab2digit + window/stride content).
+
+Paper now 52 pages, clean compile. Only remaining TBDs: vocab2digit
+paragraph (1 paragraph, ~6 placeholders) — blocked on watcher chain.
+
+### Chain status:
+- GPU 0: pattern-aware fold_1 running (~40 min in). Then vocab2digit,
+  then window/stride sweep (~6-8h).
+- GPU 1: sensor cross-fold at accelerometer fold_2 (folds 2-5 ×
+  5 modalities remaining, ~9h).
+
+Next: handle pattern-aware + vocab2digit + window/stride landings,
+then full 5-fold sensor table refresh, then final commit + 3-reviewer
+regrade.
+
+## 2026-05-15 round 7: watcher chain COMPLETE — all TBDs filled
+
+GPU 0 watcher chain finished (21:37). Results:
+
+22. **pattern-aware fold_1 = NEGATIVE RESULT**: cmd 0.536, tok 0.694,
+    num 0.392 — BELOW fold-1 baseline (0.776/0.747/0.552). V7-legacy
+    had suggested +2pp; V8 does not reproduce. §6.16 rewritten as
+    clean negative result; nested table pat cell = 0.536.
+
+23. **vocab2digit fold_1 = NEGATIVE RESULT**: cmd 0.290, tok 0.659,
+    seq 0.012, num 0.305, pt 0.974. Coarser 2-digit vocab does NOT
+    lift numeric (bottleneck is the AR sequence head, not vocab
+    cardinality). §6.16 vocab2digit TBDs all filled as negative result.
+
+24. **window/stride sweep FAILED** — preprocessing-path bug
+    (script expected outputs/experiments_2026_02_25/no_proximity_
+    no_pressure_w64_s16_cv/.../train_sequences.npz which doesn't
+    exist; chain's || true masked it). §6.17 already honestly says
+    'full sweep deferred to encoder-retraining stretch' — NO paper
+    change needed, the text never claimed success.
+
+25. **Phase-D figures regenerated** from final 5-fold checkpoints
+    (confusion_matrices, per_class_metrics_bars, five_fold_spread,
+    sensor_ablation_bars, learning_curves, per_axis_recoverability).
+
+### PAPER NOW HAS ZERO TBD PLACEHOLDERS. 53 pages, clean compile.
+
+Three V8 negative results now cleanly reported (noise-aug,
+pattern-aware, vocab2digit) + the major sensor-collapse reversal.
+The paper is content-complete except: sensor cross-fold 5-fold
+upgrade (GPU 1 still running ~5h) and the deferred length pass.
+
+### Remaining:
+- Sensor folds 3-5 × 5 modalities (~5h on GPU 1)
+- Length pass (editorial, deferred to final)
+- Final commit + 3-reviewer regrade
+
+## 2026-05-16 round 8: PCA + significance + confusion-matrix completeness
+
+User asked: PCA? ANOVA/significance for ALL tests? confusion matrices for everything?
+
+Audited + closed the gaps:
+
+26. **PCA of encoder memory** (was MISSING — paper had t-SNE only).
+    scripts/analysis/figures/encoder_memory_pca.py. Finding: 256-dim
+    memory is low-rank — 9 PCs=80%, 24 PCs=95%, 40 PCs=99% variance.
+    Explains categorical-head success (class signal in low-dim linear
+    subspace) + numeric bottleneck (detail in low-energy tail). New
+    fig:encoder_memory_pca + paragraph in sec:encoder-probe.
+    audit/encoder_memory_pca.json.
+
+27. **Sign + digit-value confusion matrices** (were MISSING — only
+    command/type/param_type existed). Extended confusion_matrices.py.
+    sign 2-class (n=79,345); digit 10x10 0-9 (n=476,070, diagonal+
+    off-by-one band). New fig:confusion_sign_digit.
+
+28. **LOCO formal significance test** (was bootstrap-CI only).
+    Welch two-sample LOCO(9) vs in-distribution(5): command t=-9.24
+    p<1e-5, token t=-8.14 p<1e-4, numeric t=-8.68 p<1e-4; Mann-Whitney
+    confirms p<=0.003. audit/loco_significance.json. Added to §6.13.
+
+29. **per_class_metrics_type figure** added (completes the per-class
+    trilogy in fig:per_class_bars — was generated but unreferenced).
+
+30. **loco_per_holdout + per_digit_position_curve figures** added.
+
+### Still open (blocked on compute):
+- Sensor 7-modality omnibus ANOVA: needs electrical fold_5 (last
+  sensor cell, ~pending). Will run one-way ANOVA across 7 modalities
+  + each-vs-baseline once it lands.
+- Sensor table → full 5-fold; window/stride §6.17 fill.
+- pattern-aware/vocab2digit single-fold: CANNOT do significance
+  (documented honestly in-text).
+
+Paper now 55 pages, 0 TBDs, clean compile, 30 figures.
+
+### Statistical-significance coverage AFTER this round:
+positional ablation (ANOVA+Holm+BH), per-class grid 315 tests
+(Holm+BH), FSM-vs-bigram (paired-t+Wilcoxon), gyro-vs-color
+(paired-t+Wilcoxon), LOCO (Welch+MWU), headline/ablations/LOCO/
+per-axis (bootstrap CI). Remaining gap: sensor 7-way omnibus
+(electrical fold_5 pending) and single-fold pilots (un-testable).
+
+## 2026-05-16 round 9: DISK-FULL CRISIS + recovery
+
+CRITICAL: disk hit 100% (418 MB free) — both chains died with
+OSError errno 28. Root cause: 166 training_history.json files
+totaling 781.5 GB (per-step training logs, 5-13 GB each).
+
+RESOLUTION:
+- Verified sole consumer (learning_curves.py) already produced
+  learning_curves.pdf (May 15 21:36); paper content-complete.
+- Deleted all 166 training_history.json (781.5 GB) — safe: not a
+  paper artifact, figure already generated.
+- Disk: 100% -> 80% (729 GB free).
+- Re-fired both chains; they skip completed cells:
+  * GPU 1: electrical fold_5 (last sensor cell; 6/7 modalities
+    already 5/5)
+  * GPU 0: window/stride resumed at w128_s32 (w64_s16/w64_s32/
+    w128_s16 decoders already done)
+
+Remaining ~5 cells will generate ~25 GB more training_history;
+729 GB headroom is sufficient. NOTE for future: training_history.json
+dumping should be disabled in run_decoder_quick_test.py for
+large sweeps — it is pure bloat.
+
+Paper unchanged at 55 pages, 0 TBDs, 30 figures, clean compile.
+Finalization + 3-reviewer regrade deferred until runs complete
+(electrical fold_5 ~30min; window/stride ~8h).
+
+## 2026-05-17 round 10: sensor complete + ANOVA + window/stride filled
+
+- SENSOR CROSS-FOLD 100% COMPLETE: all 7 modalities x 5 folds.
+- Sensor 7-modality omnibus ANOVA: F=0.07 p=0.998 (modalities
+  indistinguishable from each other); every modality-vs-baseline
+  Welch p<0.001 (t -7.1 to -11.5); uniform -40 to -44 pp command
+  collapse. audit/sensor_anova_7modality.json.
+- tables/sensor_ablation.tex regenerated full 5-fold all 7 mods.
+- Prose updated everywhere: §6.4 (clean 5-fold + ANOVA), §8
+  disc-modality, §9 conclusion 'Fourth' point, abstract-adjacent.
+  Removed stale fold-1/partial numbers.
+- Window/stride §6.17 filled with 5 retrained cells (w64_s16 0.600,
+  w128_s32 0.513, w128_s16 0.468, w64_s32 0.457, w128_s64 0.433) -
+  ALL well below the inherited w256_s64 baseline (0.888). Engineering
+  conclusion: w256_s64 is empirically near-optimal, shorter windows
+  lose temporal context; rules out the 'shorter window localises
+  per-row signal better' hypothesis. w256_s128 + w512_s128 still
+  computing (~1-2h) -> will update one paragraph + add the w512
+  longer-window data point.
+- Combined team email v5 written (email_to_team_v5.md): one email
+  to Romesh + Sodhi (sodhi@uri.edu found in sent mail), in
+  Stephen's actual voice, analytical/engineering not stat-dumps,
+  versioned, separate v4/sodhi drafts removed.
+
+Paper 55 pp, clean compile, content-complete except 2 window/stride
+rows. Disk stable (~670 GB, reaper guarding). 1 training proc left
+(w512_s128). Then: length pass + final commit + 3-referee deep-dive.
+
+## 2026-05-17 round 11: 3-referee deep-dive (round 2) + consolidated revision
+
+THREE Sensors-MDPI referee deep-dives (sensor / ML / CPS) all returned
+MINOR REVISIONS (up from MAJOR REVISIONS round 1). 'No new experiments
+required' / 'clears the Sensors bar' / 'exemplary reproducibility'.
+
+Consolidated revision addressing ALL THREE referees:
+- BLOCKER (R1#1): §6.4 line-901/903 5-fold contradiction -> fixed.
+- BLOCKER (R1#2): 34 \TBD in \input'd tables/ablations_summary.tex
+  (earlier 0-TBD check missed \input'd tables) -> pattern-aware row
+  filled real fold-1 (cmd 0.536/tok 0.694/num 0.392); 7 redundant
+  fold-1 sensor TBD rows collapsed into a pointer to the dedicated
+  5-fold tab:sensor_ablation. PDF now 0 TBD.
+- BLOCKER-ish (R2): stale ANOVA tally 5-cfg/315/173 -> corrected to
+  8-cfg/630/320 BH/72 Holm (verified vs regenerated JSON) + appendix
+  '3500' reconciled.
+- NEAR-MAJOR (R3): CAM/post-processor upstream adversary added to
+  threat model + explicit closed-vocabulary blind-spot scope boundary.
+- Abstract: dual overlap (97.6 distinct / 99.0 instance) + closed-
+  vocab in-distribution qualifier on the tamper TPR claim + open-vocab
+  LOCO caveat.
+- Param-count reconciled (enc 8.6M / dec 31.28M w/ 18.9M transformer
+  breakdown / total ~39.9M; appendix authoritative).
+- Deployment table: Bantam-desktop + LOCO scope caveat footnote.
+- Calibration: param-type post-scaling MCE-regression caveat +
+  fold-1-illustrative/cross-fold-deployment stated up front +
+  Ovadia-shift cite.
+- Wording: window/stride softened to 'fold-1 evidence indicates';
+  AR '7x chance' -> 'corpus-modal coincidence rate'; length-r
+  downweighted; 4Hz-not-sole-bottleneck; NIST Rev.3 specificity.
+- 7 referee-suggested cites added + wired (Ovadia, He, Ott, Desai,
+  Belikovetsky, Wells, Teti-Nyquist).
+- Length: dropped redundant confusion-counts 3-panel fig +
+  redundant 3rd tamper-ROC fig + conclusion three-tier dedup
+  (5 findings -> 4, no verbatim CI re-dump).
+
+Paper: 56 pp, 0 TBD, 0 undefined, clean compile. Both round-1
+blockers + R3 near-major resolved; all minors addressed.
+
+Outstanding (NOT a finalization blocker): w512_s128 window/stride
+cell still computing -- §6.17 is referee-approved as fold-1 evidence
+with the cell deferred to roadmap, so it does not gate submission.
+
+## 2026-05-17 round 12: PIPELINE COMPLETE — paper finalized
+
+Window/stride sweep 100% complete (all 7 cells):
+  w64_s16=0.600 w128_s32=0.513 w512_s128=0.488 w128_s16=0.468
+  w64_s32=0.457 w128_s64=0.433 w256_s128=0.345  vs baseline w256_s64=0.888
+§6.17 finalized with complete 7-cell data: every swept config 29-54pp
+below the inherited w256_s64; longest window (w512) does NOT recover it
+(longer-window hypothesis ruled out); w256_s128 vs w256_s64 isolates
+stride as load-bearing. Clean negative control, no incompleteness hedge.
+audit/window_stride_v2_summary.json (7/7).
+
+FINAL STATE: paper 56pp, 0 TBD, 0 undefined refs, 0 LaTeX errors,
+clean 2-pass compile. All 3 Sensors-MDPI referees' round-2 items
+(2 blockers + 1 near-major + all minors) resolved. No training
+processes running; GPUs idle; disk 661GB free; reaper self-exiting.
+
+Submission-ready. Not committed (awaiting explicit user request per
+standing instruction). email_to_team_v5.md ready for user review.

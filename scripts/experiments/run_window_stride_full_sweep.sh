@@ -23,7 +23,9 @@ run_cell() {
   local TAG="$1"
   local WIN="$2"
   local STR="$3"
-  local PREPROC="outputs/decoder20260511/preprocessed_f98_${TAG}/per_row/fold_1"
+  # run_preprocessing_v8_cv_fold.py writes flat into --output-dir (no fold_N
+  # subdir in the current script version); PREPROC must match that.
+  local PREPROC="outputs/decoder20260511/preprocessed_f98_${TAG}/per_row"
   local ENC_OUT="outputs/decoder20260511/encoders_window_stride/${TAG}/fold_1"
   local DEC_OUT="outputs/decoder20260511/checkpoints/window_stride_v2/${TAG}/fold_1"
 

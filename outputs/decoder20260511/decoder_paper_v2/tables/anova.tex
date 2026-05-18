@@ -1,4 +1,4 @@
-\begin{table}[ht]
+\begin{table}[h]
 \centering
 \caption{One-way ANOVA across the 5 folds of each ablation versus the no-shortcuts baseline. Significance marked: $\ast\,p<0.05$, $\ast\ast\,p<0.01$, $\ast\ast\ast\,p<0.001$.}
 \label{tab:anova}
@@ -7,6 +7,42 @@
 \toprule
 Ablation & Metric & Base & Abl & $\Delta$ & $F$ & $p$ & Sig. \\
 \midrule
+noise\_aug & token & $0.781$ & $0.732$ & $-0.049$ & $16.53$ & $0.00361$ & $\ast\ast$ \\
+noise\_aug & sequence & $0.026$ & $0.006$ & $-0.021$ & $4.90$ & $0.0577$ &  \\
+noise\_aug & type & $0.984$ & $0.977$ & $-0.007$ & $1.31$ & $0.286$ &  \\
+noise\_aug & command & $0.888$ & $0.331$ & $-0.556$ & $138.91$ & $2.46e-06$ & $\ast\ast\ast$ \\
+noise\_aug & param\_type & $0.993$ & $0.977$ & $-0.016$ & $54.83$ & $7.58e-05$ & $\ast\ast\ast$ \\
+noise\_aug & numeric & $0.585$ & $0.448$ & $-0.137$ & $62.83$ & $4.67e-05$ & $\ast\ast\ast$ \\
+zero\_accelerometer & token & $0.781$ & $0.733$ & $-0.048$ & $6.44$ & $0.052$ &  \\
+zero\_accelerometer & sequence & $0.026$ & $0.007$ & $-0.019$ & $1.51$ & $0.273$ &  \\
+zero\_accelerometer & type & $0.984$ & $0.968$ & $-0.016$ & $3.99$ & $0.102$ &  \\
+zero\_accelerometer & command & $0.888$ & $0.371$ & $-0.516$ & $102.69$ & $0.00016$ & $\ast\ast\ast$ \\
+zero\_accelerometer & param\_type & $0.993$ & $0.977$ & $-0.016$ & $26.30$ & $0.00368$ & $\ast\ast$ \\
+zero\_accelerometer & numeric & $0.585$ & $0.462$ & $-0.123$ & $19.51$ & $0.00691$ & $\ast\ast$ \\
+zero\_gyroscope & token & $0.781$ & $0.746$ & $-0.035$ & $8.31$ & $0.0236$ & $\ast$ \\
+zero\_gyroscope & sequence & $0.026$ & $0.010$ & $-0.016$ & $2.42$ & $0.164$ &  \\
+zero\_gyroscope & type & $0.984$ & $0.982$ & $-0.002$ & $0.16$ & $0.702$ &  \\
+zero\_gyroscope & command & $0.888$ & $0.486$ & $-0.402$ & $153.10$ & $5.17e-06$ & $\ast\ast\ast$ \\
+zero\_gyroscope & param\_type & $0.993$ & $0.979$ & $-0.014$ & $46.96$ & $0.000241$ & $\ast\ast\ast$ \\
+zero\_gyroscope & numeric & $0.585$ & $0.472$ & $-0.113$ & $35.95$ & $0.000544$ & $\ast\ast\ast$ \\
+zero\_magnetometer & token & $0.781$ & $0.714$ & $-0.067$ & $13.71$ & $0.014$ & $\ast$ \\
+zero\_magnetometer & sequence & $0.026$ & $0.007$ & $-0.019$ & $1.48$ & $0.278$ &  \\
+zero\_magnetometer & type & $0.984$ & $0.965$ & $-0.019$ & $6.53$ & $0.0509$ &  \\
+zero\_magnetometer & command & $0.888$ & $0.376$ & $-0.512$ & $97.20$ & $0.000183$ & $\ast\ast\ast$ \\
+zero\_magnetometer & param\_type & $0.993$ & $0.977$ & $-0.016$ & $26.82$ & $0.00353$ & $\ast\ast$ \\
+zero\_magnetometer & numeric & $0.585$ & $0.450$ & $-0.135$ & $22.03$ & $0.00537$ & $\ast\ast$ \\
+zero\_environmental & token & $0.781$ & $0.736$ & $-0.045$ & $5.47$ & $0.0665$ &  \\
+zero\_environmental & sequence & $0.026$ & $0.008$ & $-0.018$ & $1.36$ & $0.295$ &  \\
+zero\_environmental & type & $0.984$ & $0.971$ & $-0.012$ & $1.86$ & $0.231$ &  \\
+zero\_environmental & command & $0.888$ & $0.415$ & $-0.473$ & $50.75$ & $0.000846$ & $\ast\ast\ast$ \\
+zero\_environmental & param\_type & $0.993$ & $0.977$ & $-0.016$ & $26.78$ & $0.00354$ & $\ast\ast$ \\
+zero\_environmental & numeric & $0.585$ & $0.459$ & $-0.126$ & $19.95$ & $0.0066$ & $\ast\ast$ \\
+zero\_color & token & $0.781$ & $0.745$ & $-0.036$ & $8.05$ & $0.0252$ & $\ast$ \\
+zero\_color & sequence & $0.026$ & $0.011$ & $-0.015$ & $2.07$ & $0.194$ &  \\
+zero\_color & type & $0.984$ & $0.981$ & $-0.003$ & $0.30$ & $0.598$ &  \\
+zero\_color & command & $0.888$ & $0.502$ & $-0.386$ & $69.12$ & $7.12e-05$ & $\ast\ast\ast$ \\
+zero\_color & param\_type & $0.993$ & $0.979$ & $-0.014$ & $46.01$ & $0.000257$ & $\ast\ast\ast$ \\
+zero\_color & numeric & $0.585$ & $0.473$ & $-0.112$ & $33.36$ & $0.00068$ & $\ast\ast\ast$ \\
 \bottomrule
 \end{tabular}
 \end{table}
