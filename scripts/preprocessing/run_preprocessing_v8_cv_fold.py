@@ -130,7 +130,14 @@ def repair_sequence_coverage(train_fs, val_fs, test_fs, preprocessor):
     if not missing:
         return train_fs, val_fs, test_fs, swaps
 
-    for seq in list(missing):
+    # sorted(), not list(): `missing` is a set, so list() iteration order is
+    # process-randomized (string hash seed) -> the coverage swaps land
+    # differently every run -> the val/test partition is nondeterministic.
+    # Its contents are channel-independent (pure G-code corpus + deterministic
+    # stratified_cv_fold_split), so sorting makes the whole split reproducible
+    # AND identical across sensor-modality exclusions -- required for the LOMO
+    # study to be a valid paired comparison (same test set per modality).
+    for seq in sorted(missing):
         # Skip if already in train (from previous swap)
         if any(seq in per_file_train.get(f, set()) for f in train_fs):
             continue
