@@ -251,6 +251,18 @@ class DigitByDigitValueHead(nn.Module):
         """
         Encode numeric values to sign and digit targets.
 
+        Uses a round-to-scaled-integer extraction (round(val * 10^n_decimal) to
+        a single 64-bit integer, then per-slot floor-division) so that values
+        with trailing decimal zeros encode to the authored digits regardless of
+        their floating-point representation. The previous implementation used
+        an iterative ``dec_part = dec_part * 10; dec_part.long() % 10``
+        truncation chain, which corrupted ~23.6% of CAM-authored terminal-zero
+        values (e.g. 1.5680 stored as 1.567999... encoded to slot-5 = 9 instead
+        of the authored 0). The current implementation produces identical
+        outputs for float-clean values and the authored-correct digit for
+        float-epsilon-affected values. See decoder_paper_v2 Appendix M for the
+        audit of the historical artifact.
+
         Args:
             values: [B, T] numeric values
 
@@ -269,24 +281,22 @@ class DigitByDigitValueHead(nn.Module):
         # Get absolute values for digit extraction
         abs_values = torch.abs(values)
 
-        # Extract digits
-        digit_targets = torch.zeros(B, T, self.n_digit_positions, dtype=torch.long, device=device)
+        # Round-to-scaled-integer at the target decimal precision. This is the
+        # one point where float-precision loss is absorbed, and it is absorbed
+        # by `round` rather than left to silently propagate through repeated
+        # `* 10` multiplications and truncations.
+        scale = 10 ** self.n_decimal_digits
+        scaled = torch.round(abs_values * scale).to(torch.long)
 
-        # Integer part
-        int_part = abs_values.long()
-        for pos in range(self.max_int_digits):
-            power = self.max_int_digits - 1 - pos
-            divisor = 10 ** power
-            digit = (int_part // divisor) % 10
-            digit_targets[:, :, pos] = digit
-
-        # Decimal part
-        dec_part = abs_values - int_part.float()
-        for pos in range(self.n_decimal_digits):
-            # Shift decimal to get the digit
-            dec_part = dec_part * 10
-            digit = dec_part.long() % 10
-            digit_targets[:, :, self.max_int_digits + pos] = digit
+        # Extract each slot by floor-division from the scaled integer. Slot 0
+        # is the most-significant integer place (10^(max_int_digits-1)); slot
+        # n_digit_positions-1 is the least-significant decimal (10^-n_decimal).
+        digit_targets = torch.zeros(
+            B, T, self.n_digit_positions, dtype=torch.long, device=device
+        )
+        for pos in range(self.n_digit_positions):
+            divisor = 10 ** (self.n_digit_positions - 1 - pos)
+            digit_targets[:, :, pos] = (scaled // divisor) % 10
 
         return sign_targets, digit_targets
 

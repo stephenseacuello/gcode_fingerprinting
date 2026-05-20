@@ -147,15 +147,28 @@ def main() -> int:
         help="Which beam_X_all_predictions.json to read. 0 = teacher-forced (default; "
              "matches sweep-time eval), 1 = greedy autoregressive (deployment-true).",
     )
+    p.add_argument(
+        "--loco",
+        action="store_true",
+        help="Open-vocabulary mode: read predictions from the 9 leave-one-class-out "
+             "checkpoints (sweep_root/holdout_*/results/) instead of the 5 in-distribution "
+             "folds (sweep_root/fold_N/*/results/). Referee R3 M5 / R3 M1.",
+    )
     args = p.parse_args()
 
     pred_filename = f"beam_{args.beam_width}_all_predictions.json"
     by_tamper = defaultdict(lambda: {"tp": 0, "fn": 0, "fp": 0, "tn": 0, "n_applicable": 0})
 
-    for F in range(1, 6):
-        cands = list((args.sweep_root / f"fold_{F}").glob(f"*/results/{pred_filename}"))
+    if args.loco:
+        units = sorted((args.sweep_root).glob("holdout_*"))
+        groups = [(u.name, list(u.glob(f"results/{pred_filename}"))) for u in units]
+    else:
+        groups = [(f"fold_{F}", list((args.sweep_root / f"fold_{F}").glob(
+            f"*/results/{pred_filename}"))) for F in range(1, 6)]
+
+    for gname, cands in groups:
         if not cands:
-            print(f"fold_{F}: no {pred_filename}")
+            print(f"{gname}: no {pred_filename}")
             continue
         cands.sort(key=lambda p: p.stat().st_mtime, reverse=True)
         samples = json.loads(cands[0].read_text())

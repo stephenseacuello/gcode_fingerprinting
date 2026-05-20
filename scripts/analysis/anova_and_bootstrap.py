@@ -194,6 +194,50 @@ def one_way_anova(samples: list[list[float]]) -> dict[str, float]:
             "df_between": len(samples) - 1, "df_within": sum(len(s) for s in samples) - len(samples)}
 
 
+def nonparametric_and_assumptions(base: list[float], abl: list[float]) -> dict[str, float]:
+    """Small-sample (n=5) robustness battery for a baseline-vs-ablation pair.
+
+    With n=5 per group the parametric ANOVA/Welch test is assumption-fragile,
+    so we report the nonparametric Mann-Whitney U (independent groups) and
+    Wilcoxon signed-rank (paired by fold, when lengths match) as the primary
+    inferential statements, plus Levene (variance homogeneity) and
+    Shapiro-Wilk (normality) assumption checks for the parametric test.
+    All p-values are descriptive at this sample size.
+    """
+    out = {
+        "mannwhitney_u_p": float("nan"),
+        "wilcoxon_p": float("nan"),
+        "levene_p": float("nan"),
+        "shapiro_baseline_p": float("nan"),
+        "shapiro_ablation_p": float("nan"),
+    }
+    if not HAS_SCIPY:
+        return out
+    a, b = np.asarray(base, float), np.asarray(abl, float)
+    try:
+        if len(a) >= 1 and len(b) >= 1 and not (np.allclose(a, a[0]) and np.allclose(b, b[0])):
+            out["mannwhitney_u_p"] = float(stats.mannwhitneyu(a, b, alternative="two-sided").pvalue)
+    except ValueError:
+        pass
+    try:
+        if len(a) == len(b) and len(a) >= 1 and not np.allclose(a, b):
+            out["wilcoxon_p"] = float(stats.wilcoxon(a, b).pvalue)
+    except ValueError:
+        pass
+    try:
+        out["levene_p"] = float(stats.levene(a, b).pvalue)
+    except ValueError:
+        pass
+    try:
+        if len(a) >= 3 and not np.allclose(a, a[0]):
+            out["shapiro_baseline_p"] = float(stats.shapiro(a).pvalue)
+        if len(b) >= 3 and not np.allclose(b, b[0]):
+            out["shapiro_ablation_p"] = float(stats.shapiro(b).pvalue)
+    except ValueError:
+        pass
+    return out
+
+
 def adjust_pvalues(pvalues: list[float], method: str = "holm-bonferroni"
                    ) -> tuple[list[float], list[bool]]:
     """Multiple-comparisons correction.
@@ -303,6 +347,7 @@ def main() -> int:
                 continue
             F_p = one_way_anova([base_vals, abl_vals])
             d = cohens_d(base_vals, abl_vals)
+            np_tests = nonparametric_and_assumptions(base_vals, abl_vals)
             mean_diff = float(np.mean(abl_vals) - np.mean(base_vals))
             result["metrics"][metric] = {
                 "baseline_mean": float(np.mean(base_vals)),
@@ -314,6 +359,12 @@ def main() -> int:
                 "F_statistic": F_p["F"],
                 "p_value": F_p["p"],
                 "significant_at_0.05": F_p["p"] < 0.05 if F_p["p"] == F_p["p"] else False,
+                # Primary inferential statements at n=5 (descriptive):
+                "mannwhitney_u_p": np_tests["mannwhitney_u_p"],
+                "wilcoxon_p": np_tests["wilcoxon_p"],
+                "levene_p": np_tests["levene_p"],
+                "shapiro_baseline_p": np_tests["shapiro_baseline_p"],
+                "shapiro_ablation_p": np_tests["shapiro_ablation_p"],
             }
         anova_results[name] = result
 
@@ -457,31 +508,43 @@ def main() -> int:
     lines = [
         r"\begin{table}[h]",
         r"\centering",
-        r"\caption{One-way ANOVA across the 5 folds of each ablation versus the no-shortcuts baseline. Significance marked: $\ast\,p<0.05$, $\ast\ast\,p<0.01$, $\ast\ast\ast\,p<0.001$.}",
+        r"\caption{Baseline-vs-ablation comparison across the 5 folds. \textbf{At $n=5$ all $p$-values are descriptive, not confirmatory}; the nonparametric Mann--Whitney $U$ ($p_{\mathrm{MWU}}$) is the primary statement and the parametric ANOVA ($F$, $p_F$) is corroborating. The effect size (Cohen's $d$) and the sign/magnitude of $\Delta$ carry the conclusions. Significance ($\ast\,p<0.05$, $\ast\ast\,p<0.01$, $\ast\ast\ast\,p<0.001$) is marked on $p_{\mathrm{MWU}}$.}",
         r"\label{tab:anova}",
-        r"\small",
-        r"\begin{tabular}{l l r r r r r c}",
+        r"\scriptsize",
+        r"\begin{tabular}{l l r r r r r r c}",
         r"\toprule",
-        r"Ablation & Metric & Base & Abl & $\Delta$ & $F$ & $p$ & Sig. \\",
+        r"Ablation & Metric & Base & Abl & $\Delta$ & $d$ & $p_F$ & $p_{\mathrm{MWU}}$ & Sig. \\",
         r"\midrule",
     ]
     for name, payload in anova_results.items():
         for metric, m in payload["metrics"].items():
+            mwu = m.get("mannwhitney_u_p", float("nan"))
+            ref_p = mwu if mwu == mwu else m["p_value"]
             sig = ""
-            if m['p_value'] < 0.001:
+            if ref_p < 0.001:
                 sig = r"$\ast\ast\ast$"
-            elif m['p_value'] < 0.01:
+            elif ref_p < 0.01:
                 sig = r"$\ast\ast$"
-            elif m['p_value'] < 0.05:
+            elif ref_p < 0.05:
                 sig = r"$\ast$"
+            mwu_s = f"{mwu:.3g}" if mwu == mwu else "--"
+            d_s = f"{m['cohens_d']:+.2f}" if m['cohens_d'] == m['cohens_d'] else "--"
             row = (
                 f"{_esc(name)} & {_esc(metric.replace('_accuracy',''))} "
                 f"& ${m['baseline_mean']:.3f}$ & ${m['ablation_mean']:.3f}$ "
-                f"& ${m['mean_diff']:+.3f}$ & ${m['F_statistic']:.2f}$ & ${m['p_value']:.3g}$ "
+                f"& ${m['mean_diff']:+.3f}$ & ${d_s}$ & ${m['p_value']:.3g}$ & ${mwu_s}$ "
                 f"& {sig} \\\\"
             )
             lines.append(row)
-    lines.extend([r"\bottomrule", r"\end{tabular}", r"\end{table}"])
+    lines.extend([
+        r"\bottomrule", r"\end{tabular}",
+        r"\par\smallskip",
+        r"\footnotesize\textit{$n=5$ folds per group: Levene and Shapiro--Wilk "
+        r"assumption-check $p$-values and the Wilcoxon signed-rank statistic are "
+        r"recorded per comparison in \texttt{audit/anova\_results.json}. With five "
+        r"observations these tests are low-power; conclusions rest on effect size "
+        r"and $\Delta$, not on threshold-crossing $p$-values.}",
+        r"\end{table}"])
     (tables_dir / "anova.tex").write_text("\n".join(lines))
     print(f"wrote {tables_dir / 'anova.tex'}")
 
@@ -489,7 +552,7 @@ def main() -> int:
     lines = [
         r"\begin{table}[h]",
         r"\centering",
-        r"\caption{Bootstrap 95\% confidence intervals for the baseline 5-fold means, 10{,}000 resamples.}",
+        r"\caption{Percentile bootstrap 95\% intervals for the baseline 5-fold means (10{,}000 resamples). \textbf{These are small-sample intervals over five fold-means and are not coverage-calibrated}; read them as a smoothed indication of cross-fold spread, not as exact confidence statements.}",
         r"\label{tab:bootstrap_ci}",
         r"\begin{tabular}{l r r}",
         r"\toprule",

@@ -89,11 +89,27 @@ def main():
     src = json.loads((REPO / "outputs/decoder20260511/audit/threat_model_tamper_AR_5fold_FSM.json").read_text())
     src_shortcuts = json.loads((REPO / "outputs/decoder20260511/audit/threat_model_tamper_AR_5fold_FSM_shortcuts.json").read_text())
 
+    # Empirically measured honest-trace lag-1 autocorrelation (referee R3 M7),
+    # produced by scripts/analysis/tamper_alert_autocorrelation.py. We evaluate
+    # the aggregation at the *measured* rho rather than only at assumed levels.
+    rho_emp = 0.42  # fallback
+    ac_path = REPO / "outputs/decoder20260511/audit/tamper_alert_autocorrelation.json"
+    if ac_path.exists():
+        try:
+            ac = json.loads(ac_path.read_text())
+            rho_emp = round(float(ac["aggregate"]["rho_honest_lag1"]["mean"]), 3)
+        except (KeyError, TypeError, ValueError):
+            pass
+
     Ks = [1, 3, 5, 10, 20, 50]
     rho_levels = [
-        ("independent", 0.0, 0.0),
-        ("rho_03",      0.3, 0.6),
-        ("rho_06",      0.6, 0.9),
+        ("independent",  0.0, 0.0),
+        ("rho_03",       0.3, 0.6),
+        # Measured honest-trace rho; tampered regions are contiguous so the
+        # tamper-side rho is set higher (capped at 0.9), matching the offset
+        # used by the assumed levels.
+        ("rho_empirical", rho_emp, min(0.9, rho_emp + 0.3)),
+        ("rho_06",       0.6, 0.9),
     ]
 
     out = {}

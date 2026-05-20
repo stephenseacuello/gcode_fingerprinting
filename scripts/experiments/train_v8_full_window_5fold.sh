@@ -25,6 +25,7 @@ MAX_TOKEN_LEN="${MAX_TOKEN_LEN:-1400}"
 BATCH="${BATCH:-4}"
 USE_SS="${USE_SS:-1}"          # 1 → scheduled_sampling=0.5, 0 → no ss
 SS_VALUE="${SS_VALUE:-0.5}"
+SEED="${SEED:-42}"             # default 42 reproduces the headline; override for seed-robustness sweep
 
 EXTRA_FLAGS=()
 if [ "${USE_SS}" = "1" ]; then
@@ -52,7 +53,7 @@ for F in 1 2 3 4 5; do
     --warmup_epochs 10 \
     --weight_decay 0.05 \
     --max_token_len "${MAX_TOKEN_LEN}" \
-    --seed 42 \
+    --seed "${SEED}" \
     --d_model 384 \
     --n_layers 8 \
     --n_heads 12 \

@@ -1,0 +1,6982 @@
+[
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_accelerometer_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_accelerometer",
+    "sensor": "x_gant_1",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_accelerometer_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_accelerometer_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_accelerometer",
+    "sensor": "x_gant_1",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_accelerometer_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_accelerometer_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_accelerometer",
+    "sensor": "x_gant_1",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_accelerometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_accelerometer_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_accelerometer",
+    "sensor": "x_gant_1",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_accelerometer_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_accelerometer_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_accelerometer",
+    "sensor": "x_gant_1",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_accelerometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_accelerometer_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_accelerometer",
+    "sensor": "x_gant_1",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_accelerometer_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_accelerometer_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_accelerometer",
+    "sensor": "x_gant_1",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_accelerometer_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_accelerometer_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_accelerometer",
+    "sensor": "x_gant_1",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_accelerometer_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_accelerometer_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_accelerometer",
+    "sensor": "x_gant_1",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_accelerometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_gyroscope_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_gyroscope",
+    "sensor": "x_gant_1",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_gyroscope_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_gyroscope_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_gyroscope",
+    "sensor": "x_gant_1",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_gyroscope_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_gyroscope_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_gyroscope",
+    "sensor": "x_gant_1",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_gyroscope_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_gyroscope_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_gyroscope",
+    "sensor": "x_gant_1",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_gyroscope_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_gyroscope_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_gyroscope",
+    "sensor": "x_gant_1",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_gyroscope_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_gyroscope_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_gyroscope",
+    "sensor": "x_gant_1",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_gyroscope_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_gyroscope_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_gyroscope",
+    "sensor": "x_gant_1",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_gyroscope_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_gyroscope_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_gyroscope",
+    "sensor": "x_gant_1",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_gyroscope_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_gyroscope_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_gyroscope",
+    "sensor": "x_gant_1",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_gyroscope_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_magnetometer_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_magnetometer",
+    "sensor": "x_gant_1",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_magnetometer_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_magnetometer_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_magnetometer",
+    "sensor": "x_gant_1",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_magnetometer_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_magnetometer_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_magnetometer",
+    "sensor": "x_gant_1",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_magnetometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_magnetometer_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_magnetometer",
+    "sensor": "x_gant_1",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_magnetometer_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_magnetometer_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_magnetometer",
+    "sensor": "x_gant_1",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_magnetometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_magnetometer_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_magnetometer",
+    "sensor": "x_gant_1",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_magnetometer_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_magnetometer_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_magnetometer",
+    "sensor": "x_gant_1",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_magnetometer_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_magnetometer_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_magnetometer",
+    "sensor": "x_gant_1",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_magnetometer_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_magnetometer_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_magnetometer",
+    "sensor": "x_gant_1",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_magnetometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_environmental_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_environmental",
+    "sensor": "x_gant_1",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_environmental_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_environmental_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_environmental",
+    "sensor": "x_gant_1",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_environmental_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_environmental_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_environmental",
+    "sensor": "x_gant_1",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_environmental_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_environmental_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_environmental",
+    "sensor": "x_gant_1",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_environmental_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_environmental_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_environmental",
+    "sensor": "x_gant_1",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_environmental_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_environmental_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_environmental",
+    "sensor": "x_gant_1",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_environmental_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_environmental_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_environmental",
+    "sensor": "x_gant_1",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_environmental_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_environmental_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_environmental",
+    "sensor": "x_gant_1",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_environmental_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_environmental_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_environmental",
+    "sensor": "x_gant_1",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_environmental_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_color_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_color",
+    "sensor": "x_gant_1",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_color_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_color_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_color",
+    "sensor": "x_gant_1",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_color_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_color_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_color",
+    "sensor": "x_gant_1",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_color_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_color_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_color",
+    "sensor": "x_gant_1",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_color_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_color_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_color",
+    "sensor": "x_gant_1",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_color_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_color_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_color",
+    "sensor": "x_gant_1",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_color_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_color_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_color",
+    "sensor": "x_gant_1",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_color_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_color_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_color",
+    "sensor": "x_gant_1",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_color_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_color_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_color",
+    "sensor": "x_gant_1",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_color_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_rms_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_rms",
+    "sensor": "x_gant_1",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_rms_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_rms_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_rms",
+    "sensor": "x_gant_1",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_rms_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_rms_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_rms",
+    "sensor": "x_gant_1",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_rms_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_rms_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_rms",
+    "sensor": "x_gant_1",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_rms_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_rms_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_rms",
+    "sensor": "x_gant_1",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_rms_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_rms_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_rms",
+    "sensor": "x_gant_1",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_rms_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_rms_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_rms",
+    "sensor": "x_gant_1",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_rms_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_rms_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_rms",
+    "sensor": "x_gant_1",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_rms_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_gant_1_rms_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_rms",
+    "sensor": "x_gant_1",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_gant_1_rms_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_motor_magnetometer_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_motor_magnetometer",
+    "sensor": "x_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/x_motor_magnetometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_motor_environmental_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_motor_environmental",
+    "sensor": "x_motor",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/x_motor_environmental_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_motor_environmental_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_motor_environmental",
+    "sensor": "x_motor",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_motor_environmental_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_x_motor_rms_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_motor_rms",
+    "sensor": "x_motor",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/x_motor_rms_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_accelerometer_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_accelerometer",
+    "sensor": "y_motor",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_accelerometer_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_accelerometer_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_accelerometer",
+    "sensor": "y_motor",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_accelerometer_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_accelerometer_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_accelerometer",
+    "sensor": "y_motor",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_accelerometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_accelerometer_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_accelerometer",
+    "sensor": "y_motor",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_accelerometer_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_accelerometer_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_accelerometer",
+    "sensor": "y_motor",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_accelerometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_accelerometer_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_accelerometer",
+    "sensor": "y_motor",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_accelerometer_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_accelerometer_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_accelerometer",
+    "sensor": "y_motor",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_accelerometer_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_accelerometer_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_accelerometer",
+    "sensor": "y_motor",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_accelerometer_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_accelerometer_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_accelerometer",
+    "sensor": "y_motor",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_accelerometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_gyroscope_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_gyroscope",
+    "sensor": "y_motor",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_gyroscope_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_gyroscope_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_gyroscope",
+    "sensor": "y_motor",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_gyroscope_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_gyroscope_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_gyroscope",
+    "sensor": "y_motor",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_gyroscope_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_gyroscope_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_gyroscope",
+    "sensor": "y_motor",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_gyroscope_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_gyroscope_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_gyroscope",
+    "sensor": "y_motor",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_gyroscope_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_gyroscope_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_gyroscope",
+    "sensor": "y_motor",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_gyroscope_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_gyroscope_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_gyroscope",
+    "sensor": "y_motor",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_gyroscope_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_gyroscope_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_gyroscope",
+    "sensor": "y_motor",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_gyroscope_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_gyroscope_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_gyroscope",
+    "sensor": "y_motor",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_gyroscope_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_magnetometer_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_magnetometer",
+    "sensor": "y_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_magnetometer_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_magnetometer_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_magnetometer",
+    "sensor": "y_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_magnetometer_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_magnetometer_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_magnetometer",
+    "sensor": "y_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_magnetometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_magnetometer_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_magnetometer",
+    "sensor": "y_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_magnetometer_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_magnetometer_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_magnetometer",
+    "sensor": "y_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_magnetometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_magnetometer_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_magnetometer",
+    "sensor": "y_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_magnetometer_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_magnetometer_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_magnetometer",
+    "sensor": "y_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_magnetometer_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_magnetometer_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_magnetometer",
+    "sensor": "y_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_magnetometer_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_magnetometer_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_magnetometer",
+    "sensor": "y_motor",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_magnetometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_environmental_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_environmental",
+    "sensor": "y_motor",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_environmental_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_environmental_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_environmental",
+    "sensor": "y_motor",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_environmental_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_environmental_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_environmental",
+    "sensor": "y_motor",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_environmental_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_environmental_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_environmental",
+    "sensor": "y_motor",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_environmental_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_environmental_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_environmental",
+    "sensor": "y_motor",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_environmental_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_environmental_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_environmental",
+    "sensor": "y_motor",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_environmental_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_environmental_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_environmental",
+    "sensor": "y_motor",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_environmental_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_environmental_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_environmental",
+    "sensor": "y_motor",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_environmental_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_environmental_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_environmental",
+    "sensor": "y_motor",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_environmental_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_color_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_color",
+    "sensor": "y_motor",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_color_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_color_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_color",
+    "sensor": "y_motor",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_color_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_color_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_color",
+    "sensor": "y_motor",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_color_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_color_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_color",
+    "sensor": "y_motor",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_color_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_color_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_color",
+    "sensor": "y_motor",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_color_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_color_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_color",
+    "sensor": "y_motor",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_color_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_color_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_color",
+    "sensor": "y_motor",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_color_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_color_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_color",
+    "sensor": "y_motor",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_color_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_color_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_color",
+    "sensor": "y_motor",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_color_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_rms_ds42_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_rms",
+    "sensor": "y_motor",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_rms_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_rms_ds42_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_rms",
+    "sensor": "y_motor",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_rms_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_rms_ds42_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_rms",
+    "sensor": "y_motor",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_rms_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_rms_ds123_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_rms",
+    "sensor": "y_motor",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_rms_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_rms_ds123_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_rms",
+    "sensor": "y_motor",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_rms_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_rms_ds123_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_rms",
+    "sensor": "y_motor",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_rms_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_rms_ds456_ms42",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_rms",
+    "sensor": "y_motor",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_rms_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_rms_ds456_ms123",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_rms",
+    "sensor": "y_motor",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_rms_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L1_sensor_mod_y_motor_rms_ds456_ms456",
+    "study": "crossed_L1_sensor_modality",
+    "level": 1,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_motor_rms",
+    "sensor": "y_motor",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L1_sensor_modality/y_motor_rms_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_accelerometer_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_accelerometer",
+    "group": "frame",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/frame_accelerometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_accelerometer_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_accelerometer",
+    "group": "frame",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/frame_accelerometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_accelerometer_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_accelerometer",
+    "group": "frame",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/frame_accelerometer_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_accelerometer_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_accelerometer",
+    "group": "frame",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/frame_accelerometer_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_accelerometer_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_accelerometer",
+    "group": "frame",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/frame_accelerometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_gyroscope_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_gyroscope",
+    "group": "frame",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/frame_gyroscope_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_gyroscope_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_gyroscope",
+    "group": "frame",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/frame_gyroscope_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_gyroscope_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_gyroscope",
+    "group": "frame",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/frame_gyroscope_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_gyroscope_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_gyroscope",
+    "group": "frame",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/frame_gyroscope_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_gyroscope_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_gyroscope",
+    "group": "frame",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/frame_gyroscope_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_gyroscope_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_gyroscope",
+    "group": "frame",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/frame_gyroscope_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_gyroscope_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_gyroscope",
+    "group": "frame",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/frame_gyroscope_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_magnetometer_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_magnetometer",
+    "group": "frame",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/frame_magnetometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_magnetometer_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_magnetometer",
+    "group": "frame",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/frame_magnetometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_magnetometer_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_magnetometer",
+    "group": "frame",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/frame_magnetometer_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_color_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_color",
+    "group": "frame",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/frame_color_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_color_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_color",
+    "group": "frame",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/frame_color_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_color_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_color",
+    "group": "frame",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/frame_color_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_color_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_color",
+    "group": "frame",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/frame_color_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_rms_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_rms",
+    "group": "frame",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/frame_rms_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_rms_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_rms",
+    "group": "frame",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/frame_rms_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_rms_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_rms",
+    "group": "frame",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/frame_rms_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_rms_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_rms",
+    "group": "frame",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/frame_rms_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_rms_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_rms",
+    "group": "frame",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/frame_rms_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_frame_rms_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_rms",
+    "group": "frame",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/frame_rms_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2",
+        "frame_l1",
+        "frame_l2",
+        "frame_b1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_accelerometer_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_accelerometer",
+    "group": "spindle",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/spindle_accelerometer_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_accelerometer_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_accelerometer",
+    "group": "spindle",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/spindle_accelerometer_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_accelerometer_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_accelerometer",
+    "group": "spindle",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_accelerometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_accelerometer_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_accelerometer",
+    "group": "spindle",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/spindle_accelerometer_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_accelerometer_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_accelerometer",
+    "group": "spindle",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/spindle_accelerometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_accelerometer_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_accelerometer",
+    "group": "spindle",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_accelerometer_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_accelerometer_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_accelerometer",
+    "group": "spindle",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/spindle_accelerometer_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_accelerometer_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_accelerometer",
+    "group": "spindle",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_accelerometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_gyroscope_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_gyroscope",
+    "group": "spindle",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/spindle_gyroscope_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_gyroscope_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_gyroscope",
+    "group": "spindle",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/spindle_gyroscope_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_gyroscope_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_gyroscope",
+    "group": "spindle",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/spindle_gyroscope_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_gyroscope_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_gyroscope",
+    "group": "spindle",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_gyroscope_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_gyroscope_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_gyroscope",
+    "group": "spindle",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/spindle_gyroscope_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_magnetometer_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_magnetometer",
+    "group": "spindle",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/spindle_magnetometer_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_magnetometer_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_magnetometer",
+    "group": "spindle",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/spindle_magnetometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_magnetometer_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_magnetometer",
+    "group": "spindle",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_magnetometer_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_magnetometer_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_magnetometer",
+    "group": "spindle",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_magnetometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_environmental_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_environmental",
+    "group": "spindle",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/spindle_environmental_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_environmental_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_environmental",
+    "group": "spindle",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_environmental_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_environmental_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_environmental",
+    "group": "spindle",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/spindle_environmental_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_environmental_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_environmental",
+    "group": "spindle",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_environmental_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_environmental_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_environmental",
+    "group": "spindle",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/spindle_environmental_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_environmental_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_environmental",
+    "group": "spindle",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_environmental_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_color_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_color",
+    "group": "spindle",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/spindle_color_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_color_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_color",
+    "group": "spindle",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/spindle_color_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_color_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_color",
+    "group": "spindle",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/spindle_color_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_rms_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_rms",
+    "group": "spindle",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/spindle_rms_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_rms_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_rms",
+    "group": "spindle",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_rms_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_spindle_rms_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle_rms",
+    "group": "spindle",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/spindle_rms_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_accelerometer_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_accelerometer",
+    "group": "bed",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/bed_accelerometer_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_accelerometer_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_accelerometer",
+    "group": "bed",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/bed_accelerometer_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_accelerometer_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_accelerometer",
+    "group": "bed",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/bed_accelerometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_accelerometer_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_accelerometer",
+    "group": "bed",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/bed_accelerometer_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_accelerometer_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_accelerometer",
+    "group": "bed",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/bed_accelerometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_accelerometer_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_accelerometer",
+    "group": "bed",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/bed_accelerometer_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_accelerometer_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_accelerometer",
+    "group": "bed",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/bed_accelerometer_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_accelerometer_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_accelerometer",
+    "group": "bed",
+    "modality": "accelerometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/bed_accelerometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_gyroscope_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_gyroscope",
+    "group": "bed",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/bed_gyroscope_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_gyroscope_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_gyroscope",
+    "group": "bed",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/bed_gyroscope_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_magnetometer_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_magnetometer",
+    "group": "bed",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/bed_magnetometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_magnetometer_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_magnetometer",
+    "group": "bed",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/bed_magnetometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_environmental_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_environmental",
+    "group": "bed",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/bed_environmental_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_environmental_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_environmental",
+    "group": "bed",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/bed_environmental_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_color_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_color",
+    "group": "bed",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/bed_color_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_color_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_color",
+    "group": "bed",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/bed_color_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_color_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_color",
+    "group": "bed",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/bed_color_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_color_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_color",
+    "group": "bed",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/bed_color_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_color_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_color",
+    "group": "bed",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/bed_color_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_rms_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_rms",
+    "group": "bed",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/bed_rms_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_rms_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_rms",
+    "group": "bed",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/bed_rms_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_rms_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_rms",
+    "group": "bed",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/bed_rms_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_rms_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_rms",
+    "group": "bed",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/bed_rms_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_rms_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_rms",
+    "group": "bed",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/bed_rms_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_bed_rms_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "bed_rms",
+    "group": "bed",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/bed_rms_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2",
+        "y_bed__3",
+        "y_bed__4"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_gyroscope_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_gyroscope",
+    "group": "gantry",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/gantry_gyroscope_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_gyroscope_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_gyroscope",
+    "group": "gantry",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/gantry_gyroscope_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_gyroscope_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_gyroscope",
+    "group": "gantry",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/gantry_gyroscope_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_gyroscope_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_gyroscope",
+    "group": "gantry",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/gantry_gyroscope_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_magnetometer_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_magnetometer",
+    "group": "gantry",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/gantry_magnetometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_magnetometer_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_magnetometer",
+    "group": "gantry",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/gantry_magnetometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_environmental_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_environmental",
+    "group": "gantry",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/gantry_environmental_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_environmental_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_environmental",
+    "group": "gantry",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/gantry_environmental_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_environmental_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_environmental",
+    "group": "gantry",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/gantry_environmental_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_rms_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_rms",
+    "group": "gantry",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/gantry_rms_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_rms_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_rms",
+    "group": "gantry",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/gantry_rms_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_rms_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_rms",
+    "group": "gantry",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/gantry_rms_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_rms_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_rms",
+    "group": "gantry",
+    "modality": "rms",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/gantry_rms_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_gantry_rms_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "gantry_rms",
+    "group": "gantry",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/gantry_rms_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2",
+        "x_gant_1"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_accelerometer_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_accelerometer",
+    "group": "motor",
+    "modality": "accelerometer",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/motor_accelerometer_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_accelerometer_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_accelerometer",
+    "group": "motor",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/motor_accelerometer_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_accelerometer_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_accelerometer",
+    "group": "motor",
+    "modality": "accelerometer",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/motor_accelerometer_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Ax",
+        "Ay",
+        "Az"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_gyroscope_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_gyroscope",
+    "group": "motor",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/motor_gyroscope_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_gyroscope_ds42_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_gyroscope",
+    "group": "motor",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/motor_gyroscope_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_gyroscope_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_gyroscope",
+    "group": "motor",
+    "modality": "gyroscope",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/motor_gyroscope_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_gyroscope_ds123_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_gyroscope",
+    "group": "motor",
+    "modality": "gyroscope",
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/motor_gyroscope_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_gyroscope_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_gyroscope",
+    "group": "motor",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/motor_gyroscope_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_gyroscope_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_gyroscope",
+    "group": "motor",
+    "modality": "gyroscope",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/motor_gyroscope_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Gx",
+        "Gy",
+        "Gz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_magnetometer_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_magnetometer",
+    "group": "motor",
+    "modality": "magnetometer",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/motor_magnetometer_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_magnetometer_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_magnetometer",
+    "group": "motor",
+    "modality": "magnetometer",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/motor_magnetometer_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_magnetometer_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_magnetometer",
+    "group": "motor",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/motor_magnetometer_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_magnetometer_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_magnetometer",
+    "group": "motor",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/motor_magnetometer_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_magnetometer_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_magnetometer",
+    "group": "motor",
+    "modality": "magnetometer",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/motor_magnetometer_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Mx",
+        "My",
+        "Mz"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_environmental_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_environmental",
+    "group": "motor",
+    "modality": "environmental",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/motor_environmental_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_environmental_ds123_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_environmental",
+    "group": "motor",
+    "modality": "environmental",
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/motor_environmental_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_environmental_ds456_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_environmental",
+    "group": "motor",
+    "modality": "environmental",
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/motor_environmental_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "Pressure",
+        "Temperature",
+        "Proximity"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_color_ds42_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_color",
+    "group": "motor",
+    "modality": "color",
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/motor_color_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_color_ds123_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_color",
+    "group": "motor",
+    "modality": "color",
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/motor_color_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_color_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_color",
+    "group": "motor",
+    "modality": "color",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/motor_color_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "ColorR",
+        "ColorG",
+        "ColorB",
+        "ColorA"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_rms_ds42_ms42",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_rms",
+    "group": "motor",
+    "modality": "rms",
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L2_group_modality/motor_rms_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_rms_ds456_ms123",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_rms",
+    "group": "motor",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L2_group_modality/motor_rms_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L2_group_mod_motor_rms_ds456_ms456",
+    "study": "crossed_L2_group_modality",
+    "level": 2,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "motor_rms",
+    "group": "motor",
+    "modality": "rms",
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L2_group_modality/motor_rms_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "xa_motor",
+        "y_motor"
+      ],
+      "include_only_modalities": [
+        "RMS"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_frame_r2_ds123_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_frame_r2",
+    "sensors": [
+      "frame_r1",
+      "frame_r2"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_frame_r2_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_r2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_frame_l2_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_frame_l2",
+    "sensors": [
+      "frame_r1",
+      "frame_l2"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_frame_l2_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_l2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_frame_b1_ds42_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_frame_b1",
+    "sensors": [
+      "frame_r1",
+      "frame_b1"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_frame_b1_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_b1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_frame_b1_ds42_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_frame_b1",
+    "sensors": [
+      "frame_r1",
+      "frame_b1"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_frame_b1_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_b1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_frame_b1_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_frame_b1",
+    "sensors": [
+      "frame_r1",
+      "frame_b1"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_frame_b1_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "frame_b1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_spindle1_ds42_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_spindle1",
+    "sensors": [
+      "frame_r1",
+      "spindle1"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_spindle1_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "spindle1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_spindle1_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_spindle1",
+    "sensors": [
+      "frame_r1",
+      "spindle1"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_spindle1_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "spindle1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_spindle1_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_spindle1",
+    "sensors": [
+      "frame_r1",
+      "spindle1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_spindle1_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "spindle1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_y_bed_1_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_y_bed_1",
+    "sensors": [
+      "frame_r1",
+      "y_bed_1"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_y_bed_1_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "y_bed__1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_y_bed_2_ds42_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_y_bed_2",
+    "sensors": [
+      "frame_r1",
+      "y_bed_2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_y_bed_2_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "y_bed__2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_y_bed_2_ds123_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_y_bed_2",
+    "sensors": [
+      "frame_r1",
+      "y_bed_2"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_y_bed_2_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "y_bed__2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_y_bed_2_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_y_bed_2",
+    "sensors": [
+      "frame_r1",
+      "y_bed_2"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_y_bed_2_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "y_bed__2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_y_bed_3_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_y_bed_3",
+    "sensors": [
+      "frame_r1",
+      "y_bed_3"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_y_bed_3_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "y_bed__3"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_y_bed_4_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_y_bed_4",
+    "sensors": [
+      "frame_r1",
+      "y_bed_4"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_y_bed_4_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "y_bed__4"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_z_gant_1_ds123_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_z_gant_1",
+    "sensors": [
+      "frame_r1",
+      "z_gant_1"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_z_gant_1_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "z_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_z_gant_2_ds123_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_z_gant_2",
+    "sensors": [
+      "frame_r1",
+      "z_gant_2"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_z_gant_2_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_z_gant_2_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_z_gant_2",
+    "sensors": [
+      "frame_r1",
+      "z_gant_2"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_z_gant_2_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_x_gant_1_ds42_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_x_gant_1",
+    "sensors": [
+      "frame_r1",
+      "x_gant_1"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_x_gant_1_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_x_gant_1_ds123_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_x_gant_1",
+    "sensors": [
+      "frame_r1",
+      "x_gant_1"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_x_gant_1_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_x_gant_1_ds123_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_x_gant_1",
+    "sensors": [
+      "frame_r1",
+      "x_gant_1"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_x_gant_1_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_x_gant_1_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_x_gant_1",
+    "sensors": [
+      "frame_r1",
+      "x_gant_1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_x_gant_1_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_x_motor_ds123_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_x_motor",
+    "sensors": [
+      "frame_r1",
+      "x_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_x_motor_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "xa_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_r1_y_motor_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_r1_y_motor",
+    "sensors": [
+      "frame_r1",
+      "y_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_r1_y_motor_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_r1",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l1_spindle2_ds123_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l1_spindle2",
+    "sensors": [
+      "frame_l1",
+      "spindle2"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l1_spindle2_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l1",
+        "spindle2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l1_spindle2_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l1_spindle2",
+    "sensors": [
+      "frame_l1",
+      "spindle2"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l1_spindle2_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l1",
+        "spindle2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l1_y_bed_1_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l1_y_bed_1",
+    "sensors": [
+      "frame_l1",
+      "y_bed_1"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l1_y_bed_1_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l1",
+        "y_bed__1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l1_y_bed_4_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l1_y_bed_4",
+    "sensors": [
+      "frame_l1",
+      "y_bed_4"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l1_y_bed_4_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l1",
+        "y_bed__4"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l1_z_gant_2_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l1_z_gant_2",
+    "sensors": [
+      "frame_l1",
+      "z_gant_2"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l1_z_gant_2_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l1",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l1_x_gant_1_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l1_x_gant_1",
+    "sensors": [
+      "frame_l1",
+      "x_gant_1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l1_x_gant_1_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l1",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_frame_b1_ds42_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_frame_b1",
+    "sensors": [
+      "frame_l2",
+      "frame_b1"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_frame_b1_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "frame_b1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_spindle1_ds42_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_spindle1",
+    "sensors": [
+      "frame_l2",
+      "spindle1"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_spindle1_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "spindle1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_spindle1_ds123_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_spindle1",
+    "sensors": [
+      "frame_l2",
+      "spindle1"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_spindle1_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "spindle1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_spindle2_ds42_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_spindle2",
+    "sensors": [
+      "frame_l2",
+      "spindle2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_spindle2_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "spindle2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_y_bed_2_ds42_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_y_bed_2",
+    "sensors": [
+      "frame_l2",
+      "y_bed_2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_y_bed_2_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "y_bed__2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_z_gant_1_ds42_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_z_gant_1",
+    "sensors": [
+      "frame_l2",
+      "z_gant_1"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_z_gant_1_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "z_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_z_gant_1_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_z_gant_1",
+    "sensors": [
+      "frame_l2",
+      "z_gant_1"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_z_gant_1_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "z_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_z_gant_2_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_z_gant_2",
+    "sensors": [
+      "frame_l2",
+      "z_gant_2"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_z_gant_2_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_x_gant_1_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_x_gant_1",
+    "sensors": [
+      "frame_l2",
+      "x_gant_1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_x_gant_1_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_x_motor_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_x_motor",
+    "sensors": [
+      "frame_l2",
+      "x_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_x_motor_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "xa_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_y_motor_ds123_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_y_motor",
+    "sensors": [
+      "frame_l2",
+      "y_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_y_motor_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_l2_y_motor_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_l2_y_motor",
+    "sensors": [
+      "frame_l2",
+      "y_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_l2_y_motor_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_l2",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_b1_spindle2_ds42_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_b1_spindle2",
+    "sensors": [
+      "frame_b1",
+      "spindle2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_b1_spindle2_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_b1",
+        "spindle2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_b1_y_bed_3_ds42_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_b1_y_bed_3",
+    "sensors": [
+      "frame_b1",
+      "y_bed_3"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_b1_y_bed_3_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_b1",
+        "y_bed__3"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_frame_b1_y_bed_4_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "frame_b1_y_bed_4",
+    "sensors": [
+      "frame_b1",
+      "y_bed_4"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/frame_b1_y_bed_4_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "frame_b1",
+        "y_bed__4"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle1_spindle2_ds42_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle1_spindle2",
+    "sensors": [
+      "spindle1",
+      "spindle2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle1_spindle2_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle1_spindle2_ds42_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle1_spindle2",
+    "sensors": [
+      "spindle1",
+      "spindle2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle1_spindle2_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "spindle2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle1_y_bed_2_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle1_y_bed_2",
+    "sensors": [
+      "spindle1",
+      "y_bed_2"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle1_y_bed_2_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "y_bed__2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle1_y_bed_3_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle1_y_bed_3",
+    "sensors": [
+      "spindle1",
+      "y_bed_3"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle1_y_bed_3_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle1",
+        "y_bed__3"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle2_y_bed_1_ds42_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle2_y_bed_1",
+    "sensors": [
+      "spindle2",
+      "y_bed_1"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle2_y_bed_1_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle2",
+        "y_bed__1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle2_y_bed_2_ds123_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle2_y_bed_2",
+    "sensors": [
+      "spindle2",
+      "y_bed_2"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle2_y_bed_2_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle2",
+        "y_bed__2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle2_y_bed_2_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle2_y_bed_2",
+    "sensors": [
+      "spindle2",
+      "y_bed_2"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle2_y_bed_2_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle2",
+        "y_bed__2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle2_z_gant_1_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle2_z_gant_1",
+    "sensors": [
+      "spindle2",
+      "z_gant_1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle2_z_gant_1_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle2",
+        "z_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle2_z_gant_2_ds42_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle2_z_gant_2",
+    "sensors": [
+      "spindle2",
+      "z_gant_2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle2_z_gant_2_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle2",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle2_x_gant_1_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle2_x_gant_1",
+    "sensors": [
+      "spindle2",
+      "x_gant_1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle2_x_gant_1_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle2",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle2_y_motor_ds123_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle2_y_motor",
+    "sensors": [
+      "spindle2",
+      "y_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle2_y_motor_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle2",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle2_y_motor_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle2_y_motor",
+    "sensors": [
+      "spindle2",
+      "y_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle2_y_motor_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle2",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_spindle2_y_motor_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "spindle2_y_motor",
+    "sensors": [
+      "spindle2",
+      "y_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/spindle2_y_motor_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "spindle2",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_1_y_bed_2_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_1_y_bed_2",
+    "sensors": [
+      "y_bed_1",
+      "y_bed_2"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_1_y_bed_2_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_1_y_bed_4_ds123_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_1_y_bed_4",
+    "sensors": [
+      "y_bed_1",
+      "y_bed_4"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_1_y_bed_4_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__4"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_1_y_bed_4_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_1_y_bed_4",
+    "sensors": [
+      "y_bed_1",
+      "y_bed_4"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_1_y_bed_4_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "y_bed__4"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_1_z_gant_1_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_1_z_gant_1",
+    "sensors": [
+      "y_bed_1",
+      "z_gant_1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_1_z_gant_1_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__1",
+        "z_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_2_y_bed_4_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_2_y_bed_4",
+    "sensors": [
+      "y_bed_2",
+      "y_bed_4"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_2_y_bed_4_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__2",
+        "y_bed__4"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_2_z_gant_2_ds42_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_2_z_gant_2",
+    "sensors": [
+      "y_bed_2",
+      "z_gant_2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_2_z_gant_2_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__2",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_2_z_gant_2_ds42_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_2_z_gant_2",
+    "sensors": [
+      "y_bed_2",
+      "z_gant_2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_2_z_gant_2_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__2",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_3_z_gant_2_ds42_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_3_z_gant_2",
+    "sensors": [
+      "y_bed_3",
+      "z_gant_2"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_3_z_gant_2_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__3",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_3_x_motor_ds123_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_3_x_motor",
+    "sensors": [
+      "y_bed_3",
+      "x_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_3_x_motor_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__3",
+        "xa_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_3_x_motor_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_3_x_motor",
+    "sensors": [
+      "y_bed_3",
+      "x_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_3_x_motor_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__3",
+        "xa_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_4_z_gant_1_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_4_z_gant_1",
+    "sensors": [
+      "y_bed_4",
+      "z_gant_1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_4_z_gant_1_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__4",
+        "z_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_4_z_gant_2_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_4_z_gant_2",
+    "sensors": [
+      "y_bed_4",
+      "z_gant_2"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_4_z_gant_2_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__4",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_4_z_gant_2_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_4_z_gant_2",
+    "sensors": [
+      "y_bed_4",
+      "z_gant_2"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_4_z_gant_2_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__4",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_4_x_gant_1_ds42_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_4_x_gant_1",
+    "sensors": [
+      "y_bed_4",
+      "x_gant_1"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_4_x_gant_1_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__4",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_4_x_gant_1_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_4_x_gant_1",
+    "sensors": [
+      "y_bed_4",
+      "x_gant_1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_4_x_gant_1_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__4",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_4_x_motor_ds123_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_4_x_motor",
+    "sensors": [
+      "y_bed_4",
+      "x_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_4_x_motor_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__4",
+        "xa_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_y_bed_4_x_motor_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "y_bed_4_x_motor",
+    "sensors": [
+      "y_bed_4",
+      "x_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/y_bed_4_x_motor_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "y_bed__4",
+        "xa_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_z_gant_1_z_gant_2_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "z_gant_1_z_gant_2",
+    "sensors": [
+      "z_gant_1",
+      "z_gant_2"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/z_gant_1_z_gant_2_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_1",
+        "z_gant_2"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_z_gant_2_x_gant_1_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "z_gant_2_x_gant_1",
+    "sensors": [
+      "z_gant_2",
+      "x_gant_1"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/z_gant_2_x_gant_1_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_2",
+        "x_gant_1"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_z_gant_2_y_motor_ds42_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "z_gant_2_y_motor",
+    "sensors": [
+      "z_gant_2",
+      "y_motor"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/z_gant_2_y_motor_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_2",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_z_gant_2_y_motor_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "z_gant_2_y_motor",
+    "sensors": [
+      "z_gant_2",
+      "y_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/z_gant_2_y_motor_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "z_gant_2",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_x_motor_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_x_motor",
+    "sensors": [
+      "x_gant_1",
+      "x_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_x_motor_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "xa_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_y_motor_ds42_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_y_motor",
+    "sensors": [
+      "x_gant_1",
+      "y_motor"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_y_motor_ds42_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_y_motor_ds42_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_y_motor",
+    "sensors": [
+      "x_gant_1",
+      "y_motor"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_y_motor_ds42_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_y_motor_ds42_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_y_motor",
+    "sensors": [
+      "x_gant_1",
+      "y_motor"
+    ],
+    "data_split_seed": 42,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_y_motor_ds42_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_y_motor_ds123_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_y_motor",
+    "sensors": [
+      "x_gant_1",
+      "y_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_y_motor_ds123_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_y_motor_ds123_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_y_motor",
+    "sensors": [
+      "x_gant_1",
+      "y_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_y_motor_ds123_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_y_motor_ds123_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_y_motor",
+    "sensors": [
+      "x_gant_1",
+      "y_motor"
+    ],
+    "data_split_seed": 123,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_y_motor_ds123_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_y_motor_ds456_ms42",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_y_motor",
+    "sensors": [
+      "x_gant_1",
+      "y_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 42,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_y_motor_ds456_ms42",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_y_motor_ds456_ms123",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_y_motor",
+    "sensors": [
+      "x_gant_1",
+      "y_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 123,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_y_motor_ds456_ms123",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "y_motor"
+      ]
+    }
+  },
+  {
+    "experiment_id": "L3_pair_x_gant_1_y_motor_ds456_ms456",
+    "study": "crossed_L3_sensor_pairs",
+    "level": 3,
+    "script": "scripts/evaluation/run_9class_direct.py",
+    "config_name": "x_gant_1_y_motor",
+    "sensors": [
+      "x_gant_1",
+      "y_motor"
+    ],
+    "data_split_seed": 456,
+    "model_seed": 456,
+    "output_subdir": "crossed/L3_sensor_pairs/x_gant_1_y_motor_ds456_ms456",
+    "ablation_config": {
+      "include_only_sensors": [
+        "x_gant_1",
+        "y_motor"
+      ]
+    }
+  }
+]

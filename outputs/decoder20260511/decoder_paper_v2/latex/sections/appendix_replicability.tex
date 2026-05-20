@@ -19,14 +19,20 @@ released alongside the manuscript. Critical scripts:
 driver), \texttt{scripts/analysis/aggregate\_v8\_results.py}
 (metric aggregator), and the experiment shells under
 \texttt{scripts/experiments/}.
-\item \textbf{Dataset.} The 120-file corpus is released under the same
-license as the encoder paper~\cite{encoder_paper}; per-fold preprocessed
-NPZ files and decoded prediction JSONs are released alongside the code,
-with a DOI assigned at submission time.
+\item \textbf{Dataset.} The 120-file corpus, per-fold preprocessed NPZ
+files, and decoded prediction JSONs are released under CC~BY~4.0 with a
+Zenodo DOI minted at acceptance, as stated in
+Appendix~\ref{app:companion}; the release is self-contained.
 \item \textbf{Hyperparameter sweep records.} All 34 cells of the 3-stage
 HP sweep are recorded under \texttt{outputs/decoder20260511/checkpoints/}
 with per-cell metrics.json. The composite-winner selection logic is in
 \texttt{scripts/analysis/aggregate\_hp\_sweep\_all\_stages.py}.
+\item \textbf{Path convention.} All \texttt{audit/\ldots} and
+\texttt{scripts/\ldots} paths cited in this manuscript are relative to the
+released repository root (\texttt{outputs/decoder20260511/} for
+\texttt{audit/}; the project root for \texttt{scripts/}), not to the
+LaTeX source directory; e.g.\ the seed-robustness artifact resolves to
+\texttt{outputs/decoder20260511/audit/seed\_robustness\_full\_window.json}.
 \end{itemize}
 
 \subsection{Random Seeds and Determinism}
@@ -35,11 +41,25 @@ with per-cell metrics.json. The composite-winner selection logic is in
 \begin{itemize}
 \item \textbf{Decoder training seed.} 42 unless noted (all reported
 5-fold experiments).
-\item \textbf{Seed-variance estimate.} Three additional seeds were
-trained as part of Stage 3 of the HP sweep on the Stage-1 winner config:
-\{123, 456, 2024\}. Command-accuracy spans 0.293--0.337 across the three
-seeds, vs.\ the seed-42 baseline of 0.325. The reported headline number
-falls within this seed-variance envelope.
+\item \textbf{Seed-variance estimate.} Two seed-robustness measurements
+on \emph{distinct} configurations are reported and must not be
+conflated. \emph{(i)~Per-row pilot.} A three-seed sweep \{123, 456,
+2024\} on the Stage-1-winner per-row configuration --- a different
+configuration from the full-window headline --- gives command accuracy
+spanning $0.293$--$0.337$ against the seed-42 value $0.325$. This
+characterizes the per-row pilot only and is not comparable to the
+full-window headline. \emph{(ii)~Headline configuration.} The identical
+full-window 5-fold configuration was run under four seeds. The per-seed
+5-fold command-accuracy means are \textbf{seed~42 (the reported
+headline) $0.8875$, seed~123 $0.8864$, seed~456 $0.8937$, seed~2024
+$0.8949$}, giving $0.8906 \pm 0.0043$ (mean $\pm$ sample std
+\emph{across seeds}) over a seed-to-seed span of $0.0085$. Every seed's
+5-fold mean lies within $0.008$ of the headline and far inside the
+reported cross-fold standard deviation ($\pm 0.0558$). The headline
+command accuracy is therefore \emph{seed-robust}: the single-seed point
+estimate is not an artifact of seed~42, and no widening of the reported
+standard deviation is required. Per-seed per-fold numbers are released
+in \texttt{audit/seed\_robustness\_full\_window.json}.
 \item \textbf{Data-shuffle seed.} The data loader uses
 \texttt{torch.Generator.manual\_seed(seed)} where applicable. CUDNN
 deterministic mode is NOT enforced (the small non-determinism it adds
@@ -166,10 +186,11 @@ reported alongside the more conservative Holm-Bonferroni throughout.
 
 \begin{itemize}
 \item \textbf{Decoder parameter count.} 31.28~M trainable parameters at
-the headline configuration. The Transformer-decoder stack accounts for 61\%
-of the parameter budget (18.9~M), the grammar-mask + sensor-prior
-machinery for 19\% (5.8~M), and the six output heads + token embedding +
-positional encodings for the remaining 20\%.
+the headline configuration. The Transformer-decoder stack accounts for
+$\approx\!60\%$ of the parameter budget (18.9~M), the grammar-mask +
+sensor-prior machinery for $\approx\!19\%$ (5.8~M), and the six output
+heads + token embedding + positional encodings for the remaining
+$\approx\!21\%$ (6.6~M); shares are rounded and sum to $100\%$.
 \item \textbf{Decoder forward pass.} Approximately $6N \approx 188$~MFLOPs
 per generated token (Chinchilla scaling estimate; $N$ is the decoder
 parameter count).

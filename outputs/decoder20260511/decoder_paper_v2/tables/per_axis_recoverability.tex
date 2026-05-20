@@ -3,7 +3,7 @@
 % beam_0_all_predictions.json via npz_to_beam_predictions.py).
 \begin{table}[ht]
 \centering
-\caption{Per-axis G-code recoverability across 5 folds (mean $\pm$ std). \emph{has-axis Acc} / \emph{F1} are the classification metrics for whether the axis is present in the decoded text; \emph{sign} is the direction of motion (POSITIVE / NEGATIVE / ABSENT); \emph{value MAE} is the mean absolute error of the numeric value, computed only on samples where both the predicted and true G-code carry the axis. The F row has thin support; I, J, S have effectively zero positive support and are omitted (see Table~\ref{tab:data_coverage}).}
+\caption{Per-axis G-code recoverability across 5 folds (mean $\pm$ std). \emph{has-axis Acc} / \emph{F1} are the classification metrics for whether the axis is present in the decoded text; \emph{sign} is the direction of motion (POSITIVE / NEGATIVE / ABSENT); \emph{value MAE} is the mean absolute error of the numeric value, computed only on samples where both the predicted and true G-code carry the axis. The headline recoverability claim is restricted to the four well-supported axes \textbf{X, Y, Z, R}. The F row ($\dagger$) is reported \emph{for the full-window regime only}, where F appears in $22\%$ of windows; in the per-row regime F support is only $0.6\%$ and is not evaluable (Table~\ref{tab:data_coverage}). I, J, S have effectively zero positive support in both regimes and are not evaluable.}
 \label{tab:per_axis}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{l r r r r r}
@@ -14,11 +14,11 @@ X   & $1.000 \pm 0.000$ & $1.000 \pm 0.000$ & $0.942 \pm 0.033$ & $0.277 \pm 0.1
 Y   & $1.000 \pm 0.000$ & $1.000 \pm 0.000$ & $0.997 \pm 0.006$ & $0.179 \pm 0.072$ & $1.000 \pm 0.000$ \\
 Z   & $1.000 \pm 0.000$ & $1.000 \pm 0.000$ & $0.938 \pm 0.023$ & $0.042 \pm 0.025$ & $1.000 \pm 0.000$ \\
 R   & $0.994 \pm 0.012$ & $0.983 \pm 0.034$ & $1.000 \pm 0.000$ & $0.018 \pm 0.010$ & $1.000 \pm 0.000$ \\
-F   & $0.960 \pm 0.023$ & $0.936 \pm 0.038$ & $1.000 \pm 0.000$ & $8.886 \pm 2.765$ & $0.851 \pm 0.093$ \\
+F$^{\dagger}$ & $0.960 \pm 0.023$ & $0.936 \pm 0.038$ & $1.000 \pm 0.000$ & $8.886 \pm 2.765$ & $0.851 \pm 0.093$ \\
 S, I, J & \emph{insufficient support; see Table~\ref{tab:data_coverage}} & --- & --- & --- & --- \\
 \bottomrule
 \end{tabular}%
 }
 \par\smallskip
-\footnotesize\textit{X, Y, Z, R presence is fully recovered. Sign asymmetry is clean: Y reaches near-perfect ($0.997$) while X and Z drop to $0.942$ and $0.938$ respectively, indicating that the sensor pathway distinguishes signed motion along Y more reliably than along X or Z on this geometry. Value MAE is sub-millimetre for Z ($0.042$) and R ($0.018$); X and Y MAE are $0.18$--$0.28$ units in the corpus coordinate space. The F-row MAE is on a different scale because feed-rate values themselves are larger ($\sim$10--100 mm/min).}
+\footnotesize\textit{X, Y, Z, R presence is fully recovered. Sign asymmetry is clean: Y reaches near-perfect ($0.997$) while X and Z drop to $0.942$ and $0.938$ respectively, indicating that the sensor pathway distinguishes signed motion along Y more reliably than along X or Z on this geometry. Value MAE is small for Z ($0.042$) and R ($0.018$) and larger for X/Y ($0.18$--$0.28$), all in \emph{normalized corpus-coordinate units} (not millimeters; the per-axis scaler is released with the code). The F-row MAE is on a different scale because feed-rate values themselves are larger ($\sim$10--100 mm/min).}
 \end{table}

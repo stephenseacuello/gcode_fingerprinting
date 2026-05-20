@@ -1,10 +1,12 @@
 % =========================================================================
-% Data-coverage table — REGENERATED 2026-05-12 from V8 per_row + full_window
-% data via scripts/analysis/check_field_coverage.py (TODO: write this script).
-%
-% Source numbers come from a direct grep of the V8 preprocessed NPZ files:
-%   outputs/decoder20260511/preprocessed_f98/per_row/fold_1/{train,test}_sequences.npz
-%   outputs/decoder20260511/preprocessed_f98/full_window/fold_1/{train,test}_sequences.npz
+% Data-coverage table — regenerated from the V8 per_row + full_window
+% preprocessed NPZ files by scripts/analysis/check_field_coverage.py.
+% Reproduce with:
+%   python3 scripts/analysis/check_field_coverage.py --emit-latex-rows
+% which counts per-field positive support over
+%   outputs/decoder20260511/preprocessed_f98/{per_row,full_window}/fold_1/{train,test}_sequences.npz
+% and emits both audit/field_coverage.json and these LaTeX body rows. The
+% detection regex is validated against the per_row/test column below.
 % =========================================================================
 \begin{table}[ht]
 \centering
@@ -25,5 +27,5 @@ J  & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   & $\mathbf{0.0\%}$   & $\mathbf{0.0
 \bottomrule
 \end{tabular}
 \par\smallskip
-\footnotesize\textit{Bold cells indicate fields whose accuracy in Table~\ref{tab:per_axis} cannot be meaningfully evaluated due to insufficient positive support; recovery of these fields is a target of the summer DOE dataset (Appendix~\ref{app:doe}).}
+\footnotesize\textit{Bold cells indicate fields whose accuracy in Table~\ref{tab:per_axis} cannot be meaningfully evaluated due to insufficient positive support; recovery of these fields would require a corpus with non-trivial F/S/I/J coverage, beyond the present data.}
 \end{table}

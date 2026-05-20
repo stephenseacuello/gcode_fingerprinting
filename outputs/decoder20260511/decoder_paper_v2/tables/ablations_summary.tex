@@ -3,7 +3,7 @@
 % except where noted as fold-1 only.
 \begin{table}[ht]
 \centering
-\caption{Ablation matrix. Each ablation row reports both teacher-forced (TF) and autoregressive (AR, beam-width-1 greedy) test accuracy where the metric depends on the regime. The categorical heads (type, command, param-type, sign) are independent classifiers on the encoder memory and report identical accuracies under both regimes; a single value is given. The pattern-aware row is a fold-1 pilot (Section~\ref{sec:abl-pattern}); the sensor-modality effect is summarised here and broken out per modality at full 5-fold in Table~\ref{tab:sensor_ablation}.}
+\caption{Ablation matrix. Each ablation row reports both teacher-forced (TF) and autoregressive (AR, beam-width-1 greedy) test accuracy where the metric depends on the regime. The categorical heads (type, command, param-type, sign) are independent classifiers on the encoder memory and report identical accuracies under both regimes; a single value is given. The pattern-aware row is a fold-1 pilot (Section~\ref{sec:abl-pattern}); the sensor-modality effect is summarized here and broken out per modality at full 5-fold in Table~\ref{tab:sensor_ablation}.}
 \label{tab:ablations}
 \small
 \resizebox{\textwidth}{!}{%
@@ -38,5 +38,5 @@ $-$ any single sensor modality (5-fold)
 \end{tabular}%
 }
 \par\smallskip
-\footnotesize\textit{The TF / AR gap is the exposure-bias signature analysed in Section~\ref{sec:disc-mode-collapse}: token and numeric heads consume their own previous predictions under AR and accumulate compounding errors over the $\sim$1{,}000-token full-window sequence. Categorical heads are unaffected. The \emph{+ positional metadata} ablation reverses sign across regimes: under TF it is mildly harmful or neutral, under AR it produces +7.5~pp on token and +8.0~pp on numeric, with $\sim$4$\times$ tighter fold-to-fold variance. Section~\ref{sec:abl-positional} interprets this as mitigation of autoregressive mode collapse rather than a positional shortcut.}
+\footnotesize\textit{The TF / AR gap is the exposure-bias signature analyzed in Section~\ref{sec:disc-mode-collapse}: token and numeric heads consume their own previous predictions under AR and accumulate compounding errors over the $\sim$1{,}000-token full-window sequence. Categorical heads are unaffected. The \emph{+ positional metadata} ablation reverses sign across regimes: under TF it is mildly harmful or neutral, under AR it produces +7.5~pp on token and +8.0~pp on numeric, with $\sim$4$\times$ tighter fold-to-fold variance. Section~\ref{sec:abl-positional} interprets this as mitigation of autoregressive mode collapse rather than a positional shortcut.}
 \end{table}
