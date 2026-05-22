@@ -1,0 +1,66 @@
+{
+  "config": {
+    "mode": "hybrid",
+    "bucket_digits": 4,
+    "precision": {
+      "X": 0.001,
+      "Y": 0.001,
+      "Z": 0.001,
+      "A": 0.001,
+      "B": 0.001,
+      "C": 0.001,
+      "I": 0.0001,
+      "J": 0.0001,
+      "K": 0.0001,
+      "F": 1.0,
+      "S": 10.0,
+      "R": 0.0001,
+      "P": 0.001,
+      "Q": 0.001,
+      "E": 0.0001
+    },
+    "clip_bins": {},
+    "canonical_decimal_places": 4,
+    "ignore_for_pid": [
+      "F",
+      "S"
+    ],
+    "special": {
+      "PAD": 0,
+      "BOS": 1,
+      "EOS": 2,
+      "UNK": 3,
+      "MASK": 4
+    },
+    "vocab_size": 20000,
+    "min_freq": 1,
+    "dynamic_numbers": false,
+    "collapse_numeric": true
+  },
+  "vocab": {
+    "PAD": 0,
+    "BOS": 1,
+    "EOS": 2,
+    "UNK": 3,
+    "MASK": 4,
+    "X": 5,
+    "G1": 6,
+    "Y": 7,
+    "Z": 8,
+    "R": 9,
+    "G0": 10,
+    "M30": 11,
+    "G53": 12,
+    "G3": 13,
+    "G2": 14,
+    "F": 15,
+    "G55": 16,
+    "G17": 17,
+    "G90": 18,
+    "G94": 19,
+    "M3": 20,
+    "S": 21,
+    "T2": 22,
+    "<NUM>": 23
+  }
+}

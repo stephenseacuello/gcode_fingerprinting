@@ -19,6 +19,7 @@ DEFAULT_PRECISION = {
 }
 KEEP_LITERAL = {"G","M","T"}
 ADDR_CHARS  = set(list("XYZABCIJKFSRPQE"))
+NUM_PLACEHOLDER = "<NUM>"   # Design B: single placeholder collapsing every numeric value
 
 LINE_COMMENT_SEMI = re.compile(r";.*?$")
 LINE_COMMENT_PARENS = re.compile(r"\(.*?\)")
@@ -39,6 +40,7 @@ class TokenizerConfig:
     min_freq: int = 1
     dynamic_numbers: bool = False
     bucket_digits: Optional[int] = None  # NEW: Use first N digits for bucketing (e.g., 2 → NUM_X_15 instead of NUM_X_1575)
+    collapse_numeric: bool = False  # Design B: emit one <NUM> token for every numeric value (opt-in)
 
 class GCodeTokenizer:
     def __init__(self, config: TokenizerConfig, vocab: Optional[Dict[str,int]] = None):
@@ -176,6 +178,12 @@ class GCodeTokenizer:
         for ln in canon_lines:
             for w in ln.split(" "):
                 toks.extend(self._tokenize_word(w))
+        if self.cfg.collapse_numeric:
+            # Design B: every numeric value token (a NUM_* entry or a fused
+            # dotted literal such as "Z0.") collapses to one <NUM> placeholder,
+            # so the decoder never predicts a coordinate value.
+            toks = [NUM_PLACEHOLDER if (t.startswith("NUM_") or "." in t) else t
+                    for t in toks]
         return toks
 
     # ---------- Vocab ----------
