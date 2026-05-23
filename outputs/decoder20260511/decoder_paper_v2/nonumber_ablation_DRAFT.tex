@@ -1,0 +1,121 @@
+% =====================================================================
+% DRAFT — No-Numeric Retraining ablation subsubsection.
+% Numbers FINAL (n=5, scheduled_sampling=0 retrain). For review + integration.
+%
+% INSERTION POINT: into \subsection{Failure-Mode Analysis} (line ~758), as a
+%   new \subsubsection immediately AFTER the mode-collapse subsubsection
+%   \label{sec:disc-mode-collapse} (ends ~line 818) and BEFORE
+%   \subsubsection{Target-Mode Ablation...} (line ~819). It is a
+%   decomposing ablation for the mode-collapse mechanism, so it reads
+%   most naturally right after it.
+%
+% STATUS OF CONTENT: FINAL pending integration vote.
+%   - 5-fold SS=0 retrain complete; all numbers below are n=5 mean +/- std.
+%   - Source: audit/design_b_compare_ss0.json
+%     (scripts/analysis/design_b_compare_ss0.py, with the +1 EOS-slot
+%     offset corrected by trimming pred to len(true)).
+%
+% CROSS-REFERENCE TO ADD once integrated:
+%   decoder_paper_v2.tex:~853 (sec:abl-vocab, 2-digit-vocab pilot) —
+%     add a pointer to \ref{sec:abl-nonumeric}: coarsening the numeric
+%     vocabulary AND eliminating numeric prediction both fail to lift
+%     window-level recovery, jointly localizing the bottleneck off the
+%     numeric vocab.
+% =====================================================================
+
+\subsubsection{No-Numeric Retraining: Decomposing the Autoregressive Collapse}
+\label{sec:abl-nonumeric}
+
+In the full-window tokenization roughly half of every G-code line's positions
+are coordinate \emph{values} (Section~\ref{sec:numeric-decomposition}), each a
+hard selection from the $\sim$2{,}400-entry numeric vocabulary, and a single
+mispredicted value desynchronizes the autoregressive decode of the remainder
+of the line. This motivates a direct test of whether the autoregressive
+collapse of Section~\ref{sec:disc-mode-collapse} is \emph{driven} by the
+numeric tokens: if the decoder were relieved of predicting coordinate values,
+the structural skeleton --- command codes and axis letters --- might decode
+correctly end-to-end.
+
+A naive test --- re-scoring the headline decoder's autoregressive predictions
+with the numeric positions excluded from the metric --- is confounded: the
+decoder still \emph{emits} a coordinate value at every numeric position, so a
+mispredicted value still desynchronizes the surrounding structural tokens
+before the metric masks them, leaving structural-only autoregressive token
+accuracy ($0.317$) only modestly above the unmasked figure ($0.215$) --- a
+contaminated lower bound. The clean test removes the numeric tokens from the
+decoder's prediction problem entirely: we retrain the decoder with every
+coordinate value collapsed to a single placeholder token --- a 24-entry
+structural vocabulary in place of the $\sim$2{,}400-entry one --- so the
+decoder predicts only the structural skeleton and a numeric error can never
+desynchronize the decode. The frozen encoder, the 5-fold file-level split,
+and all decoder hyperparameters are unchanged from the headline configuration;
+the digit head is disabled. Training uses teacher forcing throughout:
+scheduled sampling, used by the headline model, destabilizes optimization
+once the numeric vocabulary is collapsed --- the placeholder vocabulary
+offers no per-position lexical variety for the decoder to re-anchor on ---
+and is therefore disabled for this ablation, after which validation token
+accuracy converges stably ($\sim$$0.96$ across folds; last-25-epoch standard
+deviation $<\!0.01$ on every fold).
+
+Table~\ref{tab:nonumeric} reports the comparison. \textbf{Under teacher
+forcing} the no-numeric decoder reaches structural token accuracy
+$0.927 \pm 0.024$ against the headline decoder's $0.960 \pm 0.020$, and
+structural sequence exact-match $0.068 \pm 0.017$ against the headline's
+$0.213 \pm 0.048$ --- a real but modest cost from collapsing the varied
+numeric tokens to a single placeholder, consistent with the loss of
+per-position lexical variety as positional scaffolding for the decoder's
+attention. \textbf{Under autoregressive decoding, the two effects decompose.}
+Structural per-token accuracy improves by $+8.8$~pp ($0.405 \pm 0.143$ vs.\
+$0.317 \pm 0.116$); the improvement is consistent across all five folds
+(paired mean $+0.088 \pm 0.049$ across folds, $5/5$ folds positive,
+paired $t=4.02$, $p\!<\!0.02$) and is the cleanest direct measurement of the
+contribution of numeric-token desynchronization to the autoregressive
+collapse, since the placeholder cannot be mis-predicted in a way that shifts
+subsequent token positions. \emph{Structural sequence exact-match, however,
+is essentially unchanged} ($0.066 \pm 0.014$ vs.\ $0.058 \pm 0.039$; paired
+mean $+0.008$, $2/5$ folds positive) --- the deployment-relevant window-level
+recovery does not improve. The mode-collapse mechanism of
+Section~\ref{sec:disc-mode-collapse} therefore decomposes into two
+contributors: (a) \textbf{numeric-token desynchronization}, which the ablation
+eliminates and which contributes a measurable, paired-significant
+$\sim$$9$-pp per-token autoregressive effect; and (b) \textbf{intrinsic
+autoregressive mode-collapse of the structural token stream itself}, which the
+ablation does \emph{not} affect and which dominates the window-level
+recovery. Mechanism~(b) is consistent with the position-metadata mitigation
+of Section~\ref{sec:disc-mode-collapse} (per-window anchoring of the structural
+decode) and the null beam-search result (Appendix~\ref{app:decoding}): the
+structural collapse is intrinsic to autoregressive decoding of the long
+full-window target, not driven by the numeric vocabulary. This ablation
+complements the vocabulary-precision pilot (Section~\ref{sec:abl-vocab}):
+neither coarsening the numeric vocabulary nor eliminating numeric prediction
+entirely materially lifts window-level recovery, jointly localizing the
+bottleneck off the numeric vocabulary and onto the autoregressive sequence
+mechanism on the structural stream.
+
+\begin{table}[ht]
+\centering
+\caption{No-numeric retraining ablation: structural-skeleton recovery of the
+headline decoder versus a decoder retrained with every coordinate value
+collapsed to a single placeholder token. \emph{Structural} restricts the
+metric to command-code and axis-letter positions, excluding
+numeric/placeholder positions. 5-fold mean $\pm$ std, full-window targets,
+under teacher-forced (TF) and autoregressive (AR) evaluation. Under TF the
+no-numeric decoder is modestly weaker on structure (--3~pp per-token,
+--15~pp per-window) --- the cost of collapsing the lexical variety of the
+numeric vocabulary. Under AR the two effects decompose: per-token structural
+accuracy improves $+8.8$~pp (paired, $5/5$ folds positive, $p<0.02$) ---
+the contribution of numeric-token desynchronization to the collapse --- but
+per-window structural exact-match is unchanged, identifying intrinsic
+structural mode-collapse as the dominant window-level mechanism.}
+\label{tab:nonumeric}
+\begin{tabular}{l r r r r}
+\toprule
+ & \multicolumn{2}{c}{Headline decoder} & \multicolumn{2}{c}{No-numeric decoder} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Metric & TF & AR & TF & AR \\
+\midrule
+Structural token accuracy      & $0.960 \pm 0.020$ & $0.317 \pm 0.116$ & $0.927 \pm 0.024$ & $0.405 \pm 0.143$ \\
+Structural sequence exact-match & $0.213 \pm 0.048$ & $0.058 \pm 0.039$ & $0.068 \pm 0.017$ & $0.066 \pm 0.014$ \\
+\bottomrule
+\end{tabular}
+\end{table}
