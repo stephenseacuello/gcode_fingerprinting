@@ -28,6 +28,7 @@ MAX_TOKEN_LEN="${MAX_TOKEN_LEN:-1400}"
 BATCH="${BATCH:-4}"
 SS_VALUE="${SS_VALUE:-0.5}"
 SEED="${SEED:-42}"
+FOLDS="${FOLDS:-1 2 3 4 5}"   # override e.g. FOLDS=1 for a single-fold diagnostic
 DATA_ROOT="outputs/decoder20260511/preprocessed_f98_nonum/full_window"
 
 ARCH=(--d_model 384 --n_layers 8 --n_heads 12 --dropout 0.1
@@ -35,7 +36,7 @@ ARCH=(--d_model 384 --n_layers 8 --n_heads 12 --dropout 0.1
       --use_window_position false --multi_window_context 0)
 
 # ---- Phase 1: train ----------------------------------------------------------
-for F in 1 2 3 4 5; do
+for F in ${FOLDS}; do
   OUT="${OUT_ROOT}/fold_${F}"
   if [ -f "${OUT}/decoder_checkpoint/best_decoder.pt" ]; then
     echo "  skip train fold ${F}: already trained"
@@ -57,7 +58,7 @@ for F in 1 2 3 4 5; do
 done
 
 # ---- Phase 2: eval-only -> beam_0 (TF) + beam_1 (AR) predictions --------------
-for F in 1 2 3 4 5; do
+for F in ${FOLDS}; do
   OUT="${OUT_ROOT}/fold_${F}"
   echo
   echo "=== Design B EVAL fold ${F} ==="

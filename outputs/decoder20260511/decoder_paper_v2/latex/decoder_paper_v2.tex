@@ -816,6 +816,77 @@ Re-training the decoder \emph{with} positional metadata exposed (window index, t
 \input{../tables/anova.tex}
 \input{../tables/bootstrap_ci.tex}
 
+\subsubsection{No-Numeric Retraining: Decomposing the Autoregressive Collapse}
+\label{sec:abl-nonumeric}
+
+In the full-window tokenization roughly half of every G-code line's positions
+are coordinate \emph{values} (Section~\ref{sec:numeric-decomposition}), each a
+hard selection from the $\sim$2{,}400-entry numeric vocabulary, and a single
+mispredicted value desynchronizes the autoregressive decode of the remainder
+of the line. This motivates a direct test of whether the autoregressive
+collapse of Section~\ref{sec:disc-mode-collapse} is \emph{driven} by the
+numeric tokens: if the decoder were relieved of predicting coordinate values,
+the structural skeleton --- command codes and axis letters --- might decode
+correctly end-to-end.
+
+A naive test --- re-scoring the headline decoder's autoregressive predictions
+with the numeric positions excluded from the metric --- is confounded: the
+decoder still \emph{emits} a coordinate value at every numeric position, so a
+mispredicted value still desynchronizes the surrounding structural tokens
+before the metric masks them, leaving structural-only autoregressive token
+accuracy ($0.317$) only modestly above the unmasked figure ($0.215$) --- a
+contaminated lower bound. The clean test removes the numeric tokens from the
+decoder's prediction problem entirely: we retrain the decoder with every
+coordinate value collapsed to a single placeholder token --- a 24-entry
+structural vocabulary in place of the $\sim$2{,}400-entry one --- so the
+decoder predicts only the structural skeleton and a numeric error can never
+desynchronize the decode. The frozen encoder, the 5-fold file-level split,
+and all decoder hyperparameters are unchanged from the headline configuration;
+the digit head is disabled. Training uses teacher forcing throughout:
+scheduled sampling, used by the headline model, destabilizes optimization
+once the numeric vocabulary is collapsed --- the placeholder vocabulary
+offers no per-position lexical variety for the decoder to re-anchor on ---
+and is therefore disabled for this ablation, after which validation token
+accuracy converges stably ($\sim$$0.96$ across folds; last-25-epoch standard
+deviation $<\!0.01$ on every fold).
+
+Table~\ref{tab:nonumeric} reports the comparison. \textbf{Under teacher
+forcing} the no-numeric decoder reaches structural token accuracy
+$0.927 \pm 0.024$ against the headline decoder's $0.960 \pm 0.020$, and
+structural sequence exact-match $0.068 \pm 0.017$ against the headline's
+$0.213 \pm 0.048$ --- a real but modest cost from collapsing the varied
+numeric tokens to a single placeholder, consistent with the loss of
+per-position lexical variety as positional scaffolding for the decoder's
+attention. \textbf{Under autoregressive decoding, the two effects decompose.}
+Structural per-token accuracy improves by $+8.8$~pp ($0.405 \pm 0.143$ vs.\
+$0.317 \pm 0.116$); the improvement is consistent across all five folds
+(paired mean $+0.088 \pm 0.049$ across folds, $5/5$ folds positive,
+paired $t=4.02$, $p\!<\!0.02$) and is the cleanest direct measurement of the
+contribution of numeric-token desynchronization to the autoregressive
+collapse, since the placeholder cannot be mis-predicted in a way that shifts
+subsequent token positions. \emph{Structural sequence exact-match, however,
+is essentially unchanged} ($0.066 \pm 0.014$ vs.\ $0.058 \pm 0.039$; paired
+mean $+0.008$, $2/5$ folds positive) --- the deployment-relevant window-level
+recovery does not improve. The mode-collapse mechanism of
+Section~\ref{sec:disc-mode-collapse} therefore decomposes into two
+contributors: (a) \textbf{numeric-token desynchronization}, which the ablation
+eliminates and which contributes a measurable, paired-significant
+$\sim$$9$-pp per-token autoregressive effect; and (b) \textbf{intrinsic
+autoregressive mode-collapse of the structural token stream itself}, which the
+ablation does \emph{not} affect and which dominates the window-level
+recovery. Mechanism~(b) is consistent with the position-metadata mitigation
+of Section~\ref{sec:disc-mode-collapse} (per-window anchoring of the structural
+decode) and the null beam-search result (Appendix~\ref{app:decoding}): the
+structural collapse is intrinsic to autoregressive decoding of the long
+full-window target, not driven by the numeric vocabulary. This ablation
+complements the vocabulary-precision pilot (Section~\ref{sec:abl-vocab}):
+neither coarsening the numeric vocabulary nor eliminating numeric prediction
+entirely materially lifts window-level recovery, jointly localizing the
+bottleneck off the numeric vocabulary and onto the autoregressive sequence
+mechanism on the structural stream.
+
+\input{../tables/nonumeric.tex}
+
 \subsubsection{Target-Mode Ablation (Per-Row vs.\ Full-Window)}
 \label{sec:abl-target-mode}
 
@@ -833,16 +904,123 @@ For each of seven sensor modality groups (accelerometer, gyroscope, magnetometer
 
 \input{../tables/sensor_ablation.tex}
 
-\paragraph{Interpretation.} The encoder's learned modality-gating routes essential command-discrimination signal through every modality at once; when any one is zeroed at inference the gating mechanism degenerates to a representation that is informative enough for the coarse (type, param-type) heads but not for the finer command head. This means the inference-time zeroing test cannot rank the relative importance of modalities --- it can only confirm that they are all jointly important. The genuine modality-importance ranking, and the answer to ``which sensors can a production deployment afford to omit'', requires an encoder retrained from scratch without each modality. That experiment --- per-modality encoder retraining --- is an open direction (Section~\ref{sec:roadmap}); absent it, the defensible claim is that the \emph{full multi-modal sensor stack} is required for the categorical-recovery story this paper reports.
+\paragraph{Interpretation.} The encoder's learned modality-gating routes essential command-discrimination signal through every modality at once; when any one is zeroed at inference the gating mechanism degenerates to a representation that is informative enough for the coarse (type, param-type) heads but not for the finer command head. This means the inference-time zeroing test cannot rank the relative importance of modalities --- it can only confirm that they are all jointly important. The genuine modality-importance ranking, and the answer to ``which sensors can a production deployment afford to omit'', requires an encoder retrained from scratch without each modality. That experiment --- per-modality encoder retraining --- is performed in Section~\ref{sec:abl-lomo}: the retrained encoder fully compensates for any single modality removal (paired $\Delta$ command $\le 0.013$; fold-blocked ANOVA $F=0.91$, $p=0.499$), so the frozen-encoder ``joint necessity'' reading above is a gating artifact rather than a statement of modality information content.
 
-\paragraph{Comparison with encoder-paper modality-importance.} The encoder paper~\cite{encoder_paper} reported gyroscope, color, and electrical as the highest-utility modalities for operation classification under a per-modality SHAP-style attribution at the encoder input. The decoder-side ablation reported here does not reproduce that ranking because it operates on a frozen, fully-trained encoder rather than on the marginal information content of each modality; the two analyses answer different questions. The decoder ablation says ``every modality is jointly necessary at inference under the existing encoder''; the encoder paper says ``these modalities carried the most operation-class signal during encoder training.'' The non-significant $7$-group ANOVA ($p=0.998$) is the formal statement of this: across the full 5-fold sweep the encoder-paper's ``most-important'' modalities (gyroscope, color) are not separable from the rest at the decoder-ablation level. The reconciliation is the retrained-encoder ablation referenced above: if encoder-retraining-without-modality-X still gives the decoder reasonable command accuracy, then modality X is deployment-deletable; otherwise modality X is genuinely load-bearing. That experiment, not inference-time zeroing, is the correct test of the deployment cost-reduction question and remains open (Section~\ref{sec:roadmap}).
+\paragraph{Comparison with encoder-paper modality-importance.} The encoder paper~\cite{encoder_paper} reported gyroscope, color, and electrical as the highest-utility modalities for operation classification under a per-modality SHAP-style attribution at the encoder input. The decoder-side ablation reported here does not reproduce that ranking because it operates on a frozen, fully-trained encoder rather than on the marginal information content of each modality; the two analyses answer different questions. The decoder ablation says ``every modality is jointly necessary at inference under the existing encoder''; the encoder paper says ``these modalities carried the most operation-class signal during encoder training.'' The non-significant $7$-group ANOVA ($p=0.998$) is the formal statement of this: across the full 5-fold sweep the encoder-paper's ``most-important'' modalities (gyroscope, color) are not separable from the rest at the decoder-ablation level. The reconciliation is the retrained-encoder ablation referenced above: if encoder-retraining-without-modality-X still gives the decoder reasonable command accuracy, then modality X is deployment-deletable; otherwise modality X is genuinely load-bearing. That experiment, not inference-time zeroing, is the correct test of the deployment cost-reduction question; it is reported in Section~\ref{sec:abl-lomo}, where the retrained encoder fully compensates for any single modality removal ($\Delta$ command $\le 0.013$; $0/7$ significant under Holm correction).
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.78\linewidth]{sensor_ablation_bars.pdf}
-\caption{Sensor-modality ablation: each of the seven sensor groups is zeroed at the encoder input and the resulting decoder command accuracy reported (gyroscope and color: 5-fold mean, folds 2--5; the rest: fold-1 only). Removing any single modality drops command accuracy by $38$--$45$~pp; the $\sim 6$~pp span across modalities shows the inference-time-zeroing test does not differentiate modality importance --- the encoder's learned gating routes command-discrimination signal through all modalities jointly. A genuine modality-importance ranking requires per-modality encoder retraining and is not performed here.}
+\caption{Sensor-modality ablation: each of the seven sensor groups is zeroed at the encoder input and the resulting decoder command accuracy reported (gyroscope and color: 5-fold mean, folds 2--5; the rest: fold-1 only). Removing any single modality drops command accuracy by $38$--$45$~pp; the $\sim 6$~pp span across modalities shows the inference-time-zeroing test does not differentiate modality importance --- the encoder's learned gating routes command-discrimination signal through all modalities jointly. A genuine modality-importance ranking requires per-modality encoder retraining; that test is performed in Section~\ref{sec:abl-lomo}, where the retrained encoder fully compensates for any single modality removal.}
 \label{fig:sensor_ablation}
 \end{figure}
+
+\subsubsection{Per-Modality Encoder Retraining (Leave-One-Modality-Out)}
+\label{sec:abl-lomo}
+
+The inference-time-zeroing ablation of Section~\ref{sec:abl-sensors} establishes
+that the seven sensor modalities are \emph{jointly} necessary but cannot rank
+them: with the encoder frozen, zeroing any one modality at the decoder input
+forces the learned gating into a degenerate state, and the resulting
+$40$--$44$~pp command-accuracy collapse is statistically uniform across
+modalities ($F=0.07$, $p=0.998$). As noted there, the appropriate
+system-level test of modality redundancy is to retrain the encoder
+\emph{without} each modality, so that it cannot route signal through the
+removed channels and is instead free to re-allocate capacity onto those that
+remain. This subsection reports that experiment.
+
+\paragraph{Protocol.} For each of seven modality groups we retrain the
+multi-modal denoising encoder from scratch on the $98$-feature sensor base
+with that modality's channels removed, then train a fresh six-head decoder on
+the resulting frozen encoder under the full-window target mode --- the same
+two-stage pipeline (and exact decoder recipe) used for the headline model.
+Results are reported at the full five-fold file-level cross-validation
+protocol, with a full-stack baseline cell (no modality removed) retrained
+under the identical protocol as the reference. The seven groups are
+accelerometer, gyroscope, magnetometer, color, temperature, audio-RMS, and
+electrical. (\emph{Reconciliation with Section~\ref{sec:abl-sensors}}: the
+inference-time-zeroing ablation grouped pressure, temperature, and proximity
+into a single ``environmental'' modality; the LOMO study operates on the
+$98$-feature base from which pressure and proximity are already excluded as
+low-activity channels, so the environmental group reduces to temperature.)
+
+\paragraph{Validity of the paired comparison.} A LOMO attribution is only
+sound if every modality cell is scored on the \emph{same} held-out test set;
+otherwise a modality effect is confounded with test-set difficulty. We found
+and corrected a latent reproducibility defect that would have broken this: the
+file-level cross-validation split's coverage-repair step iterated an unordered
+set, making the validation/test partition dependent on process-level hash
+ordering and therefore different on every preprocessing run. Imposing a
+deterministic ordering makes the split byte-identical across all modality
+exclusions. In addition, a per-cell channel-identity gate verifies, before any
+GPU time is spent on a cell, that (i)~exactly the intended channels were
+removed, (ii)~the retrained encoder and the decoder consume an identical
+surviving-channel set in identical order, and (iii)~the train/validation/test
+file partition and the G-code target multiset are invariant across modality
+exclusions --- i.e.\ only the sensor tensors differ. Every cell reported here
+passed all five checks of that gate.
+
+\paragraph{The finding.} Under LOMO retraining the full-stack baseline reaches
+command accuracy $0.904 \pm 0.039$; removing a single modality and retraining
+yields accelerometer $0.903 \pm 0.037$, gyroscope $0.905 \pm 0.030$,
+magnetometer $0.896 \pm 0.033$, color $0.904 \pm 0.044$, temperature
+$0.904 \pm 0.038$, audio-RMS $0.905 \pm 0.039$, and electrical
+$0.891 \pm 0.051$ (five-fold mean $\pm$ s.d.). The fold-paired effect ---
+the mean over folds of command$(m,f)-$command$(\text{baseline},f)$, which
+removes the substantial fold-to-fold variance ($\sigma \approx 0.04$, an order
+of magnitude larger than any modality effect) --- is within $\pm 0.013$ for
+every modality, with electrical the largest in magnitude at
+$-0.013 \pm 0.015$. The fold-blocked one-way ANOVA across the seven LOMO
+conditions is non-significant ($F=0.91$, $p=0.499$), and the Holm-corrected
+per-modality paired $t$-test against zero rejects none of the seven
+($0/7$ significant at $\alpha=0.05$; smallest adjusted $p$ is $0.41$ for
+magnetometer). Token and numeric heads behave the same way: all paired
+effects within $\pm 0.011$ for token and $\pm 0.022$ for numeric, all
+non-significant. \textbf{Retraining the encoder without any single modality
+produces no measurable change in any decoder head.}
+Table~\ref{tab:lomo_modality} reports the per-modality numbers and
+Figure~\ref{fig:lomo_modality} shows the per-modality paired $\Delta$ command.
+
+\input{../tables/lomo_modality.tex}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.80\linewidth]{lomo_modality_bars.pdf}
+\caption{Leave-one-modality-out encoder retraining: per-modality fold-paired
+$\Delta$ command accuracy versus the retrained full-stack baseline (zero
+line), with five-fold error bars. Every modality is within $\pm 0.013$ of
+baseline, none significant after Holm correction (fold-blocked ANOVA $F=0.91$,
+$p=0.499$). Contrast with Figure~\ref{fig:sensor_ablation}, where the
+encoder is frozen and zeroing a single modality collapses command accuracy
+by $-42$~pp uniformly: the gap is the encoder's re-allocation capacity, not
+the modalities' information content.}
+\label{fig:lomo_modality}
+\end{figure}
+
+\paragraph{Interpretation.} The inference-time-zeroing ablation of
+Section~\ref{sec:abl-sensors} found a uniform $-42$~pp command-accuracy
+collapse on the frozen encoder when any single modality was zeroed; LOMO ---
+the same intervention but allowing the encoder to retrain --- reduces that
+effect to essentially zero ($\le 1.3$~pp; none significant). The
+reconciliation is therefore \emph{not} that the modalities are jointly
+necessary in the information-theoretic sense: the frozen encoder's learned
+modality-gating routes command-discrimination signal through every channel
+at once, so zeroing one disrupts that routing without changing the underlying
+signal's availability. When the encoder is allowed to re-allocate capacity
+onto the remaining channels, the loss of any single modality is fully
+recovered. The deployment-relevant statement at the channel-type axis is
+therefore that the multi-modal stack carries \emph{highly redundant}
+command-discrimination signal: any single sensing modality (accelerometer,
+gyroscope, magnetometer, color, temperature, audio-RMS, or electrical) can be
+removed at $\le 1.3$~pp expected cost, and the seven modalities are
+statistically indistinguishable in removal cost. This upgrades the
+deployment statement of Section~\ref{sec:disc-modality} from
+\emph{``the full multi-modal stack is required''} (a frozen-encoder result)
+to \emph{``no single modality is individually load-bearing''} (the
+encoder-retraining result); the orthogonal axis --- which physical sensor
+\emph{unit} a deployment could ship without --- is addressed by
+Section~\ref{sec:abl-lomo-sensor}, and together the two ablations
+characterise the redundancy of the stack along both of its constituent axes.
 
 \subsubsection{Sequence-Classifier (Pattern-Aware) Ablation}
 \label{sec:abl-pattern}
@@ -850,7 +1028,7 @@ A jointly-trained sequence-classifier head that predicts the whole G-code line a
 
 \subsubsection{Vocabulary Precision Ablation}
 \label{sec:abl-vocab}
-A 2-digit numeric vocabulary ($5\times$ smaller: 451 vs.\ 2{,}418 tokens) does \emph{not} lift numeric recovery: the fold-1 pilot gives numeric $0.305$ (not exceeding the fine-vocabulary fold-1 value) with command also lower, while parameter-type holds ($0.974$). The structured heads are robust to vocabulary coarseness, but the bottleneck is the autoregressive sequence head (Section~\ref{sec:disc-mode-collapse}), not numeric cardinality, so coarsening cannot help --- and it sacrifices exact-line precision. \textbf{Single-fold pilot}, excluded from all quantitative/deployment claims.
+A 2-digit numeric vocabulary ($5\times$ smaller: 451 vs.\ 2{,}418 tokens) does \emph{not} lift numeric recovery: the fold-1 pilot gives numeric $0.305$ (not exceeding the fine-vocabulary fold-1 value) with command also lower, while parameter-type holds ($0.974$). The structured heads are robust to vocabulary coarseness, but the bottleneck is the autoregressive sequence head (Section~\ref{sec:disc-mode-collapse}; jointly localized off the numeric vocabulary by the no-numeric retraining ablation, Section~\ref{sec:abl-nonumeric}), not numeric cardinality, so coarsening cannot help --- and it sacrifices exact-line precision. \textbf{Single-fold pilot}, excluded from all quantitative/deployment claims.
 
 \subsubsection{Window and Stride}
 \label{sec:abl-window-stride}
@@ -907,7 +1085,7 @@ The worst-edit-distance failures are dominated by command-identity confusion (dr
 \subsection{Sensor-Modality Importance and Deployment Implications}
 \label{sec:disc-modality}
 
-The inference-time modality ablation establishes joint necessity, not a deletability ranking: zeroing any single modality drops command accuracy by a uniform $40$--$44$~pp with a non-significant between-modality ANOVA (Section~\ref{sec:abl-sensors}), while type and parameter-type stay robust ($\le 3$~pp). The encoder's learned gating routes command-discrimination signal through all modalities jointly; which modalities a deployment could omit is unanswerable without a per-modality encoder-retraining study (Section~\ref{sec:roadmap}). Consequently the ablation does \emph{not} license a sensor-cost reduction --- no modality is individually omittable under the current frozen encoder --- and the defensible deployment claim is that the \emph{full} multi-modal stack is required for the categorical-recovery story reported here~\cite{kimmell2025cnc,nist2023sp80082,nist2024fmnet}; we explicitly do not claim a reduced-sensor monitor is viable.
+The inference-time modality ablation establishes joint necessity, not a deletability ranking: zeroing any single modality drops command accuracy by a uniform $40$--$44$~pp with a non-significant between-modality ANOVA (Section~\ref{sec:abl-sensors}), while type and parameter-type stay robust ($\le 3$~pp). The encoder's learned gating routes command-discrimination signal through all modalities jointly; under the frozen encoder no single modality is individually omittable, so on that test alone a defensible deployment claim is that the \emph{full} multi-modal stack is required for the categorical-recovery story reported here~\cite{kimmell2025cnc,nist2023sp80082,nist2024fmnet}. The encoder-retraining complement to that test --- which is the deployment-relevant question of which modalities a system could actually omit --- is performed in Section~\ref{sec:abl-lomo}: with the encoder retrained, no single sensing modality is individually load-bearing (paired $\Delta$ command $\le 0.013$; fold-blocked ANOVA $F=0.91$, $p=0.499$). The $40$--$44$~pp frozen-encoder collapse is therefore a gating artifact rather than a statement of modality information content, and the multi-modal stack carries highly redundant command-discrimination signal along the channel-type axis. The orthogonal axis --- which physical \emph{sensor unit} a deployment could ship without --- is the subject of the companion leave-one-sensor-out study (Section~\ref{sec:abl-lomo-sensor}); the final reduced-sensor deployment claim is conditioned on integrating both axes and is stated when that companion result is in.
 
 \subsection{Comparison with Side-Channel Recovery in Additive Manufacturing}
 \label{sec:disc-comparison-am}
