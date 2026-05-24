@@ -911,16 +911,32 @@ Table~\ref{tab:k_spectrum} and Figure~\ref{fig:k_spectrum} report the
 four-point spectrum. The AR per-token improvement is \emph{robust across the
 spectrum} --- $+0.111$, $+0.098$, $+0.088$~pp paired across folds for
 $K\!=\!335$, $69$, $24$ respectively (paired-positive $5/5$, $4/5$, $5/5$).
-The intermediate $K\!=\!335$ is a \emph{structural sweet spot}: it beats the
-headline ($K\!=\!2{,}418$) on both TF and AR per-token \emph{and} on TF
-sequence exact-match ($0.287\!\pm\!0.082$ vs.\ $0.213\!\pm\!0.048$),
-suggesting an intermediate vocabulary preserves enough per-position lexical
-scaffolding to avoid the TF cost of full collapse (Table~\ref{tab:nonumeric})
-while substantially reducing the autoregressive numeric-token-desynchronization
-that dominates the headline AR collapse. The per-window AR sequence
-exact-match stays essentially flat across the spectrum ($0.058$--$0.081$):
-the intrinsic mode-collapse of the structural stream itself does not depend
-on $K$, reinforcing the decomposition of the preceding paragraph. The
+A one-way repeated-measures ANOVA across the four $K$ levels with fold as
+the repeated subject yields $F(3,12)\!=\!2.87$, $p\!=\!0.080$, partial
+$\eta^{2}\!=\!0.42$ (large effect; descriptive at $n\!=\!5$); the
+nonparametric Friedman corroboration is significant
+($\chi^{2}(3)\!=\!9.24$, $p\!=\!0.026$), confirming the $K$-level effect on
+AR per-token structural accuracy. Pairwise (Holm-adjusted across the three
+contrasts vs.\ the $K\!=\!2{,}418$ reference): $K\!=\!335$ paired
+$t(4)\!=\!4.12$, $p\!=\!0.015$ (Holm $p\!=\!0.044$, Cohen's
+$d_{z}\!=\!1.84$); $K\!=\!24$ paired $t(4)\!=\!3.56$, $p\!=\!0.024$ (Holm
+$p\!=\!0.047$, $d_{z}\!=\!1.59$); $K\!=\!69$ paired $t(4)\!=\!1.89$,
+$p\!=\!0.13$ ($d_{z}\!=\!0.84$, n.s.\ under Holm; the $K\!=\!2{,}418$
+reference's fold-5 outlier inflates the paired-difference variance and
+costs power here). The intermediate $K\!=\!335$ is a \emph{structural sweet
+spot}: it beats the headline ($K\!=\!2{,}418$) on both TF and AR per-token
+\emph{and} on TF sequence exact-match ($0.287\!\pm\!0.082$ vs.\
+$0.213\!\pm\!0.048$), suggesting an intermediate vocabulary preserves
+enough per-position lexical scaffolding to avoid the TF cost of full
+collapse (Table~\ref{tab:nonumeric}) while substantially reducing the
+autoregressive numeric-token-desynchronization that dominates the headline
+AR collapse. The per-window AR sequence exact-match stays essentially flat
+across the spectrum ($0.058$--$0.081$; RM-ANOVA $F(3,12)\!=\!1.01$,
+$p\!=\!0.42$; Friedman $p\!=\!0.33$; all pairwise vs.\ $K\!=\!2{,}418$
+n.s.): the intrinsic mode-collapse of the structural stream itself does
+not depend on $K$, reinforcing the decomposition of the preceding
+paragraph. Full per-fold values and the Holm-adjusted contrast table are
+in \texttt{audit/k\_spectrum\_stats.json}. The
 comparison to $K\!=\!2{,}418$ confounds vocabulary cardinality with the
 headline training configuration (SS$=$0.5, dw$=$1.0 vs.\ the smaller-$K$
 rows' SS$=$0, dw$=$0); the consistency of the AR per-token improvement
@@ -1423,7 +1439,7 @@ This study characterizes which components of an executing G-code instruction are
 
 \begin{enumerate}[label=(\arabic*), leftmargin=*, nosep]
 \item \textbf{Categorical structure} (command, axis presence, motion direction) is recovered from sensors alone at $0.89$/$0.99$/$0.99$, TF/AR-invariant by construction (Section~\ref{sec:results-headline}); a class-prior control attributes $\sim\!0.57$ of the $0.79$ command accuracy to the encoder's operation-class prior, leaving a genuine $\sim\!22$~pp within-class sensor-driven increment (Section~\ref{sec:disc-confound}) --- that increment, not the headline, is the robust core.
-\item \textbf{End-to-end token/numeric} reproduction is bounded by two distinct mechanisms. (a)~Exposure bias collapses the sequence head from strong teacher-forced numbers to $\sim\!0.02$ sequence exact-match under deployment-true autoregressive decoding (Section~\ref{sec:disc-mode-collapse}); a no-numeric retraining ablation decomposes this collapse into a measurable $\sim$$9$-pp per-token numeric-desynchronization contribution (paired across folds, $5/5$ positive, $p\!<\!0.02$) and a dominant intrinsic mode-collapse of the structural token stream itself, the latter unfixed by removing the numeric prediction burden and identified as the deployment-relevant bottleneck (Section~\ref{sec:abl-nonumeric}); a four-point vocabulary-cardinality spectrum confirms the per-token improvement is robust across smaller $K$ ($\sim$9--11~pp paired across $K\!=\!24, 69, 335$) and identifies $K\!\approx\!335$ as a structural sweet spot; a measured 4-Hz row-duration analysis shows $77.7\%$ of rows occupy $\le\!1$ sample period (temporally unresolvable as distinct transients), the physical co-cause (Section~\ref{sec:lim-method}). (b)~An information-theoretic floor on \emph{fine-precision recovery} arises from CAM toolpath generation: per-(axis, slot) source-entropy analysis (Section~\ref{sec:numeric-decomposition}, Pearson $r\!=\!-0.96$ between per-slot entropy and per-slot accuracy) decomposes the digit head's apparent ``bathtub'' into three operation-class regimes (adaptive HSM at the uniform-noise ceiling, $\sim\!3.3$ bits per axis at slot~5; traditional facing driven by geometric coordinate repetition; pocket-style in between). $10^{-4}$-inch coordinate reconstruction is therefore unsupported on adaptive workloads and geometry-dependent on facing/pocket.
+\item \textbf{End-to-end token/numeric} reproduction is bounded by two distinct mechanisms. (a)~Exposure bias collapses the sequence head from strong teacher-forced numbers to $\sim\!0.02$ sequence exact-match under deployment-true autoregressive decoding (Section~\ref{sec:disc-mode-collapse}); a no-numeric retraining ablation decomposes this collapse into a measurable $\sim$$9$-pp per-token numeric-desynchronization contribution (paired across folds, $5/5$ positive, $p\!<\!0.02$) and a dominant intrinsic mode-collapse of the structural token stream itself, the latter unfixed by removing the numeric prediction burden and identified as the deployment-relevant bottleneck (Section~\ref{sec:abl-nonumeric}); a four-point vocabulary-cardinality spectrum confirms the per-token improvement is robust across smaller $K$ ($\sim$9--11~pp paired across $K\!=\!24, 69, 335$; Friedman $\chi^{2}(3)\!=\!9.24$, $p\!=\!0.026$ across the four $K$ levels; pairwise Holm-adjusted $p\!=\!0.044$ for $K\!=\!335$ and $0.047$ for $K\!=\!24$, both Cohen's $d_{z}\!>\!1.5$) and identifies $K\!\approx\!335$ as a structural sweet spot; a measured 4-Hz row-duration analysis shows $77.7\%$ of rows occupy $\le\!1$ sample period (temporally unresolvable as distinct transients), the physical co-cause (Section~\ref{sec:lim-method}). (b)~An information-theoretic floor on \emph{fine-precision recovery} arises from CAM toolpath generation: per-(axis, slot) source-entropy analysis (Section~\ref{sec:numeric-decomposition}, Pearson $r\!=\!-0.96$ between per-slot entropy and per-slot accuracy) decomposes the digit head's apparent ``bathtub'' into three operation-class regimes (adaptive HSM at the uniform-noise ceiling, $\sim\!3.3$ bits per axis at slot~5; traditional facing driven by geometric coordinate repetition; pocket-style in between). $10^{-4}$-inch coordinate reconstruction is therefore unsupported on adaptive workloads and geometry-dependent on facing/pocket.
 \item \textbf{Inference-time modality removal} collapses command accuracy uniformly ($p=0.998$ between modalities; Section~\ref{sec:abl-sensors}) --- a lower bound establishing joint necessity, not a deletability ranking; the full stack is required pending the encoder-retraining study (Section~\ref{sec:roadmap}).
 \item \textbf{Tamper detection} is largely operation-class-prior-driven ($\approx\!8$~pp sensor-conditioned) and collapses open-vocabulary (leave-one-class-out command-swap FPR $0.52$); the in-distribution $K\!=\!10$ point at the measured $\rho\!=\!0.42$ (FPR $0.10$--$0.18$ at TPR $\approx\!0.94$--$0.97$) is an optimistic in-envelope ceiling, not a validated detector (Section~\ref{sec:disc-threat-model}).
 \end{enumerate}
