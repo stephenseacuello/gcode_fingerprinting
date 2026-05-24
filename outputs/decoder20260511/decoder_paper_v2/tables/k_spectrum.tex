@@ -1,0 +1,43 @@
+% n=5 mean +/- std from audit/k_spectrum_compare.json
+% (scripts/analysis/k_spectrum_compare.py, with the +1 EOS-slot offset
+% correction).
+%
+% METHODOLOGY CAVEAT: the K=2418 row uses the headline training config
+% (scheduled sampling 0.5, digit_weight 1.0); the three smaller-K rows
+% share the Design-B style (SS=0, dw=0). The three smaller-K rows are
+% mutually comparable under one methodology; the K=2418 row is a
+% methodologically distinct reference.
+\begin{table}[ht]
+\centering
+\caption{Structural recovery across the numeric-vocabulary spectrum $K\in\{24,
+69, 335, 2{,}418\}$. \emph{Structural} restricts the metric to command-code
+and axis-letter positions (numeric / placeholder positions excluded). 5-fold
+mean $\pm$ std, full-window targets, under teacher-forced (TF) and
+autoregressive (AR) evaluation. The AR per-token improvement vs.\ the
+headline ($K\!=\!2{,}418$) is robust across all three smaller-$K$ variants
+(paired-positive 5/5, 4/5, 5/5; mean $+0.111$, $+0.098$, $+0.088$~pp from
+$K=335$ down). $K\!=\!335$ is a structural sweet spot: it beats the headline
+on \emph{both} TF and AR per-token AND on TF sequence exact-match
+($0.287\!\pm\!0.082$ vs.\ $0.213\!\pm\!0.048$), suggesting an intermediate
+vocabulary preserves per-position lexical scaffolding while substantially
+reducing numeric-token-desynchronization. The K=2418 (current) row uses the
+headline training configuration (SS$=$0.5, dw$=$1.0); the three smaller-$K$
+rows share the Design-B style (SS$=$0, dw$=$0) --- the three smaller-$K$
+rows are mutually comparable under one methodology.}
+\label{tab:k_spectrum}
+\begin{tabular}{l c r r r r}
+\toprule
+Variant & $K$ & TF token & AR token & TF seq exact & AR seq exact \\
+\midrule
+$K\!=\!2{,}418$ (4-digit, current)\textsuperscript{\dag} & 2{,}418 & $0.960 \pm 0.020$ & $0.317 \pm 0.116$ & $0.213 \pm 0.048$ & $0.058 \pm 0.039$ \\
+$K\!=\!335$ (2-digit)              &   335 & $0.977 \pm 0.013$ & $0.429 \pm 0.146$ & $0.287 \pm 0.082$ & $0.081 \pm 0.045$ \\
+$K\!=\!69$ (1-digit)               &    69 & $0.965 \pm 0.025$ & $0.415 \pm 0.117$ & $0.250 \pm 0.067$ & $0.051 \pm 0.034$ \\
+$K\!=\!24$ (placeholder, Design B) &    24 & $0.927 \pm 0.024$ & $0.405 \pm 0.143$ & $0.068 \pm 0.017$ & $0.066 \pm 0.014$ \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\textit{\textsuperscript{\dag}The $K\!=\!2{,}418$ row uses the
+headline training configuration (scheduled sampling $0.5$, digit-head loss
+weight $1.0$); the three smaller-$K$ rows share the Design-B style
+(SS$=$0, dw$=$0).}
+\end{table}

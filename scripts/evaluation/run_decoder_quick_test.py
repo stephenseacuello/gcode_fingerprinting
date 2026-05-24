@@ -193,7 +193,14 @@ def classify_token(tok_str, precision):
             try:
                 bucket = int(parts[2])
             except ValueError:
-                return TYPE_NUMERIC, -1, PARAM2ID.get(addr, -1), SIGN_PAD, pad_digits, 0.0
+                # Unparseable bucket (e.g. the bucket_digits=1 vocab
+                # produces "NUM_X_-" for sign-only encoding of negative
+                # values). Return TYPE_SPECIAL so numeric_mask is False
+                # at these positions and the digit head's 10-class CE
+                # doesn't see out-of-range PAD=10 targets; the flat
+                # legacy_token_head still learns to emit the token, and
+                # param_type still receives the axis signal.
+                return TYPE_SPECIAL, -1, PARAM2ID.get(addr, -1), SIGN_PAD, pad_digits, 0.0
             step = precision.get(addr, 0.001)
             value = bucket * step
             param_type_id = PARAM2ID.get(addr, -1)

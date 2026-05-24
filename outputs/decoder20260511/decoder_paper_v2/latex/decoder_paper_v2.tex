@@ -902,6 +902,49 @@ mechanism on the structural stream.
 
 \input{../tables/nonumeric.tex}
 
+\paragraph{Vocabulary-cardinality spectrum.} We retrain at two intermediate
+numeric vocabularies (two-digit bucketing, $K\!=\!335$; one-digit bucketing,
+$K\!=\!69$) under the same Design-B-style methodology (SS$=$0, digit head
+disabled) to characterize whether the AR per-token improvement is a
+placeholder-specific artifact or a vocabulary-cardinality effect.
+Table~\ref{tab:k_spectrum} and Figure~\ref{fig:k_spectrum} report the
+four-point spectrum. The AR per-token improvement is \emph{robust across the
+spectrum} --- $+0.111$, $+0.098$, $+0.088$~pp paired across folds for
+$K\!=\!335$, $69$, $24$ respectively (paired-positive $5/5$, $4/5$, $5/5$).
+The intermediate $K\!=\!335$ is a \emph{structural sweet spot}: it beats the
+headline ($K\!=\!2{,}418$) on both TF and AR per-token \emph{and} on TF
+sequence exact-match ($0.287\!\pm\!0.082$ vs.\ $0.213\!\pm\!0.048$),
+suggesting an intermediate vocabulary preserves enough per-position lexical
+scaffolding to avoid the TF cost of full collapse (Table~\ref{tab:nonumeric})
+while substantially reducing the autoregressive numeric-token-desynchronization
+that dominates the headline AR collapse. The per-window AR sequence
+exact-match stays essentially flat across the spectrum ($0.058$--$0.081$):
+the intrinsic mode-collapse of the structural stream itself does not depend
+on $K$, reinforcing the decomposition of the preceding paragraph. The
+comparison to $K\!=\!2{,}418$ confounds vocabulary cardinality with the
+headline training configuration (SS$=$0.5, dw$=$1.0 vs.\ the smaller-$K$
+rows' SS$=$0, dw$=$0); the consistency of the AR per-token improvement
+across all three smaller-$K$ variants under one methodology makes the
+cardinality interpretation parsimonious, but a $K\!=\!2{,}418$ control under
+the Design-B methodology is the cleanest test and remains as future work.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{../figures/k_spectrum.pdf}
+\caption{Structural recovery vs.\ numeric vocabulary size $K$ across four
+variants. \textbf{(a)}~Per-token structural accuracy: the AR (autoregressive)
+improvement at small $K$ relative to the $K\!=\!2{,}418$ headline is robust
+across $K\!\in\!\{24, 69, 335\}$ (paired-positive $5/5$, $4/5$, $5/5$
+folds). \textbf{(b)}~Per-window structural exact-match: stays essentially flat
+across the spectrum, identifying intrinsic structural mode-collapse (not
+numeric cardinality) as the dominant window-level mechanism. $K\!=\!335$ is
+a structural sweet spot, exceeding the headline on TF sequence exact-match.
+See Table~\ref{tab:k_spectrum} for numbers and methodology caveat.}
+\label{fig:k_spectrum}
+\end{figure}
+
+\input{../tables/k_spectrum.tex}
+
 \subsubsection{Target-Mode Ablation (Per-Row vs.\ Full-Window)}
 \label{sec:abl-target-mode}
 
@@ -1037,6 +1080,101 @@ encoder-retraining result); the orthogonal axis --- which physical sensor
 Section~\ref{sec:abl-lomo-sensor}, and together the two ablations
 characterise the redundancy of the stack along both of its constituent axes.
 
+\subsubsection{Per-Sensor Encoder Retraining (Leave-One-Sensor-Out)}
+\label{sec:abl-lomo-sensor}
+
+The leave-one-modality-out study (Section~\ref{sec:abl-lomo}) ablates the
+\emph{channel-type} axis: it removes a sensing modality --- e.g.\ all
+gyroscope channels --- across every sensor board at once. The multi-modal
+stack, however, has an orthogonal axis. The continuous channels are
+physically distributed across \textbf{six sensor units} at distinct machine
+locations, and each unit carries every per-board modality. A modality cannot
+be removed from a deployed machine without removing the boards that carry
+it; a real cost-reduced deployment removes \emph{sensor units}. We therefore
+also run leave-one-\emph{sensor}-out (LOSO), the directly deployment-relevant
+test of which physical sensor a production monitor could ship without.
+
+\paragraph{Protocol.} The 98-channel base comprises six physical sensor
+units --- \texttt{frame\_l2}, \texttt{frame\_l3}, \texttt{frame\_r2},
+\texttt{spindle2}, \texttt{y\_bed\_\_3}, \texttt{y\_bed\_\_4} --- each
+carrying an identical 15-channel set (3 accelerometer, 3 gyroscope, 3
+magnetometer, 4 color, 1 temperature, 1 audio-RMS); the 8 electrical
+channels are machine-controller signals, not a removable board, and are
+retained throughout. For each of the six units we retrain the encoder from
+scratch on the 83-channel set with that unit's channels removed, then train
+a fresh six-head decoder on the resulting frozen encoder (the same
+full-window headline recipe as Section~\ref{sec:abl-lomo}), at the full
+five-fold file-level cross-validation protocol. The per-cell
+channel-identity gate (operated in \emph{sensor} mode, matching by column
+prefix) verifies that exactly the unit's 15 channels were removed and that
+the retrained encoder and the decoder consume an identical 83-channel
+surviving set. Statistical significance is the fold-paired analysis of
+Section~\ref{sec:abl-lomo}: per-fold deltas
+$\Delta(u,f)=\text{command}(u,f)-\text{command}(\text{baseline},f)$, a
+one-sample $t$-test of each unit's deltas against zero with Holm correction
+across the six units, plus a fold-blocked one-way ANOVA on the deltas.
+
+\paragraph{The finding.} Under LOSO retraining the full-stack baseline
+reaches command accuracy $0.905 \pm 0.032$ (five-fold mean $\pm$ s.d.,
+indistinguishable from the modality study's baseline of $0.904 \pm 0.039$).
+Removing a single physical sensor unit and retraining yields
+\texttt{frame\_l2} $0.882 \pm 0.046$, \texttt{frame\_l3} $0.888 \pm 0.040$,
+\texttt{frame\_r2} $0.890 \pm 0.038$, \texttt{spindle2} $0.879 \pm 0.069$,
+\texttt{y\_bed\_\_3} $0.897 \pm 0.035$, and \texttt{y\_bed\_\_4}
+$0.904 \pm 0.026$. The fold-paired effects span from \texttt{y\_bed\_\_4}'s
+$\Delta = -0.000 \pm 0.014$ to \texttt{spindle2}'s $\Delta = -0.026 \pm 0.040$
+--- larger in magnitude than the modality study (where every $\Delta$ was
+within $\pm 0.013$) but \textbf{none reaching Holm-corrected significance}
+at $\alpha=0.05$ (smallest $p_{\text{Holm}} = 0.064$ for \texttt{frame\_r2},
+the most consistent effect at $\Delta = -0.015 \pm 0.007$). The
+fold-blocked one-way ANOVA across the six LOSO conditions is non-significant
+($F=1.04$, $p=0.415$). \texttt{spindle2} carries the largest individual
+effect-size but is $\sim 5\times$ more variable across folds than
+\texttt{frame\_r2} (s.d.\ $0.040$ vs $0.007$), consistent with
+workpiece-dependent rather than uniform load-bearing; \texttt{y\_bed\_\_4} at
+$\Delta \approx 0$ and $p_{\text{Holm}} = 0.975$ is fully redundant with its
+spatial neighbour \texttt{y\_bed\_\_3} and is the single ``free'' removal.
+Table~\ref{tab:lomo_sensor} reports the per-sensor numbers and
+Figure~\ref{fig:lomo_sensor} shows the per-sensor paired $\Delta$ command.
+
+\input{../tables/lomo_sensor.tex}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.80\linewidth]{lomo_sensor_bars.pdf}
+\caption{Leave-one-sensor-out encoder retraining: per-sensor fold-paired
+$\Delta$ command accuracy versus the retrained full-stack baseline (zero
+line), with five-fold error bars. Orthogonal to
+Figure~\ref{fig:lomo_modality} (channel-type axis). No sensor reaches
+Holm-corrected significance at $\alpha=0.05$; \texttt{frame\_r2} is the
+closest ($p_{\text{Holm}} = 0.064$). \texttt{spindle2} is the largest in
+magnitude ($\Delta = -0.026$) but the most variable across folds
+(s.d.\ $0.040$). \texttt{y\_bed\_\_4} sits at $\Delta \approx 0$ and is
+fully redundant with \texttt{y\_bed\_\_3}.}
+\label{fig:lomo_sensor}
+\end{figure}
+
+\paragraph{Interpretation.} The sensor axis tells a slightly more
+structured but consonant story with the modality axis. Effect sizes are
+roughly $2\times$ those of the modality study (max $\Delta = -0.026$ for
+\texttt{spindle2} versus $-0.013$ for electrical in
+Section~\ref{sec:abl-lomo}), reflecting that a physical sensor unit carries
+a location-specific 15-channel vector that overlaps less perfectly with the
+remaining units than a channel-type does with the remaining channel-types.
+Even so, no LOSO removal reaches statistical significance after Holm
+correction, and the fold-blocked ANOVA cannot distinguish the six conditions
+($F = 1.04$, $p = 0.415$). The deployment-relevant statement across
+\emph{both} axes is therefore that the multi-modal stack carries highly
+redundant command-discrimination signal: any single sensing modality can be
+removed at $\le 1.3$~pp expected cost
+(Section~\ref{sec:abl-lomo}), and any single physical sensor unit at
+$\le 2.6$~pp expected cost. The single ``free'' removal is
+\texttt{y\_bed\_\_4} ($\Delta \approx 0$, $p_{\text{Holm}} = 0.975$), fully
+redundant with its spatial neighbour \texttt{y\_bed\_\_3}; the unit a
+deployment should be most cautious about omitting if the production envelope
+spans varied operations is \texttt{spindle2}, whose largest-magnitude effect
+is also the most workpiece-variable.
+
 \subsubsection{Sequence-Classifier (Pattern-Aware) Ablation}
 \label{sec:abl-pattern}
 A jointly-trained sequence-classifier head that predicts the whole G-code line and biases the token distribution toward it is a \emph{negative result} on V8: the fold-1 pilot reaches command $0.536$ / token $0.694$, both below the fold-1 baseline ($0.776$ / $0.747$), not reproducing a small positive effect seen in a V7-legacy approximation. The prior appears to over-commit to a whole-line hypothesis early, compounding rather than mitigating exposure bias (Section~\ref{sec:disc-mode-collapse}). \textbf{Single-fold pilot}, excluded from all quantitative/deployment claims; reported because a non-reproducing direction is itself informative.
@@ -1100,7 +1238,7 @@ The worst-edit-distance failures are dominated by command-identity confusion (dr
 \subsection{Sensor-Modality Importance and Deployment Implications}
 \label{sec:disc-modality}
 
-The inference-time modality ablation establishes joint necessity, not a deletability ranking: zeroing any single modality drops command accuracy by a uniform $40$--$44$~pp with a non-significant between-modality ANOVA (Section~\ref{sec:abl-sensors}), while type and parameter-type stay robust ($\le 3$~pp). The encoder's learned gating routes command-discrimination signal through all modalities jointly; under the frozen encoder no single modality is individually omittable, so on that test alone a defensible deployment claim is that the \emph{full} multi-modal stack is required for the categorical-recovery story reported here~\cite{kimmell2025cnc,nist2023sp80082,nist2024fmnet}. The encoder-retraining complement to that test --- which is the deployment-relevant question of which modalities a system could actually omit --- is performed in Section~\ref{sec:abl-lomo}: with the encoder retrained, no single sensing modality is individually load-bearing (paired $\Delta$ command $\le 0.013$; fold-blocked ANOVA $F=0.91$, $p=0.499$). The $40$--$44$~pp frozen-encoder collapse is therefore a gating artifact rather than a statement of modality information content, and the multi-modal stack carries highly redundant command-discrimination signal along the channel-type axis. The orthogonal axis --- which physical \emph{sensor unit} a deployment could ship without --- is the subject of the companion leave-one-sensor-out study (Section~\ref{sec:abl-lomo-sensor}); the final reduced-sensor deployment claim is conditioned on integrating both axes and is stated when that companion result is in.
+The inference-time modality ablation establishes joint necessity, not a deletability ranking: zeroing any single modality drops command accuracy by a uniform $40$--$44$~pp with a non-significant between-modality ANOVA (Section~\ref{sec:abl-sensors}), while type and parameter-type stay robust ($\le 3$~pp). The encoder's learned gating routes command-discrimination signal through all modalities jointly; under the frozen encoder no single modality is individually omittable, so on that test alone a defensible deployment claim is that the \emph{full} multi-modal stack is required for the categorical-recovery story reported here~\cite{kimmell2025cnc,nist2023sp80082,nist2024fmnet}. The encoder-retraining complement to that test --- which is the deployment-relevant question of which modalities a system could actually omit --- is performed in Section~\ref{sec:abl-lomo}: with the encoder retrained, no single sensing modality is individually load-bearing (paired $\Delta$ command $\le 0.013$; fold-blocked ANOVA $F=0.91$, $p=0.499$). The $40$--$44$~pp frozen-encoder collapse is therefore a gating artifact rather than a statement of modality information content, and the multi-modal stack carries highly redundant command-discrimination signal along the channel-type axis. The orthogonal axis --- which physical \emph{sensor unit} a deployment could ship without --- is addressed by the companion leave-one-sensor-out study (Section~\ref{sec:abl-lomo-sensor}): removing any single sensor unit and retraining costs $\le 2.6$~pp on command (largest: \texttt{spindle2} $\Delta = -0.026$; smallest: \texttt{y\_bed\_\_4} $\Delta \approx 0$), with no removal reaching Holm-corrected significance ($p_{\text{Holm}} \ge 0.064$; fold-blocked ANOVA $F = 1.04$, $p = 0.415$). The deployment-relevant conclusion across both axes is therefore that a cost-reduced production monitor \emph{is} viable: any single sensing modality can be dropped at $\le 1.3$~pp expected cost (channel-type axis), and any single physical sensor board at $\le 2.6$~pp expected cost (physical-sensor axis). The strongest single recommendation is to drop \texttt{y\_bed\_\_4}, which is fully redundant with its spatial neighbour \texttt{y\_bed\_\_3} at zero observed effect ($p_{\text{Holm}} = 0.975$); \texttt{spindle2} is the unit a deployment should be most cautious about omitting (largest-magnitude effect, also the most workpiece-variable).
 
 \subsection{Comparison with Side-Channel Recovery in Additive Manufacturing}
 \label{sec:disc-comparison-am}
