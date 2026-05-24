@@ -188,6 +188,13 @@ def main() -> int:
     p.add_argument('--exclude-temperature', action='store_true')
     p.add_argument('--exclude-audio', action='store_true')
     p.add_argument('--exclude-electrical', action='store_true')
+    # Sensor-level exclusion (leave-one-physical-sensor-out): drop EVERY channel
+    # of a named physical sensor unit. Repeatable. Used by the sensor-level LOMO.
+    p.add_argument('--exclude-sensor', action='append', default=[], metavar='NAME',
+                   help='drop every channel of this physical sensor (repeatable)')
+    # Literal column exclusion (nested sensor x modality cells). Repeatable.
+    p.add_argument('--exclude-column', action='append', default=[], metavar='COL',
+                   help='drop a specific named channel/column (repeatable)')
     args = p.parse_args()
 
     fold_0 = args.fold - 1
@@ -254,6 +261,12 @@ def main() -> int:
     if args.exclude_temperature:  excluded_channels += [f'{s}.Temperature' for s in sensors]
     if args.exclude_audio:        excluded_channels += [f'{s}.RMS' for s in sensors]
     if args.exclude_electrical:   excluded_channels += list(ELECTRICAL_FEATURES)
+    # sensor-level: drop every channel whose prefix is an excluded physical sensor
+    for _s in (args.exclude_sensor or []):
+        excluded_channels += [c for c in all_cont_cols if c.startswith(f'{_s}.')]
+    # column-level: drop the literal named channels (nested sensor x modality)
+    for _c in (args.exclude_column or []):
+        excluded_channels.append(_c)
 
     master_columns = filter_columns(sorted(all_cont_cols), consistent_sensors, exclude_channels=excluded_channels)
     print(f"Master columns after filtering: {len(master_columns)} (excluded {len(excluded_channels)} channels)")

@@ -83,13 +83,30 @@ def modality_of(col: str) -> str:
     return "electrical"  # residual bucket (matches encoder's unmatched branch)
 
 
-def columns_for(modality: str, all_columns: list[str]) -> list[str]:
-    if modality == "electrical":
+def columns_for(name: str, all_columns: list[str], kind: str = "modality",
+                sensor: str | None = None) -> list[str]:
+    if kind == "sensor":   # leave-one-physical-sensor-out: match the column prefix
+        return [c for c in all_columns if c.startswith(f"{name}.")]
+    if kind == "nested":
+        # leave-one-(sensor,modality)-pair-out: intersect sensor prefix with
+        # modality suffix. `name` is the modality, `sensor` is the prefix.
+        if not sensor:
+            raise SystemExit("--group-kind nested requires --sensor SENSOR")
+        if name == "electrical":
+            return [c for c in all_columns
+                    if c.startswith(f"{sensor}.") and _suffix(c) not in _NON_ELECTRICAL]
+        if name not in MODALITY_SUFFIXES:
+            raise SystemExit(f"unknown modality '{name}'; "
+                             f"known: {sorted(MODALITY_SUFFIXES) + ['electrical']}")
+        sufs = set(MODALITY_SUFFIXES[name])
+        return [c for c in all_columns
+                if c.startswith(f"{sensor}.") and _suffix(c) in sufs]
+    if name == "electrical":
         return [c for c in all_columns if _suffix(c) not in _NON_ELECTRICAL]
-    if modality not in MODALITY_SUFFIXES:
-        raise SystemExit(f"unknown modality '{modality}'; "
+    if name not in MODALITY_SUFFIXES:
+        raise SystemExit(f"unknown modality '{name}'; "
                          f"known: {sorted(MODALITY_SUFFIXES) + ['electrical']}")
-    sufs = set(MODALITY_SUFFIXES[modality])
+    sufs = set(MODALITY_SUFFIXES[name])
     return [c for c in all_columns if _suffix(c) in sufs]
 
 
@@ -127,7 +144,12 @@ def _corpus_split_sig(d: Path) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--modality", required=True)
+    ap.add_argument("--modality", required=True,
+                    help="group name: a modality, or a physical sensor (with --group-kind sensor); "
+                         "for --group-kind nested it is the MODALITY half of the pair")
+    ap.add_argument("--group-kind", choices=["modality", "sensor", "nested"], default="modality")
+    ap.add_argument("--sensor", default=None,
+                    help="physical sensor unit; required only with --group-kind nested")
     ap.add_argument("--baseline-dir", type=Path, required=True,
                     help="fold dir of the NO-extra-exclusion base (98-feat f98)")
     ap.add_argument("--excluded-dir", type=Path, required=True,
@@ -147,7 +169,7 @@ def main() -> int:
     excl_meta = _load_meta(a.excluded_dir)
     excl_cols = excl_meta["continuous_columns"]
 
-    expected_dropped = columns_for(a.modality, base_cols)
+    expected_dropped = columns_for(a.modality, base_cols, a.group_kind, sensor=a.sensor)
     actually_dropped = [c for c in base_cols if c not in set(excl_cols)]
     expected_survivors = [c for c in base_cols if c not in set(expected_dropped)]
 
@@ -216,6 +238,8 @@ def main() -> int:
 
     verdict = {
         "modality": a.modality,
+        "sensor": a.sensor,
+        "group_kind": a.group_kind,
         "baseline_dir": str(a.baseline_dir),
         "excluded_dir": str(a.excluded_dir),
         "n_baseline_channels": len(base_cols),
@@ -229,7 +253,8 @@ def main() -> int:
     a.out.write_text(json.dumps(verdict, indent=2))
 
     status = "PASS" if verdict["all_pass"] else "FAIL"
-    print(f"[{status}] modality={a.modality}  drop={len(actually_dropped)}ch  "
+    cell_lbl = f"{a.sensor}:{a.modality}" if a.group_kind == "nested" else a.modality
+    print(f"[{status}] {a.group_kind}={cell_lbl}  drop={len(actually_dropped)}ch  "
           f"survivors={len(excl_cols)}ch  -> {a.out}")
     for c in checks:
         mark = "ok " if c["pass"] else "XXX"
