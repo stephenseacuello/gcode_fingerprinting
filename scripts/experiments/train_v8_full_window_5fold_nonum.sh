@@ -29,7 +29,7 @@ BATCH="${BATCH:-4}"
 SS_VALUE="${SS_VALUE:-0.5}"
 SEED="${SEED:-42}"
 FOLDS="${FOLDS:-1 2 3 4 5}"   # override e.g. FOLDS=1 for a single-fold diagnostic
-DATA_ROOT="outputs/decoder20260511/preprocessed_f98_nonum/full_window"
+DATA_ROOT="${DATA_ROOT:-outputs/decoder20260511/preprocessed_f98_nonum/full_window}"
 
 ARCH=(--d_model 384 --n_layers 8 --n_heads 12 --dropout 0.1
       --memory_pos_encoding true --use_sensor_prior true --grammar_constraint true
