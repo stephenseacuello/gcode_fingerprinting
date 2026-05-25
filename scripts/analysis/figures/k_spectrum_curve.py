@@ -42,13 +42,36 @@ def main() -> None:
 
     TF_COLOR = "#2E86AB"; AR_COLOR = "#E63946"
 
+    # K=2418 is methodologically distinct (SS=0.5, dw=1.0 headline);
+    # K in {24, 69, 335} share Design-B (SS=0, dw=0). Visualize:
+    #   - solid line + filled markers across matched-methodology K's
+    #   - dashed connector + OPEN marker to the cross-methodology K=2418 point
+    matched_mask = K_sorted != 2418
+    K_matched = K_sorted[matched_mask]
+    K_ref = K_sorted[~matched_mask]
+
+    def plot_two_segments(ax, reg, marker, color, label, metric):
+        m, s = series(reg, metric)
+        m_m, s_m = m[matched_mask], s[matched_mask]
+        m_r, s_r = m[~matched_mask], s[~matched_mask]
+        ax.errorbar(K_matched, m_m, yerr=s_m, marker=marker, markersize=9,
+                    capsize=4, color=color, label=label, linewidth=1.6,
+                    linestyle="-", markerfacecolor=color, markeredgecolor=color)
+        if len(K_ref):
+            x_bridge = [K_matched.max(), K_ref[0]]
+            y_bridge = [m_m[K_matched.argmax()], m_r[0]]
+            ax.plot(x_bridge, y_bridge, color=color, linestyle="--",
+                    linewidth=1.2, alpha=0.6)
+            ax.errorbar(K_ref, m_r, yerr=s_r, marker=marker, markersize=11,
+                        capsize=4, color=color, linewidth=0,
+                        markerfacecolor="white", markeredgecolor=color,
+                        markeredgewidth=1.8)
+
     # ----- panel A: per-token structural ------------------------------------
     ax = axes[0]
     for reg, marker, color, label in [("TF", "o", TF_COLOR, "Teacher-forced"),
                                       ("AR", "s", AR_COLOR, "Autoregressive")]:
-        m, s = series(reg, "struct_token_acc")
-        ax.errorbar(K_sorted, m, yerr=s, marker=marker, markersize=9,
-                    capsize=4, color=color, label=label, linewidth=1.6)
+        plot_two_segments(ax, reg, marker, color, label, "struct_token_acc")
     ax.set_xscale("log")
     ax.set_xlabel(r"Numeric vocabulary size $K$")
     ax.set_ylabel("Structural token accuracy")
@@ -58,14 +81,16 @@ def main() -> None:
     ax.set_xticks(K_sorted)
     ax.set_xticklabels([str(k) for k in K_sorted])
     ax.set_ylim(0.25, 1.02)
+    ax.annotate("$K\\!=\\!2{,}418$ uses\nSS=0.5, dw=1.0\n(cross-methodology)",
+                xy=(2418, 0.32), xytext=(770, 0.50),
+                fontsize=7, ha="center", color="dimgray",
+                arrowprops=dict(arrowstyle="->", color="dimgray", lw=0.7))
 
     # ----- panel B: per-window structural seq exact -------------------------
     ax = axes[1]
     for reg, marker, color, label in [("TF", "o", TF_COLOR, "Teacher-forced"),
                                       ("AR", "s", AR_COLOR, "Autoregressive")]:
-        m, s = series(reg, "struct_seq_exact")
-        ax.errorbar(K_sorted, m, yerr=s, marker=marker, markersize=9,
-                    capsize=4, color=color, label=label, linewidth=1.6)
+        plot_two_segments(ax, reg, marker, color, label, "struct_seq_exact")
     ax.set_xscale("log")
     ax.set_xlabel(r"Numeric vocabulary size $K$")
     ax.set_ylabel("Structural sequence exact-match")

@@ -6,7 +6,7 @@
       "struct_seq_exact": "AR per-window exact-match on the structural stream only"
     },
     "n_folds": 5,
-    "note": "n=5 folds; treat all p-values descriptively (per Sec. inferential-scope)"
+    "note": "n=5 folds; treat all p-values descriptively per Section sec:stats. Primary omnibus is exact Friedman (asymptotic chi^2 unreliable at n=5)."
   },
   "per_fold": {
     "struct_token_acc": {
@@ -70,6 +70,116 @@
       ]
     }
   },
+  "per_K_summary": {
+    "struct_token_acc": {
+      "K2418": {
+        "mean": 0.3172695168695884,
+        "sd": 0.1160798195208019,
+        "bootstrap_95ci_mean": [
+          0.22046394834009844,
+          0.400836312920034
+        ],
+        "grubbs_G_max": 1.1496643657048815,
+        "grubbs_G_min": 1.5693615928858884,
+        "grubbs_idx_max_fold": 4,
+        "grubbs_idx_min_fold": 5,
+        "grubbs_critical_n5_alpha05_two_sided": 1.715
+      },
+      "K335": {
+        "mean": 0.42864438197987303,
+        "sd": 0.12341833798463012,
+        "bootstrap_95ci_mean": [
+          0.32547131967798604,
+          0.5102416264169467
+        ],
+        "grubbs_G_max": 0.928783151131819,
+        "grubbs_G_min": 1.6303041849629556,
+        "grubbs_idx_max_fold": 2,
+        "grubbs_idx_min_fold": 5,
+        "grubbs_critical_n5_alpha05_two_sided": 1.715
+      },
+      "K69": {
+        "mean": 0.415357672211426,
+        "sd": 0.03550061735657924,
+        "bootstrap_95ci_mean": [
+          0.3884595204686766,
+          0.44492301125786293
+        ],
+        "grubbs_G_max": 1.4709750264911206,
+        "grubbs_G_min": 1.2990640342762032,
+        "grubbs_idx_max_fold": 3,
+        "grubbs_idx_min_fold": 1,
+        "grubbs_critical_n5_alpha05_two_sided": 1.715
+      },
+      "K24": {
+        "mean": 0.40539043205561076,
+        "sd": 0.14329565232725383,
+        "bootstrap_95ci_mean": [
+          0.2789649261719141,
+          0.49959794543090263
+        ],
+        "grubbs_G_max": 0.7714241831801013,
+        "grubbs_G_min": 1.647612949608113,
+        "grubbs_idx_max_fold": 3,
+        "grubbs_idx_min_fold": 5,
+        "grubbs_critical_n5_alpha05_two_sided": 1.715
+      }
+    },
+    "struct_seq_exact": {
+      "K2418": {
+        "mean": 0.05756366669330759,
+        "sd": 0.038459372609284,
+        "bootstrap_95ci_mean": [
+          0.02727272727272727,
+          0.08616987484912013
+        ],
+        "grubbs_G_max": 1.2015255340176254,
+        "grubbs_G_min": 1.4967396186648105,
+        "grubbs_idx_max_fold": 3,
+        "grubbs_idx_min_fold": 2,
+        "grubbs_critical_n5_alpha05_two_sided": 1.715
+      },
+      "K335": {
+        "mean": 0.08056157025724889,
+        "sd": 0.0328284572118614,
+        "bootstrap_95ci_mean": [
+          0.05566416856739437,
+          0.1056718124642653
+        ],
+        "grubbs_G_max": 1.1459645417323037,
+        "grubbs_G_min": 1.0437674161724557,
+        "grubbs_idx_max_fold": 2,
+        "grubbs_idx_min_fold": 4,
+        "grubbs_critical_n5_alpha05_two_sided": 1.715
+      },
+      "K69": {
+        "mean": 0.05126970660141689,
+        "sd": 0.019681835295467145,
+        "bootstrap_95ci_mean": [
+          0.03796241989790376,
+          0.0685934819897084
+        ],
+        "grubbs_G_max": 1.6290974012622137,
+        "grubbs_G_min": 0.7573516399262568,
+        "grubbs_idx_max_fold": 1,
+        "grubbs_idx_min_fold": 2,
+        "grubbs_critical_n5_alpha05_two_sided": 1.715
+      },
+      "K24": {
+        "mean": 0.06574167317320087,
+        "sd": 0.013776126744402093,
+        "bootstrap_95ci_mean": [
+          0.054993329521631405,
+          0.07581917777900736
+        ],
+        "grubbs_G_max": 1.166983212571967,
+        "grubbs_G_min": 1.4115271467581534,
+        "grubbs_idx_max_fold": 2,
+        "grubbs_idx_min_fold": 4,
+        "grubbs_critical_n5_alpha05_two_sided": 1.715
+      }
+    }
+  },
   "pairwise_vs_K2418": {
     "struct_token_acc": {
       "K335_vs_K2418": {
@@ -89,6 +199,43 @@
         "wilcoxon_W": 0.0,
         "wilcoxon_p": 0.0625,
         "cohens_dz": 1.8420628338665357,
+        "hedges_gz": 1.4736502670932285,
+        "bootstrap_95ci_diff": [
+          0.06320199758561809,
+          0.1552089195143332
+        ],
+        "leave_one_fold_out": [
+          {
+            "drop_fold_idx": 1,
+            "t": 3.2369804046340978,
+            "p": 0.04796076015730133,
+            "mean_diff_remaining": 0.11283165737815487
+          },
+          {
+            "drop_fold_idx": 2,
+            "t": 3.7235497241221713,
+            "p": 0.033724445255159274,
+            "mean_diff_remaining": 0.09234619703430408
+          },
+          {
+            "drop_fold_idx": 3,
+            "t": 3.104522382872279,
+            "p": 0.05310780146876404,
+            "mean_diff_remaining": 0.10286508100642276
+          },
+          {
+            "drop_fold_idx": 4,
+            "t": 6.181438534334974,
+            "p": 0.008525627776755584,
+            "mean_diff_remaining": 0.13269696940914605
+          },
+          {
+            "drop_fold_idx": 5,
+            "t": 3.3796626934093847,
+            "p": 0.04310208896242318,
+            "mean_diff_remaining": 0.11613442072339532
+          }
+        ],
         "paired_t_p_holm": 0.043873872432778134
       },
       "K69_vs_K2418": {
@@ -108,6 +255,43 @@
         "wilcoxon_W": 1.0,
         "wilcoxon_p": 0.125,
         "cohens_dz": 0.8430523057383634,
+        "hedges_gz": 0.6744418445906908,
+        "bootstrap_95ci_diff": [
+          0.011217261850077442,
+          0.19470887732712208
+        ],
+        "leave_one_fold_out": [
+          {
+            "drop_fold_idx": 1,
+            "t": 1.564947217706941,
+            "p": 0.21555985598345972,
+            "mean_diff_remaining": 0.10435787000591465
+          },
+          {
+            "drop_fold_idx": 2,
+            "t": 1.5895954503401901,
+            "p": 0.21014486905395158,
+            "mean_diff_remaining": 0.10564685507791642
+          },
+          {
+            "drop_fold_idx": 3,
+            "t": 1.3892118041550885,
+            "p": 0.2589262582903964,
+            "mean_diff_remaining": 0.0928437485461721
+          },
+          {
+            "drop_fold_idx": 4,
+            "t": 2.75146765867643,
+            "p": 0.07065528182602954,
+            "mean_diff_remaining": 0.13394259167393385
+          },
+          {
+            "drop_fold_idx": 5,
+            "t": 1.5353208981504984,
+            "p": 0.2222746540309226,
+            "mean_diff_remaining": 0.053649711405251085
+          }
+        ],
         "paired_t_p_holm": 0.1324947804504066
       },
       "K24_vs_K2418": {
@@ -127,6 +311,43 @@
         "wilcoxon_W": 0.0,
         "wilcoxon_p": 0.0625,
         "cohens_dz": 1.5925558264496325,
+        "hedges_gz": 1.274044661159706,
+        "bootstrap_95ci_diff": [
+          0.04650855979569589,
+          0.13329400788902293
+        ],
+        "leave_one_fold_out": [
+          {
+            "drop_fold_idx": 1,
+            "t": 2.8891774865105915,
+            "p": 0.06305526304836007,
+            "mean_diff_remaining": 0.09145672199384564
+          },
+          {
+            "drop_fold_idx": 2,
+            "t": 2.6495173156636986,
+            "p": 0.07702562889128539,
+            "mean_diff_remaining": 0.08026999895713874
+          },
+          {
+            "drop_fold_idx": 3,
+            "t": 3.5721013287528285,
+            "p": 0.037496038617689686,
+            "mean_diff_remaining": 0.06829620589204029
+          },
+          {
+            "drop_fold_idx": 4,
+            "t": 3.447986366747061,
+            "p": 0.040996730413469074,
+            "mean_diff_remaining": 0.09897959341810143
+          },
+          {
+            "drop_fold_idx": 5,
+            "t": 3.792603111557307,
+            "p": 0.03216600609876541,
+            "mean_diff_remaining": 0.10160205566898567
+          }
+        ],
         "paired_t_p_holm": 0.04712714642662545
       }
     },
@@ -148,6 +369,43 @@
         "wilcoxon_W": 3.0,
         "wilcoxon_p": 0.625,
         "cohens_dz": 0.41284488788863255,
+        "hedges_gz": 0.3302759103109061,
+        "bootstrap_95ci_diff": [
+          -0.011749571183533447,
+          0.07393939393939394
+        ],
+        "leave_one_fold_out": [
+          {
+            "drop_fold_idx": 1,
+            "t": 0.7784767954674202,
+            "p": 0.49304788886811046,
+            "mean_diff_remaining": 0.024959500667047836
+          },
+          {
+            "drop_fold_idx": 2,
+            "t": -0.08382908551316084,
+            "p": 0.9384728337806072,
+            "mean_diff_remaining": -0.0007980750905279207
+          },
+          {
+            "drop_fold_idx": 3,
+            "t": 0.8282116759458599,
+            "p": 0.4682865107097227,
+            "mean_diff_remaining": 0.02638888888888889
+          },
+          {
+            "drop_fold_idx": 4,
+            "t": 1.2897464033490669,
+            "p": 0.2875691510189662,
+            "mean_diff_remaining": 0.03569182389937107
+          },
+          {
+            "drop_fold_idx": 5,
+            "t": 0.9186346580579404,
+            "p": 0.4260326106743664,
+            "mean_diff_remaining": 0.028747379454926624
+          }
+        ],
         "paired_t_p_holm": 1.0
       },
       "K69_vs_K2418": {
@@ -167,6 +425,43 @@
         "wilcoxon_W": 6.0,
         "wilcoxon_p": 0.8125,
         "cohens_dz": -0.15473267124121745,
+        "hedges_gz": -0.12378613699297397,
+        "bootstrap_95ci_diff": [
+          -0.03798381461193391,
+          0.025395894428152488
+        ],
+        "leave_one_fold_out": [
+          {
+            "drop_fold_idx": 1,
+            "t": -0.9290103372187547,
+            "p": 0.42140975651765444,
+            "mean_diff_remaining": -0.017337147084560352
+          },
+          {
+            "drop_fold_idx": 2,
+            "t": -0.8913450994214481,
+            "p": 0.4384117862511361,
+            "mean_diff_remaining": -0.016958359205772475
+          },
+          {
+            "drop_fold_idx": 3,
+            "t": 0.20202030964647305,
+            "p": 0.8528244003096381,
+            "mean_diff_remaining": 0.003925002715325296
+          },
+          {
+            "drop_fold_idx": 4,
+            "t": 0.06538784377418683,
+            "p": 0.9519786676102591,
+            "mean_diff_remaining": 0.0013918091443958745
+          },
+          {
+            "drop_fold_idx": 5,
+            "t": -0.10847117584718266,
+            "p": 0.9204700295661508,
+            "mean_diff_remaining": -0.00249110602884188
+          }
+        ],
         "paired_t_p_holm": 1.0
       },
       "K24_vs_K2418": {
@@ -186,6 +481,43 @@
         "wilcoxon_W": 5.0,
         "wilcoxon_p": 1.0,
         "cohens_dz": 0.1810420761368672,
+        "hedges_gz": 0.14483366090949376,
+        "bootstrap_95ci_diff": [
+          -0.022431865828092246,
+          0.04656565656565656
+        ],
+        "leave_one_fold_out": [
+          {
+            "drop_fold_idx": 1,
+            "t": 0.2476506723326343,
+            "p": 0.8203870886721942,
+            "mean_diff_remaining": 0.006434629311987801
+          },
+          {
+            "drop_fold_idx": 2,
+            "t": -0.9529720048979012,
+            "p": 0.4109088424285654,
+            "mean_diff_remaining": -0.010232037354678866
+          },
+          {
+            "drop_fold_idx": 3,
+            "t": 0.7433257644048304,
+            "p": 0.5112035903455283,
+            "mean_diff_remaining": 0.0172979797979798
+          },
+          {
+            "drop_fold_idx": 4,
+            "t": 0.7350164434583178,
+            "p": 0.5155746665584351,
+            "mean_diff_remaining": 0.017166952544311033
+          },
+          {
+            "drop_fold_idx": 5,
+            "t": 0.39399052439704435,
+            "p": 0.7199227607886605,
+            "mean_diff_remaining": 0.010222508099866589
+          }
+        ],
         "paired_t_p_holm": 1.0
       }
     }
@@ -202,16 +534,18 @@
       "F": 2.873167976994607,
       "df_between": 3,
       "df_within": 12,
-      "p_value": 0.08046731485790615,
+      "p_value_rmanova": 0.08046731485790615,
       "eta_squared_partial": 0.4180267362316004,
       "friedman_chi2": 9.239999999999995,
-      "friedman_p": 0.02626441798709072,
+      "friedman_p_asymptotic": 0.02626441798709072,
       "condition_means": {
         "K2418": 0.3172695168695884,
         "K335": 0.42864438197987303,
         "K69": 0.4153576722114261,
         "K24": 0.4053904320556107
-      }
+      },
+      "friedman_p_exact": 0.01667088638117284,
+      "friedman_n_permutations": 7962624
     },
     "struct_seq_exact": {
       "conditions": [
@@ -224,16 +558,18 @@
       "F": 1.0130685891540425,
       "df_between": 3,
       "df_within": 12,
-      "p_value": 0.4208648547166296,
+      "p_value_rmanova": 0.4208648547166296,
       "eta_squared_partial": 0.2020855232952235,
       "friedman_chi2": 3.409090909090909,
-      "friedman_p": 0.33274553112956684,
+      "friedman_p_asymptotic": 0.33274553112956684,
       "condition_means": {
         "K2418": 0.05756366669330759,
         "K335": 0.08056157025724889,
         "K69": 0.05126970660141689,
         "K24": 0.06574167317320087
-      }
+      },
+      "friedman_p_exact": 0.44462528935185186,
+      "friedman_n_permutations": 7962624
     }
   }
 }

@@ -14,11 +14,13 @@ Outputs: audit/k_spectrum_stats.json + console summary table.
 """
 from __future__ import annotations
 
+import itertools
 import json
 import math
 import statistics as st
 from pathlib import Path
 
+import numpy as np
 from scipy import stats as sp
 
 REPO = Path("/home/seacuello/Documents/gcode_fingerprinting")
@@ -34,19 +36,88 @@ def cohens_dz(diffs):
     return st.mean(diffs) / sd if sd > 0 else None
 
 
+def hedges_J(n):
+    """Small-sample Hedges correction factor; J*d_z = g_z (less biased at small n)."""
+    return 1.0 - 3.0 / (4 * (n - 1) - 1)
+
+
+def boot_ci_mean(x, B=10000, seed=0):
+    """Percentile bootstrap 95% CI for the mean of x."""
+    rng = np.random.default_rng(seed)
+    x = np.asarray(x, dtype=float)
+    n = len(x)
+    bs = rng.choice(x, size=(B, n), replace=True).mean(axis=1)
+    return float(np.percentile(bs, 2.5)), float(np.percentile(bs, 97.5))
+
+
+def friedman_chi2_from_arr(Y):
+    """Y: k x n matrix. Returns chi^2 statistic."""
+    Y = np.asarray(Y, dtype=float)
+    k, n = Y.shape
+    R = np.zeros_like(Y)
+    for j in range(n):
+        R[:, j] = sp.rankdata(Y[:, j])
+    Rsum = R.sum(axis=1)
+    return float(12.0 / (n * k * (k + 1)) * (Rsum ** 2).sum() - 3 * n * (k + 1))
+
+
+def exact_friedman_p(Y):
+    """Exact Friedman p by enumerating all per-subject rank permutations.
+    Tractable for n=5, k=4 (24^5 = ~8M permutations, ~15 s)."""
+    Y = np.asarray(Y, dtype=float)
+    k, n = Y.shape
+    obs = friedman_chi2_from_arr(Y)
+    rankings = list(itertools.permutations(range(1, k + 1)))
+    total = len(rankings) ** n
+    count_ge = 0
+    for combo in itertools.product(rankings, repeat=n):
+        R = np.array(combo).T
+        Rsum = R.sum(axis=1)
+        chi2 = 12.0 / (n * k * (k + 1)) * (Rsum ** 2).sum() - 3 * n * (k + 1)
+        if chi2 >= obs - 1e-9:
+            count_ge += 1
+    return obs, count_ge / total, total
+
+
+def grubbs(x):
+    """Grubbs test for a single outlier. Returns G_max, G_min, idx_max, idx_min."""
+    x = np.asarray(x, dtype=float)
+    mu = x.mean(); sd = x.std(ddof=1)
+    return ((x.max() - mu) / sd, (mu - x.min()) / sd,
+            int(x.argmax()), int(x.argmin()))
+
+
+def lofo_paired_t(diffs):
+    """Leave-one-fold-out paired-t on a vector of per-fold paired differences."""
+    out = []
+    for drop in range(len(diffs)):
+        sub = [d for i, d in enumerate(diffs) if i != drop]
+        if len(sub) > 1 and st.stdev(sub) > 0:
+            t = st.mean(sub) / (st.stdev(sub) / math.sqrt(len(sub)))
+            p = 2 * (1 - sp.t.cdf(abs(t), df=len(sub) - 1))
+        else:
+            t, p = float("nan"), float("nan")
+        out.append({"drop_fold_idx": drop + 1, "t": float(t), "p": float(p),
+                    "mean_diff_remaining": st.mean(sub) if sub else None})
+    return out
+
+
 def paired_block(a, b):
     """a, b are per-fold values (same fold order). Returns paired t,
-    Wilcoxon, Cohen's d_z, mean diff, sign count."""
+    Wilcoxon, Cohen's d_z, Hedges' g_z, bootstrap CI of paired diff,
+    leave-one-fold-out sensitivity, mean diff, sign count."""
     diffs = [ai - bi for ai, bi in zip(a, b)]
     n = len(diffs)
     n_pos = sum(1 for d in diffs if d > 0)
     t_stat, t_p = sp.ttest_rel(a, b)
-    # Wilcoxon needs nonzero diffs; fall back gracefully if all-zero
     try:
         w_stat, w_p = sp.wilcoxon(a, b, zero_method="wilcox")
         w_stat = float(w_stat); w_p = float(w_p)
     except ValueError:
         w_stat, w_p = None, None
+    dz = cohens_dz(diffs)
+    gz = hedges_J(n) * dz if dz is not None else None
+    boot_lo, boot_hi = boot_ci_mean(diffs, seed=hash(tuple(diffs)) & 0xffff)
     return {
         "n": n,
         "mean_diff": st.mean(diffs),
@@ -57,14 +128,18 @@ def paired_block(a, b):
         "paired_t_p": float(t_p),
         "wilcoxon_W": w_stat,
         "wilcoxon_p": w_p,
-        "cohens_dz": cohens_dz(diffs),
+        "cohens_dz": dz,
+        "hedges_gz": gz,
+        "bootstrap_95ci_diff": [boot_lo, boot_hi],
+        "leave_one_fold_out": lofo_paired_t(diffs),
     }
 
 
-def rm_anova(condition_to_perfold):
+def rm_anova(condition_to_perfold, exact_friedman=True):
     """One-way repeated-measures ANOVA. Conditions are columns, folds
     are rows (subjects). Returns F, p (with within-subject error df),
-    plus eta^2_p and a Friedman nonparametric corroboration."""
+    eta^2_p, asymptotic + EXACT Friedman p (the exact p is the
+    primary inferential statement at n=5)."""
     cond_names = list(condition_to_perfold.keys())
     k = len(cond_names)
     Y = [condition_to_perfold[c] for c in cond_names]            # k x n
@@ -83,19 +158,24 @@ def rm_anova(condition_to_perfold):
     F = MS_cond / MS_err if MS_err > 0 else float("nan")
     p = 1.0 - sp.f.cdf(F, df_cond, df_err) if not math.isnan(F) else float("nan")
     eta2p = SS_cond / (SS_cond + SS_err) if (SS_cond + SS_err) > 0 else None
-    fried_stat, fried_p = sp.friedmanchisquare(*Y)
-    return {
+    fried_stat, fried_p_asy = sp.friedmanchisquare(*Y)
+    out = {
         "conditions": cond_names,
         "n_subjects": n,
         "F": F,
         "df_between": df_cond,
         "df_within": df_err,
-        "p_value": float(p),
+        "p_value_rmanova": float(p),
         "eta_squared_partial": eta2p,
         "friedman_chi2": float(fried_stat),
-        "friedman_p": float(fried_p),
+        "friedman_p_asymptotic": float(fried_p_asy),
         "condition_means": dict(zip(cond_names, cond_means)),
     }
+    if exact_friedman:
+        _, p_exact, n_perm = exact_friedman_p(Y)
+        out["friedman_p_exact"] = float(p_exact)
+        out["friedman_n_permutations"] = n_perm
+    return out
 
 
 def main() -> None:
@@ -149,6 +229,25 @@ def main() -> None:
         for k, ap in zip(keys, adj):
             pairwise[metric][k]["paired_t_p_holm"] = ap
 
+    # ----- per-K bootstrap CI of mean + Grubbs outlier check ----------------
+    per_K_summary = {}
+    for metric in per_metric:
+        per_K_summary[metric] = {}
+        for k in ("K2418", "K335", "K69", "K24"):
+            vals = per_metric[metric][k]
+            lo, hi = boot_ci_mean(vals, seed=hash((metric, k)) & 0xffff)
+            G_max, G_min, idx_max, idx_min = grubbs(vals)
+            per_K_summary[metric][k] = {
+                "mean": st.mean(vals),
+                "sd": st.stdev(vals),
+                "bootstrap_95ci_mean": [lo, hi],
+                "grubbs_G_max": float(G_max),
+                "grubbs_G_min": float(G_min),
+                "grubbs_idx_max_fold": idx_max + 1,
+                "grubbs_idx_min_fold": idx_min + 1,
+                "grubbs_critical_n5_alpha05_two_sided": 1.715,
+            }
+
     out = {
         "meta": {
             "source": str(SRC.relative_to(REPO)),
@@ -157,9 +256,11 @@ def main() -> None:
                 "struct_seq_exact": "AR per-window exact-match on the structural stream only",
             },
             "n_folds": 5,
-            "note": "n=5 folds; treat all p-values descriptively (per Sec. inferential-scope)",
+            "note": "n=5 folds; treat all p-values descriptively per Section sec:stats. "
+                    "Primary omnibus is exact Friedman (asymptotic chi^2 unreliable at n=5).",
         },
         "per_fold": per_metric,
+        "per_K_summary": per_K_summary,
         "pairwise_vs_K2418": pairwise,
         "rm_anova_4K": anovas,
     }
@@ -178,17 +279,21 @@ def main() -> None:
                   f"folds={['%.3f' % v for v in vals]}")
         a = anovas[metric]
         print(f"  RM-ANOVA(4K): F({a['df_between']},{a['df_within']})={a['F']:.3f}, "
-              f"p={a['p_value']:.4f}, eta2_p={a['eta_squared_partial']:.3f}; "
-              f"Friedman chi2={a['friedman_chi2']:.3f}, p={a['friedman_p']:.4f}")
-        print(f"  Pairwise vs K=2418 (paired t / Wilcoxon / Cohen's d_z / Holm-adj p):")
+              f"p={a['p_value_rmanova']:.4f}, eta2_p={a['eta_squared_partial']:.3f}; "
+              f"Friedman chi2={a['friedman_chi2']:.3f}, asymptotic p={a['friedman_p_asymptotic']:.4f}, "
+              f"EXACT p={a.get('friedman_p_exact', float('nan')):.4f}")
+        print(f"  Pairwise vs K=2418 (paired t / Wilcoxon / d_z / Hedges g_z / Holm-adj p / 95%CI):")
         for cmp, st_ in pairwise[metric].items():
             wp = st_["wilcoxon_p"]
             wp_s = f"{wp:.4f}" if wp is not None else "n/a"
+            lo, hi = st_["bootstrap_95ci_diff"]
             print(f"    {cmp:>15}: Δ={st_['mean_diff']:+.4f} "
                   f"({st_['n_positive']}/5 pos), "
                   f"t={st_['paired_t']:+.3f} p={st_['paired_t_p']:.4f} "
                   f"(Holm p={st_['paired_t_p_holm']:.4f}); "
-                  f"W p={wp_s}; d_z={st_['cohens_dz']:+.3f}")
+                  f"W p={wp_s}; d_z={st_['cohens_dz']:+.3f} "
+                  f"(g_z={st_['hedges_gz']:+.3f}); "
+                  f"95%CI=[{lo:+.4f},{hi:+.4f}]")
     print(f"\nwrote {OUT.relative_to(REPO)}")
 
 
