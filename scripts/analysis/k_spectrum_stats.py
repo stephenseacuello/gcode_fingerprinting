@@ -188,24 +188,43 @@ def main() -> None:
         "b2 (2-digit, SS=0/dw=0)":          "K335",
         "b1 (1-digit, SS=0/dw=0)":          "K69",
         "Design B (placeholder, SS=0/dw=0)": "K24",
+        "T3.1 control (4-digit, SS=0/dw=0)": "K2418_designB",
     }
+    have_t3_1 = "T3.1 control (4-digit, SS=0/dw=0)" in variants
 
     # per-metric, per-K, per-fold (sorted by fold index)
     per_metric = {}
+    short_keys = [s for full, s in rename.items() if full in variants]
     for metric in ("struct_token_acc", "struct_seq_exact"):
         per_metric[metric] = {}
         for full, short in rename.items():
+            if full not in variants:
+                continue
             pf = variants[full]["AR"]["per_fold"]
             ordered = sorted(pf, key=lambda r: r["fold"])
             per_metric[metric][short] = [r[metric] for r in ordered]
 
-    # ----- pairwise vs K=2418 ------------------------------------------------
+    # ----- pairwise vs K=2418 (headline) -------------------------------------
     pairwise = {}
+    pair_targets = ["K335", "K69", "K24"]
+    if have_t3_1:
+        pair_targets.append("K2418_designB")
     for metric in per_metric:
         pairwise[metric] = {}
         ref = per_metric[metric]["K2418"]
-        for k in ("K335", "K69", "K24"):
+        for k in pair_targets:
             pairwise[metric][f"{k}_vs_K2418"] = paired_block(per_metric[metric][k], ref)
+
+    # ----- pairwise vs K2418_designB (the T3.1 matched-methodology ref) -----
+    pairwise_vs_t3_1 = {}
+    if have_t3_1:
+        ref_targets = ["K335", "K69", "K24"]
+        for metric in per_metric:
+            pairwise_vs_t3_1[metric] = {}
+            ref = per_metric[metric]["K2418_designB"]
+            for k in ref_targets:
+                pairwise_vs_t3_1[metric][f"{k}_vs_K2418_designB"] = \
+                    paired_block(per_metric[metric][k], ref)
 
     # ----- one-way RM-ANOVA across the 4 K levels ----------------------------
     anovas = {m: rm_anova(per_metric[m]) for m in per_metric}
@@ -229,11 +248,20 @@ def main() -> None:
         for k, ap in zip(keys, adj):
             pairwise[metric][k]["paired_t_p_holm"] = ap
 
+    for metric in pairwise_vs_t3_1:
+        keys = list(pairwise_vs_t3_1[metric].keys())
+        raw_p = [pairwise_vs_t3_1[metric][k]["paired_t_p"] for k in keys]
+        adj = holm(raw_p)
+        for k, ap in zip(keys, adj):
+            pairwise_vs_t3_1[metric][k]["paired_t_p_holm"] = ap
+
     # ----- per-K bootstrap CI of mean + Grubbs outlier check ----------------
     per_K_summary = {}
+    K_keys_present = [k for k in ("K2418", "K335", "K69", "K24", "K2418_designB")
+                      if k in per_metric["struct_token_acc"]]
     for metric in per_metric:
         per_K_summary[metric] = {}
-        for k in ("K2418", "K335", "K69", "K24"):
+        for k in K_keys_present:
             vals = per_metric[metric][k]
             lo, hi = boot_ci_mean(vals, seed=hash((metric, k)) & 0xffff)
             G_max, G_min, idx_max, idx_min = grubbs(vals)
@@ -261,8 +289,10 @@ def main() -> None:
         },
         "per_fold": per_metric,
         "per_K_summary": per_K_summary,
-        "pairwise_vs_K2418": pairwise,
-        "rm_anova_4K": anovas,
+        "pairwise_vs_K2418_headline": pairwise,
+        "pairwise_vs_K2418_designB_matched": pairwise_vs_t3_1,
+        "rm_anova": anovas,
+        "T3.1_control_present": have_t3_1,
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps(out, indent=2))
@@ -273,7 +303,7 @@ def main() -> None:
     print("=" * 94)
     for metric in per_metric:
         print(f"\n[{metric}]  per-fold means by K:")
-        for k in ("K2418", "K335", "K69", "K24"):
+        for k in K_keys_present:
             vals = per_metric[metric][k]
             print(f"  {k:>6}: mean={st.mean(vals):+.4f}  std={st.stdev(vals):.4f}  "
                   f"folds={['%.3f' % v for v in vals]}")

@@ -114,6 +114,12 @@ def main() -> None:
     paths_b2 = {f: CK / f"full_window_5fold_b2_ss0/fold_{f}/results" for f in range(1, 6)}
     paths_b1 = {f: CK / f"full_window_5fold_b1_ss0/fold_{f}/results" for f in range(1, 6)}
     paths_nonum = {f: CK / f"full_window_5fold_nonum_ss0/fold_{f}/results" for f in range(1, 6)}
+    # T3.1 methodology-matched K=2418 control (SS=0, dw=0). Only present
+    # if the training/eval pipeline has finished; we include it if the
+    # beam_0 predictions exist on fold 1 (a cheap existence probe).
+    paths_K2418_designB = {f: CK / f"full_window_5fold_designB_K2418/fold_{f}/results"
+                           for f in range(1, 6)}
+    have_K2418_designB = (paths_K2418_designB[1] / "beam_0_all_predictions.json").exists()
 
     variants = [
         ("current (4-digit, SS=0.5/dw=1.0)", 2418, paths_current),
@@ -121,10 +127,19 @@ def main() -> None:
         ("b1 (1-digit, SS=0/dw=0)",          69,   paths_b1),
         ("Design B (placeholder, SS=0/dw=0)", 24,  paths_nonum),
     ]
+    if have_K2418_designB:
+        variants.append(
+            ("T3.1 control (4-digit, SS=0/dw=0)", 2418, paths_K2418_designB)
+        )
 
-    results = {"meta": {"step": "K-spectrum (4 vocab sizes)",
+    results = {"meta": {"step": "K-spectrum (4 vocab sizes)"
+                                + (" + T3.1 control" if have_K2418_designB else ""),
                         "offset_correction": "pred[:len(true)]",
-                        "methodology_caveat": "current is SS=0.5/dw=1.0; b2/b1/nonum are SS=0/dw=0"},
+                        "methodology_caveat": "current is SS=0.5/dw=1.0; b2/b1/nonum are SS=0/dw=0"
+                                              + ("; T3.1 control is K=2418 under SS=0/dw=0 "
+                                                 "(the methodology-matched control)"
+                                                 if have_K2418_designB else ""),
+                        "T3.1_control_present": have_K2418_designB},
                "variants": []}
     for name, K, paths in variants:
         results["variants"].append({
