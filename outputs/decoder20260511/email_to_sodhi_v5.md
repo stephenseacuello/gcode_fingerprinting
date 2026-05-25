@@ -74,11 +74,11 @@ right* stays the same.
 
 The reason: the failure has two causes. (1) Wrong numbers misalign the tokens
 around them — removing the numbers fixes this, and that's the +9 percentage
-points. (2) The model independently slips into a generic repetitive
-`X-something Y-something Z-something` output regardless of what the sensors
-actually say. That repetition is in the *commands and axes themselves*, not
-in the numbers, and removing the numbers doesn't fix it — which is why
-whole-line recovery stays flat.
+points. (2) The decoder independently converges on a corpus-modal output
+sequence (a generic repetitive `X-something Y-something Z-something` pattern)
+that does not depend on the sensor input. That mode-collapse is in the
+*commands and axes themselves*, not in the numbers, and removing the numbers
+doesn't fix it — which is why whole-line recovery stays flat.
 
 **3. Follow-on: a four-point sweep across numeric-vocabulary size (new, with one open caveat).**
 
@@ -132,13 +132,13 @@ vocabulary is just smaller."
 **Bottom line for the original question:** numbers are a measurable
 contributor (~9 pp on per-token, statistically robust across folds and
 across vocabulary sizes), but they are *not the cause* of the end-to-end
-collapse. The bigger problem — the model losing the plot under realistic
-decoding — is in the command and axis stream itself, and reducing or
-removing the numbers doesn't fix it. The K = 335 result is the strongest
-maximum we've measured, but the methodology confound and the threat-model
-implication mean we should treat it as a research finding for a future
-architecture iteration rather than a recommended change to the current
-deployable stack.
+collapse. The dominant residual — intrinsic mode-collapse of the
+structural token stream itself — is in the command and axis stream, and
+reducing or removing the numbers doesn't fix it. The K = 335 result is
+the strongest maximum we've measured, but the methodology confound and
+the threat-model implication mean we should treat it as a research
+finding for a future architecture iteration rather than a recommended
+change to the current deployable stack.
 
 All three findings are now in the paper:
 - Item 1: Section "Numeric Decomposition" (entropy analysis, r = −0.96).
