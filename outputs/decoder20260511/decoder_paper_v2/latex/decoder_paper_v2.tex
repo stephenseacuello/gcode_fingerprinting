@@ -43,6 +43,16 @@
 % See TABLES_REGENERATION_GUIDE.md for the mapping of each key to its
 % authoritative source.
 \usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% MDPI back-matter macros not present in the local (older) mdpi.cls.
+% Provide local definitions so the manuscript renders the standard
+% Sensors back-matter blocks; the production class file will redefine
+% these on submission.
+\providecommand{\institutionalreview}[1]{\medskip\noindent\textbf{Institutional Review Board Statement:} #1\par}
+\providecommand{\informedconsent}[1]{\medskip\noindent\textbf{Informed Consent Statement:} #1\par}
+\providecommand{\dataavailability}[1]{\medskip\noindent\textbf{Data Availability Statement:} #1\par}
 \newcommand{\TBD}[1]{\textcolor{red}{\textbf{[TBD: #1]}}}
 
 %=================================================================
@@ -392,6 +402,29 @@ G-code follows a regular grammar: a line starts with an optional command (G/M) t
 
 \paragraph{FSM ablation.} We audited grammar compliance and accuracy with and without the FSM layer, on both the baseline and the with-shortcuts 5-fold checkpoints under greedy autoregressive decoding. The bigram-only mask permits G0/G1 to emit R/I/J: across approximately 167{,}400 generated tokens per configuration, it produces 329 V1 violations affecting $170 / 549$ baseline samples ($31\%$) and 333 violations affecting $139 / 549$ with-shortcuts samples ($25\%$). With the FSM layer active, V1 violations drop to $0$ on baseline ($100\%$ reduction) and $11$ on with-shortcuts ($97\%$ reduction; the residual $11$ are G53/G55/G17/G90/G94 followed by R, a class the present FSM does not encode and a candidate for grammar refinement). The 5-fold accuracy cost is $-0.27$~pp / $-0.41$~pp on baseline token / numeric, and $-0.04$~pp / $+0.01$~pp on with-shortcuts --- in both configurations the difference is within fold-to-fold noise (baseline std $\pm 0.069$ / $\pm 0.032$; with-shortcuts std $\pm 0.016$ / $\pm 0.017$). The FSM therefore eliminates the dominant class of grammar violation at no measurable accuracy cost. A paired-sample comparison across the 5 folds confirms statistical non-significance: paired-$t$ tests on baseline token / numeric give $p=0.72 / 0.51$ and Wilcoxon signed-rank gives $p=1.00 / 0.44$; on with-shortcuts token / numeric the same tests give $p=0.83 / 0.95$ and $p=0.63 / 1.00$ (\texttt{audit/fsm\_vs\_bigram\_paired\_stats.json}). M30-followup violations (V2) were $0$ in all configurations because M30 is rare in the corpus and the model learns termination from training. We adopt the FSM as the default deployment-time decoding configuration on this basis.
 
+\paragraph{Forward-pass pseudocode.} Algorithm~\ref{alg:forward} summarizes the deployment-time grammar-masked autoregressive forward pass that produces the token sequence reported throughout this paper. The bigram mask and the finite-state-machine layer are both applied to the legacy-token logits before the softmax; the structured heads (type, command, parameter-type, sign, digit) read the same hidden state but do not consume the autoregressive token stream.
+
+\begin{algorithm}[ht]
+\caption{Grammar-masked autoregressive forward pass for \modelname{}.}
+\label{alg:forward}
+\begin{algorithmic}[1]
+\Require Sensor window $W \in \mathbb{R}^{256 \times 98}$; frozen encoder $E_\theta$; decoder $D_\phi$ with heads $\{h_{\text{tok}}, h_{\text{type}}, h_{\text{cmd}}, h_{\text{pt}}, h_{\text{sgn}}, h_{\text{dig}}\}$; bigram mask $M_b \in \{0,1\}^{|V|\times|V|}$; FSM transition function $\delta(\cdot,\cdot)$; max length $L_{\max}$.
+\State $\mathbf{m} \gets E_\theta(W)$ \Comment{$256 \times 256$ memory; encoder frozen}
+\State $\hat{g} \gets [\textsc{bos}]$; $s \gets s_0$ \Comment{state of the FSM}
+\For{$t = 1$ \textbf{to} $L_{\max}$}
+  \State $\mathbf{h}_t \gets D_\phi(\hat{g}_{1:t-1}, \mathbf{m})$ \Comment{cross-attend over $\mathbf{m}$}
+  \State $\boldsymbol{\ell}_t \gets h_{\text{tok}}(\mathbf{h}_t)$ \Comment{legacy-token logits, $\in \mathbb{R}^{|V|}$}
+  \State $\boldsymbol{\ell}_t \gets \boldsymbol{\ell}_t \odot M_b[\hat{g}_{t-1}, :]$ \Comment{bigram mask}
+  \State $\boldsymbol{\ell}_t \gets \boldsymbol{\ell}_t \odot \mathrm{FSM\_mask}(s)$ \Comment{FSM mask on top of bigram}
+  \State $y_t \gets \arg\max_v \, \mathrm{softmax}(\boldsymbol{\ell}_t)_v$
+  \State $\hat{g} \gets [\hat{g}, y_t]$; $s \gets \delta(s, y_t)$
+  \If{$y_t = \textsc{eos}$} \textbf{break} \EndIf
+\EndFor
+\State $\{\hat{y}_{\text{type}}, \hat{y}_{\text{cmd}}, \hat{y}_{\text{pt}}, \hat{y}_{\text{sgn}}, \hat{y}_{\text{dig}}\} \gets \{h_{\text{type}}, h_{\text{cmd}}, h_{\text{pt}}, h_{\text{sgn}}, h_{\text{dig}}\}(\mathbf{H})$ \Comment{auxiliary heads on hidden states $\mathbf{H}=[\mathbf{h}_1,\dots,\mathbf{h}_t]$; do not consume $\hat{g}$}
+\State \textbf{return} $\hat{g}$, $\{\hat{y}_{\text{type}}, \hat{y}_{\text{cmd}}, \hat{y}_{\text{pt}}, \hat{y}_{\text{sgn}}, \hat{y}_{\text{dig}}\}$
+\end{algorithmic}
+\end{algorithm}
+
 \subsubsection{Scheduled Sampling}
 \label{sec:scheduled-sampling}
 
@@ -442,6 +475,35 @@ The training configuration was selected through a three-stage hyperparameter swe
 \textbf{Stage 2} (12 cells) refined around the Stage-1 winner by varying training techniques: curriculum learning, scheduled sampling, label smoothing~\cite{szegedy2016inception}, dropout, layer depth, and focal loss~\cite{focal_loss}.
 \textbf{Stage 3} (14 cells) tested architectural variants: encoder fine-tuning, pointer-network output, regression-head numeric output, cross-window attention, multi-seed variance, and alternative encoder configurations.
 The composite winner across all 34 cells (selected on a weighted-geometric-mean score) was used as the configuration for the 5-fold experiments reported in Section~\ref{sec:experiments}.
+
+\subsection{Architecture-Component Ablation Summary}
+\label{sec:arch-ablation-summary}
+
+Five architectural and training components of the decoder are ablated empirically in this paper, each pinned to the result section that reports its 5-fold effect. Table~\ref{tab:component_ablation_summary} consolidates the per-component findings; the underlying experiments are reported under the cited sections in full.
+
+\begin{table}[ht]
+\centering
+\caption{Architecture and training-configuration components, the ablation that isolates each, and the headline effect (5-fold AR struct token unless noted). All numbers verified against the audit JSONs cited.}
+\label{tab:component_ablation_summary}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l l l}
+\toprule
+\textbf{Component} & \textbf{Ablation} & \textbf{Effect (cited section)} \\
+\midrule
+Grammar (FSM mask)         & FSM on vs.\ bigram-only       & $100\%$ V1-violation reduction at no accuracy cost (Section~\ref{sec:grammar}) \\
+Per-position digit head    & dw$=$1.0 vs.\ dw$=$0 (T3.1)   & TF numeric $0.585 \to$ AR $0.104$; collapse is exposure-bias, not head loss (Section~\ref{sec:abl-nonumeric}) \\
+Numeric vocabulary $K$     & $K\!\in\!\{24, 69, 335, 2{,}418\}$ & Within matched SS$=$0/dw$=$0, AR token $0.405 \to 0.470$ monotone in $K$ (Section~\ref{sec:abl-nonumeric}) \\
+Scheduled sampling         & $p_{\max}\!\in\!\{0, 0.25, 0.5, 0.75\}$ & SS$=$0 wins on AR ($+15.2$~pp paired vs.\ SS$=$0.5; Section~\ref{sec:abl-nonumeric}) \\
+Positional metadata        & Shortcuts on vs.\ off          & AR-only effect: $+7.5$~pp token, $+7.6$~pp seq, $+8.0$~pp num (Section~\ref{sec:abl-positional}) \\
+Target-mode formulation    & Per-row vs.\ full-window       & $+38.9$~pp command on full-window (Section~\ref{sec:abl-target-mode}) \\
+Sensor stack composition   & LOMO + LOSO encoder retraining & $\Delta \le 0.013$ / $\le 0.026$ per modality / sensor (Section~\ref{sec:abl-lomo}) \\
+Calibration                & Temperature scaling, command head & ECE $0.050 \to 0.020$ on cross-fold (Section~\ref{sec:calibration}) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The six prediction heads themselves are not ablated independently because the four auxiliary heads (type, parameter-type, sign, digit) share the same encoder-memory feature as the legacy-token head and serve as multi-task regularizers; isolating each would require separate retrains. The categorical-vs-numeric factorization Section~\ref{sec:results-headline} establishes is the de facto head-level decomposition --- categorical heads are TF-AR-invariant (Section~\ref{sec:metrics}), so their effect is structural rather than dependent on autoregressive coupling.
 
 % =====================================================================
 \section{Experimental Setup}
@@ -1688,6 +1750,21 @@ pooled  & $79{,}563$ & --- & $\phantom{0}4.5\%$ & $\mathbf{23.6\%}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+% =====================================================================
+\authorcontributions{Conceptualization, S.S.E.\ and R.S.P.; methodology, S.S.E.; software, S.S.E.; validation, S.S.E.; formal analysis, S.S.E.; investigation, S.S.E.; resources, M.S.S.; data curation, S.S.E.\ and R.S.P.; writing---original draft, S.S.E.; writing---review and editing, R.S.P.\ and M.S.S.; visualization, S.S.E.; supervision, R.S.P.\ and M.S.S.; project administration, R.S.P. All authors have read and agreed to the published version of the manuscript.}
+
+\funding{This research received no external funding.}
+
+\institutionalreview{Not applicable.}
+
+\informedconsent{Not applicable.}
+
+\dataavailability{The sensor datasets and analysis code generated during this study are publicly available at \url{https://github.com/stephenseacuello/gcode_fingerprinting} (accessed on \texttt{[insert date]}). Source code for the \modelname{} decoder architecture, training and evaluation pipelines, audit-JSON regeneration scripts, and figure-generation scripts is released alongside the manuscript under the MIT License.}
+
+\acknowledgments{This material is based upon work partially supported by the Office of Naval Research under Contract No.\ N000142412129. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect the views of the Office of Naval Research. The authors thank the Department of Industrial and Systems Engineering at the University of Rhode Island for providing laboratory facilities and computational resources.}
+
+\conflictsofinterest{The authors declare no conflicts of interest.}
 
 % =====================================================================
 \abbreviations{Abbreviations}{
