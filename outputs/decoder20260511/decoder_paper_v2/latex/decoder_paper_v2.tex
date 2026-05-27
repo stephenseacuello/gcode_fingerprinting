@@ -450,7 +450,7 @@ The composite winner across all 34 cells (selected on a weighted-geometric-mean 
 \subsection{Dataset}
 \label{sec:dataset}
 
-The corpus consists of 120 aligned CSV files recorded from a Bantam Tools desktop CNC milling machine~\cite{encoder_paper}. Six distributed multi-sensor boards (\texttt{frame\_l2}, \texttt{frame\_l3}, \texttt{frame\_r2}, \texttt{spindle2}, \texttt{y\_bed\_3}, \texttt{y\_bed\_4}) sample synchronously at 4~Hz. Each file carries:
+The corpus consists of 120 aligned CSV files recorded from a Bantam Tools desktop CNC milling machine~\cite{encoder_paper}. Six distributed multi-sensor boards (\texttt{frame\_l2}, \texttt{frame\_l3}, \texttt{frame\_r2}, \texttt{spindle2}, \texttt{y\_bed\_\_3}, \texttt{y\_bed\_\_4}) sample synchronously at 4~Hz; the double-underscore form matches the column-prefix convention in the released aligned CSVs. Each file carries:
 \begin{itemize}
 \item Accelerometer (3 axes $\times$ 6 boards = 18 channels);
 \item Gyroscope (18 channels);
@@ -605,7 +605,7 @@ Four patterns emerge. First, axis-presence detection is uniformly high: X, Y, Z 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.80\linewidth]{per_axis_recoverability.pdf}
-\caption{Per-axis G-code recoverability (5-fold mean): has-axis F1 (top), motion-sign accuracy (middle), and numeric-value MAE (bottom). The categorical-vs-numeric split is visible: has-axis and sign reach high accuracy on the well-supported axes (X, Y, Z, R), while value MAE is the limiting factor for full coordinate reconstruction. The asymmetry in per-axis sign accuracies (Y $\approx 1.00$ vs Z $\approx 0.94$) is explained by the per-axis sign-source entropies analyzed in Section~\ref{sec:numeric-decomposition} (Y's sign is prior-deterministic at $H = 0.08$~bits; only Z's sign at $H = 1.04$~bits carries non-trivial classification load).}
+\caption{Per-axis G-code recoverability (5-fold mean): has-axis F1 (top), motion-sign accuracy (middle), and numeric-value MAE (bottom, inches). The categorical-vs-numeric split is visible: has-axis and sign reach high accuracy on the well-supported axes (X, Y, Z, R), while value MAE is the limiting factor for full coordinate reconstruction. The asymmetry in per-axis sign accuracies (Y $\approx 1.00$ vs Z $\approx 0.94$) is explained by the per-axis sign-source entropies analyzed in Section~\ref{sec:numeric-decomposition} (Y's sign is prior-deterministic at $H = 0.08$~bits; only Z's sign at $H = 1.04$~bits carries non-trivial classification load).}
 \label{fig:per_axis}
 \end{figure}
 
@@ -1075,12 +1075,15 @@ $-0.013 \pm 0.015$. The fold-blocked one-way ANOVA across the seven LOMO
 conditions is non-significant ($F=0.91$, $p=0.499$), and the Holm-corrected
 per-modality paired $t$-test against zero rejects none of the seven
 ($0/7$ significant at $\alpha=0.05$; smallest adjusted $p$ is $0.41$ for
-magnetometer). Token and numeric heads behave the same way: all paired
+magnetometer, Hedges' $g_{z}\!\approx\!-0.94$, a medium-large effect that
+fails statistical significance at $n\!=\!5$ but is informative). Token and numeric heads behave the same way: all paired
 effects within $\pm 0.011$ for token and $\pm 0.022$ for numeric, all
 non-significant. \textbf{Retraining the encoder without any single modality
 produces no measurable change in any decoder head.}
 Table~\ref{tab:lomo_modality} reports the per-modality numbers and
-Figure~\ref{fig:lomo_modality} shows the per-modality paired $\Delta$ command.
+Figure~\ref{fig:lomo_modality} shows the per-modality paired $\Delta$ command;
+full per-fold $\Delta$, Holm-corrected $p$, and effect sizes are in
+\texttt{audit/lomo\_modality\_attribution.json}.
 
 \input{../tables/lomo_modality.tex}
 
@@ -1146,16 +1149,22 @@ $\Delta = -0.000 \pm 0.014$ to \texttt{spindle2}'s $\Delta = -0.026 \pm 0.040$
 --- larger in magnitude than the modality study (where every $\Delta$ was
 within $\pm 0.013$) but \textbf{none reaching Holm-corrected significance}
 at $\alpha=0.05$ (smallest $p_{\text{Holm}} = 0.064$ for \texttt{frame\_r2},
-the most consistent effect at $\Delta = -0.015 \pm 0.007$). The
-fold-blocked one-way ANOVA across the six LOSO conditions is non-significant
-($F=1.04$, $p=0.415$). \texttt{spindle2} carries the largest individual
-effect-size but is $\sim 5\times$ more variable across folds than
-\texttt{frame\_r2} (s.d.\ $0.040$ vs $0.007$), consistent with
-workpiece-dependent rather than uniform load-bearing; \texttt{y\_bed\_\_4} at
-$\Delta \approx 0$ and $p_{\text{Holm}} = 0.975$ is fully redundant with its
-spatial neighbor \texttt{y\_bed\_\_3} and is the single ``free'' removal.
+the most consistent effect at $\Delta = -0.015 \pm 0.007$;
+Hedges' $g_{z}\!\approx\!-1.62$, a large effect that fails Holm
+significance only because of the multiplicity correction at $n\!=\!5$).
+The fold-blocked one-way ANOVA across the six LOSO conditions is
+non-significant ($F=1.04$, $p=0.415$). \texttt{spindle2} carries the largest
+$\Delta$ ($-0.026$) but with $\sim 5\times$ higher variance than
+\texttt{frame\_r2} (s.d.\ $0.040$ vs $0.007$; Hedges' $g_{z}\!\approx\!-0.52$,
+medium), consistent with workpiece-dependent rather than uniform
+load-bearing; \texttt{y\_bed\_\_4} at $\Delta \approx 0$,
+$p_{\text{Holm}} = 0.975$, and $g_{z}\!\approx\!0$ is empirically
+indistinguishable from baseline and is the single ``free'' removal,
+fully redundant with its spatial neighbor \texttt{y\_bed\_\_3}.
 Table~\ref{tab:lomo_sensor} reports the per-sensor numbers and
-Figure~\ref{fig:lomo_sensor} shows the per-sensor paired $\Delta$ command.
+Figure~\ref{fig:lomo_sensor} shows the per-sensor paired $\Delta$ command;
+full per-fold $\Delta$, Holm-corrected $p$, and effect sizes are in
+\texttt{audit/lomo\_sensor\_attribution.json}.
 
 \input{../tables/lomo_sensor.tex}
 
@@ -1196,7 +1205,7 @@ Four diagnostic probes outside the 5-fold inferential frame are summarized here 
 \textbf{(i)~Pattern-aware sequence-classifier} (\texttt{audit/seq\_classifier\_pilot.json}): fold-1 command $0.536$ / token $0.694$ vs.\ baseline $0.776$ / $0.747$; the prior over-commits to a whole-line hypothesis early, compounding exposure bias (Section~\ref{sec:disc-mode-collapse}). \emph{Negative result.}
 \textbf{(ii)~Vocabulary precision ($K\!=\!451$, 2-digit)}: fold-1 numeric $0.305$, command lower, parameter-type $0.974$; superseded by the 5-fold $K$-spectrum sweep (Section~\ref{sec:abl-nonumeric}). \emph{Label retained for cross-reference: \texttt{sec:abl-vocab}.}
 \textbf{(iii)~Window/stride sweep} (\texttt{audit/window\_stride\_v2\_summary.json}): seven $(\text{window}, \text{stride})$ cells retrained from scratch; every cell falls below the inherited $w256{:}s64$ headline (range $0.345$--$0.600$ command), with the $w256{:}s128$ vs.\ $w256{:}s64$ contrast isolating stride density as load-bearing. \emph{Single-fold-per-cell; 5-fold confirmation deferred to Section~\ref{sec:roadmap}.}
-\textbf{(iv)~Nested interactions} (shortcuts $\times$ modality and pattern-aware $\times$ modality, Appendix~\ref{app:nested}): the modality main effect ($\sim\!40$~pp collapse, ANOVA $p\!=\!0.998$) dominates any interaction, and the shortcuts effect is null on the categorical heads; neither cross-product changes a deployment recommendation.\label{sec:abl-pattern}\label{sec:abl-vocab}\label{sec:abl-window-stride}\label{sec:abl-nested}
+\textbf{(iv)~Nested interactions} (shortcuts $\times$ modality and pattern-aware $\times$ modality, Appendix~\ref{app:nested}; full $3\!\times\!3$ cell table in \texttt{audit/lomo\_nested\_attribution.json}): the modality main effect ($\sim\!40$~pp collapse, ANOVA $p\!=\!0.998$) dominates any interaction, and the shortcuts effect is null on the categorical heads; neither cross-product changes a deployment recommendation.\label{sec:abl-pattern}\label{sec:abl-vocab}\label{sec:abl-window-stride}\label{sec:abl-nested}
 
 \subsection{RQ4: Cross-Class Generalization (Leave-One-Class-Out)}
 \label{sec:loco}
@@ -1302,7 +1311,7 @@ Detectable attack classes & \emph{In-distribution, closed-vocabulary only:} comm
 
 The trust boundary and the five attack classes are formalized in Section~\ref{sec:problem-threat-model}; this section provides the per-attack-class detectability characterization, the operating-point analysis, and the sensor-side adversary discussion. We follow the manufacturing-cybersecurity literature~\cite{sturm2014cyber,yampolskiy2018security,kimmell2025cnc,zonouz2014plc,goh2017dataset,nist2023sp80082} throughout.
 
-\paragraph{Sensor-side adversary (out of scope, enumerated).} A sensor-resident or sensor-bus adversary can defeat the monitor by attacking the sensor path before the decoder. We list the four classes a deployment must close operationally and which the present detector explicitly does \emph{not} address: \emph{(i) wire-tap / line-fault injection} on shared sensor cabling (mitigation: physically secured wiring, dedicated acquisition lines, twisted-pair / differential signaling, shielded conduit); \emph{(ii) EMI / electromagnetic injection} of falsified sensor signal into accelerometer/magnetometer/audio inputs while cutting is active~\cite{nist2023sp80082} (mitigation: EMI shielding, sensor-cable routing away from controller power lines, cross-modality consistency checks); \emph{(iii) packet replay or substitution} on the telemetry path between sensor boards and the verification host (mitigation: authenticated sensor streams with per-packet nonces or HMAC, integrity-protected acquisition pipeline); \emph{(iv) sensor calibration drift / spoofing-via-stimulus} where a co-located adversary couples a calibrated stimulus into the machine frame that mimics the signature of an honest cut (mitigation: periodic offline sensor calibration audit, multi-board cross-checks). None of these is benchmarked in this paper. A deployment that does not enforce these operational mitigations should not invoke the ``physics-of-record'' framing for the sensor decoder's outputs.
+\paragraph{Sensor-side adversary (out of scope, enumerated).} A sensor-resident or sensor-bus adversary can defeat the monitor by attacking the sensor path before the decoder. We list the four classes a deployment must close operationally and which the present detector explicitly does \emph{not} address: \emph{(i) wire-tap / line-fault injection} on shared sensor cabling (mitigation: physically secured wiring, dedicated acquisition lines, twisted-pair / differential signaling, shielded conduit); \emph{(ii) EMI / electromagnetic injection} of falsified sensor signal into accelerometer/magnetometer/audio inputs while cutting is active~\cite{nist2023sp80082} (mitigation: EMI shielding, sensor-cable routing away from controller power lines, cross-modality consistency checks); \emph{(iii) packet replay or substitution} on the telemetry path between sensor boards and the verification host (mitigation: authenticated sensor streams with per-packet nonces or HMAC, integrity-protected acquisition pipeline; cf.\ IEC~62443-3-3 SR~3.1 Communication Integrity~\cite{iec62443-3-3}); \emph{(iv) sensor calibration drift / spoofing-via-stimulus} where a co-located adversary couples a calibrated stimulus into the machine frame that mimics the signature of an honest cut (mitigation: periodic offline sensor calibration audit, multi-board cross-checks). None of these is benchmarked in this paper. A deployment that does not enforce these operational mitigations should not invoke the ``physics-of-record'' framing for the sensor decoder's outputs.
 
 \paragraph{Scope boundary for the upstream adversary.} The decoder's value against the upstream CAM/post-processor adversary is fundamentally limited by the closed-vocabulary regime characterized in Section~\ref{sec:lim-dataset}. If the substituted toolpath stays within the in-vocabulary G-code-line distribution the model was trained on, the decoder's prediction will agree with the (already-malicious) controller stream and the tamper is invisible to it; the decoder catches an upstream substitution only when the malicious toolpath drives the machine into a physically distinguishable, in-distribution-recognizable regime. This is a material blind spot and we state it plainly: the present system is a controller-side-substitution and execution-integrity monitor, not an upstream-design-integrity monitor. Detecting upstream CAM compromise requires either a trusted design-to-file provenance chain (orthogonal to this work) or open-vocabulary recovery strong enough to flag an unfamiliar-but-valid toolpath --- which the LOCO results (Section~\ref{sec:loco}) show the present model does not have.
 
@@ -1328,26 +1337,26 @@ Table~\ref{tab:tamper_auc} summarizes the ROC-AUC and the threshold-matched oper
 
 \begin{table}[ht]
 \centering
-\caption{Tamper-detection ROC-AUC and threshold-matched operating point by attack class, regime, and configuration. ``Baseline'' = no positional metadata; ``Metadata'' = window-index / source-file exposed (Section~\ref{sec:abl-positional}). All numbers under AR deployment-true decoding with the FSM grammar layer (Section~\ref{sec:grammar}). In-distribution numbers from \texttt{audit/threat\_model\_tamper\_AR\_5fold\_FSM.json}; LOCO numbers from \texttt{audit/threat\_model\_tamper\_loco.json}.}
+\caption{Tamper-detection ROC-AUC and threshold-matched operating point by attack class, regime, and configuration. ``Baseline'' = no positional metadata; ``Metadata'' = window-index / source-file exposed (Section~\ref{sec:abl-positional}). All numbers under AR deployment-true decoding with the FSM grammar layer (Section~\ref{sec:grammar}). In-distribution ROC-AUC carries a $95\%$ CI by the Hanley--McNeil method~\cite{hanley1982meaning} ($n_{\text{cmd}}\!=\!483$, $n_{\text{sign}}\!=\!549$, $n_{\text{feed}}\!=\!111$). LOCO AUC is the single-threshold balanced-accuracy estimate at the deployed operating point and is reported alongside the actual TPR / FPR pair for transparency; the sign-flip LOCO AUC below $0.5$ indicates anti-discriminative behavior on the open-vocabulary set, not a swept-curve maximum. In-distribution numbers from \texttt{audit/threat\_model\_tamper\_AR\_5fold\_FSM.json}; LOCO numbers from \texttt{audit/threat\_model\_tamper\_loco.json}.}
 \label{tab:tamper_auc}
 \small
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{l l c c c}
 \toprule
-\textbf{Attack class} & \textbf{Config.} & \textbf{ROC-AUC} & \textbf{TPR} & \textbf{FPR} \\
+\textbf{Attack class} & \textbf{Config.} & \textbf{ROC-AUC [95\% CI]} & \textbf{TPR} & \textbf{FPR} \\
 \midrule
 \multicolumn{5}{l}{\emph{In-distribution closed-vocabulary regime (5-fold pooled)}} \\
-Command-swap (G0$\to$G1)   & Baseline & $0.80$ & $0.921$ & $0.299$ \\
-Command-swap                & Metadata  & $0.86$ & $0.948$ & $0.222$ \\
-Sign-flip (X$\!+\!\to\!X-$) & Baseline & $\sim$$0.50$ & $0.703$ & $0.350$ \\
-Sign-flip                   & Metadata  & $\sim$$0.50$ & $0.798$ & $0.244$ \\
-Feed-rate $\pm 10\times$    & Baseline & $\sim$$0.50$ & $0.216$ & $0.0055$ \\
-Feed-rate $\pm 10\times$    & Metadata  & $\sim$$0.50$ & $0.532$ & $0.0146$ \\
+Command-swap (G0$\to$G1)   & Baseline & $0.80$ \tiny{[$0.77, 0.83$]} & $0.921$ & $0.299$ \\
+Command-swap                & Metadata  & $0.86$ \tiny{[$0.84, 0.88$]} & $0.948$ & $0.222$ \\
+Sign-flip (X$\!+\!\to\!X-$) & Baseline & $0.50$ \tiny{[$0.47, 0.53$]} & $0.703$ & $0.350$ \\
+Sign-flip                   & Metadata  & $0.50$ \tiny{[$0.47, 0.53$]} & $0.798$ & $0.244$ \\
+Feed-rate $\pm 10\times$    & Baseline & $0.50$ \tiny{[$0.42, 0.58$]} & $0.216$ & $0.0055$ \\
+Feed-rate $\pm 10\times$    & Metadata  & $0.50$ \tiny{[$0.42, 0.58$]} & $0.532$ & $0.0146$ \\
 \midrule
-\multicolumn{5}{l}{\emph{Open-vocabulary leave-one-class-out (LOCO) regime}} \\
-Command-swap                & Baseline & --- & $0.85$ & $0.52$ \\
-Sign-flip                   & Baseline & --- & $\le 0.50$ & --- \\
-Feed-rate $\pm 10\times$    & Baseline & --- & $0.00$ & --- \\
+\multicolumn{5}{l}{\emph{Open-vocabulary leave-one-class-out (LOCO) regime; AUC$_{\mathrm{op}}\!=\!\tfrac{1}{2}(\mathrm{TPR}+(1-\mathrm{FPR}))$}} \\
+Command-swap                & Baseline & $0.66$ & $0.847$ & $0.519$ \\
+Sign-flip                   & Baseline & $0.20$ \tiny{(anti-disc.)} & $0.138$ & $0.748$ \\
+Feed-rate $\pm 10\times$    & Baseline & $0.50$ \tiny{(degenerate, $n\!=\!45$)} & $0.000$ & $0.000$ \\
 \bottomrule
 \end{tabular}
 \end{table}
