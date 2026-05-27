@@ -668,7 +668,7 @@ Stratifying the slot-5 distribution by \emph{operation class} reveals that the u
   \caption{Per-(axis, slot) scatter.}
   \label{fig:entropy_accuracy_scatter}
 \end{subfigure}
-\caption{Source entropy explains the numeric-recovery profile. \textbf{(a)}~Per-slot model accuracy (red line) overlaid on per-slot source entropy (blue bars); the bathtub accuracy curve is the inverse of the entropy profile (Pearson $r = -0.96$, $p = 0.0023$; Spearman $r = -0.83$, $p = 0.04$; dashed line marks the $\log_2 10 \approx 3.32$-bit ceiling). \textbf{(b)}~The same relationship at the per-(axis, slot) cell level (30 cells, marker by axis, size $\propto \sqrt{n_{\text{cell}}}$); the cell-level Pearson $r$ (annotated) is weaker than the pooled value because per-axis cells cluster at the high-accuracy end, but the inverse relationship holds across all five axes individually. Source: \texttt{audit/digit\_entropy.json}, \texttt{audit/per\_axis\_slot\_accuracy.json}.}
+\caption{Source entropy explains the numeric-recovery profile. (a)~Per-slot accuracy (red) overlaid on per-slot source entropy (blue); the bathtub is the inverse of the entropy profile (Pearson $r\!=\!-0.96$, $p\!=\!0.0023$; dashed line at the $\log_2 10\!\approx\!3.32$~bit uniform-noise ceiling). (b)~Per-(axis, slot) cell-level scatter (30 cells, marker by axis, size $\propto \sqrt{n_{\text{cell}}}$); cell-level $r$ weaker because per-axis cells cluster at the high-accuracy end. Source: \texttt{audit/digit\_entropy.json}.}
 \label{fig:entropy_accuracy}
 \end{figure}
 
@@ -686,7 +686,7 @@ Stratifying the slot-5 distribution by \emph{operation class} reveals that the u
   \caption{Per-(axis, slot) entropy and modal-fraction map (all five fields).}
   \label{fig:quantization_heatmap}
 \end{subfigure}
-\caption{Source digit-value structure. \textbf{(a)}~Empirical digit-value distributions over $0$--$9$ per axis (rows X/Y/Z) and slot (columns $10^{1}$ to $10^{-4}$), Shannon entropy annotated per cell, uniform-noise level ($p=0.1$) dashed: integer-place digits are physically constrained ($H\approx 0$--$1.7$~bits), fine-coordinate digits at $10^{-3}$/$10^{-4}$ are near-uniform ($H=3.26$--$3.31$~bits, the CAM toolpath-interpolation-noise signature); Z's $10^{-1}$ slot is the cutting-depth-step exception ($H=0.70$~bits, $86\%$ at $0$). \textbf{(b)}~The compact per-(axis, slot) Shannon-entropy and modal-digit-fraction map across all five supervised fields (X/Y/Z/R/F): green = physical or CAM-grid determinism (recoverable), red = uniform-noise ceiling (information-theoretically near-unrecoverable). Three quantization islands are visible --- X/Y integer places, Z integer$+$tenths (cutting-depth steps), and R across all six slots (a small discrete arc-radius vocabulary); F is inverted (high-entropy integer, printf-padded low-entropy decimals).}
+\caption{Source digit-value structure. (a)~Empirical digit distributions per axis (X/Y/Z) $\times$ slot ($10^{1}$ to $10^{-4}$), Shannon entropy annotated; integer places are physically constrained ($H\!\approx\!0$--$1.7$~bits), $10^{-3}$/$10^{-4}$ are near-uniform ($H\!\approx\!3.3$~bits, CAM-interpolation signature); Z's $10^{-1}$ is the cutting-depth-step exception. (b)~Per-(axis, slot) entropy and modal-fraction map (X/Y/Z/R/F): green = recoverable, red = uniform-noise ceiling. Three quantization islands: X/Y integer places, Z integer+tenths, R across all slots.}
 \label{fig:digit_distributions}
 \end{figure}
 
@@ -775,7 +775,7 @@ Beyond aggregate accuracies, we classify the qualitative shape of the decoder's 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{failure_case_examples.pdf}
-\caption{Representative decoder failures by mode on the per-row 5-fold test split. Two examples per bucket are drawn from each fold's 20 worst-edit-distance sequences (100 total). TRUE (target) is shown in green and PRED (decoded) in red; bold tokens differ from the corresponding position in the other sequence. The wrong-command row (b) contains a single example because only one such pair occurs in the worst-edit-distance pool; the dominant command-identity failure mode on this corpus is dropping or hallucinating the G-token rather than substituting G0 for G1. Value-only failures (row d) have small edit distance and preserve structure; the dropped and hallucinated failures (rows a, c) carry most of the residual sequence-level error.}
+\caption{Representative decoder failures by mode on the per-row 5-fold test split (two examples per bucket from each fold's 20 worst-edit-distance sequences). TRUE (green) vs PRED (red); bold tokens differ. Row (b) has a single example because the dominant command-identity failure on this corpus is G-token drop/hallucination, not G0$\to$G1 substitution. Value-only failures (d) preserve structure; dropped/hallucinated failures (a, c) carry most of the sequence-level error.}
 \label{fig:failure_examples}
 \end{figure}
 
@@ -838,7 +838,7 @@ decomposes into a measurable numeric-token-desynchronization contribution
 structural token stream itself (unaffected by the ablation): the latter,
 not the numeric vocabulary, is the deployment-relevant bottleneck.
 
-\paragraph{Multiple-comparisons correction on the drilled grid.} The per-class / per-axis / per-position ANOVA grid is run as the methodology section commits (Appendix~\ref{app:repl-stats}). The grid covers 8 ablation configurations (noise augmentation and the seven zeroed-modality ablations: accelerometer, gyroscope, magnetometer, environmental, color, audio-RMS, electrical) against the no-shortcuts baseline, drilled across the per-class precision/recall/F1 for type, command, parameter-type, sign, and the per-digit-value / per-position numeric heads, for a total of $630$ (ablation, drilled-metric) tests (\texttt{audit/anova\_per\_class\_results.json}). Under BH-FDR adjustment ($\alpha=0.05$), $320 / 630$ tests are flagged; under the more conservative Holm-Bonferroni adjustment, $72 / 630$. We stress that this grid is a \emph{robustness sweep}, not $320$ independently established effects: each test is an $n=5$ ANOVA, and FDR/Holm control the false-discovery/family-wise error of the \emph{decision rule} but do nothing to remedy the low power and assumption-fragility of a five-point test, so the long tail of small-support per-class cells is uninformative either way. The signal in the grid is carried entirely by a few \emph{large-effect} ablations that need no multiplicity machinery to see: the noise-augmentation ablation (per-class command F1 drops of $0.3$--$0.7$ for G0/G1/G2/G3) and the uniform command-head degradation shared by all seven sensor-modality ablations (consistent with the non-significant between-modality ANOVA in Section~\ref{sec:abl-sensors}). We therefore read the grid as ``these few large effects are robust to multiplicity correction,'' not as a count of confirmed discoveries; per-class cells with $n_{\text{support}}\le 50$ are underpowered regardless of adjustment (Section~\ref{sec:lim-power}). The macro-metric ANOVA results in Table~\ref{tab:anova} survive both Holm-Bonferroni and BH-FDR adjustment for the sequence-head and numeric-head AR-evaluation positives ($p < 0.01$); the token-head $p=0.066$ borderline does not survive either adjustment.
+\paragraph{Multiple-comparisons correction on the drilled grid.} The per-class / per-axis / per-position ANOVA grid is run as the methodology section commits (Appendix~\ref{app:repl-stats}). The grid covers 8 ablation configurations (noise augmentation and the seven zeroed-modality ablations: accelerometer, gyroscope, magnetometer, environmental, color, audio-RMS, electrical) against the no-shortcuts baseline, drilled across the per-class precision/recall/F1 for type, command, parameter-type, sign, and the per-digit-value / per-position numeric heads, for a total of $630$ (ablation, drilled-metric) tests (\texttt{audit/anova\_per\_class\_results.json}). Under Benjamini--Hochberg false-discovery-rate (BH-FDR) adjustment ($\alpha=0.05$), $320 / 630$ tests are flagged; under the more conservative Holm-Bonferroni adjustment, $72 / 630$. We stress that this grid is a \emph{robustness sweep}, not $320$ independently established effects: each test is an $n=5$ ANOVA, and FDR/Holm control the false-discovery/family-wise error of the \emph{decision rule} but do nothing to remedy the low power and assumption-fragility of a five-point test, so the long tail of small-support per-class cells is uninformative either way. The signal in the grid is carried entirely by a few \emph{large-effect} ablations that need no multiplicity machinery to see: the noise-augmentation ablation (per-class command F1 drops of $0.3$--$0.7$ for G0/G1/G2/G3) and the uniform command-head degradation shared by all seven sensor-modality ablations (consistent with the non-significant between-modality ANOVA in Section~\ref{sec:abl-sensors}). We therefore read the grid as ``these few large effects are robust to multiplicity correction,'' not as a count of confirmed discoveries; per-class cells with $n_{\text{support}}\le 50$ are underpowered regardless of adjustment (Section~\ref{sec:lim-power}). The macro-metric ANOVA results in Table~\ref{tab:anova} survive both Holm-Bonferroni and BH-FDR adjustment for the sequence-head and numeric-head AR-evaluation positives ($p < 0.01$); the token-head $p=0.066$ borderline does not survive either adjustment.
 
 \input{../tables/anova.tex}
 \input{../tables/bootstrap_ci.tex}
@@ -975,23 +975,7 @@ matched-methodology family are in \texttt{audit/k\_spectrum\_stats.json}.
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{../figures/k_spectrum.pdf}
-\caption{Structural recovery vs.\ numeric vocabulary size $K$ across five
-variants. \textbf{Filled markers and solid line:} matched-methodology
-points $K\!\in\!\{24, 69, 335, 2{,}418\}$ trained with scheduled
-sampling SS$=$0 and digit-head loss weight dw$=$0 (the four
-SS$=$0/dw$=$0 rows form a clean vocabulary-cardinality contrast).
-\textbf{Open marker (slight $x$-jitter):} the $K\!=\!2{,}418$ headline
-reference, methodologically distinct (SS$=$0.5, dw$=$1.0).
-\textbf{(a)}~Per-token structural accuracy: $K\!=\!2{,}418$ under matched
-SS$=$0/dw$=$0 (T3.1 control) is the highest of the five variants on AR
-($0.470 \pm 0.034$); the apparent K=335 maximum of the original
-four-point sweep was the SS/dw schedule effect, not vocabulary
-cardinality. \textbf{(b)}~Per-window structural exact-match: T3.1
-($0.128 \pm 0.019$) likewise dominates; $+7.1$~pp paired vs.\ the
-headline, $5/5$ folds positive, Holm-adjusted $p\!=\!0.006$. Within the
-matched family, AR token is monotonically non-decreasing in $K$
-($0.405 \to 0.415 \to 0.429 \to 0.470$). See Table~\ref{tab:k_spectrum}
-and Section~\ref{sec:lim-eval} for full discussion.}
+\caption{Structural recovery vs.\ numeric vocabulary size $K$ across five variants. Filled markers / solid line: matched-methodology $K\!\in\!\{24, 69, 335, 2{,}418\}$ trained with SS$=$0, dw$=$0. Open marker (x-jittered): $K\!=\!2{,}418$ headline (SS$=$0.5, dw$=$1.0). (a)~AR per-token: matched $K\!=\!2{,}418$ is the maximum ($0.470 \pm 0.034$); the K=335 advantage over the headline reflects the schedule, not cardinality. (b)~AR per-window exact-match: matched K=2{,}418 dominates ($+7.1$~pp paired, Holm $p\!=\!0.006$). Full numbers and methodology: Table~\ref{tab:k_spectrum} and Section~\ref{sec:lim-eval}.}
 \label{fig:k_spectrum}
 \end{figure}
 
@@ -1337,7 +1321,7 @@ Table~\ref{tab:tamper_auc} summarizes the ROC-AUC and the threshold-matched oper
 
 \begin{table}[ht]
 \centering
-\caption{Tamper-detection ROC-AUC and threshold-matched operating point by attack class, regime, and configuration. ``Baseline'' = no positional metadata; ``Metadata'' = window-index / source-file exposed (Section~\ref{sec:abl-positional}). All numbers under AR deployment-true decoding with the FSM grammar layer (Section~\ref{sec:grammar}). In-distribution ROC-AUC carries a $95\%$ CI by the Hanley--McNeil method~\cite{hanley1982meaning} ($n_{\text{cmd}}\!=\!483$, $n_{\text{sign}}\!=\!549$, $n_{\text{feed}}\!=\!111$). LOCO AUC is the single-threshold balanced-accuracy estimate at the deployed operating point and is reported alongside the actual TPR / FPR pair for transparency; the sign-flip LOCO AUC below $0.5$ indicates anti-discriminative behavior on the open-vocabulary set, not a swept-curve maximum. In-distribution numbers from \texttt{audit/threat\_model\_tamper\_AR\_5fold\_FSM.json}; LOCO numbers from \texttt{audit/threat\_model\_tamper\_loco.json}.}
+\caption{Tamper-detection ROC-AUC and threshold-matched operating point by attack class, regime, configuration. ``Baseline'' = no positional metadata; ``Metadata'' = window-index/source-file exposed. AR deployment-true decoding with FSM grammar. In-distribution AUC: Hanley--McNeil 95\% CI~\cite{hanley1982meaning} ($n_{\text{cmd}}\!=\!483$, $n_{\text{sign}}\!=\!549$, $n_{\text{feed}}\!=\!111$). LOCO AUC is the single-threshold balanced-accuracy estimate; AUC$<\!0.5$ indicates anti-discriminative behavior. Sources: \texttt{audit/threat\_model\_tamper\_AR\_5fold\_FSM.json}, \texttt{threat\_model\_tamper\_loco.json}.}
 \label{tab:tamper_auc}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -1704,6 +1688,56 @@ pooled  & $79{,}563$ & --- & $\phantom{0}4.5\%$ & $\mathbf{23.6\%}$ \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+% =====================================================================
+\abbreviations{Abbreviations}{
+The following abbreviations are used in this manuscript:
+\\
+
+\noindent
+\begin{tabular}{@{}ll}
+ANOVA      & Analysis of Variance \\
+AR         & Autoregressive \\
+AUC        & Area Under the Curve \\
+BH-FDR     & Benjamini--Hochberg False Discovery Rate \\
+BPE        & Byte-Pair Encoding \\
+CAM        & Computer-Aided Manufacturing \\
+CI         & Confidence Interval \\
+CNC        & Computer Numerical Control \\
+CV         & Cross-Validation \\
+dw         & Digit-head Loss Weight \\
+ECE        & Expected Calibration Error \\
+EMI        & Electromagnetic Interference \\
+FDM        & Fused Deposition Modeling \\
+FPR        & False Positive Rate \\
+FSM        & Finite-State Machine \\
+HMAC       & Hash-based Message Authentication Code \\
+HSM        & High-Speed Machining \\
+ICS        & Industrial Control System \\
+IEC        & International Electrotechnical Commission \\
+LOCO       & Leave-One-Class-Out \\
+LOMO       & Leave-One-Modality-Out \\
+LOSO       & Leave-One-Sensor-Out \\
+LSTM       & Long Short-Term Memory \\
+MCE        & Maximum Calibration Error \\
+MAE        & Mean Absolute Error \\
+MDE        & Minimum Detectable Effect \\
+MM-DTAE-LSTM & \textls[-45]{Multi-Modal Denoising Transformer Autoencoder with Long Short-Term Memory} \\
+NIST       & National Institute of Standards and Technology \\
+NLL        & Negative Log-Likelihood \\
+OT         & Operational Technology \\
+PCA        & Principal Component Analysis \\
+pp         & Percentage Points \\
+RM-ANOVA   & Repeated-Measures Analysis of Variance \\
+ROC        & Receiver Operating Characteristic \\
+RMS        & Root Mean Square \\
+SR         & System Requirement (IEC 62443) \\
+SS         & Scheduled Sampling \\
+TCB        & Trusted Computing Base \\
+TF         & Teacher-Forced \\
+TPR        & True Positive Rate \\
+\end{tabular}
+}
 
 % =====================================================================
 % bibliographystyle is set by mdpi.cls; no need to re-emit it here.
