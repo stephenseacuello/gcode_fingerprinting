@@ -61,7 +61,7 @@ $^{1}$ \quad Department of Industrial Systems Engineering, University of Rhode I
 \corres{Correspondence: seacuello@uri.edu}
 
 \abstract{
-\emph{Scope:} this paper characterizes which fields of a G-code line are sensor-recoverable from a multi-modal CNC monitoring stack, under a deliberately closed-vocabulary in-distribution evaluation regime ($97.6\%$ of distinct test lines, $99.0\%$ of test line-instances seen verbatim in training; Section~\ref{sec:lim-dataset}); the open-vocabulary complement is a leave-one-class-out (LOCO) cross-class collapse to command accuracy $0.213 \pm 0.191$ (Section~\ref{sec:loco}). The model is \modelname{}, a multi-head Transformer decoder on the frozen latent of a prior multi-modal encoder, with per-row targets and grammar-constrained inference. We do not claim a working end-to-end recovery system. \emph{Headline:} recoverability factorizes along a categorical-vs-numeric axis. Categorical structure --- motion command, axis presence, motion direction --- is recovered from sensors alone at $0.888 \pm 0.056$, $0.993 \pm 0.004$, and $0.989 \pm 0.006$ with no positional metadata, identically under teacher-forced (TF) and autoregressive (AR) decoding. A class-prior control attributes $\sim\!0.57$ of the $0.79$ command-position accuracy to the operation-class prior the frozen encoder already encodes, leaving a $\sim\!22$~pp genuine within-class sensor-driven increment as the robust core. Numeric precision is bounded by two coupled mechanisms: exposure bias collapses TF token / numeric accuracy ($0.781 \pm 0.022$ / $0.585 \pm 0.033$) under AR decoding ($0.215 \pm 0.069$ / $0.104 \pm 0.032$; AR sequence exact-match $0.026 \pm 0.019$); and an information-theoretic floor identified by per-(axis, slot) source-entropy analysis (Pearson $r\!=\!-0.96$ vs.\ pooled accuracy over the six digit slots) shows the per-axis $10^{-4}$-inch digit reaches the uniform-noise ceiling ($H \approx 3.3$ bits) on adaptive high-speed-machining (HSM) toolpaths, so fine-precision recovery is unattainable regardless of decoder design. A no-numeric retraining ablation (Section~\ref{sec:abl-nonumeric}) decomposes the AR collapse into a $\sim\!9$-pp numeric-desynchronization contribution and a dominant intrinsic structural mode-collapse (paired across folds, $5/5$ positive, $p\!<\!0.02$); a four-point vocabulary-cardinality spectrum confirms the per-token improvement across smaller $K\!\in\!\{24, 69, 335\}$ under matched training schedule (exact Friedman $p\!=\!0.017$), with $K\!=\!335$ the highest of the sweep but cross-methodology confounded vs.\ the $K\!=\!2{,}418$ headline (matched control in progress). \emph{Tamper-detection scope:} the row-level command-swap detector is largely operation-class-prior-driven: a sensor-independent modal prediction still flags $0.84$ versus the real $0.92$, so only $\approx\!8$~pp is sensor-conditioned. It collapses open-vocabulary (LOCO FPR $0.52$, TPR $0.85$); sign-flip and feed-rate substitutions are at or below chance. The more favorable in-distribution point ($K\!=\!10$ majority-vote at the measured alert autocorrelation $\rho\!=\!0.42$, TPR $\sim\!0.95$ at FPR $0.10$--$0.18$) is an optimistic in-envelope ceiling, not a deployment guarantee. Numeric/feed-rate substitutions are undetectable on the present 4-Hz stack ($77.7\%$ of G-code rows occupy $\le\!1$ sample period; Section~\ref{sec:lim-method}), so an adversary corrupting only those fields is invisible by construction. The contribution is a quantitative characterization of what physics-of-record sensing can and cannot recover, with the in-distribution ceiling and the open-vocabulary / adaptive-adversary floor both made explicit.
+\emph{Scope:} this paper characterizes which fields of a G-code line are sensor-recoverable from a multi-modal CNC monitoring stack, under a deliberately closed-vocabulary in-distribution evaluation regime ($97.6\%$ of distinct test lines, $99.0\%$ of test line-instances seen verbatim in training; Section~\ref{sec:lim-dataset}); the open-vocabulary complement is a leave-one-class-out (LOCO) cross-class collapse to command accuracy $0.213 \pm 0.191$ (Section~\ref{sec:loco}). The model is \modelname{}, a multi-head Transformer decoder on the frozen latent of a prior multi-modal encoder, with per-row targets and grammar-constrained inference. We do not claim a working end-to-end recovery system. \emph{Headline:} recoverability factorizes along a categorical-vs-numeric axis. Categorical structure --- motion command, axis presence, motion direction --- is recovered from sensors alone at $0.888 \pm 0.056$, $0.993 \pm 0.004$, and $0.989 \pm 0.006$ with no positional metadata, identically under teacher-forced (TF) and autoregressive (AR) decoding. A class-prior control attributes $\sim\!0.57$ of the $0.79$ command-position accuracy to the operation-class prior the frozen encoder already encodes, leaving a $\sim\!22$~pp genuine within-class sensor-driven increment as the robust core. Numeric precision is bounded by two coupled mechanisms: exposure bias collapses TF token / numeric accuracy ($0.781 \pm 0.022$ / $0.585 \pm 0.033$) under AR decoding ($0.215 \pm 0.069$ / $0.104 \pm 0.032$; AR sequence exact-match $0.026 \pm 0.019$); and an information-theoretic floor identified by per-(axis, slot) source-entropy analysis (Pearson $r\!=\!-0.96$ vs.\ pooled accuracy over the six digit slots) shows the per-axis $10^{-4}$-inch digit reaches the uniform-noise ceiling ($H \approx 3.3$ bits) on adaptive high-speed-machining (HSM) toolpaths, so fine-precision recovery is unattainable regardless of decoder design. A no-numeric retraining ablation (Section~\ref{sec:abl-nonumeric}) decomposes the AR collapse into a $\sim\!9$-pp numeric-desynchronization contribution and a dominant intrinsic structural mode-collapse (paired across folds, $5/5$ positive, $p\!<\!0.02$); a five-point vocabulary-cardinality spectrum --- including a methodology-matched $K\!=\!2{,}418$ control (T3.1) trained under SS$=$0/dw$=$0 --- shows that the matched $K\!=\!2{,}418$ control is the highest-performing variant (AR struct token $0.470 \pm 0.034$; AR struct sequence $+7.1$~pp paired vs.\ headline, Holm-adjusted $p\!=\!0.006$, Hedges' $g_{z}\!=\!2.76$), and that the earlier $+11.1$~pp $K\!=\!335$ advantage was the SS/dw schedule change rather than vocabulary cardinality. The deployment-recommended configuration is therefore the original $K\!=\!2{,}418$ vocabulary trained under SS$=$0/dw$=$0. \emph{Tamper-detection scope:} the row-level command-swap detector is largely operation-class-prior-driven: a sensor-independent modal prediction still flags $0.84$ versus the real $0.92$, so only $\approx\!8$~pp is sensor-conditioned. It collapses open-vocabulary (LOCO FPR $0.52$, TPR $0.85$); sign-flip and feed-rate substitutions are at or below chance. The more favorable in-distribution point ($K\!=\!10$ majority-vote at the measured alert autocorrelation $\rho\!=\!0.42$, TPR $\sim\!0.95$ at FPR $0.10$--$0.18$) is an optimistic in-envelope ceiling, not a deployment guarantee. Numeric/feed-rate substitutions are undetectable on the present 4-Hz stack ($77.7\%$ of G-code rows occupy $\le\!1$ sample period; Section~\ref{sec:lim-method}), so an adversary corrupting only those fields is invisible by construction. The contribution is a quantitative characterization of what physics-of-record sensing can and cannot recover, with the in-distribution ceiling and the open-vocabulary / adaptive-adversary floor both made explicit.
 }
 
 \keyword{CNC machining; G-code reconstruction; sensor fusion; autoregressive decoding; multi-head decoder; structured prediction; process verification}
@@ -897,97 +897,84 @@ mechanism on the structural stream.
 
 \input{../tables/nonumeric.tex}
 
-\paragraph{Vocabulary-cardinality spectrum.} We retrain at two intermediate
-numeric vocabularies (two-digit bucketing, $K\!=\!335$; one-digit bucketing,
-$K\!=\!69$) under the same Design-B-style methodology (SS$=$0, digit head
-disabled) to test whether the AR per-token improvement is a
-placeholder-specific artifact or a vocabulary-cardinality effect.
-Vocabulary sweeps of this kind are a standard diagnostic in subword-tokenization
-work (BPE merge counts~\cite{sennrich2016bpe}; subword
-regularization~\cite{kudo2018subword}). Table~\ref{tab:k_spectrum} and
-Figure~\ref{fig:k_spectrum} report the four-point spectrum.
+\paragraph{Vocabulary-cardinality spectrum and matched-methodology control.}
+We retrain at two intermediate numeric vocabularies (two-digit bucketing,
+$K\!=\!335$; one-digit bucketing, $K\!=\!69$) under the Design-B-style
+training schedule (scheduled sampling SS$=$0, digit-head loss weight
+dw$=$0) to test whether the AR per-token improvement is a
+placeholder-specific artifact, a vocabulary-cardinality effect, or a
+training-schedule effect; vocabulary sweeps of this kind are a standard
+diagnostic in subword-tokenization work~\cite{sennrich2016bpe,kudo2018subword}.
+We then add a fifth ``T3.1'' control at $K\!=\!2{,}418$ retrained under
+the same SS$=$0/dw$=$0 schedule to disentangle vocabulary from
+schedule cleanly. Table~\ref{tab:k_spectrum} and
+Figure~\ref{fig:k_spectrum} report the resulting five-point spectrum.
 
-\emph{Reading conventions.} The three smaller-$K$ rows share matched
-methodology (SS$=$0, dw$=$0); the $K\!=\!2{,}418$ row carries the headline
-configuration (SS$=$0.5, dw$=$1.0). Within-Design-B contrasts are clean
-vocabulary tests; any contrast crossing into $K\!=\!2{,}418$ is a joint
-vocabulary-plus-training-configuration condition contrast. A
-methodology-matched $K\!=\!2{,}418$ control (SS$=$0, dw$=$0) is in
-progress and not in this revision.
+\emph{Headline result (T3.1 resolves the confound).} Under the matched
+SS$=$0/dw$=$0 training schedule, $K\!=\!2{,}418$ (T3.1 control) is the
+highest-performing variant on every metric: AR struct token
+$0.470 \pm 0.034$ (vs.\ the headline's $0.317 \pm 0.116$, paired
+$+15.2$~pp, $5/5$ folds positive, paired $t(4)\!=\!3.26$,
+Holm-adjusted $p\!=\!0.071$, Cohen's $d_{z}\!=\!1.46$, Hedges'
+$g_{z}\!=\!1.17$, bootstrap 95\% CI $[+7.6, +24.1]$~pp); AR sequence
+exact-match $0.128 \pm 0.019$ vs.\ headline $0.058 \pm 0.039$, paired
+$+7.1$~pp, $5/5$ folds, paired $t(4)\!=\!7.70$, Holm-adjusted
+$p\!=\!0.006$, $d_{z}\!=\!3.44$, $g_{z}\!=\!2.76$; TF token $0.978$
+vs.\ $0.960$; TF sequence exact-match $0.344$ vs.\ $0.213$. \emph{The
+earlier $+11.1$~pp AR-token advantage of $K\!=\!335$ over the
+headline was the SS/dw schedule change, not vocabulary cardinality}:
+within the matched-methodology family, $K\!=\!335$ falls $-4.1$~pp
+behind the matched $K\!=\!2{,}418$ on AR struct token (paired
+$t(4)\!=\!-0.85$, $p\!=\!0.44$, n.s.; bootstrap 95\% CI on the paired
+diff $[-13.8, +3.0]$~pp).
 
-The AR per-token improvement is \emph{robust across the
-smaller-$K$ family} --- $+11.1$, $+9.8$, $+8.8$ percentage points paired
-across folds for $K\!=\!335, 69, 24$ respectively (paired-positive
-$5/5$, $4/5$, $5/5$). Across the four conditions, an exact Friedman
-permutation test --- the primary omnibus at $n\!=\!5$, where the
-$\chi^{2}$-asymptotic approximation is unreliable --- gives exact
-$p\!=\!0.017$ ($\chi^{2}(3)\!=\!9.24$, asymptotic $p\!=\!0.026$ for
-reference). RM-ANOVA gives $F(3,12)\!=\!2.87$, $p\!=\!0.080$, partial
-$\eta^{2}\!=\!0.42$, reported as descriptive corroboration at this sample
-size (no sphericity check is interpretable at $n\!=\!5$). Pairwise condition contrasts
-vs.\ the $K\!=\!2{,}418$ reference (Holm-adjusted across the three
-contrasts on AR struct token; raw $d_{z}$ and Hedges' small-sample
-$g_{z} = J \cdot d_{z}$ with $J\!=\!0.80$ at $n\!=\!5$; bootstrap 95\%
-percentile CIs from $10^{4}$ resamples on per-fold paired diffs):
-$K\!=\!335$ paired $t(4)\!=\!4.12$, $p\!=\!0.015$, Holm $p\!=\!0.044$,
-$d_{z}\!=\!1.84$ ($g_{z}\!=\!1.47$), 95\% CI $[+6.3, +15.5]$~pp;
-$K\!=\!24$ paired $t(4)\!=\!3.56$, $p\!=\!0.024$, Holm $p\!=\!0.047$,
-$d_{z}\!=\!1.59$ ($g_{z}\!=\!1.27$), 95\% CI $[+4.7, +13.3]$~pp;
-$K\!=\!69$ paired $t(4)\!=\!1.89$, $p\!=\!0.13$, $d_{z}\!=\!0.84$
-($g_{z}\!=\!0.67$), n.s.\ under Holm. The $K\!=\!69$ null is not driven
-by a $K\!=\!2{,}418$ outlier (Grubbs $G\!=\!1.57\!<\!G_{\mathrm{crit}}\!=\!1.715$
-at $n\!=\!5$, $\alpha\!=\!0.05$); leave-one-fold-out shows the $K\!=\!69$
-contrast is driven by fold-4, where the paired difference is
-$-0.045$ (the only negative across all three contrasts), and the $K\!=\!69$
-spectrum row is genuinely lower-powered than the other two.
+\emph{Within-matched-methodology cardinality effect.} Across the four
+SS$=$0/dw$=$0 variants $\{K\!=\!24, 69, 335, 2{,}418\}$, AR struct
+token is monotonically non-decreasing in $K$ ($0.405$, $0.415$,
+$0.429$, $0.470$), and AR struct sequence exact-match likewise
+($0.066$, $0.051$, $0.081$, $0.128$). Larger $K$ is mildly better
+within the matched family; the effect is small relative to the
+$+15$~pp schedule effect. The omnibus across all five variants is
+significant on both metrics: AR struct token $F(4,16)\!=\!3.42$,
+$p\!=\!0.033$, partial $\eta^{2}\!=\!0.46$; Friedman $\chi^{2}(4)\!=\!13.9$,
+asymptotic $p\!=\!0.0076$; AR struct sequence $F(4,16)\!=\!7.38$,
+$p\!=\!0.0014$, $\eta^{2}\!=\!0.65$; Friedman $\chi^{2}(4)\!=\!11.4$,
+asymptotic $p\!=\!0.0224$.
 
-The intermediate $K\!=\!335$ is the \emph{highest-performing} of the four
-measured points on both TF and AR per-token and on TF sequence
-exact-match ($0.287\!\pm\!0.082$ vs.\ $K\!=\!2{,}418$'s
-$0.213\!\pm\!0.048$). We hypothesize an intermediate vocabulary preserves
-enough per-position lexical variety to avoid the TF cost of full collapse
-(Table~\ref{tab:nonumeric}) while reducing the AR
-numeric-token-desynchronization that dominates the headline collapse;
-alternative hypotheses (smoother optimization landscape at moderate $K$;
-per-digit prior aligned with common CAM bucket values) are not separately
-identified by these four points. The leading alternative for the
-$K\!=\!335\,\to\,K\!=\!2{,}418$ step --- that the gain reflects the
-scheduled-sampling change rather than vocabulary cardinality --- is
-consistent with the SS-instability statement above. We therefore frame
-$K\!=\!335$ as a structural maximum of the sweep, not a deployment
-recommendation (Section~\ref{sec:lim-eval} carries the full methodology-confound
-caveat and threat-model scope). The
-per-window AR sequence exact-match stays essentially flat across the
-spectrum ($0.058$--$0.081$; RM-ANOVA $F(3,12)\!=\!1.01$, $p\!=\!0.42$;
-Friedman exact $p\!=\!0.44$; all three pairwise vs.\ $K\!=\!2{,}418$
-have bootstrap 95\% CIs that include $0$): the intrinsic mode-collapse
-of the structural stream itself does not depend on $K$, reinforcing the
-decomposition of the preceding paragraph. Full per-fold values, raw and
-Hedges-corrected effect sizes, bootstrap CIs, exact-Friedman, and the
-leave-one-fold-out sensitivity table are in
-\texttt{audit/k\_spectrum\_stats.json}.
+\emph{Interpretation.} The original $K\!=\!335$ ``sweet spot'' framing
+is retracted: under matched methodology, the larger $K\!=\!2{,}418$
+vocabulary is the strict winner, and the +9--11~pp gains observed for
+smaller-$K$ variants over the headline are recovered by the
+SS$=$0/dw$=$0 training schedule alone. The deployment-relevant
+configuration for AR structural recovery is the original
+$K\!=\!2{,}418$ vocabulary with scheduled sampling disabled and the
+digit head detached during training; this is the recommended training
+recipe in Section~\ref{sec:disc-when-to-use}. Full per-fold values,
+exact and Monte-Carlo Friedman values, paired-$t$ / Wilcoxon /
+$d_{z}$ / $g_{z}$ / bootstrap CIs for every pair, and Holm-adjusted
+$p$-values across both the K=2418-headline-reference family and the
+matched-methodology family are in \texttt{audit/k\_spectrum\_stats.json}.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=\linewidth]{../figures/k_spectrum.pdf}
-\caption{Structural recovery vs.\ numeric vocabulary size $K$ across four
-variants. \textbf{Filled markers and solid line:} the three
-matched-methodology points $K\!\in\!\{24, 69, 335\}$ trained as Design~B
-(scheduled sampling SS$=$0, digit-head loss weight dw$=$0). \textbf{Open
-marker and dashed connector:} the $K\!=\!2{,}418$ reference, methodologically
-distinct (headline configuration: SS$=$0.5, dw$=$1.0).
-\textbf{(a)}~Per-token structural accuracy: the AR per-token gain at smaller
-$K$ relative to the headline is robust across $K\!\in\!\{24, 69, 335\}$
-(paired-positive $5/5$, $4/5$, $5/5$ folds; the contrast crosses the
-methodology boundary). \textbf{(b)}~Per-window structural exact-match: stays
-essentially flat across the spectrum, identifying intrinsic structural
-mode-collapse (not numeric cardinality) as the dominant window-level
-mechanism. $K\!=\!335$ is the highest of the four-point sweep under TF on
-both metrics and under AR per-token, but its contrast to the
-$K\!=\!2{,}418$ headline is confounded with the SS/dw training-configuration
-change (Table~\ref{tab:k_spectrum}; Section~\ref{sec:lim-eval}). A
-methodology-matched $K\!=\!2{,}418$ control under SS$=$0/dw$=$0 is in
-progress.}
+\caption{Structural recovery vs.\ numeric vocabulary size $K$ across five
+variants. \textbf{Filled markers and solid line:} matched-methodology
+points $K\!\in\!\{24, 69, 335, 2{,}418\}$ trained with scheduled
+sampling SS$=$0 and digit-head loss weight dw$=$0 (the four
+SS$=$0/dw$=$0 rows form a clean vocabulary-cardinality contrast).
+\textbf{Open marker (slight $x$-jitter):} the $K\!=\!2{,}418$ headline
+reference, methodologically distinct (SS$=$0.5, dw$=$1.0).
+\textbf{(a)}~Per-token structural accuracy: $K\!=\!2{,}418$ under matched
+SS$=$0/dw$=$0 (T3.1 control) is the highest of the five variants on AR
+($0.470 \pm 0.034$); the apparent K=335 maximum of the original
+four-point sweep was the SS/dw schedule effect, not vocabulary
+cardinality. \textbf{(b)}~Per-window structural exact-match: T3.1
+($0.128 \pm 0.019$) likewise dominates; $+7.1$~pp paired vs.\ the
+headline, $5/5$ folds positive, Holm-adjusted $p\!=\!0.006$. Within the
+matched family, AR token is monotonically non-decreasing in $K$
+($0.405 \to 0.415 \to 0.429 \to 0.470$). See Table~\ref{tab:k_spectrum}
+and Section~\ref{sec:lim-eval} for full discussion.}
 \label{fig:k_spectrum}
 \end{figure}
 
@@ -1278,6 +1265,8 @@ Conversely, the decoder is \emph{not} a stand-alone replacement for the controll
 \toprule
 \textbf{Choice} & \textbf{Recommendation (with rationale)} \\
 \midrule
+Training schedule & Disable scheduled sampling (SS$=$0) and detach the digit head (dw$=$0). The matched-methodology $K\!=\!2{,}418$ control (Section~\ref{sec:abl-nonumeric}, T3.1) achieves AR struct token $0.470 \pm 0.034$ vs.\ $0.317 \pm 0.116$ for the SS$=$0.5/dw$=$1.0 headline ($+15.2$~pp paired, $5/5$ folds; AR struct sequence $+7.1$~pp, Holm-adjusted $p\!=\!0.006$). \\
+Numeric vocabulary & Retain $K\!=\!2{,}418$ (4-digit). Within the matched SS$=$0/dw$=$0 family, AR token is monotonically non-decreasing in $K$; the K=335/K=69/K=24 alternatives sacrifice $4$--$6$~pp on AR token relative to $K\!=\!2{,}418$ and additionally collapse numeric precision below ${\sim}10^{-2}$~inch by construction, which is the regime where the threat model's adaptive-adversary structural bypass (Section~\ref{sec:disc-threat-model}) operates. \\
 Target mode & Per-row (Section~\ref{sec:abl-target-mode}). Short ($\sim$5--15 tokens) AR sequences avoid the full-window mode-collapse. \\
 Positional metadata & Window-index anchor breaks AR mode collapse and improves the in-distribution tamper point; \emph{however} window-index / source-file metadata is controller/pipeline-derived, and the controller is the untrusted element in the threat model --- exposing it to the monitor is a residual trust-boundary tension, not an unqualified recommendation. \\
 Grammar layer & FSM enabled (Section~\ref{sec:grammar}). Eliminates $\sim$31\% of generated samples with V1 violations at no measurable accuracy cost ($p > 0.5$ on paired tests). \\
@@ -1401,7 +1390,7 @@ Slicing the 5-fold predictions by source file ($n=91$) shows command accuracy is
 
 \paragraph{Decoder-only inference cost.} The decoder generates token-by-token autoregressively under a grammar mask. For long sequences (full-window mode with multi-line targets) this is a substantial inference cost. A beam-search or non-autoregressive variant has not been evaluated; doing so would inform deployment-cost trade-offs (Section~\ref{sec:disc-modality}).
 
-\paragraph{$K$-spectrum methodology confound and threat-model scope.} The four-point vocabulary-cardinality sweep (Section~\ref{sec:abl-nonumeric}) compares the headline $K\!=\!2{,}418$ row (SS$=$0.5, dw$=$1.0) against three smaller-$K$ variants under Design~B (SS$=$0, dw$=$0). The within-Design-B contrasts ($K\!\in\!\{24, 69, 335\}$) are mutually clean vocabulary tests; the across-methodology smaller-$K$-vs-$K\!=\!2{,}418$ maximum confounds vocabulary cardinality with training configuration and is not separately identifiable on present data. A methodology-matched $K\!=\!2{,}418$ control under SS$=$0/dw$=$0 is in progress; it will resolve the confound and is the only experiment that would elevate the $K\!=\!335$ maximum to a validated sweet spot. Independently, the $K\!=\!335$ (2-digit) bucket collapses the per-axis resolution below ${\sim}10^{-2}$~inch by construction. That is the regime where Section~\ref{sec:disc-threat-model} identifies the \emph{structural bypass} of the adaptive adversary: an attack class for which the detector has no per-row signal because the perturbed values fall within the per-operation-class envelope reproduced verbatim by the decoder. A deployment that adopted $K\!=\!335$ as the numeric vocabulary would \emph{widen} this bypass, not narrow it. The $K$-spectrum finding therefore informs the AR sequence-head mechanism (structural recovery) and does \emph{not} translate into a deployment recommendation under the present threat model. Corpus generalization (single Bantam Tools desktop mill, 120 files, nine operation classes) is a second open question: the $K\!=\!335$ maximum is not validated outside the present corpus, and cross-platform replication is required before this finding can carry forward (Section~\ref{sec:roadmap}).
+\paragraph{$K$-spectrum methodology confound: resolved.} The four-point vocabulary-cardinality sweep originally compared the headline $K\!=\!2{,}418$ row (SS$=$0.5, dw$=$1.0) against three smaller-$K$ variants under Design~B (SS$=$0, dw$=$0). The smaller-$K$-vs-headline comparison was a joint condition contrast (vocabulary cardinality $+$ training schedule). A methodology-matched $K\!=\!2{,}418$ control trained under SS$=$0/dw$=$0 (T3.1; Section~\ref{sec:abl-nonumeric}) resolves the confound: under matched methodology, $K\!=\!2{,}418$ is the highest-performing variant on every metric (AR struct token $0.470 \pm 0.034$ vs.\ K=335's $0.429 \pm 0.123$ and the headline's $0.317 \pm 0.116$). The earlier $+11.1$~pp K=335 advantage over the headline was the SS/dw schedule change, not vocabulary cardinality; the K=335 ``sweet spot'' framing is retracted in this revision. The deployment-relevant configuration for AR structural recovery is the original $K\!=\!2{,}418$ vocabulary with SS$=$0 and dw$=$0; the smaller-$K$ family is now reported as a clean vocabulary-cardinality contrast within one methodology, with the deployment story carried by the matched-methodology control. Corpus generalization (single Bantam Tools desktop mill, 120 files, nine operation classes) is a separate open question and the K=2418/SS=0/dw=0 result requires cross-platform replication before it can carry forward to other platforms or material classes (Section~\ref{sec:roadmap}).
 
 \paragraph{Pooled numeric accuracy averages memorization against an information-theoretic floor.} The pooled slot-5 ($10^{-4}$~inch) accuracy of $0.864$ in Table~\ref{tab:per_digit_position} is the deployment-relevant qualifier of the body's per-regime characterization (Section~\ref{sec:numeric-decomposition}, Figure~\ref{fig:slot5_by_op_class}): on adaptive HSM rows the per-axis digit is information-theoretically near-unrecoverable, while on facing rows the high accuracy reflects the recall of four geometry-specific X-overrun values that account for $96.5\%$ of face X-coordinates and would not transfer to a different workpiece. Any deployment claim of $10^{-4}$-inch coordinate reconstruction should therefore be read against the per-axis source entropy in Table~\ref{tab:per_digit_position} and the quantization map in Appendix~\ref{app:digit_encoding}, not the pooled curve. Figure~\ref{fig:per_file_fingerprint} makes the memorization-vs-entropy split directly visible at the per-file level.
 
@@ -1427,7 +1416,7 @@ This study characterizes which components of an executing G-code instruction are
 \item \textbf{Categorical structure} (command, axis presence, motion direction) is recovered from sensors alone at $0.89$/$0.99$/$0.99$, TF/AR-invariant by construction (Section~\ref{sec:results-headline}); a class-prior control attributes $\sim\!0.57$ of the $0.79$ command accuracy to the encoder's operation-class prior, leaving a genuine $\sim\!22$~pp within-class sensor-driven increment (Section~\ref{sec:disc-confound}) --- that increment, not the headline, is the robust core.
 \item \textbf{End-to-end token/numeric} reproduction is bounded by three coupled mechanisms.
 
-(2a)~\emph{Exposure-bias collapse.} The sequence head collapses to $\sim\!0.026$ sequence exact-match under autoregressive decoding (Section~\ref{sec:disc-mode-collapse}). A no-numeric retraining ablation decomposes the collapse into a $\sim\!9$-pp per-token numeric-desynchronization piece (paired $5/5$, $p\!<\!0.02$) and a dominant intrinsic structural mode-collapse, the latter being the deployment-relevant bottleneck (Section~\ref{sec:abl-nonumeric}). A four-point $K$-spectrum confirms the per-token improvement is robust across $K\!\in\!\{24,69,335\}$ under matched SS/dw (exact Friedman $p\!=\!0.017$; Holm $p\!\le\!0.047$ and Hedges' $g_{z}\!\ge\!1.27$ at $K\!=\!335$ and $K\!=\!24$); the across-methodology contrast to $K\!=\!2{,}418$ is confounded with the SS/dw training change (Section~\ref{sec:lim-eval}).
+(2a)~\emph{Exposure-bias collapse.} The sequence head collapses to $\sim\!0.026$ sequence exact-match under autoregressive decoding (Section~\ref{sec:disc-mode-collapse}). A no-numeric retraining ablation decomposes the collapse into a $\sim\!9$-pp per-token numeric-desynchronization piece (paired $5/5$, $p\!<\!0.02$) and a dominant intrinsic structural mode-collapse, the latter being the deployment-relevant bottleneck (Section~\ref{sec:abl-nonumeric}). The five-point $K$-spectrum, completed with a methodology-matched $K\!=\!2{,}418$ control (T3.1), shows the matched control is the highest-performing variant on every metric (AR struct token $0.470$; AR struct sequence $+7.1$~pp paired vs.\ headline, Holm-adjusted $p\!=\!0.006$, $g_{z}\!=\!2.76$); the apparent $K\!=\!335$ maximum of the earlier four-point sweep was the SS/dw schedule effect, not vocabulary cardinality.
 
 (2b)~\emph{Physical co-cause.} A measured 4-Hz row-duration analysis shows $77.7\%$ of rows occupy $\le\!1$ sample period, making them temporally unresolvable as distinct transients (Section~\ref{sec:lim-method}).
 

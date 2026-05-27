@@ -61,22 +61,38 @@ def friedman_chi2_from_arr(Y):
     return float(12.0 / (n * k * (k + 1)) * (Rsum ** 2).sum() - 3 * n * (k + 1))
 
 
-def exact_friedman_p(Y):
-    """Exact Friedman p by enumerating all per-subject rank permutations.
-    Tractable for n=5, k=4 (24^5 = ~8M permutations, ~15 s)."""
+def exact_friedman_p(Y, max_exact_perms=10_000_000, mc_samples=200_000):
+    """Friedman p-value with three regimes:
+      - exact enumeration when (k!)^n <= max_exact_perms (~8M for k=4,n=5)
+      - Monte-Carlo permutation otherwise (mc_samples random per-subject
+        rank permutations) - returned with an "mc" flag
+      For k=5, n=5, (5!)^5 = 24.8B perms is infeasible; we MC instead."""
     Y = np.asarray(Y, dtype=float)
     k, n = Y.shape
     obs = friedman_chi2_from_arr(Y)
     rankings = list(itertools.permutations(range(1, k + 1)))
     total = len(rankings) ** n
+    if total <= max_exact_perms:
+        count_ge = 0
+        for combo in itertools.product(rankings, repeat=n):
+            R = np.array(combo).T
+            Rsum = R.sum(axis=1)
+            chi2 = 12.0 / (n * k * (k + 1)) * (Rsum ** 2).sum() - 3 * n * (k + 1)
+            if chi2 >= obs - 1e-9:
+                count_ge += 1
+        return obs, count_ge / total, total, "exact"
+    # Monte-Carlo: sample mc_samples random rank-permutation assignments
+    rng = np.random.default_rng(42)
     count_ge = 0
-    for combo in itertools.product(rankings, repeat=n):
-        R = np.array(combo).T
+    for _ in range(mc_samples):
+        R = np.empty((k, n), dtype=float)
+        for j in range(n):
+            R[:, j] = rng.permutation(k) + 1
         Rsum = R.sum(axis=1)
         chi2 = 12.0 / (n * k * (k + 1)) * (Rsum ** 2).sum() - 3 * n * (k + 1)
         if chi2 >= obs - 1e-9:
             count_ge += 1
-    return obs, count_ge / total, total
+    return obs, count_ge / mc_samples, mc_samples, "monte_carlo"
 
 
 def grubbs(x):
@@ -172,9 +188,10 @@ def rm_anova(condition_to_perfold, exact_friedman=True):
         "condition_means": dict(zip(cond_names, cond_means)),
     }
     if exact_friedman:
-        _, p_exact, n_perm = exact_friedman_p(Y)
+        _, p_exact, n_perm, regime = exact_friedman_p(Y)
         out["friedman_p_exact"] = float(p_exact)
         out["friedman_n_permutations"] = n_perm
+        out["friedman_regime"] = regime  # "exact" or "monte_carlo"
     return out
 
 
