@@ -263,86 +263,7 @@ We state the threat model up front so that every recoverability result that foll
 
 \begin{figure}[ht]
 \centering
-\begin{tikzpicture}[
-  font=\footnotesize,
-  >=Stealth,
-  node distance=4mm and 5mm,
-  block/.style={
-    draw=black!70, rounded corners=2pt, thick,
-    align=center, inner sep=3pt,
-    minimum height=9mm
-  },
-  inblock/.style={block, fill=black!5, minimum width=20mm},
-  enc/.style={block, fill=blue!8, draw=blue!55!black, minimum width=24mm, minimum height=14mm},
-  dec/.style={block, fill=blue!15, draw=blue!55!black, minimum width=26mm, minimum height=14mm},
-  head/.style={block, fill=blue!4, draw=black!55, minimum width=42mm, minimum height=5.2mm, font=\scriptsize},
-  mask/.style={block, fill=black!8, draw=black!60, minimum width=22mm, font=\scriptsize},
-  outblock/.style={block, fill=black!5, minimum width=30mm, font=\ttfamily\scriptsize},
-  arr/.style={->, thick, draw=black!75},
-  tag/.style={font=\scriptsize\itshape, text=black!60},
-  badge/.style={draw=black!60, fill=yellow!25, rounded corners=1pt, inner sep=1pt, font=\tiny\bfseries}
-]
-
-% --- Input ---
-\node[inblock] (input) {Sensor\\window};
-\node[tag, below=0.5mm of input, align=center, text width=22mm]
-  {$256 \times 98$\\ \tiny accel, gyro, mag,\\ env, color,\\ audio-RMS, electrical};
-
-% --- Encoder ---
-\node[enc, right=8mm of input] (enc) {MM-DTAE-LSTM\\encoder};
-\node[badge, above right=-1mm and -8mm of enc.north east] {FROZEN};
-\node[tag, below=0.5mm of enc, align=center, text width=26mm]
-  {8.6M params\\ \tiny memory: $256 \times 256$};
-
-% --- Decoder ---
-\node[dec, right=10mm of enc] (dec) {Transformer\\decoder};
-\node[tag, below=0.5mm of dec, align=center, text width=28mm]
-  {8 layers, $d_{\text{model}}{=}384$,\\ 12 heads};
-
-% Autoregressive recurrence
-\draw[arr, rounded corners=2pt]
-  (dec.north) -- ++(0,3mm) -| ([xshift=2mm]dec.north east) -- ++(0,-4mm)
-  node[pos=0.5, right=0mm, font=\tiny\itshape, text=black!60] {AR};
-
-% --- Six output heads (stacked, right of decoder) ---
-\node[head, right=12mm of dec, yshift=15mm] (h1) {\textbf{token} -- next G-code token (vocab 2{,}418)};
-\node[head, below=1mm of h1] (h2) {\textbf{type} -- SPECIAL / COMMAND / PARAM / NUM};
-\node[head, below=1mm of h2] (h3) {\textbf{motion-command} -- G0/G1/G2/G3/G53/M30};
-\node[head, below=1mm of h3] (h4) {\textbf{parameter-type} -- X/Y/Z/I/J/K/R/F/S/P};
-\node[head, below=1mm of h4] (h5) {\textbf{sign} -- POS / NEG / ABSENT};
-\node[head, below=1mm of h5] (h6) {\textbf{digit} -- 6 positions, 0--9 + PAD};
-
-% --- Grammar mask ---
-\node[mask, below=10mm of h6.south east, anchor=north east] (mask) {Grammar mask\\ \tiny zeros invalid transitions};
-
-% --- Output ---
-\node[outblock, below=6mm of dec] (out) {G1 X-1.234 Y0.567 F100};
-\node[tag, above=0.2mm of out] {decoded G-code line};
-
-% --- Arrows: data flow ---
-\draw[arr] (input.east) -- (enc.west);
-\draw[arr] (enc.east) -- node[above, font=\scriptsize\itshape, text=black!60] {memory} (dec.west);
-
-% Decoder hidden state -> heads (fan out)
-\coordinate (dechub) at ([xshift=3mm]dec.east);
-\draw[thick, draw=black!75] (dec.east) -- (dechub);
-\draw[arr] (dechub) |- (h1.west);
-\draw[arr] (dechub) |- (h2.west);
-\draw[arr] (dechub) |- (h3.west);
-\draw[arr] (dechub) |- (h4.west);
-\draw[arr] (dechub) |- (h5.west);
-\draw[arr] (dechub) |- (h6.west);
-
-% Grammar mask gates the token head at inference
-\draw[arr, dashed, draw=black!70]
-  (mask.north) -- ++(0,2mm) -| (h1.south)
-  node[pos=0.25, right=0mm, font=\tiny\itshape, text=black!60] {inference};
-
-% Token head -> decoded output line
-\draw[arr] (h1.east) -- ++(3mm,0)
-  |- ([yshift=1mm]out.east);
-
-\end{tikzpicture}
+\includegraphics[width=\linewidth]{system_overview.pdf}
 \caption{System overview. A 64-second sensor window ($256$ samples $\times$ $98$ channels across seven modality groups) is mapped by the frozen \encname{} encoder (8.6\,M parameters) to a $256 \times 256$ memory tensor. An 8-layer Transformer decoder ($d_{\text{model}}{=}384$, 12 heads) consumes this memory via cross-attention and generates tokens autoregressively. Six prediction heads share the decoder's hidden state and provide structured output (token, type, motion-command, parameter-type, sign, per-position digit). A static grammar mask zeros structurally invalid token transitions in the legacy-token softmax at inference time.}
 \label{fig:system-overview}
 \end{figure}
@@ -1762,7 +1683,7 @@ pooled  & $79{,}563$ & --- & $\phantom{0}4.5\%$ & $\mathbf{23.6\%}$ \\
 
 \dataavailability{The sensor datasets and analysis code generated during this study are publicly available at \url{https://github.com/stephenseacuello/gcode_fingerprinting} (accessed on \texttt{[insert date]}). Source code for the \modelname{} decoder architecture, training and evaluation pipelines, audit-JSON regeneration scripts, and figure-generation scripts is released alongside the manuscript under the MIT License.}
 
-\acknowledgments{This material is based upon work partially supported by the Office of Naval Research under Contract No.\ N000142412129. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the authors and do not necessarily reflect the views of the Office of Naval Research. The authors thank the Department of Industrial and Systems Engineering at the University of Rhode Island for providing laboratory facilities and computational resources.}
+\acknowledgments{The authors thank the Department of Industrial and Systems Engineering at the University of Rhode Island for providing laboratory facilities and computational resources.}
 
 \conflictsofinterest{The authors declare no conflicts of interest.}
 
