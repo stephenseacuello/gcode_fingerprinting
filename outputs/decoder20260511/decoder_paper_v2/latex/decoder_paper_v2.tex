@@ -608,7 +608,7 @@ This profile is strongly anticorrelated with the \emph{source entropy} of each s
 
 The per-axis decomposition (Figure~\ref{fig:digit_value_histograms}) grounds this in the CNC physics of the corpus. \textbf{High-order digits} are physically constrained: the tens digit (slot~0) is uniformly $0$ across X, Y, and Z (every coordinate $|\text{val}| < 10$ in the present small-part corpus), and the units digit (slot~1) carries most of its mass on $\{0, 1\}$ for X/Y ($75$--$77\%$) and is identically $0$ for Z (every $|\text{Z}|<1$). These cells have entropies $0.00$--$1.72$ bits, well below the uniform ceiling, and they are precisely the cells the model recovers near-perfectly. \textbf{Low-order digits} approach the ceiling: across X, Y, Z the $10^{-2}$, $10^{-3}$, and $10^{-4}$ slots have per-axis entropies in the range $3.26$--$3.31$ bits --- empirically indistinguishable from uniform random over $\{0,\ldots,9\}$. This is the empirical signature of CAM toolpath-generation noise: the fourth decimal of a coordinate ($10^{-4}$ inch) is interpolated by the CAM postprocessor at a resolution below any physical determinism the sensors carry at $4$~Hz, so it is information-theoretically near-unrecoverable from the sensor stream regardless of decoder design. The verdict holds across all three primary axes (\texttt{cnc\_verdict.lowest\_decimal} in \texttt{audit/digit\_entropy.json}). The $10^{-1}$ slot is a useful counter-example: for Z it has entropy $0.70$ bits (mass on $0$/$1$) because Z values cluster on small magnitudes (cutting-depth steps), and the model accordingly recovers Z's tenths slot with high accuracy --- a per-axis demonstration that the source-entropy account correctly predicts where recovery is easy and where it is not.
 
-Stratifying the slot-5 distribution by \emph{operation class} reveals that the uniform-noise picture is not uniform across the corpus; three distinct regimes coexist (Figure~\ref{fig:slot5_by_op_class}). \textbf{(i) Adaptive HSM (High-Speed Machining) toolpaths} (\texttt{adaptive}, \texttt{adaptive150025}, and the \texttt{pocket} class, which is adaptive-style in this corpus) produce the canonical CAM-interpolation-noise signature: per-axis slot-5 entropy $\approx 3.26$--$3.30$ bits with comparatively low mass on digit `0' (for X: $9\%$ on \texttt{adaptive150025} through $17\%$ on \texttt{pocket} --- read off Figure~\ref{fig:slot5_by_op_class}) distributed across all digits with no concentrated modal value, the signature of a toolpath optimizer producing floating-point residuals rather than authoring round-ending coordinates at $10^{-4}$~inch ($2.54$~\textmu m). \textbf{(ii) Traditional facing operations} (\texttt{face}, \texttt{face150025}, \texttt{damageface}) have slot-5 entropy $\approx 1.55$--$1.71$ bits with $49$--$56\%$ mass on a single digit --- but the mechanism is geometric \emph{coordinate repetition}, not a CAM precision grid. In \texttt{face}, four specific X values --- the facing-pass entry/exit coordinates on the workpiece left and right edges --- dominate: $X\!=\!-0.1254$ ($n\!=\!624$), $X\!=\!-0.2084$ ($n\!=\!464$), $X\!=\!3.275$ ($n\!=\!608$), and $X\!=\!3.358$ ($n\!=\!464$), together $2{,}160$ of the $2{,}238$ X-coordinates ($96.5\%$). The two negative-X overruns drive the digit-`4' mass at slot~5; the two positive-X overruns drive mass at digits `0' and `9' (the latter via the float-epsilon target-encoding artifact of Appendix~\ref{app:digit_encoding}). \textbf{(iii) Pocket-style operations with tight geometry} (\texttt{pocket150025}, \texttt{damagepocket}, \texttt{damageadaptive}) sit between: slot-5 entropy $\approx 2.58$--$3.22$ bits with partial mass on `0' from arc/line waypoint repeats (e.g., \texttt{Y-0.071} appearing dozens of times along a fixed pocket wall). The bathtub \emph{upturn} of the pooled slot-5 curve is therefore the joint signature of coordinate-repeat in traditional ops and a separate float-epsilon target-encoding artifact ($23.6\%$ of CAM-authored terminal zeros encode to digit `9' under the model's iterative \texttt{int(dec\_part * 10) \% 10}), both detailed in Appendix~\ref{app:digit_encoding}, not a genuine per-axis recovery of the ten-thousandth digit. Representative G-code rows for each regime are shown in Table~\ref{tab:gcode_examples}, and a position-level prediction-versus-target plate (one supervised position per operation-class family, with predicted and target digits rendered as colored tiles per slot) is given in Figure~\ref{fig:gcode_line_example}.
+Stratifying the slot-5 distribution by \emph{operation class} reveals three regimes (uniform-noise adaptive HSM, coordinate-repeating face overruns, and mixed pocket-style; full per-class breakdown, representative G-code rows, and a per-position prediction-vs-target plate in Appendix~\ref{app:source-entropy}). The slot-5 \emph{upturn} of the pooled curve is therefore not a genuine recovery of the ten-thousandth digit but the joint signature of facing-pass coordinate-repeat in traditional ops plus the float-epsilon target-encoding artifact of Appendix~\ref{app:digit_encoding} ($23.6\%$ of CAM-authored terminal zeros encode to digit `9' under the model's iterative \texttt{int(dec\_part * 10) \% 10}).
 
 \paragraph{What \emph{is} reliably recoverable.} The negative bound on slot~5 is half the story; the per-axis source-entropy map (Figure~\ref{fig:digit_value_histograms}, Figure~\ref{fig:quantization_heatmap}) identifies the cells where recovery \emph{is} structurally available, and they are non-trivial. In-distribution coarse-resolution recovery is reliable across all primary axes: the tens digit of X, Y, and Z is uniformly $0$ in this corpus and the model recovers it at $100\%$ accuracy; the units digit reaches $\ge 75\%$ on X and Y (mass on $\{0, 1\}$) and is identically $0$ on Z; Z's tenths digit recovers at high accuracy from the cutting-depth-step quantization ($86\%$ mass on `0', $H = 0.70$~bits, Figure~\ref{fig:digit_value_histograms}). R is recoverable across \emph{all} six slots ($H = 0.00$--$2.39$~bits, $34$--$100\%$ modal mass; Figure~\ref{fig:quantization_heatmap}) because the corpus uses a small discrete set of repeated arc radii rather than continuous values. The defensible characterization of the digit head is therefore a \emph{coarse-resolution coordinate recoverer} that picks up the physically- or geometrically-constrained digit positions (whole-inch magnitudes for X/Y/Z, cutting-depth steps for Z, arc-radius vocabulary for R) and is bounded at the uniform-noise ceiling at the fine-resolution positions where the CAM postprocessor's interpolation residuals dominate. Figure~\ref{fig:bits_recoverable_per_axis} summarizes this as a per-axis ``bit budget'': of the total source entropy in each axis's coordinates, the fraction approximately recovered by the decoder.
 
@@ -673,46 +673,6 @@ Stratifying the slot-5 distribution by \emph{operation class} reveals that the u
 \label{fig:digit_distributions}
 \end{figure}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\linewidth]{slot5_by_op_class.pdf}
-\caption{Slot-5 ($10^{-4}$~inch) digit-value distributions per operation class, per axis (X/Y/Z), grouped by op-name family. Bar color encodes the entropy regime: green = strongly quantized ($H<1.5$~bits), amber = partial ($1.5\le H<3.0$), red = uniform CAM-noise ($H\ge 3.0$). The three families separate cleanly: \textbf{face} (rows 1--3) is low-entropy by geometric coordinate-repeat (four overrun X values dominate $96.5\%$ of face X-coordinates); \textbf{pocket} (rows 4--6) is mixed; \textbf{adaptive} (rows 7--9) is at the uniform-noise ceiling with no modal digit. Section~\ref{sec:numeric-decomposition} gives the per-regime mechanism.}
-\label{fig:slot5_by_op_class}
-\end{figure}
-
-\begin{table}[ht]
-\centering
-\caption{Representative G-code rows per operation-class family, illustrating the three slot-5 regimes (Figure~\ref{fig:slot5_by_op_class}). All rows are real lines from the V8 5-fold test corpus; $n$ is the cross-corpus repeat count of the exact line. Face-family lines repeat $\sim$$60$+ times (a small edge-overrun coordinate set); adaptive-family lines are near-unique (the toolpath optimizer emits fresh coordinates per cut). Source: enumeration over \texttt{gcode\_texts} in the per\_row test NPZs, grouped by \texttt{operation\_type\_names}.}
-\label{tab:gcode_examples}
-\small
-\begin{tabular}{l l}
-\toprule
-Family & Representative rows from the V8 test corpus \\
-\midrule
-\texttt{face}            & \texttt{G2 X-0.2084 Y0.7894 R0.083} ($n\!=\!64$), \texttt{X-0.1254 Y0.8724 R0.083} ($n\!=\!64$), \\
-                         & \texttt{G3 X3.358 Y0.9553 R0.083} ($n\!=\!64$), \texttt{X3.275 Y1.0383 R0.083} ($n\!=\!64$) \\
-\texttt{face150025}      & \texttt{G2 X-0.1996 Y0.0991 R0.0742} ($n\!=\!13$), \texttt{G2 X-0.1996 Y0.3959 R0.0742} ($n\!=\!18$) \\
-\texttt{damageface}      & \texttt{X3.5354 Y1.2121 R0.0742} ($n\!=\!16$), \texttt{X-0.1254 Y1.3605 R0.0742} ($n\!=\!16$) \\
-\midrule
-\texttt{pocket}          & \texttt{X1.4353 Y1.6452 Z0.0991} ($n\!=\!5$), \texttt{X1.5375 Y1.4564 Z0.0897} ($n\!=\!4$) \\
-\texttt{pocket150025}    & \texttt{G3 X1.4887 Y0.0732 R0.1172} ($n\!=\!42$), \texttt{G2 X0. Y3.481 R0.071} ($n\!=\!22$) \\
-\texttt{damagepocket}    & \texttt{G3 X1.705 Y-0.071 R0.2099} ($n\!=\!5$), \texttt{G2 X3.41 Y-0.071 R0.071} ($n\!=\!5$) \\
-\midrule
-\texttt{adaptive}        & \texttt{X1.6269 Y1.4641 Z0.0949} ($n\!=\!6$), \texttt{X1.4546 Y1.5534 Z0.0759} ($n\!=\!2$) \\
-\texttt{adaptive150025}  & \texttt{X-0.0257 Y-0.2858 Z0.0211} ($n\!=\!8$), \texttt{X3.3829 Y3.0338} ($n\!=\!8$) \\
-\texttt{damageadaptive}  & \texttt{X3.078 Y2.8097} ($n\!=\!20$), \texttt{X3.0836 Y2.6288} ($n\!=\!20$) \\
-\bottomrule
-\end{tabular}
-\par\smallskip
-\footnotesize\textit{$n$ is the count of the exact full-line string across all five test folds. Face-family lines repeat $\ge 13$ times each (one line per facing-pass overrun, executed every pass); adaptive-family lines have small or unitary counts because the toolpath optimizer produces fresh coordinates per cut.}
-\end{table}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=\linewidth]{gcode_line_example.pdf}
-\caption{Per-position prediction-versus-target plate, one supervised digit position per operation-class family (fold-1 full\_window predictions). Each row pair shows the 6-slot true digits (top, gray) and predicted digits (bottom): green = exact match, yellow = off-by-one (incl.\ the $0\!\leftrightarrow\!9$ float-epsilon shift), red = wrong, gray = PAD; the reconstructed decimal value is printed at right. Face positions tend to exact-match across most slots (memorized geometry); adaptive positions drop accuracy at the low-order slots even when high-order slots are correct; pocket sits between.}
-\label{fig:gcode_line_example}
-\end{figure}
 
 \subsection{Per-Operation-Class Recoverability}
 \label{sec:per-op-class}
@@ -1072,111 +1032,13 @@ the modalities' information content.}
 
 \paragraph{Interpretation.} The $-42$~pp frozen-encoder collapse of Section~\ref{sec:abl-sensors} reduces to $\le\!1.3$~pp under encoder retraining (none significant). The frozen-encoder gating routes signal through every channel at once, so zeroing one disrupts the routing without changing signal availability; with retraining, capacity reallocates onto the remaining channels. The deployment-relevant statement upgrades from \emph{``the full multi-modal stack is required''} (frozen-encoder result) to \emph{``no single modality is individually load-bearing''} (encoder-retraining result). The orthogonal axis --- which physical sensor unit a deployment could ship without --- is addressed in Section~\ref{sec:abl-lomo-sensor}.
 
-\subsubsection{Per-Sensor Encoder Retraining (Leave-One-Sensor-Out)}
-\label{sec:abl-lomo-sensor}
+\subsubsection{Per-Sensor Encoder Retraining (Leave-One-Sensor-Out): summary}
+\label{sec:abl-lomo-sensor-stub}
+Beyond the channel-type LOMO study above, an orthogonal per-physical-sensor-unit Leave-One-Sensor-Out (LOSO) study under encoder retraining quantifies how much each sensor board contributes. The headline result is that removing any single board costs $\le\!2.6$~pp on command accuracy (no removal reaches Holm-corrected significance; fold-blocked ANOVA $F\!=\!1.04$, $p\!=\!0.415$), and \texttt{y\_bed\_\_4} is statistically equivalent to baseline at the $\pm 2$~pp margin (TOST $p\!=\!0.018$, $\mathrm{BF}_{01}\!=\!1.87$). Per-sensor numbers, the per-fold $\Delta$ vector, the equivalence-testing detail, Table~\ref{tab:lomo_sensor}, and Figure~\ref{fig:lomo_sensor} are in Appendix~\ref{app:loso-extended}. The joint LOMO+LOSO deployment statement is consolidated in Section~\ref{sec:disc-modality}.
 
-The leave-one-modality-out study (Section~\ref{sec:abl-lomo}) ablates the
-\emph{channel-type} axis: it removes a sensing modality --- e.g.\ all
-gyroscope channels --- across every sensor board at once. The multi-modal
-stack, however, has an orthogonal axis. The continuous channels are
-physically distributed across \textbf{six sensor units} at distinct machine
-locations, and each unit carries every per-board modality. A modality cannot
-be removed from a deployed machine without removing the boards that carry
-it; a real cost-reduced deployment removes \emph{sensor units}. We therefore
-also run leave-one-\emph{sensor}-out (LOSO), the directly deployment-relevant
-test of which physical sensor a production monitor could ship without.
-
-\paragraph{Protocol.} The 98-channel base comprises six physical sensor
-units --- \texttt{frame\_l2}, \texttt{frame\_l3}, \texttt{frame\_r2},
-\texttt{spindle2}, \texttt{y\_bed\_\_3}, \texttt{y\_bed\_\_4} --- each
-carrying an identical 15-channel set (3 accelerometer, 3 gyroscope, 3
-magnetometer, 4 color, 1 temperature, 1 audio-RMS); the 8 electrical
-channels are machine-controller signals, not a removable board, and are
-retained throughout. For each of the six units we retrain the encoder from
-scratch on the 83-channel set with that unit's channels removed, then train
-a fresh six-head decoder on the resulting frozen encoder (the same
-full-window headline recipe as Section~\ref{sec:abl-lomo}), at the full
-five-fold file-level cross-validation protocol. The per-cell
-channel-identity gate (operated in \emph{sensor} mode, matching by column
-prefix) verifies that exactly the unit's 15 channels were removed and that
-the retrained encoder and the decoder consume an identical 83-channel
-surviving set. Statistical significance is the fold-paired analysis of
-Section~\ref{sec:abl-lomo}: per-fold deltas
-$\Delta(u,f)=\text{command}(u,f)-\text{command}(\text{baseline},f)$, a
-one-sample $t$-test of each unit's deltas against zero with Holm correction
-across the six units, plus a fold-blocked one-way ANOVA on the deltas.
-
-\paragraph{The finding.} Under LOSO retraining the full-stack baseline
-reaches command accuracy $0.905 \pm 0.032$ (five-fold mean $\pm$ s.d.,
-indistinguishable from the modality study's baseline of $0.904 \pm 0.039$).
-Removing a single physical sensor unit and retraining yields
-\texttt{frame\_l2} $0.882 \pm 0.046$, \texttt{frame\_l3} $0.888 \pm 0.040$,
-\texttt{frame\_r2} $0.890 \pm 0.038$, \texttt{spindle2} $0.879 \pm 0.069$,
-\texttt{y\_bed\_\_3} $0.897 \pm 0.035$, and \texttt{y\_bed\_\_4}
-$0.904 \pm 0.026$. The fold-paired effects span from \texttt{y\_bed\_\_4}'s
-$\Delta = -0.000 \pm 0.014$ to \texttt{spindle2}'s $\Delta = -0.026 \pm 0.040$
---- larger in magnitude than the modality study (where every $\Delta$ was
-within $\pm 0.013$) but \textbf{none reaching Holm-corrected significance}
-at $\alpha=0.05$ (smallest $p_{\text{Holm}} = 0.064$ for \texttt{frame\_r2},
-the most consistent effect at $\Delta = -0.015 \pm 0.007$;
-Hedges' $g_{z}\!\approx\!-1.62$, a large effect that fails Holm
-significance only because of the multiplicity correction at $n\!=\!5$).
-The fold-blocked one-way ANOVA across the six LOSO conditions is
-non-significant ($F=1.04$, $p=0.415$). \texttt{spindle2} carries the largest
-$\Delta$ ($-0.026$) but with $\sim 5\times$ higher variance than
-\texttt{frame\_r2} (s.d.\ $0.040$ vs $0.007$; Hedges' $g_{z}\!\approx\!-0.52$,
-medium), consistent with workpiece-dependent rather than uniform
-load-bearing; \texttt{y\_bed\_\_4} at $\Delta \approx 0$,
-$p_{\text{Holm}} = 0.975$, and $g_{z}\!\approx\!0$ is empirically
-indistinguishable from baseline and is the single ``free'' removal,
-fully redundant with its spatial neighbor \texttt{y\_bed\_\_3}.
-Table~\ref{tab:lomo_sensor} reports the per-sensor numbers and
-Figure~\ref{fig:lomo_sensor} shows the per-sensor paired $\Delta$ command;
-full per-fold $\Delta$, Holm-corrected $p$, and effect sizes are in
-\texttt{audit/lomo\_sensor\_attribution.json}.
-
-\input{../tables/lomo_sensor.tex}
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.80\linewidth]{lomo_sensor_bars.pdf}
-\caption{Leave-one-sensor-out encoder retraining: per-sensor fold-paired
-$\Delta$ command accuracy versus the retrained full-stack baseline (zero
-line), with five-fold error bars. Orthogonal to
-Figure~\ref{fig:lomo_modality} (channel-type axis). No sensor reaches
-Holm-corrected significance at $\alpha=0.05$; \texttt{frame\_r2} is the
-closest ($p_{\text{Holm}} = 0.064$). \texttt{spindle2} is the largest in
-magnitude ($\Delta = -0.026$) but the most variable across folds
-(s.d.\ $0.040$). \texttt{y\_bed\_\_4} sits at $\Delta \approx 0$ and is
-fully redundant with \texttt{y\_bed\_\_3}.}
-\label{fig:lomo_sensor}
-\end{figure}
-
-\paragraph{Interpretation.} Effect sizes are roughly $2\times$ those of
-the channel-type LOMO study (max $\Delta\!=\!-0.026$ for \texttt{spindle2}
-vs.\ $-0.013$ for electrical; Section~\ref{sec:abl-lomo}), reflecting
-that a physical sensor unit's 15-channel vector overlaps less perfectly
-with the remaining units than a channel-type does with the remaining
-channel-types. No LOSO removal reaches Holm-corrected significance and
-the fold-blocked ANOVA cannot distinguish the six conditions
-($F\!=\!1.04$, $p\!=\!0.415$). The deployment-relevant LOSO numbers are
-$\le\!2.6$~pp expected cost per dropped sensor unit, the single
-``free'' removal is \texttt{y\_bed\_\_4} (fully redundant with
-\texttt{y\_bed\_\_3}, $p_{\text{Holm}}\!=\!0.975$), and the unit a
-deployment should be most cautious about omitting is \texttt{spindle2}
-(largest-magnitude effect, also the most workpiece-variable). The
-joint LOMO+LOSO deployment statement is consolidated in
-Section~\ref{sec:disc-modality}.
-
-\paragraph{Equivalence testing (evidence \emph{for} the null).} Holm-corrected non-significance is a failure to reject difference, not positive evidence for equivalence; we therefore also report two one-sided tests (TOST)~\cite{schuirmann1987tost} at a pre-registered equivalence margin of $\pm 0.020$ command accuracy (the smallest deployment-relevant effect, 2.0~pp) and Bayes factors $\mathrm{BF}_{01}$ (evidence for $H_0$ over $H_1$) using the default JZS Cauchy prior $r\!=\!0.707$~\cite{rouder2009bayes}. \texttt{y\_bed\_\_4} is equivalent to baseline ($\Delta\!=\!-0.0002$, TOST $p\!=\!0.018$, $\mathrm{BF}_{01}\!=\!1.87$, weak-to-moderate $H_0$ support) and \texttt{y\_bed\_\_3} is also equivalent ($\Delta\!=\!-0.008$, TOST $p\!=\!0.0036$; the $\mathrm{BF}_{01}\!=\!0.28$ is inconclusive at $n\!=\!5$). The remaining four units --- \texttt{frame\_r2}, \texttt{frame\_l3}, \texttt{frame\_l2}, \texttt{spindle2} --- are \emph{inconclusive} at this margin (TOST $p\!\in\![0.10, 0.62]$; $\mathrm{BF}_{01}\!\in\![0.19, 0.93]$): the data neither establish nor rule out a $\ge 2$~pp drop, and a larger fold count would be needed to discharge either hypothesis. The deployment recommendation tightens accordingly: \texttt{y\_bed\_\_4} (or \texttt{y\_bed\_\_3}, but not both jointly) is statistically dispensable; the other four units should be treated as load-bearing until proven otherwise.
-
-\subsubsection{Single-Fold Pilots and Interaction-Effect Probes}
-\label{sec:abl-pilots}
-Four diagnostic probes outside the 5-fold inferential frame are summarized here and excluded from all quantitative / deployment claims.
-\textbf{(i)~Pattern-aware sequence-classifier} (\texttt{audit/seq\_classifier\_pilot.json}): fold-1 command $0.536$ / token $0.694$ vs.\ baseline $0.776$ / $0.747$; the prior over-commits to a whole-line hypothesis early, compounding exposure bias (Section~\ref{sec:disc-mode-collapse}). \emph{Negative result.}
-\textbf{(ii)~Vocabulary precision ($K\!=\!451$, 2-digit)}: fold-1 numeric $0.305$, command lower, parameter-type $0.974$; superseded by the 5-fold $K$-spectrum sweep (Section~\ref{sec:abl-nonumeric}). \emph{Label retained for cross-reference: \texttt{sec:abl-vocab}.}
-\textbf{(iii)~Window/stride sweep} (\texttt{audit/window\_stride\_v2\_summary.json}): seven $(\text{window}, \text{stride})$ cells retrained from scratch; every cell falls below the inherited $w256{:}s64$ headline (range $0.345$--$0.600$ command), with the $w256{:}s128$ vs.\ $w256{:}s64$ contrast isolating stride density as load-bearing. \emph{Single-fold-per-cell; 5-fold confirmation deferred to Section~\ref{sec:roadmap}.}
-\textbf{(iv)~Nested interactions} (shortcuts $\times$ modality and pattern-aware $\times$ modality, Appendix~\ref{app:nested}; full $3\!\times\!3$ cell table in \texttt{audit/lomo\_nested\_attribution.json}): the modality main effect ($\sim\!40$~pp collapse, ANOVA $p\!=\!0.998$) dominates any interaction, and the shortcuts effect is null on the categorical heads; neither cross-product changes a deployment recommendation.\label{sec:abl-pattern}\label{sec:abl-vocab}\label{sec:abl-window-stride}\label{sec:abl-nested}
+\subsubsection{Single-Fold Pilots and Interaction-Effect Probes: summary}
+\label{sec:abl-pilots-stub}
+Four diagnostic single-fold probes (pattern-aware sequence classifier; $K\!=\!451$ 2-digit vocabulary precision pilot; seven-cell window/stride sweep; nested shortcuts$\times$modality and pattern$\times$modality interactions) are reported in Appendix~\ref{app:single-fold-pilots} and excluded from all quantitative / deployment claims. None overturns the headline; the modality main effect dominates any interaction.
 
 \subsection{RQ4: Cross-Class Generalization (Leave-One-Class-Out)}
 \label{sec:loco}
@@ -1612,6 +1474,171 @@ This section collects corroborating diagnostic figures and the full tamper-aggre
 \end{figure}
 
 The full $(K,\rho,\text{rule})$ aggregation sweep --- any-of-K, all-of-K, and majority-of-K at $K\in\{1,3,5,10,20,50\}$ for $\rho\in\{0.0,0.3,0.42_{\text{empirical}},0.6\}$, for both the baseline and with-metadata configurations and all three attack classes --- is released in \texttt{audit/tamper\_aggregation\_correlated.json} and \texttt{audit/tamper\_aggregation\_sweep.json}. The main-text threat-model section reports the operating points that matter for deployment (the measured-$\rho$ command-swap $K=10$ majority point, the modal-substitution sensor-vs-prior control, and the open-vocabulary LOCO point); the JSON contains the exhaustive grid.
+
+\clearpage
+% =====================================================================
+\section{Extended Ablations}
+\label{app:extended-ablations}
+
+This appendix collects three extended ablation analyses lifted from the main body for length: the per-physical-sensor-unit leave-one-out study (Appendix~\ref{app:loso-extended}); the per-operation-class stratification of the $10^{-4}$-inch slot-5 distribution that explains the bathtub upturn (Appendix~\ref{app:source-entropy}); and the four diagnostic single-fold pilots (Appendix~\ref{app:single-fold-pilots}).
+
+\subsection{Per-Sensor Encoder Retraining (Leave-One-Sensor-Out)}
+\label{app:loso-extended}
+
+\label{sec:abl-lomo-sensor}
+
+The leave-one-modality-out study (Section~\ref{sec:abl-lomo}) ablates the
+\emph{channel-type} axis: it removes a sensing modality --- e.g.\ all
+gyroscope channels --- across every sensor board at once. The multi-modal
+stack, however, has an orthogonal axis. The continuous channels are
+physically distributed across \textbf{six sensor units} at distinct machine
+locations, and each unit carries every per-board modality. A modality cannot
+be removed from a deployed machine without removing the boards that carry
+it; a real cost-reduced deployment removes \emph{sensor units}. We therefore
+also run leave-one-\emph{sensor}-out (LOSO), the directly deployment-relevant
+test of which physical sensor a production monitor could ship without.
+
+\paragraph{Protocol.} The 98-channel base comprises six physical sensor
+units --- \texttt{frame\_l2}, \texttt{frame\_l3}, \texttt{frame\_r2},
+\texttt{spindle2}, \texttt{y\_bed\_\_3}, \texttt{y\_bed\_\_4} --- each
+carrying an identical 15-channel set (3 accelerometer, 3 gyroscope, 3
+magnetometer, 4 color, 1 temperature, 1 audio-RMS); the 8 electrical
+channels are machine-controller signals, not a removable board, and are
+retained throughout. For each of the six units we retrain the encoder from
+scratch on the 83-channel set with that unit's channels removed, then train
+a fresh six-head decoder on the resulting frozen encoder (the same
+full-window headline recipe as Section~\ref{sec:abl-lomo}), at the full
+five-fold file-level cross-validation protocol. The per-cell
+channel-identity gate (operated in \emph{sensor} mode, matching by column
+prefix) verifies that exactly the unit's 15 channels were removed and that
+the retrained encoder and the decoder consume an identical 83-channel
+surviving set. Statistical significance is the fold-paired analysis of
+Section~\ref{sec:abl-lomo}: per-fold deltas
+$\Delta(u,f)=\text{command}(u,f)-\text{command}(\text{baseline},f)$, a
+one-sample $t$-test of each unit's deltas against zero with Holm correction
+across the six units, plus a fold-blocked one-way ANOVA on the deltas.
+
+\paragraph{The finding.} Under LOSO retraining the full-stack baseline
+reaches command accuracy $0.905 \pm 0.032$ (five-fold mean $\pm$ s.d.,
+indistinguishable from the modality study's baseline of $0.904 \pm 0.039$).
+Removing a single physical sensor unit and retraining yields
+\texttt{frame\_l2} $0.882 \pm 0.046$, \texttt{frame\_l3} $0.888 \pm 0.040$,
+\texttt{frame\_r2} $0.890 \pm 0.038$, \texttt{spindle2} $0.879 \pm 0.069$,
+\texttt{y\_bed\_\_3} $0.897 \pm 0.035$, and \texttt{y\_bed\_\_4}
+$0.904 \pm 0.026$. The fold-paired effects span from \texttt{y\_bed\_\_4}'s
+$\Delta = -0.000 \pm 0.014$ to \texttt{spindle2}'s $\Delta = -0.026 \pm 0.040$
+--- larger in magnitude than the modality study (where every $\Delta$ was
+within $\pm 0.013$) but \textbf{none reaching Holm-corrected significance}
+at $\alpha=0.05$ (smallest $p_{\text{Holm}} = 0.064$ for \texttt{frame\_r2},
+the most consistent effect at $\Delta = -0.015 \pm 0.007$;
+Hedges' $g_{z}\!\approx\!-1.62$, a large effect that fails Holm
+significance only because of the multiplicity correction at $n\!=\!5$).
+The fold-blocked one-way ANOVA across the six LOSO conditions is
+non-significant ($F=1.04$, $p=0.415$). \texttt{spindle2} carries the largest
+$\Delta$ ($-0.026$) but with $\sim 5\times$ higher variance than
+\texttt{frame\_r2} (s.d.\ $0.040$ vs $0.007$; Hedges' $g_{z}\!\approx\!-0.52$,
+medium), consistent with workpiece-dependent rather than uniform
+load-bearing; \texttt{y\_bed\_\_4} at $\Delta \approx 0$,
+$p_{\text{Holm}} = 0.975$, and $g_{z}\!\approx\!0$ is empirically
+indistinguishable from baseline and is the single ``free'' removal,
+fully redundant with its spatial neighbor \texttt{y\_bed\_\_3}.
+Table~\ref{tab:lomo_sensor} reports the per-sensor numbers and
+Figure~\ref{fig:lomo_sensor} shows the per-sensor paired $\Delta$ command;
+full per-fold $\Delta$, Holm-corrected $p$, and effect sizes are in
+\texttt{audit/lomo\_sensor\_attribution.json}.
+
+\input{../tables/lomo_sensor.tex}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.80\linewidth]{lomo_sensor_bars.pdf}
+\caption{Leave-one-sensor-out encoder retraining: per-sensor fold-paired
+$\Delta$ command accuracy versus the retrained full-stack baseline (zero
+line), with five-fold error bars. Orthogonal to
+Figure~\ref{fig:lomo_modality} (channel-type axis). No sensor reaches
+Holm-corrected significance at $\alpha=0.05$; \texttt{frame\_r2} is the
+closest ($p_{\text{Holm}} = 0.064$). \texttt{spindle2} is the largest in
+magnitude ($\Delta = -0.026$) but the most variable across folds
+(s.d.\ $0.040$). \texttt{y\_bed\_\_4} sits at $\Delta \approx 0$ and is
+fully redundant with \texttt{y\_bed\_\_3}.}
+\label{fig:lomo_sensor}
+\end{figure}
+
+\paragraph{Interpretation.} Effect sizes are roughly $2\times$ those of
+the channel-type LOMO study (max $\Delta\!=\!-0.026$ for \texttt{spindle2}
+vs.\ $-0.013$ for electrical; Section~\ref{sec:abl-lomo}), reflecting
+that a physical sensor unit's 15-channel vector overlaps less perfectly
+with the remaining units than a channel-type does with the remaining
+channel-types. No LOSO removal reaches Holm-corrected significance and
+the fold-blocked ANOVA cannot distinguish the six conditions
+($F\!=\!1.04$, $p\!=\!0.415$). The deployment-relevant LOSO numbers are
+$\le\!2.6$~pp expected cost per dropped sensor unit, the single
+``free'' removal is \texttt{y\_bed\_\_4} (fully redundant with
+\texttt{y\_bed\_\_3}, $p_{\text{Holm}}\!=\!0.975$), and the unit a
+deployment should be most cautious about omitting is \texttt{spindle2}
+(largest-magnitude effect, also the most workpiece-variable). The
+joint LOMO+LOSO deployment statement is consolidated in
+Section~\ref{sec:disc-modality}.
+
+\paragraph{Equivalence testing (evidence \emph{for} the null).} Holm-corrected non-significance is a failure to reject difference, not positive evidence for equivalence; we therefore also report two one-sided tests (TOST)~\cite{schuirmann1987tost} at a pre-registered equivalence margin of $\pm 0.020$ command accuracy (the smallest deployment-relevant effect, 2.0~pp) and Bayes factors $\mathrm{BF}_{01}$ (evidence for $H_0$ over $H_1$) using the default JZS Cauchy prior $r\!=\!0.707$~\cite{rouder2009bayes}. \texttt{y\_bed\_\_4} is equivalent to baseline ($\Delta\!=\!-0.0002$, TOST $p\!=\!0.018$, $\mathrm{BF}_{01}\!=\!1.87$, weak-to-moderate $H_0$ support) and \texttt{y\_bed\_\_3} is also equivalent ($\Delta\!=\!-0.008$, TOST $p\!=\!0.0036$; the $\mathrm{BF}_{01}\!=\!0.28$ is inconclusive at $n\!=\!5$). The remaining four units --- \texttt{frame\_r2}, \texttt{frame\_l3}, \texttt{frame\_l2}, \texttt{spindle2} --- are \emph{inconclusive} at this margin (TOST $p\!\in\![0.10, 0.62]$; $\mathrm{BF}_{01}\!\in\![0.19, 0.93]$): the data neither establish nor rule out a $\ge 2$~pp drop, and a larger fold count would be needed to discharge either hypothesis. The deployment recommendation tightens accordingly: \texttt{y\_bed\_\_4} (or \texttt{y\_bed\_\_3}, but not both jointly) is statistically dispensable; the other four units should be treated as load-bearing until proven otherwise.
+
+
+\subsection{Per-Operation-Class Slot-5 Stratification}
+\label{app:source-entropy}
+
+Stratifying the slot-5 distribution by \emph{operation class} reveals that the uniform-noise picture is not uniform across the corpus; three distinct regimes coexist (Figure~\ref{fig:slot5_by_op_class}). \textbf{(i) Adaptive HSM (High-Speed Machining) toolpaths} (\texttt{adaptive}, \texttt{adaptive150025}, and the \texttt{pocket} class, which is adaptive-style in this corpus) produce the canonical CAM-interpolation-noise signature: per-axis slot-5 entropy $\approx 3.26$--$3.30$ bits with comparatively low mass on digit `0' (for X: $9\%$ on \texttt{adaptive150025} through $17\%$ on \texttt{pocket} --- read off Figure~\ref{fig:slot5_by_op_class}) distributed across all digits with no concentrated modal value, the signature of a toolpath optimizer producing floating-point residuals rather than authoring round-ending coordinates at $10^{-4}$~inch ($2.54$~\textmu m). \textbf{(ii) Traditional facing operations} (\texttt{face}, \texttt{face150025}, \texttt{damageface}) have slot-5 entropy $\approx 1.55$--$1.71$ bits with $49$--$56\%$ mass on a single digit --- but the mechanism is geometric \emph{coordinate repetition}, not a CAM precision grid. In \texttt{face}, four specific X values --- the facing-pass entry/exit coordinates on the workpiece left and right edges --- dominate: $X\!=\!-0.1254$ ($n\!=\!624$), $X\!=\!-0.2084$ ($n\!=\!464$), $X\!=\!3.275$ ($n\!=\!608$), and $X\!=\!3.358$ ($n\!=\!464$), together $2{,}160$ of the $2{,}238$ X-coordinates ($96.5\%$). The two negative-X overruns drive the digit-`4' mass at slot~5; the two positive-X overruns drive mass at digits `0' and `9' (the latter via the float-epsilon target-encoding artifact of Appendix~\ref{app:digit_encoding}). \textbf{(iii) Pocket-style operations with tight geometry} (\texttt{pocket150025}, \texttt{damagepocket}, \texttt{damageadaptive}) sit between: slot-5 entropy $\approx 2.58$--$3.22$ bits with partial mass on `0' from arc/line waypoint repeats (e.g., \texttt{Y-0.071} appearing dozens of times along a fixed pocket wall). The bathtub \emph{upturn} of the pooled slot-5 curve is therefore the joint signature of coordinate-repeat in traditional ops and a separate float-epsilon target-encoding artifact ($23.6\%$ of CAM-authored terminal zeros encode to digit `9' under the model's iterative \texttt{int(dec\_part * 10) \% 10}), both detailed in Appendix~\ref{app:digit_encoding}, not a genuine per-axis recovery of the ten-thousandth digit. Representative G-code rows for each regime are shown in Table~\ref{tab:gcode_examples}, and a position-level prediction-versus-target plate (one supervised position per operation-class family, with predicted and target digits rendered as colored tiles per slot) is given in Figure~\ref{fig:gcode_line_example}.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{slot5_by_op_class.pdf}
+\caption{Slot-5 ($10^{-4}$~inch) digit-value distributions per operation class, per axis (X/Y/Z), grouped by op-name family. Bar color encodes the entropy regime: green = strongly quantized ($H<1.5$~bits), amber = partial ($1.5\le H<3.0$), red = uniform CAM-noise ($H\ge 3.0$). The three families separate cleanly: \textbf{face} (rows 1--3) is low-entropy by geometric coordinate-repeat (four overrun X values dominate $96.5\%$ of face X-coordinates); \textbf{pocket} (rows 4--6) is mixed; \textbf{adaptive} (rows 7--9) is at the uniform-noise ceiling with no modal digit. Section~\ref{sec:numeric-decomposition} gives the per-regime mechanism.}
+\label{fig:slot5_by_op_class}
+\end{figure}
+
+\begin{table}[ht]
+\centering
+\caption{Representative G-code rows per operation-class family, illustrating the three slot-5 regimes (Figure~\ref{fig:slot5_by_op_class}). All rows are real lines from the V8 5-fold test corpus; $n$ is the cross-corpus repeat count of the exact line. Face-family lines repeat $\sim$$60$+ times (a small edge-overrun coordinate set); adaptive-family lines are near-unique (the toolpath optimizer emits fresh coordinates per cut). Source: enumeration over \texttt{gcode\_texts} in the per\_row test NPZs, grouped by \texttt{operation\_type\_names}.}
+\label{tab:gcode_examples}
+\small
+\begin{tabular}{l l}
+\toprule
+Family & Representative rows from the V8 test corpus \\
+\midrule
+\texttt{face}            & \texttt{G2 X-0.2084 Y0.7894 R0.083} ($n\!=\!64$), \texttt{X-0.1254 Y0.8724 R0.083} ($n\!=\!64$), \\
+                         & \texttt{G3 X3.358 Y0.9553 R0.083} ($n\!=\!64$), \texttt{X3.275 Y1.0383 R0.083} ($n\!=\!64$) \\
+\texttt{face150025}      & \texttt{G2 X-0.1996 Y0.0991 R0.0742} ($n\!=\!13$), \texttt{G2 X-0.1996 Y0.3959 R0.0742} ($n\!=\!18$) \\
+\texttt{damageface}      & \texttt{X3.5354 Y1.2121 R0.0742} ($n\!=\!16$), \texttt{X-0.1254 Y1.3605 R0.0742} ($n\!=\!16$) \\
+\midrule
+\texttt{pocket}          & \texttt{X1.4353 Y1.6452 Z0.0991} ($n\!=\!5$), \texttt{X1.5375 Y1.4564 Z0.0897} ($n\!=\!4$) \\
+\texttt{pocket150025}    & \texttt{G3 X1.4887 Y0.0732 R0.1172} ($n\!=\!42$), \texttt{G2 X0. Y3.481 R0.071} ($n\!=\!22$) \\
+\texttt{damagepocket}    & \texttt{G3 X1.705 Y-0.071 R0.2099} ($n\!=\!5$), \texttt{G2 X3.41 Y-0.071 R0.071} ($n\!=\!5$) \\
+\midrule
+\texttt{adaptive}        & \texttt{X1.6269 Y1.4641 Z0.0949} ($n\!=\!6$), \texttt{X1.4546 Y1.5534 Z0.0759} ($n\!=\!2$) \\
+\texttt{adaptive150025}  & \texttt{X-0.0257 Y-0.2858 Z0.0211} ($n\!=\!8$), \texttt{X3.3829 Y3.0338} ($n\!=\!8$) \\
+\texttt{damageadaptive}  & \texttt{X3.078 Y2.8097} ($n\!=\!20$), \texttt{X3.0836 Y2.6288} ($n\!=\!20$) \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\textit{$n$ is the count of the exact full-line string across all five test folds. Face-family lines repeat $\ge 13$ times each (one line per facing-pass overrun, executed every pass); adaptive-family lines have small or unitary counts because the toolpath optimizer produces fresh coordinates per cut.}
+\end{table}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\linewidth]{gcode_line_example.pdf}
+\caption{Per-position prediction-versus-target plate, one supervised digit position per operation-class family (fold-1 full\_window predictions). Each row pair shows the 6-slot true digits (top, gray) and predicted digits (bottom): green = exact match, yellow = off-by-one (incl.\ the $0\!\leftrightarrow\!9$ float-epsilon shift), red = wrong, gray = PAD; the reconstructed decimal value is printed at right. Face positions tend to exact-match across most slots (memorized geometry); adaptive positions drop accuracy at the low-order slots even when high-order slots are correct; pocket sits between.}
+\label{fig:gcode_line_example}
+\end{figure}
+
+\subsection{Single-Fold Pilots and Interaction-Effect Probes}
+\label{app:single-fold-pilots}
+
+\label{sec:abl-pilots}
+Four diagnostic probes outside the 5-fold inferential frame are summarized here and excluded from all quantitative / deployment claims.
+\textbf{(i)~Pattern-aware sequence-classifier} (\texttt{audit/seq\_classifier\_pilot.json}): fold-1 command $0.536$ / token $0.694$ vs.\ baseline $0.776$ / $0.747$; the prior over-commits to a whole-line hypothesis early, compounding exposure bias (Section~\ref{sec:disc-mode-collapse}). \emph{Negative result.}
+\textbf{(ii)~Vocabulary precision ($K\!=\!451$, 2-digit)}: fold-1 numeric $0.305$, command lower, parameter-type $0.974$; superseded by the 5-fold $K$-spectrum sweep (Section~\ref{sec:abl-nonumeric}). \emph{Label retained for cross-reference: \texttt{sec:abl-vocab}.}
+\textbf{(iii)~Window/stride sweep} (\texttt{audit/window\_stride\_v2\_summary.json}): seven $(\text{window}, \text{stride})$ cells retrained from scratch; every cell falls below the inherited $w256{:}s64$ headline (range $0.345$--$0.600$ command), with the $w256{:}s128$ vs.\ $w256{:}s64$ contrast isolating stride density as load-bearing. \emph{Single-fold-per-cell; 5-fold confirmation deferred to Section~\ref{sec:roadmap}.}
+\textbf{(iv)~Nested interactions} (shortcuts $\times$ modality and pattern-aware $\times$ modality, Appendix~\ref{app:nested}; full $3\!\times\!3$ cell table in \texttt{audit/lomo\_nested\_attribution.json}): the modality main effect ($\sim\!40$~pp collapse, ANOVA $p\!=\!0.998$) dominates any interaction, and the shortcuts effect is null on the categorical heads; neither cross-product changes a deployment recommendation.\label{sec:abl-pattern}\label{sec:abl-vocab}\label{sec:abl-window-stride}\label{sec:abl-nested}
+
 
 \clearpage
 % =====================================================================
