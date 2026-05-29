@@ -724,30 +724,6 @@ Beyond aggregate accuracies, we classify the qualitative shape of the decoder's 
 \label{fig:failure_examples}
 \end{figure}
 
-\subsubsection{Autoregressive Mode Collapse on Full-Window Targets}
-\label{sec:disc-mode-collapse}
-
-The qualitative-failure analysis above is computed on per-row predictions, where each sample is a single short G-code line and autoregressive decoding spans only $\sim$5--15 tokens. On full-window targets ($\sim$1{,}000--1{,}400 tokens per sample), the autoregressive decoder exhibits a qualitatively different and more severe failure mode: \emph{mode collapse to a corpus-modal token sequence}. To illustrate, we inspected the first three test samples in fold~1's full-window split and report their autoregressive (beam-width-one) decodings:
-\begin{quote}\small\ttfamily
-\begin{tabular}{l p{0.78\textwidth}}
-sample 1 TRUE & X NUM\_X\_1627 Y NUM\_Y\_1464 Z NUM\_Z\_0095 X NUM\_X\_1623 Y NUM\_Y\_1687 \ldots \\
-sample 1 PRED & X NUM\_X\_1466 Y NUM\_Y\_1630 Z NUM\_Z\_0052 X NUM\_X\_1455 Y NUM\_Y\_1607 \ldots \\
-\addlinespace
-sample 2 TRUE & X NUM\_X\_1466 Y NUM\_Y\_1630 Z NUM\_Z\_0052 X NUM\_X\_1457 Y NUM\_Y\_1607 \ldots \\
-sample 2 PRED & X NUM\_X\_1466 Y NUM\_Y\_1630 Z NUM\_Z\_0052 X NUM\_X\_1457 Y NUM\_Y\_1607 \ldots \\
-\addlinespace
-sample 3 TRUE & X NUM\_X\_1569 Y NUM\_Y\_1453 Z NUM\_Z\_0097 X NUM\_X\_1676 Y NUM\_Y\_1645 \ldots \\
-sample 3 PRED & X NUM\_X\_1466 Y NUM\_Y\_1630 Z NUM\_Z\_0052 X NUM\_X\_1455 Y NUM\_Y\_1607 \ldots \\
-\end{tabular}
-\end{quote}
-Samples 1 and 3 receive essentially the same predicted token stream as each other, despite having visibly different TRUE sequences. Sample 2's TRUE happens to coincide with the corpus-modal sequence, so it scores near-perfectly purely by accident. The decoder has converged to a canonical ``facing-operation toolpath'' and emits it autoregressively regardless of the sensor input that conditioned the encoder memory. Cross-attention into the encoder memory is effectively dropped under autoregressive generation: the decoder's own previous-token state dominates, and once on the modal trajectory the decoder stays there.
-
-This mode collapse is the mechanism behind the autoregressive-token-accuracy drop reported in Section~\ref{sec:results-headline}; the categorical heads are unaffected for the reason stated in Section~\ref{sec:metrics}. Figure~\ref{fig:heatmap} quantifies the effect as a pairwise prediction-similarity matrix across test samples. The primary evidence for the mechanism is the output-diversity audit ($3.3\times$ over-representation of the modal pattern) and the per-operation-class breakdown; the target-length correlation (Figure~\ref{fig:lenacc}, Pearson $r \approx -0.15$) is weak and we treat it only as corroborating, not load-bearing. Section~\ref{sec:disc-when-to-use} recommends per-row mode at deployment time on this basis.
-
-\paragraph{Output-string diversity (partial vs.\ total collapse).} A natural quantitative test of mode collapse is the diversity of distinct output strings produced across the test set. Across the 549 test samples in the baseline 5-fold split, the autoregressive decoder produces 407 distinct predicted token-strings (74\% of inputs map to a distinct output); the corresponding ground-truth set contains 459 distinct strings (84\%). The modal predicted string appears in $9.5\%$ of predictions on average, versus a modal ground-truth string appearing in $2.9\%$ of windows --- a $3.3\times$ over-representation of the modal pattern (\texttt{audit/ar\_output\_diversity.json}). The collapse is therefore \emph{partial}: the decoder does not produce a single canonical output, but it over-concentrates on the modal facing-pattern at roughly three times the natural rate. This is consistent with the per-class breakdown above and the heatmap in Figure~\ref{fig:heatmap}: within an operation-class block the predictions are mostly the same, but across classes the model does emit visibly different (though equally wrong) token strings.
-
-% mode_collapse_heatmap and length_vs_accuracy figures relocated to
-
 \subsection{RQ2: Metadata vs.\ Sensor and Per-Row vs.\ Full-Window}
 \label{sec:results-rq2}
 
@@ -791,36 +767,7 @@ not the numeric vocabulary, is the deployment-relevant bottleneck.
 \subsubsection{No-Numeric Retraining: Decomposing the Autoregressive Collapse}
 \label{sec:abl-nonumeric}
 
-In the full-window tokenization roughly half of every G-code line's positions
-are coordinate \emph{values} (Section~\ref{sec:numeric-decomposition}), each a
-hard selection from the $\sim$2{,}400-entry numeric vocabulary, and a single
-mispredicted value desynchronizes the autoregressive decode of the remainder
-of the line. This motivates a direct test of whether the autoregressive
-collapse of Section~\ref{sec:disc-mode-collapse} is \emph{driven} by the
-numeric tokens: if the decoder were relieved of predicting coordinate values,
-the structural skeleton --- command codes and axis letters --- might decode
-correctly end-to-end.
-
-A naive test --- re-scoring the headline decoder's autoregressive predictions
-with the numeric positions excluded from the metric --- is confounded: the
-decoder still \emph{emits} a coordinate value at every numeric position, so a
-mispredicted value still desynchronizes the surrounding structural tokens
-before the metric masks them, leaving structural-only autoregressive token
-accuracy ($0.317$) only modestly above the unmasked figure ($0.215$) --- a
-contaminated lower bound. The clean test removes the numeric tokens from the
-decoder's prediction problem entirely: we retrain the decoder with every
-coordinate value collapsed to a single placeholder token --- a 24-entry
-structural vocabulary in place of the $\sim$2{,}400-entry one --- so the
-decoder predicts only the structural skeleton and a numeric error can never
-desynchronize the decode. The frozen encoder, the 5-fold file-level split,
-and all decoder hyperparameters are unchanged from the headline configuration;
-the digit head is disabled. Training uses teacher forcing throughout:
-scheduled sampling, used by the headline model, destabilizes optimization
-once the numeric vocabulary is collapsed --- the placeholder vocabulary
-offers no per-position lexical variety for the decoder to re-anchor on ---
-and is therefore disabled for this ablation, after which validation token
-accuracy converges stably ($\sim$$0.96$ across folds; last-25-epoch standard
-deviation $<\!0.01$ on every fold).
+Roughly half of every G-code line's positions are coordinate \emph{values} (Section~\ref{sec:numeric-decomposition}), each a hard selection from the $\sim$2{,}400-entry numeric vocabulary, and a single mispredicted value desynchronizes the autoregressive decode of the remainder of the line --- motivating a direct test of whether the AR collapse of Section~\ref{sec:disc-mode-collapse} is \emph{driven} by the numeric tokens. A naive test that re-scores the headline decoder's AR predictions with numeric positions masked is confounded: mispredicted values still desynchronize the surrounding structural tokens before the mask applies, leaving structural-only AR token accuracy at $0.317$ (only modestly above the unmasked $0.215$), a contaminated lower bound. The clean test removes the numerics from the prediction problem entirely: we retrain the decoder with every coordinate value collapsed to a single placeholder token (24-entry structural vocabulary in place of the $\sim$2{,}400-entry one), so a numeric error can never desynchronize the decode. The frozen encoder, 5-fold file-level split, and all other decoder hyperparameters are unchanged; the digit head is disabled and training uses teacher forcing throughout (scheduled sampling destabilizes optimization once the numeric vocabulary collapses --- the placeholder vocabulary offers no per-position lexical variety to re-anchor on --- so it is disabled for this ablation, after which validation token accuracy converges stably at $\sim$$0.96$ across folds, last-25-epoch s.d.\ $<\!0.01$).
 
 Table~\ref{tab:nonumeric} reports the comparison. \textbf{Under teacher
 forcing} the no-numeric decoder reaches structural token accuracy
@@ -1067,8 +1014,10 @@ Gaussian sensor noise ($\sigma=0.02$) plus feature-dropout and token-masking dur
 \section{Discussion}
 \label{sec:discussion}
 
-\subsection{What Is Recoverable, and Why}
-\label{sec:disc-recoverability}
+\subsection{Interpretation and Deployment}
+\label{sec:disc-deployment}
+
+\paragraph{What is recoverable, and why.}\label{sec:disc-recoverability}\hspace*{0pt plus 1fill}
 
 Recoverability factorizes into three structural tiers (numbers in Section~\ref{sec:results-headline} and Table~\ref{tab:per_axis}). \emph{Categorical} structure (command and axis identity) is the strongest tier: the sensor pathway determines which class of motion is occurring and which axes are involved independently of file position; the metadata ablation (Section~\ref{sec:abl-positional}) confirms positional features add nothing.
 
@@ -1076,15 +1025,13 @@ Recoverability factorizes into three structural tiers (numbers in Section~\ref{s
 
 \emph{Numeric precision} is the limiting tier, and the limit is information-theoretic. Loss concentrates at the middle (fine-value) digit positions (Section~\ref{sec:numeric-decomposition}), and a 64-second window observes only relative motion, not absolute machine coordinates: recovering the latter requires positional context (deliberately withheld) or longer-range autoregressive context (which the per-row formulation does not provide). The structural-vs-arithmetic split is also visible in the failure modes: the worst-edit-distance failures are dominated by command-identity confusion (dropped/swapped/hallucinated G-commands), with pure value-only errors essentially absent (Section~\ref{sec:failure-modes}). This is the within-window row-identification ambiguity (Section~\ref{sec:per-row}); full-window targeting supplies the previous row's command as autoregressive context and removes it (Section~\ref{sec:abl-target-mode}). The deeper question --- whether the categorical tier is genuine sensor recovery or the encoder's class prior --- is the subject of the next subsection.\label{sec:disc-failure-mode}
 
-\subsection{Is Categorical Recovery Sensor-Driven or Operation-Class Structure?}
-\label{sec:disc-confound}
+\paragraph{Is categorical recovery sensor-driven or operation-class structure?}\label{sec:disc-confound}\hspace*{0pt plus 1fill}
 
 The frozen encoder was trained for nine-class operation classification on the \emph{same} file-level fold partitions used here (Appendix~\ref{app:encoder-spec}); its memory is strongly low-rank and linearly separates the operation classes (Section~\ref{sec:encoder-probe}). A direct concern (and one a careful reader should press) is therefore whether the headline command accuracy is genuine per-instruction sensor recovery or operation-class structure re-expressed at the command level. We quantify this with a class-prior control (\texttt{audit/confound\_class\_prior.json}; \texttt{scripts/analysis/confound\_class\_prior.py}) that, at every COMMAND-token position of the full-window predictions, compares the decoder against (i) a \emph{class-prior} predictor that emits the modal command of the window's operation class (modal computed on the fold's training split) and (ii) a within-window modal predictor.
 
 The result is a partial vindication with an explicit caveat. The decoder's command accuracy at command positions is $0.795 \pm 0.121$ (5-fold; the spread is dominated by the fold-1 covariate-shift outlier, Section~\ref{sec:lim-covariate}), versus a class-prior baseline of $0.572 \pm 0.004$ and a within-window-modal baseline of $0.587 \pm 0.003$. (The $0.795$ here is command accuracy evaluated only at COMMAND-token positions of the full-window predictions, a different position subset and aggregation than the $0.8875$ head accuracy in Table~\ref{tab:headline}; the two are consistent measurements of the same predictions, not a discrepancy, exactly as for the per-file mean in Section~\ref{sec:lim-per-file}.) Two things follow. First, a majority of the headline command signal --- roughly $0.57$ of the $0.79$ --- \emph{is} attributable to operation-class structure the encoder already encodes; the absolute command numbers must be read in that light, and this is the representational counterpart of the leave-one-class-out collapse (Section~\ref{sec:loco}). Second, the decoder nevertheless adds $\sim\!22$~pp of genuine, sensor-conditioned, within-class command discrimination above the class prior, and it does so on the $97.4\% \pm 1.4\%$ of windows that contain more than one distinct command (its accuracy on those command-heterogeneous windows, $0.794 \pm 0.122$, is indistinguishable from its pooled accuracy --- it is not merely echoing a per-window stereotype). The honest statement is therefore neither ``the decoder recovers commands from sensors'' nor ``the decoder only re-reads the class label'': it recovers a real but bounded increment of per-instruction command information on top of a large operation-class prior, and that increment, not the headline number, is the magnitude that survives a change of operation class.
 
-\subsection{Sensor-Modality Importance and Deployment Implications}
-\label{sec:disc-modality}
+\paragraph{Sensor-modality importance and deployment implications.}\label{sec:disc-modality}\hspace*{0pt plus 1fill}
 
 \textbf{The deployment-relevant takeaway is that a cost-reduced production monitor is viable: drop \texttt{y\_bed\_\_4}, retain \texttt{spindle2}.} The reasoning, summarized in three steps, follows.
 
@@ -1094,13 +1041,11 @@ Second, the encoder-retraining complement (Section~\ref{sec:abl-lomo}) is the de
 
 Third, the orthogonal axis --- which physical \emph{sensor unit} a deployment could ship without --- is addressed by the companion leave-one-sensor-out study (Section~\ref{sec:abl-lomo-sensor}): removing any single sensor unit and retraining costs $\le\!2.6$~pp on command (largest: \texttt{spindle2} $\Delta\!=\!-0.026$; smallest: \texttt{y\_bed\_\_4} $\Delta\!\approx\!0$), with no removal reaching Holm-corrected significance ($p_{\text{Holm}}\!\ge\!0.064$; fold-blocked ANOVA $F\!=\!1.04$, $p\!=\!0.415$). Across both axes, any single sensing modality can be dropped at $\le\!1.3$~pp expected cost and any single physical sensor board at $\le\!2.6$~pp. The strongest single recommendation is to drop \texttt{y\_bed\_\_4}, which is fully redundant with its spatial neighbor \texttt{y\_bed\_\_3} at zero observed effect ($p_{\text{Holm}}\!=\!0.975$); \texttt{spindle2} is the unit a deployment should be most cautious about omitting (largest-magnitude effect, also the most workpiece-variable).
 
-\subsection{Comparison with Side-Channel Recovery in Additive Manufacturing}
-\label{sec:disc-comparison-am}
+\paragraph{Comparison with side-channel recovery in additive manufacturing.}\label{sec:disc-comparison-am}\hspace*{0pt plus 1fill}
 
 Additive-manufacturing side-channels~\cite{alfaruque2016acoustic,song2016my,chhetri2016kcad,jamarani2024screg,chattopadhyay2025video} reconstruct full print geometry; we match their categorical fidelity but not their geometric fidelity. The gap is expected: the AM literature samples raw acoustics at kHz--MHz, whereas the present 4-Hz stack is deliberately low-rate (Section~\ref{sec:related-sidechan}, Section~\ref{sec:lim-method}). The comparison bounds what the low-rate stack forgoes, not a deficiency of the method.
 
-\subsection{When to Use This Decoder vs.\ Alternative Approaches}
-\label{sec:disc-when-to-use}
+\paragraph{When to use this decoder vs.\ alternative approaches.}\label{sec:disc-when-to-use}\hspace*{0pt plus 1fill}
 
 The decoder is best suited to one of three deployment patterns:
 
@@ -1140,6 +1085,29 @@ Detectable attack classes & \emph{In-distribution, closed-vocabulary only:} comm
 \end{tabular}
 \end{center}
 \noindent\footnotesize\textit{Scope: derived on a single Bantam Tools desktop-mill, single-material corpus under the closed-vocabulary in-distribution regime; the detectable-attack guarantees hold within the trained envelope and require re-validation for a different machine/material class or a genuinely novel toolpath strategy (Sections~\ref{sec:lim-dataset},~\ref{sec:loco}).}\normalsize
+
+\subsection{Autoregressive Mode Collapse on Full-Window Targets}
+\label{sec:disc-mode-collapse}
+
+The qualitative-failure analysis above is computed on per-row predictions, where each sample is a single short G-code line and autoregressive decoding spans only $\sim$5--15 tokens. On full-window targets ($\sim$1{,}000--1{,}400 tokens per sample), the autoregressive decoder exhibits a qualitatively different and more severe failure mode: \emph{mode collapse to a corpus-modal token sequence}. To illustrate, we inspected the first three test samples in fold~1's full-window split and report their autoregressive (beam-width-one) decodings:
+\begin{quote}\small\ttfamily
+\begin{tabular}{l p{0.78\textwidth}}
+sample 1 TRUE & X NUM\_X\_1627 Y NUM\_Y\_1464 Z NUM\_Z\_0095 X NUM\_X\_1623 Y NUM\_Y\_1687 \ldots \\
+sample 1 PRED & X NUM\_X\_1466 Y NUM\_Y\_1630 Z NUM\_Z\_0052 X NUM\_X\_1455 Y NUM\_Y\_1607 \ldots \\
+\addlinespace
+sample 2 TRUE & X NUM\_X\_1466 Y NUM\_Y\_1630 Z NUM\_Z\_0052 X NUM\_X\_1457 Y NUM\_Y\_1607 \ldots \\
+sample 2 PRED & X NUM\_X\_1466 Y NUM\_Y\_1630 Z NUM\_Z\_0052 X NUM\_X\_1457 Y NUM\_Y\_1607 \ldots \\
+\addlinespace
+sample 3 TRUE & X NUM\_X\_1569 Y NUM\_Y\_1453 Z NUM\_Z\_0097 X NUM\_X\_1676 Y NUM\_Y\_1645 \ldots \\
+sample 3 PRED & X NUM\_X\_1466 Y NUM\_Y\_1630 Z NUM\_Z\_0052 X NUM\_X\_1455 Y NUM\_Y\_1607 \ldots \\
+\end{tabular}
+\end{quote}
+Samples 1 and 3 receive essentially the same predicted token stream as each other, despite having visibly different TRUE sequences. Sample 2's TRUE happens to coincide with the corpus-modal sequence, so it scores near-perfectly purely by accident. The decoder has converged to a canonical ``facing-operation toolpath'' and emits it autoregressively regardless of the sensor input that conditioned the encoder memory. Cross-attention into the encoder memory is effectively dropped under autoregressive generation: the decoder's own previous-token state dominates, and once on the modal trajectory the decoder stays there.
+
+This mode collapse is the mechanism behind the autoregressive-token-accuracy drop reported in Section~\ref{sec:results-headline}; the categorical heads are unaffected for the reason stated in Section~\ref{sec:metrics}. Figure~\ref{fig:heatmap} quantifies the effect as a pairwise prediction-similarity matrix across test samples. The primary evidence for the mechanism is the output-diversity audit ($3.3\times$ over-representation of the modal pattern) and the per-operation-class breakdown; the target-length correlation (Figure~\ref{fig:lenacc}, Pearson $r \approx -0.15$) is weak and we treat it only as corroborating, not load-bearing. Section~\ref{sec:disc-when-to-use} recommends per-row mode at deployment time on this basis.
+
+\paragraph{Output-string diversity (partial vs.\ total collapse).} A natural quantitative test of mode collapse is the diversity of distinct output strings produced across the test set. Across the 549 test samples in the baseline 5-fold split, the autoregressive decoder produces 407 distinct predicted token-strings (74\% of inputs map to a distinct output); the corresponding ground-truth set contains 459 distinct strings (84\%). The modal predicted string appears in $9.5\%$ of predictions on average, versus a modal ground-truth string appearing in $2.9\%$ of windows --- a $3.3\times$ over-representation of the modal pattern (\texttt{audit/ar\_output\_diversity.json}). The collapse is therefore \emph{partial}: the decoder does not produce a single canonical output, but it over-concentrates on the modal facing-pattern at roughly three times the natural rate. This is consistent with the per-class breakdown above and the heatmap in Figure~\ref{fig:heatmap}: within an operation-class block the predictions are mostly the same, but across classes the model does emit visibly different (though equally wrong) token strings.
+
 
 \subsection{Threat Model and Cybersecurity Positioning}
 \label{sec:disc-threat-model}
@@ -1604,18 +1572,10 @@ Stratifying the slot-5 distribution by \emph{operation class} reveals that the u
 \toprule
 Family & Representative rows from the V8 test corpus \\
 \midrule
-\texttt{face}            & \texttt{G2 X-0.2084 Y0.7894 R0.083} ($n\!=\!64$), \texttt{X-0.1254 Y0.8724 R0.083} ($n\!=\!64$), \\
-                         & \texttt{G3 X3.358 Y0.9553 R0.083} ($n\!=\!64$), \texttt{X3.275 Y1.0383 R0.083} ($n\!=\!64$) \\
-\texttt{face150025}      & \texttt{G2 X-0.1996 Y0.0991 R0.0742} ($n\!=\!13$), \texttt{G2 X-0.1996 Y0.3959 R0.0742} ($n\!=\!18$) \\
-\texttt{damageface}      & \texttt{X3.5354 Y1.2121 R0.0742} ($n\!=\!16$), \texttt{X-0.1254 Y1.3605 R0.0742} ($n\!=\!16$) \\
-\midrule
-\texttt{pocket}          & \texttt{X1.4353 Y1.6452 Z0.0991} ($n\!=\!5$), \texttt{X1.5375 Y1.4564 Z0.0897} ($n\!=\!4$) \\
-\texttt{pocket150025}    & \texttt{G3 X1.4887 Y0.0732 R0.1172} ($n\!=\!42$), \texttt{G2 X0. Y3.481 R0.071} ($n\!=\!22$) \\
-\texttt{damagepocket}    & \texttt{G3 X1.705 Y-0.071 R0.2099} ($n\!=\!5$), \texttt{G2 X3.41 Y-0.071 R0.071} ($n\!=\!5$) \\
-\midrule
-\texttt{adaptive}        & \texttt{X1.6269 Y1.4641 Z0.0949} ($n\!=\!6$), \texttt{X1.4546 Y1.5534 Z0.0759} ($n\!=\!2$) \\
-\texttt{adaptive150025}  & \texttt{X-0.0257 Y-0.2858 Z0.0211} ($n\!=\!8$), \texttt{X3.3829 Y3.0338} ($n\!=\!8$) \\
-\texttt{damageadaptive}  & \texttt{X3.078 Y2.8097} ($n\!=\!20$), \texttt{X3.0836 Y2.6288} ($n\!=\!20$) \\
+\texttt{face} (regime~i)        & \texttt{G2 X-0.2084 Y0.7894 R0.083} ($n\!=\!64$), \texttt{X-0.1254 Y0.8724 R0.083} ($n\!=\!64$), \\
+                                 & \texttt{G3 X3.358 Y0.9553 R0.083} ($n\!=\!64$), \texttt{X3.275 Y1.0383 R0.083} ($n\!=\!64$) \\
+\texttt{pocket150025} (regime~ii) & \texttt{G3 X1.4887 Y0.0732 R0.1172} ($n\!=\!42$), \texttt{G2 X0. Y3.481 R0.071} ($n\!=\!22$) \\
+\texttt{adaptive} (regime~iii)   & \texttt{X1.6269 Y1.4641 Z0.0949} ($n\!=\!6$), \texttt{X1.4546 Y1.5534 Z0.0759} ($n\!=\!2$) \\
 \bottomrule
 \end{tabular}
 \par\smallskip
