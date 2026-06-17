@@ -1,0 +1,31 @@
+% n=5 mean +/- std from audit/design_b_compare_ss0.json
+% (scripts/analysis/design_b_compare_ss0.py applies the +1 EOS-slot offset
+% correction by trimming pred to len(true); current-model numbers reproduce
+% audit/no_numeric_ablation_designA.json exactly under this trim — sanity OK).
+\begin{table}[ht]
+\centering
+\caption{No-numeric retraining ablation: structural-skeleton recovery of the
+headline decoder versus a decoder retrained with every coordinate value
+collapsed to a single placeholder token. \emph{Structural} restricts the
+metric to command-code and axis-letter positions, excluding
+numeric/placeholder positions. 5-fold mean $\pm$ std, full-window targets,
+under teacher-forced (TF) and autoregressive (AR) evaluation. Under TF the
+no-numeric decoder is modestly weaker on structure ($-3$~pp per-token,
+$-15$~pp per-window) --- the cost of collapsing the lexical variety of the
+numeric vocabulary. Under AR the two effects decompose: per-token structural
+accuracy improves $+8.8$~pp (paired across folds, $5/5$ folds positive,
+$p\!<\!0.02$) --- the contribution of numeric-token desynchronization to the
+collapse --- but per-window structural exact-match is unchanged, identifying
+intrinsic structural mode-collapse as the dominant window-level mechanism.}
+\label{tab:nonumeric}
+\begin{tabular}{l r r r r}
+\toprule
+ & \multicolumn{2}{c}{Headline decoder} & \multicolumn{2}{c}{No-numeric decoder} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Metric & TF & AR & TF & AR \\
+\midrule
+Structural token accuracy      & $0.960 \pm 0.020$ & $0.317 \pm 0.116$ & $0.927 \pm 0.024$ & $0.405 \pm 0.143$ \\
+Structural sequence exact-match & $0.213 \pm 0.048$ & $0.058 \pm 0.039$ & $0.068 \pm 0.017$ & $0.066 \pm 0.014$ \\
+\bottomrule
+\end{tabular}
+\end{table}

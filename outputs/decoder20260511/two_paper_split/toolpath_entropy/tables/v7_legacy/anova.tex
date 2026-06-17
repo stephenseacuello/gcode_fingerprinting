@@ -1,0 +1,42 @@
+\begin{table}[h]
+\centering
+\caption{One-way ANOVA across the 5 folds of each ablation versus the no-shortcuts baseline. Significance marked: $\ast\,p<0.05$, $\ast\ast\,p<0.01$, $\ast\ast\ast\,p<0.001$.}
+\label{tab:anova}
+\small
+\begin{tabular}{l l r r r r r c}
+\toprule
+Ablation & Metric & Base & Abl & $\Delta$ & $F$ & $p$ & Sig. \\
+\midrule
+with\_shortcuts & token & $0.836$ & $0.936$ & $+0.100$ & $21.11$ & $0.00177$ & $\ast\ast$ \\
+with\_shortcuts & sequence & $0.445$ & $0.815$ & $+0.369$ & $55.06$ & $7.48e-05$ & $\ast\ast\ast$ \\
+with\_shortcuts & type & $0.973$ & $0.985$ & $+0.013$ & $2.38$ & $0.162$ &  \\
+with\_shortcuts & command & $0.970$ & $0.981$ & $+0.011$ & $0.50$ & $0.498$ &  \\
+with\_shortcuts & param\_type & $0.942$ & $0.961$ & $+0.018$ & $2.40$ & $0.16$ &  \\
+with\_shortcuts & numeric & $0.616$ & $0.887$ & $+0.271$ & $49.34$ & $0.00011$ & $\ast\ast\ast$ \\
+noise\_aug & token & $0.836$ & $0.821$ & $-0.015$ & $0.65$ & $0.443$ &  \\
+noise\_aug & sequence & $0.445$ & $0.399$ & $-0.046$ & $2.16$ & $0.18$ &  \\
+noise\_aug & type & $0.973$ & $0.971$ & $-0.001$ & $0.03$ & $0.861$ &  \\
+noise\_aug & command & $0.970$ & $0.977$ & $+0.007$ & $0.18$ & $0.683$ &  \\
+noise\_aug & param\_type & $0.942$ & $0.928$ & $-0.015$ & $1.86$ & $0.21$ &  \\
+noise\_aug & numeric & $0.616$ & $0.599$ & $-0.017$ & $0.28$ & $0.608$ &  \\
+full\_window & token & $0.836$ & $0.834$ & $-0.002$ & $0.02$ & $0.897$ &  \\
+full\_window & sequence & $0.445$ & $0.438$ & $-0.007$ & $0.04$ & $0.846$ &  \\
+full\_window & type & $0.973$ & $0.970$ & $-0.002$ & $0.07$ & $0.792$ &  \\
+full\_window & command & $0.970$ & $0.983$ & $+0.013$ & $0.77$ & $0.406$ &  \\
+full\_window & param\_type & $0.942$ & $0.936$ & $-0.007$ & $0.22$ & $0.653$ &  \\
+full\_window & numeric & $0.616$ & $0.614$ & $-0.002$ & $0.00$ & $0.952$ &  \\
+zero\_gyroscope & token & $0.836$ & $0.822$ & $-0.014$ & $0.28$ & $0.616$ &  \\
+zero\_gyroscope & sequence & $0.445$ & $0.440$ & $-0.005$ & $0.01$ & $0.923$ &  \\
+zero\_gyroscope & type & $0.973$ & $0.963$ & $-0.009$ & $0.83$ & $0.393$ &  \\
+zero\_gyroscope & command & $0.970$ & $0.960$ & $-0.010$ & $0.21$ & $0.664$ &  \\
+zero\_gyroscope & param\_type & $0.942$ & $0.945$ & $+0.002$ & $0.05$ & $0.829$ &  \\
+zero\_gyroscope & numeric & $0.616$ & $0.608$ & $-0.007$ & $0.03$ & $0.875$ &  \\
+zero\_color & token & $0.836$ & $0.837$ & $+0.001$ & $0.00$ & $0.968$ &  \\
+zero\_color & sequence & $0.445$ & $0.462$ & $+0.017$ & $0.13$ & $0.727$ &  \\
+zero\_color & type & $0.973$ & $0.972$ & $-0.000$ & $0.00$ & $0.983$ &  \\
+zero\_color & command & $0.970$ & $0.954$ & $-0.015$ & $0.24$ & $0.637$ &  \\
+zero\_color & param\_type & $0.942$ & $0.947$ & $+0.005$ & $0.27$ & $0.62$ &  \\
+zero\_color & numeric & $0.616$ & $0.614$ & $-0.002$ & $0.00$ & $0.967$ &  \\
+\bottomrule
+\end{tabular}
+\end{table}

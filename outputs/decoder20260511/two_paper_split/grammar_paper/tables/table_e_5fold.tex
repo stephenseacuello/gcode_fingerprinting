@@ -1,0 +1,22 @@
+\begin{table}[htbp]
+\centering
+\caption{Experiment~E: Toolpath Hausdorff Distance (mm, 5-fold mean $\pm$ std)}
+\label{tab:exp_e}
+\scriptsize
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Tokenizer} & \textbf{Mean} & \textbf{Median} & \textbf{p95} \\
+\midrule
+Domain BPE (whitespace) & 1.322 $\pm$ 0.152 & 0.637 $\pm$ 0.095 & 3.331 $\pm$ 0.063 \\
+Domain BPE (byte-level) & 1.432 $\pm$ 0.122 & 0.317 $\pm$ 0.155 & 3.535 $\pm$ 0.000 \\
+WordPiece & 1.311 $\pm$ 0.180 & 0.620 $\pm$ 0.122 & 3.258 $\pm$ 0.166 \\
+Character-level & 1.277 $\pm$ 0.136 & 0.163 $\pm$ 0.068 & 3.535 $\pm$ 0.000 \\
+Flat per-value & 1.319 $\pm$ 0.223 & 0.211 $\pm$ 0.262 & 3.493 $\pm$ 0.095 \\
+GPT-4 BPE (compact) & 1.342 $\pm$ 0.158 & 0.264 $\pm$ 0.200 & 3.493 $\pm$ 0.095 \\
+\midrule
+\textbf{Hierarchical (ours)} & 1.529 $\pm$ 0.042 & 0.473 $\pm$ 0.169 & 3.535 $\pm$ 0.000 \\
+\bottomrule
+\multicolumn{4}{@{}p{0.95\columnwidth}}{\scriptsize p95 saturates near the dataset's geometric extent because samples whose generation collapses default to that bound. Median is the more discriminative statistic.}
+\end{tabular}
+\normalsize
+\end{table}

@@ -1,0 +1,91 @@
+%  LaTeX support: latex@mdpi.com
+%=================================================================
+\documentclass[sensors,article,submit,moreauthors,pdftex]{Definitions/mdpi}
+
+%=================================================================
+% MDPI frontmatter
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2026}
+\copyrightyear{2026}
+\history{Received: date; Accepted: date; Published: date}
+
+%=================================================================
+% Additional packages
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Custom commands
+\newcommand{\ie}{\textit{i.e.}}
+\newcommand{\eg}{\textit{e.g.}}
+\newcommand{\etal}{\textit{et al.}}
+
+% ORCID
+\newcommand{\orcidauthorA}{0009-0009-0292-9706}
+
+%=================================================================
+% Title
+\Title{Multi-Scale Sensor-to-G-Code Reconstruction Mismatch for CNC Anomaly Detection}
+
+% Authors
+\Author{Stephen S. Eacuello $^{1,}$*\orcidA{}, Romesh S. Prasad $^{1}$ and Manbir S. Sodhi $^{1}$}
+
+\AuthorNames{Stephen S. Eacuello, Romesh S. Prasad and Manbir S. Sodhi}
+
+% Affiliations
+\address{%
+$^{1}$ \quad Department of Industrial Systems Engineering, University of Rhode Island, Kingston, RI 02881, USA}
+
+% Corresponding author
+\corres{Correspondence: seacuello@uri.edu}
+
+% Abstract
+\abstract{An attacker who subtly alters a CNC program---shifting a coordinate by a fraction of a millimeter or swapping one motion command for another---can produce parts that look correct but fail under load. Existing sensor-based monitoring cannot catch this: the machine executes whatever it is told, and the sensors report a normal-looking process. We exploit this asymmetry. A decoder trained to reconstruct G-code from sensor signals learns what commands \emph{should} have produced the observed signals; when the claimed program disagrees with that reconstruction, something has been tampered with. (At the 4~Hz effective sampling rate the signals encode program structure and quasi-static process state, not cutting-force spectra.) We find that no single detection strategy works across all attack types. Short-context decoding catches command-level tampering; multi-line decoding catches cross-operation swaps; and a rank-based scoring method---which asks ``is the claimed value in the right \emph{neighborhood},'' not ``is it the most likely value''---recovers coordinate-perturbation detection where conventional likelihood scoring fails (rank vs.\ likelihood gain significant at $p \leq 1.2\times10^{-5}$, DeLong test, Holm-corrected). Sensor-only baselines, by contrast, have no genuine detection signal for these attacks, since the attack leaves the sensors unchanged. The detector runs on six \$33 sensor boards with decoder inference under 6~ms per window (over $11{,}000\times$ real-time on a GPU). We report what works, what does not (multi-head disagreement scoring, temperature-scaled calibration, CUSUM temporal detection), and why---including a per-token confidence analysis that explains the limit on coordinate-attack detection and an adaptive-adversary evaluation in which single-score detection drops to near chance.}
+
+% Keywords
+\keyword{CNC machining; anomaly detection; G-code reconstruction; side-channel sensor fusion; autoregressive decoder; manufacturing cybersecurity}
+
+\begin{document}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_architecture}
+\input{sections/04_threat_model}
+\input{sections/05_scoring_framework}
+\input{sections/06_experimental_setup}
+\input{sections/07_results}
+\input{sections/08_ablation_robustness}
+\input{sections/09_discussion}
+\input{sections/10_limitations}
+\input{sections/11_conclusion}
+
+\vspace{6pt}
+
+\authorcontributions{Conceptualization, S.S.E. and R.S.P.; methodology, S.S.E.; software, S.S.E.; validation, S.S.E.; formal analysis, S.S.E.; investigation, S.S.E.; resources, M.S.S.; data curation, S.S.E. and R.S.P.; writing---original draft, S.S.E.; writing---review \& editing, R.S.P. and M.S.S.; visualization, S.S.E.; supervision, R.S.P. and M.S.S.; project administration, R.S.P. All authors have read and agreed to the published version of the manuscript.}
+
+\funding{This material is based upon work partially supported by the Office of Naval Research (ONR) under Contract no. N000142412129.}
+
+\acknowledgments{This material is based upon work partially supported by the Office of Naval Research (ONR) under Contract no. N000142412129. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the view of the ONR. The authors thank the Department of Industrial Systems Engineering and the College of Engineering at the University of Rhode Island for laboratory facilities and computational resources.}
+
+\conflictsofinterest{The authors declare no conflict of interest.}
+
+\newcommand{\dataavailabilitytext}{The sensor datasets and analysis code generated during this study are available from the corresponding author upon reasonable request and at \url{https://github.com/stephenseacuello/gcode_fingerprinting}.}
+\ifdefined\dataavailability
+  \dataavailability{\dataavailabilitytext}
+\else
+  \noindent\textbf{Data Availability Statement:} \dataavailabilitytext
+\fi
+
+\appendix
+\input{sections/appendix}
+
+\bibliography{anomaly_detection}
+
+\end{document}

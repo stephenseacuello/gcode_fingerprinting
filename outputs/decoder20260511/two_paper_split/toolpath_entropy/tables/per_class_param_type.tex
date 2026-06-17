@@ -1,0 +1,17 @@
+% V8 FULL_WINDOW 5-FOLD — per-axis param-type head, mean ± std over 5 folds.
+\begin{table}[ht]
+\centering
+\caption{Per-class precision / recall / F1 for the parameter-type head (axis letters), 5-fold mean $\pm$ std on V8 full\_window. The five axes appearing in the corpus are reported; remaining trained labels (I, J, K, S, P) do not appear in the test splits and are omitted (see Table~\ref{tab:data_coverage}).}
+\label{tab:per_class_param_type}
+\begin{tabular}{l r r r r}
+\toprule
+Class & Precision & Recall & F1 & Support \\
+\midrule
+X & $0.989 \pm 0.008$ & $0.997 \pm 0.002$ & $0.993 \pm 0.004$ & $\sim$13{,}500 \\
+Y & $0.994 \pm 0.003$ & $0.993 \pm 0.005$ & $0.993 \pm 0.003$ & $\sim$13{,}300 \\
+Z & $0.995 \pm 0.003$ & $0.995 \pm 0.005$ & $0.995 \pm 0.002$ & $\sim$4{,}900 \\
+F & $0.965 \pm 0.027$ & $0.952 \pm 0.075$ & $0.958 \pm 0.042$ & $\sim$40 \\
+R & $0.993 \pm 0.009$ & $0.986 \pm 0.013$ & $0.989 \pm 0.010$ & $\sim$2{,}500 \\
+\bottomrule
+\end{tabular}
+\end{table}

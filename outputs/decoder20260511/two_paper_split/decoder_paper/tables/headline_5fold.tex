@@ -1,0 +1,27 @@
+% Headline 5-fold metrics. Reports both teacher-forced (TF, sweep-time) and
+% autoregressive (AR, deployment-true) numbers per head. Categorical heads
+% report identical accuracies under both regimes because they are
+% independent classifiers on the encoder memory. The autoregressive-token
+% heads (token, sequence, numeric) drop under AR due to exposure bias.
+\begin{table}[!htbp]
+\centering
+\caption{Headline test-set metrics for the G-Code Decoder under 5-fold file-level cross-validation, full-window targets, no positional metadata exposed. Mean $\pm$ std over 5 folds. Two evaluation regimes are reported: teacher-forced (TF), where each step receives the ground-truth previous token, and autoregressive (AR, greedy / beam-width 1), where the decoder consumes its own previous predictions. The categorical heads --- type, command, parameter-type, sign --- report identical accuracies under both regimes because they are independent per-position classifiers on the encoder memory; only the autoregressive-token heads (token, sequence, numeric) diverge.}
+\label{tab:headline}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l r r r r}
+\toprule
+Head & TF Accuracy & AR Accuracy & Macro Precision & Macro F1 \\
+\midrule
+Token       & $0.7811 \pm 0.0216$ & $0.2148 \pm 0.0685$ & $0.4099 \pm 0.0406$ & $0.3899 \pm 0.0405$ \\
+Sequence$^{\ddagger}$ & -- & $0.0263 \pm 0.0185$ & --                  & --                  \\
+Type        & $0.9838 \pm 0.0085$ & $0.9838 \pm 0.0085$ & $0.9091 \pm 0.0352$ & $0.8833 \pm 0.0451$ \\
+Command     & $0.8875 \pm 0.0558$ & $0.8875 \pm 0.0558$ & $0.9342 \pm 0.0407$ & $0.8790 \pm 0.1084$ \\
+Param-type  & $0.9931 \pm 0.0036$ & $0.9931 \pm 0.0036$ & $0.9914 \pm 0.0073$ & $0.9857 \pm 0.0130$ \\
+Sign        & $0.9888 \pm 0.0063$ & $0.9888 \pm 0.0063$ & $0.9658 \pm 0.0215$ & $0.9724 \pm 0.0157$ \\
+Numeric (overall digit) & $0.5850 \pm 0.0331$ & $0.1038 \pm 0.0322$ & --      & --                  \\
+\bottomrule
+\end{tabular}%
+}
+\par\smallskip
+\footnotesize\textit{Macro precision/recall/F1 are unweighted means over all observed classes; values are stable across TF and AR for the categorical heads, so a single column is reported. Numeric is the digit-head accuracy pooled across all six digit positions; the per-position bathtub is shown in Figure~\ref{fig:per_digit_position_curve} (Section~\ref{sec:numeric-decomposition}). The TF / AR gap on the token and numeric heads is the exposure-bias signature analyzed in Section~\ref{sec:disc-mode-collapse}: the decoder's categorical signal is robust to autoregressive deployment, while its full-sequence token reproduction is not. $\ddagger$~Sequence exact-match is reported only under AR; a sequence-level TF score is not separately well-defined (see Section~\ref{sec:results-headline}).}
+\end{table}

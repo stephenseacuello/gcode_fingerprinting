@@ -1,0 +1,62 @@
+\begin{table}[h]
+\centering
+\caption{Baseline-vs-ablation comparison across the 5 folds. \textbf{At $n=5$ all $p$-values are descriptive, not confirmatory}; the nonparametric Mann--Whitney $U$ ($p_{\mathrm{MWU}}$) is the primary statement and the parametric ANOVA ($F$, $p_F$) is corroborating. The effect size (Cohen's $d$) and the sign/magnitude of $\Delta$ carry the conclusions. Significance ($\ast\,p<0.05$, $\ast\ast\,p<0.01$, $\ast\ast\ast\,p<0.001$) is marked on $p_{\mathrm{MWU}}$.}
+\label{tab:anova}
+\scriptsize
+\begin{tabular}{l l r r r r r r c}
+\toprule
+Ablation & Metric & Base & Abl & $\Delta$ & $d$ & $p_F$ & $p_{\mathrm{MWU}}$ & Sig. \\
+\midrule
+noise\_aug & token & $0.781$ & $0.732$ & $-0.049$ & $+2.57$ & $0.00361$ & $0.00794$ & $\ast\ast$ \\
+noise\_aug & sequence & $0.026$ & $0.006$ & $-0.021$ & $+1.40$ & $0.0577$ & $0.151$ &  \\
+noise\_aug & type & $0.984$ & $0.977$ & $-0.007$ & $+0.72$ & $0.286$ & $0.222$ &  \\
+noise\_aug & command & $0.888$ & $0.331$ & $-0.556$ & $+7.45$ & $2.46e-06$ & $0.00794$ & $\ast\ast$ \\
+noise\_aug & param\_type & $0.993$ & $0.977$ & $-0.016$ & $+4.68$ & $7.58e-05$ & $0.00794$ & $\ast\ast$ \\
+noise\_aug & numeric & $0.585$ & $0.448$ & $-0.137$ & $+5.01$ & $4.67e-05$ & $0.00794$ & $\ast\ast$ \\
+zero\_accelerometer & token & $0.781$ & $0.743$ & $-0.038$ & $+2.01$ & $0.0131$ & $0.0317$ & $\ast$ \\
+zero\_accelerometer & sequence & $0.026$ & $0.010$ & $-0.017$ & $+1.14$ & $0.11$ & $0.151$ &  \\
+zero\_accelerometer & type & $0.984$ & $0.979$ & $-0.005$ & $+0.47$ & $0.481$ & $0.548$ &  \\
+zero\_accelerometer & command & $0.888$ & $0.484$ & $-0.403$ & $+4.58$ & $8.92e-05$ & $0.00794$ & $\ast\ast$ \\
+zero\_accelerometer & param\_type & $0.993$ & $0.978$ & $-0.015$ & $+4.71$ & $7.24e-05$ & $0.00794$ & $\ast\ast$ \\
+zero\_accelerometer & numeric & $0.585$ & $0.471$ & $-0.114$ & $+4.25$ & $0.00015$ & $0.00794$ & $\ast\ast$ \\
+zero\_gyroscope & token & $0.781$ & $0.741$ & $-0.040$ & $+2.15$ & $0.00937$ & $0.0317$ & $\ast$ \\
+zero\_gyroscope & sequence & $0.026$ & $0.010$ & $-0.017$ & $+1.14$ & $0.109$ & $0.151$ &  \\
+zero\_gyroscope & type & $0.984$ & $0.979$ & $-0.004$ & $+0.56$ & $0.402$ & $0.31$ &  \\
+zero\_gyroscope & command & $0.888$ & $0.462$ & $-0.425$ & $+7.26$ & $3.01e-06$ & $0.00794$ & $\ast\ast$ \\
+zero\_gyroscope & param\_type & $0.993$ & $0.978$ & $-0.015$ & $+4.40$ & $0.000118$ & $0.00794$ & $\ast\ast$ \\
+zero\_gyroscope & numeric & $0.585$ & $0.469$ & $-0.116$ & $+4.35$ & $0.000128$ & $0.00794$ & $\ast\ast$ \\
+zero\_magnetometer & token & $0.781$ & $0.735$ & $-0.046$ & $+2.10$ & $0.0106$ & $0.0317$ & $\ast$ \\
+zero\_magnetometer & sequence & $0.026$ & $0.009$ & $-0.017$ & $+1.14$ & $0.109$ & $0.151$ &  \\
+zero\_magnetometer & type & $0.984$ & $0.975$ & $-0.009$ & $+0.84$ & $0.221$ & $0.222$ &  \\
+zero\_magnetometer & command & $0.888$ & $0.465$ & $-0.422$ & $+5.30$ & $3.12e-05$ & $0.00794$ & $\ast\ast$ \\
+zero\_magnetometer & param\_type & $0.993$ & $0.978$ & $-0.015$ & $+4.72$ & $7.18e-05$ & $0.00794$ & $\ast\ast$ \\
+zero\_magnetometer & numeric & $0.585$ & $0.466$ & $-0.119$ & $+4.03$ & $0.000215$ & $0.00794$ & $\ast\ast$ \\
+zero\_environmental & token & $0.781$ & $0.743$ & $-0.038$ & $+1.99$ & $0.0137$ & $0.0556$ &  \\
+zero\_environmental & sequence & $0.026$ & $0.009$ & $-0.017$ & $+1.17$ & $0.101$ & $0.151$ &  \\
+zero\_environmental & type & $0.984$ & $0.977$ & $-0.007$ & $+0.75$ & $0.271$ & $0.0952$ &  \\
+zero\_environmental & command & $0.888$ & $0.474$ & $-0.413$ & $+5.49$ & $2.4e-05$ & $0.00794$ & $\ast\ast$ \\
+zero\_environmental & param\_type & $0.993$ & $0.978$ & $-0.015$ & $+4.69$ & $7.46e-05$ & $0.00794$ & $\ast\ast$ \\
+zero\_environmental & numeric & $0.585$ & $0.470$ & $-0.115$ & $+4.19$ & $0.000166$ & $0.00794$ & $\ast\ast$ \\
+zero\_color & token & $0.781$ & $0.741$ & $-0.040$ & $+2.13$ & $0.00988$ & $0.0317$ & $\ast$ \\
+zero\_color & sequence & $0.026$ & $0.010$ & $-0.016$ & $+1.08$ & $0.126$ & $0.151$ &  \\
+zero\_color & type & $0.984$ & $0.977$ & $-0.007$ & $+0.72$ & $0.287$ & $0.0952$ &  \\
+zero\_color & command & $0.888$ & $0.457$ & $-0.431$ & $+4.48$ & $0.000103$ & $0.00794$ & $\ast\ast$ \\
+zero\_color & param\_type & $0.993$ & $0.977$ & $-0.016$ & $+3.88$ & $0.000277$ & $0.00794$ & $\ast\ast$ \\
+zero\_color & numeric & $0.585$ & $0.471$ & $-0.114$ & $+4.18$ & $0.000167$ & $0.00794$ & $\ast\ast$ \\
+zero\_rms & token & $0.781$ & $0.739$ & $-0.042$ & $+2.09$ & $0.017$ & $0.0317$ & $\ast$ \\
+zero\_rms & sequence & $0.026$ & $0.009$ & $-0.017$ & $+1.08$ & $0.15$ & $0.19$ &  \\
+zero\_rms & type & $0.984$ & $0.978$ & $-0.006$ & $+0.63$ & $0.382$ & $0.111$ &  \\
+zero\_rms & command & $0.888$ & $0.460$ & $-0.427$ & $+5.26$ & $0.000104$ & $0.0159$ & $\ast$ \\
+zero\_rms & param\_type & $0.993$ & $0.978$ & $-0.015$ & $+4.67$ & $0.000218$ & $0.0159$ & $\ast$ \\
+zero\_rms & numeric & $0.585$ & $0.465$ & $-0.120$ & $+4.15$ & $0.00045$ & $0.0159$ & $\ast$ \\
+zero\_electrical & token & $0.781$ & $0.741$ & $-0.041$ & $+2.19$ & $0.00849$ & $0.0317$ & $\ast$ \\
+zero\_electrical & sequence & $0.026$ & $0.009$ & $-0.017$ & $+1.19$ & $0.0969$ & $0.151$ &  \\
+zero\_electrical & type & $0.984$ & $0.976$ & $-0.007$ & $+0.75$ & $0.267$ & $0.151$ &  \\
+zero\_electrical & command & $0.888$ & $0.449$ & $-0.438$ & $+5.40$ & $2.73e-05$ & $0.00794$ & $\ast\ast$ \\
+zero\_electrical & param\_type & $0.993$ & $0.978$ & $-0.016$ & $+4.73$ & $7.05e-05$ & $0.00794$ & $\ast\ast$ \\
+zero\_electrical & numeric & $0.585$ & $0.465$ & $-0.120$ & $+4.40$ & $0.000118$ & $0.00794$ & $\ast\ast$ \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\textit{$n=5$ folds per group: Levene and Shapiro--Wilk assumption-check $p$-values and the Wilcoxon signed-rank statistic are recorded per comparison in \texttt{audit/anova\_results.json}. With five observations these tests are low-power; conclusions rest on effect size and $\Delta$, not on threshold-crossing $p$-values.}
+\end{table}

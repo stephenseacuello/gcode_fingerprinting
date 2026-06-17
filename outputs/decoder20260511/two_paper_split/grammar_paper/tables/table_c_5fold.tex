@@ -1,0 +1,22 @@
+\begin{table}[htbp]
+\centering
+\caption{Experiment~C: Free-Generation Grammar Validity (5-fold mean $\pm$ std)}
+\label{tab:exp_c}
+\scriptsize
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Tokenizer} & \textbf{Grammar valid (\%)} \\
+\midrule
+Domain BPE (whitespace) & 0.0 $\pm$ 0.0 \\
+Domain BPE (byte-level) & 97.1 $\pm$ 1.6 \\
+WordPiece & 0.0 $\pm$ 0.0 \\
+Character-level & 97.6 $\pm$ 3.5 \\
+Flat per-value & 97.0 $\pm$ 1.7 \\
+GPT-4 BPE (compact) & 97.1 $\pm$ 2.4 \\
+\midrule
+\textbf{Hierarchical (ours)} & 98.3 $\pm$ 1.4 \\
+\bottomrule
+\multicolumn{2}{@{}p{0.8\columnwidth}}{\scriptsize 5-fold cross-validation, $\sim$130 test samples per fold. Ground-truth grammar coverage 96.2\% (some auxiliary lines fall outside our regular grammar fragment).}
+\end{tabular}
+\normalsize
+\end{table}

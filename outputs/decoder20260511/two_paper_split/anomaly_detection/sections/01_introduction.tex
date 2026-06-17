@@ -1,0 +1,39 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Computer numerical control (CNC) machining underpins precision manufacturing in aerospace, automotive, medical, and defense sectors, where dimensional deviations as small as 0.05~mm can render safety-critical parts non-functional~\cite{nist2023,graves2023cyberphysical}.
+As manufacturing systems adopt Industry~4.0 architectures, cloud-based CAM, and remote monitoring, they inherit the cybersecurity vulnerabilities of general-purpose IT while retaining the physical consequences unique to operational technology (OT).
+NIST SP 800-82 Rev.~3 identifies CNC controllers as critical OT assets requiring integrity verification~\cite{nist2023}, and the Cybersecurity Manufacturing Innovation Institute (CyManII) has prioritized CNC attack detection as a national research need~\cite{cymanii2022}.
+
+The canonical cyber-physical attack modifies the G-code program---the motion and machine-control commands defining the manufacturing process---either in transit or at rest on the controller's file system~\cite{yampolskiy2018security,belikovetsky2017dr0wned}.
+Even simple modifications (replacing a coordinate value, swapping a motion command, altering a feed rate) can produce parts that pass visual inspection but fail under load~\cite{belikovetsky2017dr0wned,zeltmann2016manufacturing}, as documented by the MITRE ATT\&CK for ICS framework under the ``Impair Process Control'' tactic~\cite{mitre2021attack}.
+
+A fundamental gap separates \emph{process classification} from \emph{integrity verification} in CNC monitoring.
+Existing approaches classify sensor signals into known toolpath categories---answering ``what operation is running?''---but cannot answer the security-critical question: ``does what was physically executed match what was commanded?''
+An adversary who modifies G-code to produce a slightly altered but physically valid toolpath (e.g., shifting a coordinate by 0.1~mm or substituting one operation for another) generates sensor signals that remain within the distribution of normal machining, evading classification-based detectors entirely.
+
+We propose a \emph{reconstruction-mismatch} approach to CNC anomaly detection.
+A model trained to reconstruct G-code token sequences from multi-modal sensor signals learns the conditional distribution $p(\mathbf{y} \mid \mathbf{z})$ mapping sensor-derived latent representations $\mathbf{z}$ to G-code tokens $\mathbf{y}$.
+When an attacker modifies the G-code, the sensor signals still reflect the \emph{original} physical process: the decoder reconstructs the correct tokens with high probability while assigning low probability to the substituted tokens.
+The discrepancy between reconstruction and claimed G-code provides the detection signal.
+
+This approach extends reconstruction-based anomaly detection~\cite{an2015variational,chalapathy2019deep} in three domain-specific ways.
+First, the reconstruction target is a \emph{structured token sequence} (G-code), enabling language-model scoring methods (NLL, rank-based metrics, perplexity).
+Second, multi-modal sensor input---accelerometers, gyroscopes, magnetometers, audio, environmental sensors, and electrical measurements across six sensor boards---constrains the reconstruction space far more than any single modality.
+Third, the G-code grammar partitions attacks into \emph{grammar-violating} (trivially detectable by parsing) and \emph{grammar-compliant} (the hard, security-relevant case) categories, focusing evaluation on attacks that genuinely require learned representations.
+
+Results preview: the deployable \emph{unsupervised} detector reaches AUROC 0.803 on command-swap attacks (V7 NLL), 0.859 on small coordinate perturbations (V7 rank scoring), and 0.949 on cross-operation swaps (V8 NLL), while sensor-only baselines lack a genuine detection signal against G-code integrity attacks, since the attack leaves the sensors unchanged. A supervised XGBoost classifier raises small-coordinate detection to 0.962 when labeled attacks are available, which we report as an upper bound rather than as the deployable result. A per-token confidence analysis, an adaptive-adversary evaluation, and a calibration study characterize the limits honestly.
+
+The contributions of this paper are:
+
+\begin{enumerate}
+    \item \textbf{Multi-scale reconstruction-mismatch framework.} We combine a frozen multi-modal encoder (MM-DTAE-LSTM, 110 sensor channels) with two autoregressive decoder scales---short-context (V7) and multi-line (V8)---together with rank-based scoring and ensemble methods, to detect grammar-compliant G-code attacks from sensor signals alone.
+
+    \item \textbf{Supervised upper bound.} A supervised XGBoost classifier trained on features combining encoder memory, NLL statistics, and rank scores achieves AUROC 0.962 on small coordinate attacks when labeled attacks are available; we present this as an upper bound, not the deployable system. An unsupervised grid-searched ensemble only matches the best individual scorer per attack type (in-sample AUROC up to 0.859).
+
+    \item \textbf{Baseline inadequacy.} We show that sensor-only baselines have no genuine detection signal for G-code integrity attacks: because the attack leaves the physical process and every sensor channel unchanged, a \emph{paired} sensor-space comparison is exactly at chance, and the near-chance unpaired baselines we report deviate from 0.50 only through window-selection artifacts, not detection. The signal must instead come from comparing sensors against the \emph{claimed} program---exactly what reconstruction-mismatch does.
+
+    \item \textbf{Honest characterization of detection limits.} We present a per-token confidence analysis showing that detectability rises smoothly with the decoder's confidence (confident tokens, 54\% of positions, reach per-token AUROC 0.89 while low-confidence tokens are near chance), evaluate a first-order adaptive adversary that drives single-score detection to near chance (AUROC 0.54), document calibration failures (temperature scaling degrades ECE), and identify a position confound affecting coordinate-attack evaluation.
+\end{enumerate}
+
+Code and trained models are available at [URL redacted for review].

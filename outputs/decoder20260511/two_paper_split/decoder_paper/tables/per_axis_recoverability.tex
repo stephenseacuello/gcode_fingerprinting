@@ -1,0 +1,24 @@
+% Per-axis recoverability, full_window 5-fold, sourced from
+% outputs/decoder20260511/audit/v8_per_field_fullwindow.json (built from
+% beam_0_all_predictions.json via npz_to_beam_predictions.py).
+\begin{table}[H]
+\centering
+\caption{Per-axis G-code recoverability across 5 folds (mean $\pm$ std). \textbf{Value-MAE column re-derived on the float-epsilon-corrected retrain} (\texttt{checkpoints/full\_window\_5fold\_patched/}; \texttt{audit/patched\_numeric\_analysis.json}); the categorical (has-axis, sign) columns are checkpoint-invariant. \emph{has-axis Acc} / \emph{F1} are the classification metrics for whether the axis is present in the decoded text; \emph{sign} is the direction of motion (POSITIVE / NEGATIVE / ABSENT); \emph{value MAE} is the mean absolute error of the numeric value, computed only on samples where both the predicted and true G-code carry the axis. The headline recoverability claim is restricted to the four well-supported axes \textbf{X, Y, Z, R}. The F row ($\dagger$) is reported \emph{for the full-window regime only}, where F appears in $22\%$ of windows; in the per-row regime F support is only $0.6\%$ and is not evaluable (Table~\ref{tab:data_coverage}). I, J, S have effectively zero positive support in both regimes and are not evaluable. The per-axis sign-accuracy asymmetry (Y $0.997$ vs.\ X $0.942$ vs.\ Z $0.938$) is \emph{prior-driven}: Z is the only sign-bearing axis whose sign carries non-trivial classification load ($H_{Z}^{\text{sign}}\!=\!1.04$~bits), whereas Y's sign is prior-deterministic ($H_{Y}^{\text{sign}}\!=\!0.08$~bits) and X's is near-deterministic ($H_{X}^{\text{sign}}\!=\!0.38$~bits); the per-axis sign source-entropy decomposition is developed in the companion limit paper~\cite{paperB_entropy}, so the high Y/X sign accuracy reflects the prior, not sensor discrimination.}
+\label{tab:per_axis}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l r r r r r}
+\toprule
+Axis & has-axis Acc & has-axis F1 & Sign Acc & Value MAE & Presence Recall \\
+\midrule
+X   & $1.000 \pm 0.000$ & $1.000 \pm 0.000$ & $0.942 \pm 0.033$ & $0.248 \pm 0.140$ & $1.000 \pm 0.000$ \\
+Y   & $1.000 \pm 0.000$ & $1.000 \pm 0.000$ & $0.997 \pm 0.006$ & $0.205 \pm 0.080$ & $1.000 \pm 0.000$ \\
+Z   & $1.000 \pm 0.000$ & $1.000 \pm 0.000$ & $0.938 \pm 0.023$ & $0.009 \pm 0.006$ & $1.000 \pm 0.000$ \\
+R   & $0.994 \pm 0.012$ & $0.983 \pm 0.034$ & $1.000 \pm 0.000$ & $0.021 \pm 0.011$ & $1.000 \pm 0.000$ \\
+F$^{\dagger}$ & $0.960 \pm 0.023$ & $0.936 \pm 0.038$ & $1.000 \pm 0.000$ & $1.115 \pm 0.350$~(inch/min) & $0.851 \pm 0.093$ \\
+S, I, J & \emph{insufficient support; see Table~\ref{tab:data_coverage}} & --- & --- & --- & --- \\
+\bottomrule
+\end{tabular}%
+}
+\par\smallskip
+\footnotesize\textit{X, Y, Z, R presence is fully recovered. The sign asymmetry is prior-driven, not a sensor-separability ranking: Y ($0.997$) and X ($0.942$) sign accuracy reflect their near-deterministic sign priors ($H_{Y}^{\text{sign}}\!=\!0.08$, $H_{X}^{\text{sign}}\!=\!0.38$~bits), while Z ($0.938$) is the only axis whose sign is genuinely balanced ($H_{Z}^{\text{sign}}\!=\!1.04$~bits) and therefore the only one carrying real sensor-driven sign signal. Value MAE is small for Z ($0.009$) and R ($0.021$) and larger for X/Y ($0.21$--$0.25$), all in \emph{inches} (the corpus's native unit; the platform runs in inch mode). Against the per-axis coordinate span over the corpus (X $\approx\!3.8$, Y $\approx\!3.8$, Z $\approx\!0.7$, R $\approx\!7.9$~in) these MAEs are $\approx\!6.5\%$ and $5.4\%$ of span on the large planar X/Y axes but only $\approx\!1.2\%$ and $0.3\%$ on the shallow-depth Z and arc-radius R axes --- coordinate value is recovered to coarse resolution on X/Y and near-exactly on Z/R. These are the patched-retrain values (Z is $0.009$ patched vs.\ $0.012$ on the released checkpoint recomputed identically; the $0.042$ in the prior draft table was a pre-patch analysis-pipeline artifact, not a checkpoint difference). The F-row MAE is on a different scale because feed-rate values themselves are larger ($\sim$10--100 inch/min in this corpus).}
+\end{table}

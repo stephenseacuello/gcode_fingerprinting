@@ -1,0 +1,23 @@
+\begin{table}[htbp]
+\centering
+\caption{Experiments~C and~E: Free-Generation Grammar Validity and Toolpath Hausdorff Distance (fold~1)}
+\label{tab:exp_ce}
+\scriptsize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+\textbf{Tokenizer} & \textbf{Grammar valid (\%)} & \textbf{Mean (mm)} & \textbf{Median (mm)} & \textbf{p95 (mm)} \\
+\midrule
+Domain BPE (whitespace) & 0.0 & 1.102 & 0.535 & 3.236 \\
+Domain BPE (byte-level) & 95.7 & 1.285 & 0.273 & 3.535 \\
+WordPiece & 0.0 & 1.451 & 0.734 & 3.275 \\
+Character-level & 100.0 & 1.384 & 0.146 & 3.535 \\
+Flat per-value & 95.7 & 1.107 & 0.097 & 3.324 \\
+GPT-4 BPE (compact) & 94.6 & 1.320 & 0.146 & 3.324 \\
+\midrule
+\textbf{Hierarchical (ours)} & \textbf{98.9} & \textbf{1.481} & \textbf{0.292} & \textbf{3.535} \\
+\bottomrule
+\multicolumn{5}{@{}l}{\scriptsize $^\dagger$ Grammar mask guarantees 100\% by construction; coverage on the dataset.}\\
+\multicolumn{5}{@{}l}{\scriptsize $^\ddagger$ Digit decomposition produces exact-match coordinates by design when the type/digit heads are correct.}
+\end{tabular}
+\normalsize
+\end{table}

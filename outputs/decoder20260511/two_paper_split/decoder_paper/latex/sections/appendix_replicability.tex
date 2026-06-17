@@ -1,0 +1,250 @@
+% Replicability appendix. Included from decoder_paper_v2.tex via \input.
+% Follows the NeurIPS / Sensors-journal reproducibility-checklist conventions.
+
+\section{Replicability Checklist}
+\label{supp:app-replicability}
+
+This section documents implementation details necessary for an independent
+team to reproduce the headline results. The checklist follows the NeurIPS
+and \emph{Sensors} reproducibility-checklist conventions.
+
+\subsection{Code and Data}
+\label{app:repl-code}
+
+\begin{itemize}
+\item \textbf{Code repository.} The full source tree, including
+preprocessing, training, evaluation, and figure-generation scripts, is
+released alongside the manuscript. Critical scripts:
+\texttt{scripts/\allowbreak evaluation/\allowbreak run\_decoder\_quick\_test.py} (training
+driver), \texttt{scripts/\allowbreak analysis/\allowbreak aggregate\_v8\_results.py}
+(metric aggregator), and the experiment shells under
+\texttt{scripts/experiments/}.
+\item \textbf{Dataset.} The 120-file corpus, per-fold preprocessed NPZ
+files, and decoded prediction JSONs are released under CC~BY~4.0 with a
+Zenodo DOI minted at acceptance, as stated in
+Appendix~\ref{app:companion}; the release is self-contained.
+\item \textbf{Hyperparameter sweep records.} All 34 cells of the 3-stage
+HP sweep are recorded under \texttt{outputs/\allowbreak decoder20260511/\allowbreak checkpoints/}
+with per-cell metrics.json. The composite-winner selection logic is in
+\texttt{scripts/\allowbreak analysis/\allowbreak aggregate\_hp\_sweep\_all\_stages.py}.
+\item \textbf{Frozen-encoder weights.} The five per-fold frozen-encoder
+checkpoints required to reproduce every headline number are released at
+\texttt{outputs/\allowbreak decoder20260511/\allowbreak checkpoints/\allowbreak encoder\_v8/\allowbreak fold\{0..4\}/\allowbreak encoder.pt};
+SHA256 hashes for each \texttt{.pt} are listed in the release manifest
+\texttt{checkpoints/\allowbreak encoder\_v8/SHA256SUMS} and reproduced in the
+top-level \texttt{README} alongside the Zenodo DOI. Decoder-side
+preprocessing depends on the encoder forward pass, so independent
+reproduction requires these exact files.
+\item \textbf{Headline and T3.1 checkpoints.} The headline
+SS$=$0.5/dw$=$1.0 cell (\texttt{checkpoints/\allowbreak decoder\_v8/\allowbreak headline/\allowbreak fold\{0..4\}/\allowbreak decoder.pt})
+produces Tables~\ref{tab:headline}, \ref{tab:per_axis}, and the
+calibration / tamper / LOCO / mode-collapse numbers in the body. The
+T3.1 control (\texttt{checkpoints/\allowbreak decoder\_v8/\allowbreak t3\_1\_k2418\_ss0\_dw0/\allowbreak fold\{0..4\}/\allowbreak decoder.pt})
+produces the K=2418 row of Table~\ref{tab:k_spectrum} (AR struct token
+$0.470$). Per-cell SHA256 hashes appear in the same release manifest.
+\item \textbf{Path convention.} All \texttt{audit/\ldots} and
+\texttt{scripts/\ldots} paths cited in this manuscript are relative to the
+released repository root (\texttt{outputs/decoder20260511/} for
+\texttt{audit/}; the project root for \texttt{scripts/}), not to the
+LaTeX source directory; e.g.\ the seed-robustness artifact resolves to
+\texttt{outputs/\allowbreak decoder20260511/\allowbreak audit/\allowbreak seed\_robustness\_full\_window.json}.
+\end{itemize}
+
+\subsection{Random Seeds and Determinism}
+\label{app:repl-seeds}
+
+\begin{itemize}
+\item \textbf{Decoder training seed.} 42 unless noted (all reported
+5-fold experiments).
+\item \textbf{Seed-variance estimate.} Two seed-robustness measurements
+on \emph{distinct} configurations are reported and must not be
+conflated. \emph{(i)~Per-row pilot.} A three-seed sweep \{123, 456,
+2024\} on the Stage-1-winner per-row configuration --- a different
+configuration from the full-window headline --- gives command accuracy
+spanning $0.293$--$0.337$ against the seed-42 value $0.325$. This
+characterizes the per-row pilot only and is not comparable to the
+full-window headline. \emph{(ii)~Headline configuration.} The identical
+full-window 5-fold configuration was run under four seeds. The per-seed
+5-fold command-accuracy means are \textbf{seed~42 (the reported
+headline) $0.8875$, seed~123 $0.8864$, seed~456 $0.8937$, seed~2024
+$0.8949$}, giving $0.8906 \pm 0.0043$ (mean $\pm$ sample std
+\emph{across seeds}) over a seed-to-seed span of $0.0085$. Every seed's
+5-fold mean lies within $0.008$ of the headline and far inside the
+reported cross-fold standard deviation ($\pm 0.0558$). The headline
+command accuracy is therefore \emph{seed-robust}: the single-seed point
+estimate is not an artifact of seed~42, and no widening of the reported
+standard deviation is required. Per-seed per-fold numbers are released
+in \texttt{audit/\allowbreak seed\_robustness\_full\_window.json}.
+\item \textbf{Data-shuffle seed.} The data loader uses
+\texttt{torch.Generator.manual\_seed(seed)} where applicable. CUDNN
+deterministic mode is NOT enforced (the small non-determinism it adds
+is dominated by the seed-variance envelope reported above).
+\item \textbf{Ablation-cell seed transparency.} Every ablation cell
+reported in the paper (LOMO, LOSO, K-spectrum T3.1, no-numeric,
+target-mode contrast, sensor-modality, calibration, tamper) was run at
+seed~42 only; the four-seed robustness measurement above is for the
+headline configuration only. The cross-fold standard deviation in each
+ablation table therefore reflects fold-to-fold variance at a single
+seed, not seed-to-seed variance. The headline four-seed agreement
+($\pm 0.0085$ across seeds vs.\ $\pm 0.0558$ across folds, an order of
+magnitude smaller) bounds the seed contribution to be small relative to
+the fold contribution for that configuration; we do not extrapolate
+this to every ablation cell, and per-cell seed-variance is on the
+artifact roadmap rather than measured here.
+\end{itemize}
+
+\subsection{Hardware}
+\label{app:repl-hardware}
+
+\begin{itemize}
+\item \textbf{GPUs.} NVIDIA RTX A6000, 48~GB VRAM. Two GPUs were used
+during the HP sweep with parallel dispatch (one decoder cell per GPU).
+\item \textbf{CPU + RAM.} The host has approximately 100 CPU cores and
+1~TB of system RAM. The encoder-memory caching step uses up to ~16~GB
+RAM per cell; the full multi-cell parallel sweep peaked at ~120~GB.
+\item \textbf{Storage.} The corpus, checkpoints, audit JSONs, and W\&B
+logs occupy approximately 80~GB of disk.
+\end{itemize}
+
+\subsection{Training Time and Compute Budget}
+\label{app:repl-compute}
+
+\begin{itemize}
+\item \textbf{Single fold, decoder only.} ~30 minutes on one A6000
+at the headline configuration ($d_{\text{model}}=384$, $n_{\text{layers}}=8$,
+batch size 64, max\_token\_len=32 or 1400 depending on target mode,
+300 epochs cap, patience 75).
+\item \textbf{Five-fold cross-validation, decoder only.} ~2.5~hours
+sequential on one GPU.
+\item \textbf{Hyperparameter sweep (34 cells).} ~12--15~hours wall-clock
+on two GPUs in parallel.
+\item \textbf{End-to-end project compute.} 106 training runs were
+recorded across the audit, preprocessing-validation, hyperparameter sweep,
+headline 5-fold, and ablation phases. Aggregate wall-clock $\sim$44~h on
+the host with up to two A6000 GPUs running in parallel; equivalent
+GPU-hours $\sim$57. At the A6000's $\sim$300~W TDP this corresponds to
+$\sim$17~kWh of electrical energy, with an associated carbon footprint of
+$\sim$7~kg CO$_2$ at the U.S.-average grid emissions factor of 0.4~kg
+CO$_2$/kWh.
+\end{itemize}
+
+\subsection{Software Versions}
+\label{app:repl-software}
+
+\begin{itemize}
+\item Python 3.10.12; PyTorch 2.5.1 with CUDA 12.1; NVIDIA driver 590.48.01.
+\item Pinned versions for the analysis stack (\texttt{requirements.txt} in
+the release): \texttt{numpy==1.26.4}, \texttt{scipy==1.13.1},
+\texttt{scikit-learn==1.5.0}, \texttt{pandas==2.2.2},
+\texttt{matplotlib==3.9.0}, \texttt{tqdm==4.66.4}. The HGB baseline number
+($0.6587$ command / $0.2320$ macro-F1; Section~\ref{sec:results-baseline})
+is sensitive to the scikit-learn minor version and should be reproduced
+under the pinned \texttt{1.5.0}.
+\item scikit-learn (for HGB baseline + metric reporting + StandardScaler);
+SciPy (for ANOVA); XGBoost was a CUDA-only build that failed on the
+CPU-only inference host and was replaced with sklearn HistGradientBoostingClassifier
+(see Section~\ref{sec:results-baseline}).
+\item Weights and Biases project \texttt{gcode-decoder-2026} for
+hyperparameter-sweep tracking. Project log access is included with the
+code release.
+\end{itemize}
+
+\subsection{Hyperparameter Ranges Explored}
+\label{app:repl-hp-ranges}
+
+The 3-stage HP sweep explored the following ranges; the composite winner
+within each is bolded.
+
+\begin{itemize}
+\item Learning rate: \{$1\!\times\!10^{-4}$, $\mathbf{5\!\times\!10^{-5}}$, $2\!\times\!10^{-5}$, $1\!\times\!10^{-5}$, $5\!\times\!10^{-6}$\}
+\item Batch size: \{$\mathbf{64}$, 128\}
+\item Model dimension $d_{\text{model}}$: \{$\mathbf{384}$, 512\}
+\item Decoder layers: \{$\mathbf{8}$, 10, 12\}
+\item Dropout: \{0.05, $\mathbf{0.1}$, 0.2, 0.3\}
+\item Weight decay: 0.05 (fixed)
+\item Legacy token loss weight: \{1.0, $\mathbf{3.0}$\}
+\item Digit loss weight: \{$\mathbf{1.0}$, 3.0\}
+\item Warmup epochs: \{0, $\mathbf{10}$\}
+\item Scheduled sampling probability: \{0.0, 0.1, 0.2, $\mathbf{0.5}$, 1.0\}
+\item Label smoothing: \{0.0, 0.1, 0.2\} (winner: 0.0)
+\item Focal-loss $\gamma$: \{0.0, 2.0\} (winner: 0.0)
+\item Curriculum schedule: \{none, 3-phase\} (winner: none)
+\item Output mode: \{per\_row, $\mathbf{full\_window}$\}
+\item Encoder fine-tuning: \{frozen, e2e at $1\!\times\!10^{-5}$, e2e at $5\!\times\!10^{-6}$\} (winner: frozen; e2e diverged at lr$\ge\!1\!\times\!10^{-5}$)
+\item Position metadata exposed: \{$\mathbf{false}$, true\}
+\end{itemize}
+
+\subsection{Statistical Methodology}
+\label{app:repl-stats}
+
+\begin{itemize}
+\item \textbf{Cross-validation.} File-level 5-fold stratified by operation
+class. G-code-line coverage between train and test splits is repaired via
+the algorithm in Supplementary Materials Section~S20.
+\item \textbf{ANOVA.} One-way ANOVA across the 5 folds of each ablation
+versus the no-shortcuts baseline. Implemented with
+\texttt{scipy.stats.f\_oneway}.
+\item \textbf{Effect size.} Cohen's $d$ using pooled variance.
+\item \textbf{Bootstrap CI.} 10{,}000 percentile-method resamples on the
+5-fold means.
+\item \textbf{Multiple-comparisons correction.} Holm-Bonferroni~\cite{holm1979simple} and BH-FDR~\cite{benjamini1995controlling}
+applied across all (ablation, macro-metric) pairs reported in
+Table~\ref{tab:anova}, AND separately across the drilled per-class /
+per-axis / per-position grid below. Significance at $\alpha=0.05$ is
+reported under both adjustments.
+
+\item \textbf{Per-class / per-axis / per-position ANOVA grid.} In
+addition to the macro-metric ANOVA above (token / sequence / type /
+command / param-type / sign / numeric), we run the same one-way-ANOVA +
+Cohen's $d$ + Holm-Bonferroni / BH-FDR procedure on the drilled
+per-class metrics: precision, recall, and F1 for each command class
+(G0 / G1 / G2 / G3 / G53 / M30), each param-type axis (X / Y / Z / R /
+F), each sign class (POSITIVE / NEGATIVE), each type class (SPECIAL /
+COMMAND / PARAM / NUMERIC), each of the six numeric-digit output
+positions (accuracy + macro precision / recall / F1), and each of the
+ten digit-value classes (0--9). The grid as run contains $630$
+(ablation, drilled-metric) tests: $105$ drilled metrics replicated
+across the $8$ ablation configurations (noise augmentation and the
+seven zeroed-modality ablations), emitted to
+\texttt{audit/\allowbreak anova\_per\_class\_results.json}. Of these, $320$ are
+significant under BH-FDR and $72$ under Holm-Bonferroni at
+$\alpha=0.05$. Per-class results with $n_{\text{support}} \le 50$ are
+flagged as underpowered (Section~\ref{sec:lim-power}); the
+headline-significance claims rely on the larger-support classes only.
+BH-FDR is the appropriate adjustment for a grid of this size and is
+reported alongside the more conservative Holm-Bonferroni throughout.
+\end{itemize}
+
+\subsection{Inference Cost}
+\label{app:repl-inference}
+
+\begin{itemize}
+\item \textbf{Decoder parameter count.} 31.28~M trainable parameters at
+the headline configuration. The Transformer-decoder stack accounts for
+$\approx\!60\%$ of the parameter budget (18.9~M), the grammar-mask +
+sensor-prior machinery for $\approx\!19\%$ (5.8~M), and the six output
+heads + token embedding + positional encodings for the remaining
+$\approx\!21\%$ (6.6~M); shares are rounded and sum to $100\%$.
+\item \textbf{Decoder forward pass.} Approximately $6N \approx 188$~MFLOPs
+per generated token (Chinchilla scaling estimate; $N$ is the decoder
+parameter count).
+\item \textbf{Single-row inference latency.} Approximately 30--60~ms on
+one A6000 at batch size 1, sequence length 32 (per-row mode);
+1.5--3~seconds at sequence length up to 1{,}400 (full-window mode).
+Latencies include the grammar-mask multiply at every step.
+\item \textbf{Memory footprint.} The decoder weight checkpoint is
+$\sim$125~MB; together with the frozen 8.6~M-parameter encoder, the
+combined inference graph uses $\sim$160~MB of VRAM for weights and
+remains below 500~MB total at batch size 1 including KV cache and
+encoder-memory tensors.
+\item \textbf{CPU inference cost (host CPU, no GPU).} A single
+teacher-forced forward pass at batch~1 takes 36~ms median (per-row,
+32-token output), 61~ms median (256-token output), and 234~ms median
+(1024-token output) on the host machine's CPU. Autoregressive greedy
+generation on CPU is dramatically slower at $\sim$1.45~s for 32 tokens
+and $\sim$14~s for 256 tokens, reflecting the per-step transformer
+overhead (\texttt{audit/\allowbreak inference\_cost\_cpu.json}). For edge deployment
+without GPU, per-row mode with teacher-forced-style streaming (where
+the controller log supplies the previous token) is the only realistic
+configuration; autoregressive deployment requires GPU acceleration.
+\end{itemize}

@@ -1,0 +1,18 @@
+% Per-class command head: 5-fold mean +/- std.
+\begin{table}[H]
+\centering
+\caption{Per-class precision / recall / F1 for the motion-command head, 5-fold mean $\pm$ std. Support is the approximate number of test instances per fold; per-class confidence intervals widen for the smallest-support classes, but no class collapses in 5-fold-mean F1 (the smallest-support classes G53 and M30, $n\!\approx\!6$/fold, nonetheless show wide per-fold recall variance and are underpowered).}
+\label{tab:per_class_command}
+\begin{tabular}{lrrrr}
+\toprule
+Class & Precision & Recall & F1 & Support \\
+\midrule
+G0  & $0.946 \pm 0.052$ & $0.890 \pm 0.142$ & $0.917 \pm 0.079$ & $\sim$65  \\
+G1  & $0.929 \pm 0.024$ & $0.886 \pm 0.097$ & $0.905 \pm 0.049$ & $\sim$830 \\
+G2  & $0.811 \pm 0.119$ & $0.851 \pm 0.039$ & $0.823 \pm 0.067$ & $\sim$400 \\
+G3  & $0.927 \pm 0.072$ & $0.913 \pm 0.063$ & $0.917 \pm 0.043$ & $\sim$315 \\
+G53 & $1.000 \pm 0.000$ & $0.846 \pm 0.327$ & $0.876 \pm 0.206$ & $\sim$6   \\
+M30 & $0.950 \pm 0.112$ & $0.769 \pm 0.213$ & $0.836 \pm 0.150$ & $\sim$6   \\
+\bottomrule
+\end{tabular}
+\end{table}

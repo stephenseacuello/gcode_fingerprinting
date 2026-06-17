@@ -1,0 +1,20 @@
+\begin{table}[htbp]
+\centering
+\caption{Experiment~B: Mean Coordinate Reconstruction Error (mm or mm/min for F)}
+\label{tab:exp_b_recon}
+\scriptsize
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+\textbf{Tokenizer} & \textbf{X} & \textbf{Y} & \textbf{Z} & \textbf{R} & \textbf{F} \\
+\midrule
+Hierarchical (ours) & 0.0002 & 0.0002 & 0.0003 & 4.4e-17 & 0.3000 \\
+GPT-4 BPE (cl100k) & 0 & 0 & 0 & 0 & 0 \\
+GPT-2 BPE (r50k) & 0 & 0 & 0 & 0 & 0 \\
+Character-level & 0 & 0 & 0 & 0 & 0 \\
+Flat per-value & 0 & 0 & 0 & 0 & 0 \\
+Domain BPE & 0 & 0 & 0 & 0 & 0 \\
+WordPiece & 0.0026 & 0.0027 & 0.0023 & 0.0003 & 0 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}

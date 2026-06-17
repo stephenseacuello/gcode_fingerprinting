@@ -1,0 +1,96 @@
+%  LaTeX support: latex@mdpi.com
+%=================================================================
+\documentclass[sensors,article,submit,moreauthors,pdftex]{Definitions/mdpi}
+
+%=================================================================
+% MDPI frontmatter
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2026}
+\copyrightyear{2026}
+\history{Received: date; Accepted: date; Published: date}
+
+%=================================================================
+% Additional packages
+\usepackage{siunitx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{xfrac}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes}
+
+% Custom commands
+\newcommand{\ie}{\textit{i.e.}}
+\newcommand{\eg}{\textit{e.g.}}
+\newcommand{\etal}{\textit{et al.}}
+
+% ORCID
+\newcommand{\orcidauthorA}{0009-0009-0292-9706}
+
+%=================================================================
+% Title
+\Title{Toolpath Fingerprinting from CNC Sensor Data Using Air-Cut Referencing: A Temporal Binning Approach}
+
+% Authors
+\Author{Stephen S. Eacuello $^{1,}$*\orcidA{}, Romesh S. Prasad $^{1}$ and Manbir S. Sodhi $^{1}$}
+
+\AuthorNames{Stephen S. Eacuello, Romesh S. Prasad and Manbir S. Sodhi}
+
+% Affiliations
+\address{%
+$^{1}$ \quad Department of Industrial Systems Engineering, University of Rhode Island, Kingston, RI 02881, USA}
+
+% Corresponding author
+\corres{Correspondence: seacuello@uri.edu}
+
+% Abstract
+\abstract{We propose air-cut referencing, a methodology for isolating toolpath-specific sensor signatures from CNC machining data by normalizing active-cutting measurements against air-cut (no-load) baselines. Using temporal binning to align program phases, we extract statistical features and evaluate four signal isolation methods---raw, mean-subtracted, ratio-normalized, and z-score---for three-class toolpath classification (adaptive clearing, facing, pocketing) with six Arduino Nano 33 BLE Sense Lite IMU modules (LSM9DS1) and four Hall-effect current sensors. Physical interpretation reveals that the dominant discriminative features are magnetometer channels encoding workspace position rather than cutting dynamics. Critically, when all position-confounded channels are excluded (784 features), raw features degrade to 96.7\% (minimum fold 81.8\% over 100 repeated CV evaluations) while the subtracted and ratio methods maintain perfect 100\% accuracy and z-score remains near-perfect (99.0\%, minimum 90\%)---a smaller but genuine, confound-independent benefit. On a position-controlled damaged-tool detection task (the same G-code programs run with a damaged tool; 51 normal vs.\ 14 damaged runs), accuracy reaches 98.5\% (balanced accuracy 0.99) and the discriminative signal shifts decisively from the magnetometer (0.1\% of importance) to the accelerometer and acoustic-RMS channels (74\% combined), confirming that the sensors capture genuine process dynamics once workspace position is held constant. Cross-condition transfer (37\% accuracy, near chance) confirms that air and active conditions produce fundamentally different feature distributions. Comprehensive ablation shows a single bed-mounted IMU suffices, 5 training runs per class achieve 96\%, and referenced features resist additive noise up to $1.0\times$ the feature standard deviation. These results establish air-cut referencing as a robust normalization strategy for CNC sensor data, while the physical interpretation analysis provides a template for distinguishing position-encoding confounds from process-relevant sensor signals.}
+
+% Keywords
+\keyword{CNC machining; toolpath classification; air-cut referencing; sensor fusion; signal isolation; temporal binning}
+
+\begin{document}
+
+\input{sections/introduction}
+
+\input{sections/related_work}
+
+\input{sections/methodology}
+
+\input{sections/experimental_setup}
+
+\input{sections/results}
+
+\input{sections/ablation}
+
+\input{sections/discussion}
+
+\input{sections/conclusion}
+
+\vspace{6pt}
+
+\authorcontributions{Conceptualization, S.S.E. and R.S.P.; methodology, S.S.E.; software, S.S.E.; validation, S.S.E.; formal analysis, S.S.E.; investigation, S.S.E.; resources, M.S.S.; data curation, S.S.E. and R.S.P.; writing---original draft, S.S.E.; writing---review \& editing, R.S.P. and M.S.S.; visualization, S.S.E.; supervision, R.S.P. and M.S.S.; project administration, R.S.P. All authors have read and agreed to the published version of the manuscript.}
+
+\funding{This material is based upon work partially supported by the Office of Naval Research (ONR) under Contract no. N000142412129.}
+
+\acknowledgments{This material is based upon work partially supported by the Office of Naval Research (ONR) under Contract no. N000142412129. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the view of the ONR. The authors thank the Department of Industrial Systems Engineering at the University of Rhode Island for providing laboratory facilities and computational resources.}
+
+\conflictsofinterest{The authors declare no conflict of interest.}
+
+\newcommand{\dataavailabilitytext}{The sensor datasets and analysis code generated during this study are publicly available at \url{https://github.com/stephenseacuello/gcode_fingerprinting}.}
+\ifdefined\dataavailability
+  \dataavailability{\dataavailabilitytext}
+\else
+  \noindent\textbf{Data Availability Statement:} \dataavailabilitytext
+\fi
+
+\bibliography{references}
+
+\end{document}

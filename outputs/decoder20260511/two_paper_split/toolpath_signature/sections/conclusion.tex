@@ -1,0 +1,23 @@
+\section{Conclusions}\label{sec:conclusion}
+
+This paper introduced air-cut referencing with temporal binning as a methodology for extracting toolpath fingerprints from CNC sensor data. We evaluated four signal isolation methods across three classifiers for three-class toolpath classification (adaptive clearing, facing, pocketing) on a dataset of 51 active-cutting and 55 air-cutting runs from a desktop CNC mill.
+
+The key findings are:
+
+\begin{enumerate}
+    \item \textbf{Task difficulty context.} Trivial baseline analysis reveals that the three toolpath types are separable from program metadata alone (G-code line range: 100\%, mean position: 98\%). This contextualizes the high sensor-based accuracy and underscores that the primary contribution is methodological rather than accuracy-driven.
+
+    \item \textbf{Air-cut referencing provides genuine, confound-independent benefit.} When all position-confounded channels (magnetometers, color, pressure, proximity) are excluded (784 features), raw RF drops to 96.7\% with a minimum fold accuracy of 81.8\%, while the subtracted and ratio methods maintain \textbf{perfect 100\% accuracy across all 100 repeated CV evaluations} and z-score remains near-perfect (99.0\%, minimum 90\%). This demonstrates that the referencing benefit is not an artifact of the magnetometer position-encoding confound. The Friedman test ($p < 10^{-6}$) confirms statistical significance, and noise robustness analysis shows referenced features maintain accuracy up to $1.0\times$ noise.
+
+    \item \textbf{Process dynamics are recoverable once position is controlled.} On a damaged-tool detection task using the same G-code programs (so workspace position is held constant), Random Forest reaches 98.5\% accuracy (balanced 0.99, damage-class $F_1 = 0.97$), with discriminative importance shifting from the magnetometer (0.1\%) to the accelerometer and acoustic-RMS channels (74\% combined). This is the most process-relevant result and a direct tool-condition-monitoring application; air-cut referencing is neutral here, consistent with the causal model (referencing helps only when a position confound is present).
+
+    \item \textbf{Temporal structure is informative.} Temporal binning (20 bins) outperforms whole-run summary statistics (100\% vs.\ 98\%), and produces interpretable fingerprint visualizations that reveal toolpath-specific sensor dynamics.
+
+    \item \textbf{Minimal sensor requirements.} A single bed-mounted IMU achieves 100\% accuracy with 238 features. Only 5 training runs per class suffice for 96.4\% accuracy.
+
+    \item \textbf{Competitive with modern methods.} ROCKET-style random convolutional features achieve comparable accuracy (98--100\%), confirming the task's accessibility while validating that our interpretable approach does not sacrifice performance.
+\end{enumerate}
+
+A notable limitation is that the air-cut and active-cutting data used different CAM-generated G-code programs, preventing direct G-code-aligned signal subtraction. The temporal binning approach compensates for this, but future data collection should use identical programs.
+
+Future work will focus on: (1)~within-toolpath-type parameter discrimination (e.g., different stepovers), where trivial baselines cannot help and air-cut referencing should provide greater benefit; (2)~cross-machine validation to test transferability of referenced fingerprints; and (3)~higher-rate data acquisition to enable frequency-domain features.

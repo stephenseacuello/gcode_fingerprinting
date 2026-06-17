@@ -1,0 +1,20 @@
+\begin{table}[htbp]
+\centering
+\caption{Experiment~D: Held-Out Operation OOV Rate (\%)}
+\label{tab:exp_d_oov}
+\scriptsize
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+\textbf{Tokenizer} & \textbf{adaptive} & \textbf{face} & \textbf{pocket} \\
+\midrule
+Hierarchical (ours) & 0.000 & 0.001 & 0.000 \\
+GPT-4 BPE (cl100k) & 4.810 & 0.250 & 0.384 \\
+GPT-2 BPE (r50k) & 2.536 & 0.048 & 0.399 \\
+Character-level & 0.002 & 0.000 & 0.000 \\
+Flat per-value & 65.421 & 18.090 & 29.852 \\
+Domain BPE & 0.949 & 0.025 & 0.061 \\
+WordPiece & 2.142 & 0.047 & 0.065 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}

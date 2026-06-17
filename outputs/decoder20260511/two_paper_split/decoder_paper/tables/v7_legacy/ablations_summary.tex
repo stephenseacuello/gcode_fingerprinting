@@ -1,0 +1,24 @@
+\begin{table}[h]
+\centering
+\caption{Ablation matrix on the 5-fold per-row evaluation. The baseline row matches Table~\ref{tab:headline}. Each subsequent row toggles one factor.}
+\label{tab:ablations}
+\small
+\begin{tabular}{l r r r r r r}
+\toprule
+Ablation & Token & Sequence & Type & Command & Param-type & Numeric \\
+\midrule
+Baseline (no shortcuts) & 0.836 & 0.445 & 0.973 & 0.970 & 0.942 & 0.616 \\
++ positional metadata    & 0.916 & 0.767 & 0.980 & 0.976 & 0.952 & 0.856 \\
++ sequence classifier    & 0.811 & 0.409 & 0.970 & 0.972 & 0.893 & 0.572 \\
+$-$ gyroscope            & 0.822 & --    & 0.957 & 0.960 & 0.940 & --    \\
+$-$ color                & 0.837 & --    & 0.957 & 0.955 & 0.937 & --    \\
+$-$ accelerometer        & 0.802 & --    & 0.979 & 0.944 & 0.928 & --    \\
+$-$ environmental        & 0.798 & --    & 0.979 & 0.954 & 0.935 & --    \\
+$-$ RMS audio            & 0.778 & --    & 0.966 & 0.944 & 0.910 & --    \\
+$-$ magnetometer         & 0.785 & --    & 0.966 & 0.944 & 0.928 & --    \\
+$-$ electrical           & 0.791 & --    & 0.974 & 0.954 & 0.921 & --    \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\textit{Sequence and numeric accuracy are filled only where the cross-fold sweep is complete; modality ablations are reported on fold-1 for the corresponding sensor groups and pooled across folds for gyroscope and color (the two most impactful).}
+\end{table}

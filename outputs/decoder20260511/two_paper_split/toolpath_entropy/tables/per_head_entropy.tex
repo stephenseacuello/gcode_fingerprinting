@@ -1,0 +1,30 @@
+% Per-head source entropy vs measured accuracy.
+% ALL H_emp values: 5-fold mean +/- sample sd from
+%   audit/per_head_source_entropy_5fold.json (per_head.*.h_emp_mean_5fold / h_emp_sd_5fold),
+%   recomputed directly from the five training-fold NPZs under one decomposition.
+% Vocab/H_max: canonical decoder head cardinalities (Token 2418; Type 4 {SPECIAL,COMMAND,PARAM,NUMERIC};
+%   Command 6 {G0,G1,G2,G3,G53,M30}; Param-type 6 {X,Y,Z,R,F,T}; Sign 2; Digit 10), H_max=log2|V|.
+% Sign (pooled) H_emp: n-weighted mean of sign_x/y/z/f (sign_s has n~0), from the same JSON.
+% Digit (pooled) H_emp: digit_pooled.h_emp_mean_5fold (NUMERIC positions, 6 slots pooled).
+% Accuracies: 5-fold test means on the patched (float-epsilon-corrected) retrain
+%   (checkpoints/full_window_5fold_patched/fold_*/results/metrics.json): TF type 0.983, command 0.891,
+%   param-type 0.993, sign 0.989, token 0.774, numeric/digit 0.570; AR token 0.215, digit 0.104.
+\begin{table}[ht]
+\centering
+\caption{Per-head source entropy versus measured recovery accuracy (patched encoder). Empirical entropy $H_{\text{emp}}$ is the 5-fold mean $\pm$ sample s.d.\ of the per-fold training-target distribution, recomputed for every head from the five fold NPZs under one decomposition (\texttt{audit/per\_head\_source\_entropy\_5fold.json}); the per-head 5-fold mean equals the fold-1 estimate to within $\le\!0.015$~bits on every head (\texttt{h\_emp\_delta\_vs\_fold1} in the JSON), so the earlier fold-provenance inconsistency is resolved. $H_{\max}=\log_2|\mathcal{V}_{\text{head}}|$ is the uniform-distribution ceiling over the canonical head vocabulary. Accuracies are 5-fold test means on the float-epsilon-corrected retrain. The categorical heads (type, command, parameter-type, sign) are per-position classifiers on the encoder memory and are teacher-forced/autoregressive \emph{invariant} ($\text{AR}=\text{TF}$, marked $^{\ast}$); only the token and digit heads consume the autoregressive stream and collapse under AR. Recovery tracks source entropy across heads: low-entropy heads (param-type, sign) recover near-perfectly, while the pooled digit head ($2.64$~bits, finest decimals at the $\log_2 10$ ceiling) drops to $0.570$ TF / $0.10$ AR. The TF$\to$AR collapse on token and digit is the exposure-bias signature characterised in Section~\ref{sec:ceiling}, not a source-entropy effect.}
+\label{tab:per_head_entropy}
+\begin{tabular}{l r r r r r r}
+\toprule
+Head & Vocab $|\mathcal{V}|$ & $H_{\max}$ (bits) & $H_{\text{emp}}$ (bits) & TF acc. & AR acc. & Acc.\ gap ($1\!-\!$TF) \\
+\midrule
+Token          & $2{,}418$ & $11.24$ & $6.97 \pm 0.00$ & $0.774$ & $0.215$        & $0.226$ \\
+Type           & $4$       & $2.00$  & $1.24 \pm 0.01$ & $0.983$ & $0.983^{\ast}$ & $0.017$ \\
+Command        & $6$       & $2.58$  & $1.67 \pm 0.01$ & $0.891$ & $0.891^{\ast}$ & $0.109$ \\
+Param-type     & $6$       & $2.58$  & $1.74 \pm 0.00$ & $0.993$ & $0.993^{\ast}$ & $0.007$ \\
+Sign (pooled)  & $2$       & $1.00$  & $0.33 \pm 0.00$ & $0.989$ & $0.989^{\ast}$ & $0.011$ \\
+Digit (pooled) & $10$      & $3.32$  & $2.64 \pm 0.00$ & $0.570$ & $0.104$        & $0.430$ \\
+\bottomrule
+\end{tabular}
+\par\smallskip
+\footnotesize\textit{$^{\ast}$Categorical heads are per-position classifiers on the encoder memory and do not consume the autoregressive token stream, so their AR accuracy equals their TF accuracy. The accuracy gap is $1.0-\text{TF accuracy}$ (distinct from the $\log_2|\mathcal{V}|$ entropy ceiling). The command TF accuracy reported here ($0.891$) is the patched-retrain value; the released-checkpoint value ($0.888$, used in the seq2seq comparison of Table~\ref{tab:seq2seq_baseline}) differs by $<\!1.5$~pp, consistent with the categorical heads being TF/AR- and checkpoint-invariant under the patch. All $H_{\text{emp}}$ are 5-fold mean $\pm$ s.d.\ from \texttt{audit/per\_head\_source\_entropy\_5fold.json}; the sign-pooled value is the $n$-weighted mean across sign-X/Y/Z/F (sign-S has $n\!\approx\!0$); this is the 3-way (positive/negative/zero) entropy and equals $0.33$~bits as printed (the renormalised positive-vs-negative entropy is lower). The pooled digit entropy ($2.64$~bits) is lower than the per-slot fine-decimal ceiling ($\sim\!3.3$~bits, Table~\ref{tab:source_vs_tokenized}) because it pools the near-deterministic integer slots with the near-uniform fractional slots.}
+\end{table}

@@ -1,0 +1,52 @@
+% n=5 mean +/- std from audit/k_spectrum_compare.json
+% (scripts/analysis/k_spectrum_compare.py, with the +1 EOS-slot offset
+% correction); bootstrap 95% percentile CIs from audit/k_spectrum_stats.json
+% (10k resamples; scripts/analysis/k_spectrum_stats.py).
+%
+% T3.1 control (K=2418, SS=0/dw=0) is the matched-methodology control to
+% the K=2418 headline; it resolves the earlier methodology confound.
+\begin{table}[!htbp]
+\centering
+\caption{Structural recovery across the numeric-vocabulary spectrum
+$K\in\{24, 69, 335, 2{,}418\}$ plus the T3.1 methodology-matched
+$K\!=\!2{,}418$ control. \emph{Structural} restricts the metric to
+command-code and axis-letter positions (numeric / placeholder positions
+excluded). 5-fold mean $\pm$ std, full-window targets, under
+teacher-forced (TF) and autoregressive (AR) evaluation; AR-token
+bootstrap 95\% percentile CIs from $10^{4}$ resamples in brackets.
+The T3.1 control --- $K\!=\!2{,}418$ trained under matched SS$=$0/dw$=$0
+--- \emph{achieves the highest AR structural performance of the five
+measured variants} (AR token $0.470\!\pm\!0.034$; $+15.2$~pp paired
+across folds vs.\ the headline, $5/5$ folds positive; AR sequence
+$0.128\!\pm\!0.019$, $+7.1$~pp, $5/5$ folds, paired
+$t(4)\!=\!7.70$, Holm-adjusted $p\!=\!0.006$, Hedges'
+$g_{z}\!=\!2.76$). Within the matched-methodology family
+$\{$T3.1, $K\!=\!335$, $K\!=\!69$, $K\!=\!24\}$, K=335 falls $-4.1$~pp
+behind the matched $K\!=\!2{,}418$ on AR token (paired
+$t(4)\!=\!-0.85$, $p\!=\!0.44$, n.s.). The $+11.1$~pp K=335 advantage
+over the original headline is therefore the SS/dw training-schedule
+change, not vocabulary cardinality.}
+\label{tab:k_spectrum}
+\setlength{\tabcolsep}{3pt}
+\footnotesize
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{l c c c c c}
+\toprule
+Variant & $K$ & TF token & AR token [95\% CI] & TF seq exact & AR seq exact \\
+\midrule
+$K\!=\!2{,}418$ (4-digit) headline\textsuperscript{\dag} & 2{,}418 & $0.960 \pm 0.020$ & $0.317 \pm 0.116$ \tiny{[0.22, 0.40]} & $0.213 \pm 0.048$ & $0.058 \pm 0.039$ \\
+$K\!=\!2{,}418$ (4-digit) \textbf{T3.1 matched control}\textsuperscript{\ddag} & 2{,}418 & $\mathbf{0.978 \pm 0.008}$ & $\mathbf{0.470 \pm 0.034}$ \tiny{[0.44, 0.50]} & $\mathbf{0.344 \pm 0.046}$ & $\mathbf{0.128 \pm 0.019}$ \\
+$K\!=\!335$ (2-digit)              &   335 & $0.977 \pm 0.013$ & $0.429 \pm 0.123$ \tiny{[0.33, 0.51]} & $0.287 \pm 0.082$ & $0.081 \pm 0.045$ \\
+$K\!=\!69$ (1-digit)               &    69 & $0.965 \pm 0.025$ & $0.415 \pm 0.036$ \tiny{[0.39, 0.44]} & $0.250 \pm 0.067$ & $0.051 \pm 0.034$ \\
+$K\!=\!24$ (placeholder, Design B) &    24 & $0.927 \pm 0.024$ & $0.405 \pm 0.143$ \tiny{[0.28, 0.50]} & $0.068 \pm 0.017$ & $0.066 \pm 0.014$ \\
+\bottomrule
+\end{tabular}}
+\par\smallskip
+\footnotesize\textit{\textsuperscript{\dag}Headline: scheduled-sampling
+SS$=$0.5, digit-head loss weight dw$=$1.0.
+\textsuperscript{\ddag}T3.1 control: identical $K\!=\!2{,}418$ vocabulary,
+matched SS$=$0/dw$=$0 training schedule. The remaining rows
+($K\!\in\!\{24, 69, 335\}$) also use SS$=$0/dw$=$0, so the four
+non-headline rows form a clean four-point vocabulary-cardinality
+contrast under one training methodology.}
+\end{table}

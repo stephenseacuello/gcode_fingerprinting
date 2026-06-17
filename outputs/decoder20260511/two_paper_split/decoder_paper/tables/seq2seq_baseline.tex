@@ -1,0 +1,32 @@
+% From-scratch seq2seq baseline vs. main-paper headline configuration.
+% Baseline: 8.64 M-parameter vanilla Transformer encoder-decoder trained end-to-end
+% on the same full-window (window -> full G-code token sequence) targets as the main
+% paper, with no frozen MM-DTAE encoder, no grammar mask, and no structured-head supervision.
+% Main paper headline: frozen MM-DTAE encoder + grammar-constrained decoder
+% + 6-head structured output (~30 M trainable decoder params,
+% ~39.9 M total system params with the frozen encoder).
+% Both columns are mean +/- s.d. across 5 file-level CV folds. Sequence TF is
+% reported only for the baseline because the main-paper convention treats
+% teacher-forced sequence exact-match as ill-defined (see Section~\ref{sec:results-headline});
+% baseline's TF sequence is included only as the architecture-internal upper bound on
+% its own AR sequence number.
+\begin{table}[!htbp]
+\centering
+\caption{Head-to-head comparison of the from-scratch seq2seq baseline (8.64~M params, vanilla Transformer encoder--decoder, end-to-end trained, no frozen encoder, no grammar mask, no structured heads) against the main-paper headline configuration (frozen MM-DTAE encoder + grammar-masked decoder + 6-head structured output, $\approx\!30$~M decoder params). Mean $\pm$ s.d.\ across 5 file-level CV folds. $\Delta = \text{Main} - \text{Baseline}$, in accuracy points. Bold entries mark heads where one configuration wins by more than $5$~pp. The teacher-forced (sweep-time) command accuracy is architecture-invariant ($0.877$ vs.\ $0.888$, well within fold variance). The large $+77$~pp command / $+78$~pp parameter-type AR gap is \emph{not} autoregressive-decoder superiority: the main system's categorical heads are non-autoregressive classifiers on the frozen encoder memory (TF/AR-invariant by construction), whereas the baseline reads command identity off its autoregressively generated token stream, which suffers the exposure-bias collapse of Section~\ref{sec:disc-mode-collapse}. The gap is the value of routing categorical prediction off the token stream; read like-for-like (both on the AR token stream), AR token ($0.154$ vs.\ $0.215$) and AR numeric ($0.100$ vs.\ $0.104$) are within a fold of each other. The TF-numeric column carries a surprise in the opposite direction: the from-scratch baseline reports a $+16.9$~pp higher TF digit accuracy, consistent with the main paper's discretization design (bucketization for downstream grammar-mask compatibility) sacrificing some TF-time digit precision.}
+\label{tab:seq2seq_baseline}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l r r r r r r}
+\toprule
+Metric & Baseline TF & Main TF & $\Delta$ TF & Baseline AR & Main AR & $\Delta$ AR \\
+\midrule
+Command    & $0.877 \pm 0.031$ & $0.888 \pm 0.056$ & $+0.011$            & $0.122 \pm 0.051$ & $0.888 \pm 0.056$ & $\mathbf{+0.766}$ \\
+Token      & $0.865 \pm 0.027$ & $0.781 \pm 0.022$ & $\mathbf{-0.084}$   & $0.154 \pm 0.071$ & $0.215 \pm 0.069$ & $\mathbf{+0.061}$ \\
+Numeric    & $0.754 \pm 0.053$ & $0.585 \pm 0.033$ & $\mathbf{-0.169}$   & $0.100 \pm 0.063$ & $0.104 \pm 0.032$ & $+0.004$ \\
+Param-type & $0.979 \pm 0.012$ & $0.993 \pm 0.004$ & $+0.014$            & $0.214 \pm 0.082$ & $0.993 \pm 0.004$ & $\mathbf{+0.779}$ \\
+Sequence   & $0.175 \pm 0.026$ & --                & --                  & $0.029 \pm 0.040$ & $0.026 \pm 0.019$ & $-0.003$          \\
+\bottomrule
+\end{tabular}%
+}
+\par\smallskip
+\footnotesize\textit{The from-scratch baseline is the most direct seq2seq null model: it shares the full-window target formulation, vocabulary, optimizer family, and 5-fold split with the main system but removes (a) the frozen MM-DTAE encoder, (b) the grammar mask, and (c) the auxiliary structured heads. The TF-command read demonstrates that an 8.64~M vanilla Transformer can already match the categorical-head ceiling under teacher forcing --- the categorical signal in the sensor stream is recoverable by either architecture. The AR-command read reflects \emph{where} command identity is harvested, not which decoder is stronger: the baseline reads it from the collapsed autoregressive token stream ($12\%$, the most-frequent-class prior), while the main system reads it from a non-autoregressive classifier on the encoder memory ($89\%$, TF/AR-invariant). The lift is the value of bypassing autoregression for the categorical fields, not an autoregressive-decoder advantage. The TF-numeric reversal is consistent with the main paper's vocabulary design: bucketization of numeric ranges to a fixed precision is what makes the grammar mask tractable in the legacy-token head (Section~\ref{sec:problem-vocab}), but it forfeits the few percentage points of TF digit accuracy that the baseline retains by predicting raw digit tokens without bucketization constraints. The AR-numeric column collapses both architectures to within a fold of each other, indicating that numeric AR is mode-collapse-limited (Section~\ref{sec:disc-mode-collapse}) regardless of the architectural envelope. Sequence TF is reported for the baseline only; the main paper treats TF sequence exact-match as ill-defined because under full teacher forcing the metric reduces to per-token TF accuracy collapsed to all-or-nothing (Section~\ref{sec:results-headline}).}
+\end{table}

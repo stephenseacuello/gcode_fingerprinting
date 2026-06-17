@@ -1,0 +1,129 @@
+\section{Ablation and Robustness Studies}
+\label{sec:ablation}
+
+\subsection{Sensor Modality Importance}
+\label{sec:ablation_sensor}
+
+A methodologically valid sensor-modality ablation requires re-encoding each window with the target modality's \emph{input} channels masked and regenerating the encoder memory. The full-feature encoder checkpoint that produced our cached memory is no longer available, and a memory-subspace permutation proxy (perturbing fixed slices of the 256-dimensional \emph{fused} encoder memory) does not correspond to identifiable sensor modalities---the fused representation mixes all channels---and is therefore uninterpretable as modality importance. We accordingly do not report per-modality importance rankings, and we caution against drawing modality conclusions from fused-memory perturbations.
+
+This omission is consistent with the central result of Section~\ref{sec:results_enc_dec}: for G-code integrity attacks the discriminative signal lies in \emph{token space}---the decoder's NLL of the claimed program against the sensor-derived reconstruction---not in any individual sensor modality, since sensor-space scores are at chance by construction. \emph{Which} sensor channels best support the encoder's reconstruction is a property of the encoder, characterized in the companion study~\cite{eacuello2026decoder}, rather than of attack detection.
+
+\subsection{Partial Sensor Failure Robustness}
+\label{sec:ablation_partial}
+
+We simulate sensor board failure by zeroing out channels for one or more boards at test time without retraining.
+Table~\ref{tab:sensor_failure} reports single- and two-board failure scenarios.
+
+\begin{table}[t]
+\centering
+\caption{Detection performance under simulated sensor board failure (A1 command swap, V7 $S_{\text{mean}}$, mean across 5 folds). Boards are zeroed at test time without retraining. The system degrades gracefully: worst single-board removal costs only 1.4~pp.}
+\label{tab:sensor_failure}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Failure Scenario & Boards & AUROC (V7, A1) \\
+\midrule
+Full system              & 0 & 0.803 \\
+Best single-board-out    & 1 (Bd.\ 0) & 0.825 \\
+Worst single-board-out   & 1 (Bd.\ 3) & 0.789 \\
+Second-worst single      & 1 (Bd.\ 5) & 0.796 \\
+Worst two-boards-out     & 2 (Bd.\ 2+3) & 0.782 \\
+Best two-boards-out      & 2 (Bd.\ 0+4) & 0.859 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The system degrades gracefully: worst-case single-board removal reduces AUROC by only 0.014 (Board~3, 0.803 to 0.789); worst-case two-board removal yields 0.782 ($-0.021$).
+Some removals \emph{improve} performance (Board~0, AUROC = 0.825), suggesting certain boards contribute noisy signals not fully compensated by modality dropout.
+Graceful degradation stems from (1)~modality-dropout training and (2)~measurement redundancy across six overlapping sensor positions.
+
+\subsection{Cross-Condition Generalization}
+\label{sec:ablation_crosscondition}
+
+We evaluate whether anomaly score distributions are consistent across machining conditions (air-cut, active-cut, damage-condition), which is critical for threshold transferability.
+Table~\ref{tab:cross_condition} summarizes the results.
+
+\begin{table}[t]
+\centering
+\caption{Cross-condition score distribution analysis (V8 $S_{\text{mean}}$ on normal data). The Kolmogorov--Smirnov (KS) statistic and Cohen's $d$ quantify the distributional shift between conditions. Air-cut vs.\ active-cut shows the largest shift ($d = -0.70$), indicating that a threshold calibrated on one condition may not transfer to the other. The shorter-context V7 decoder shows the same qualitative ordering but smaller, non-significant shifts (see text).}
+\label{tab:cross_condition}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Condition Pair & KS Statistic & Cohen's $d$ & $p$-value \\
+\midrule
+Air-cut vs.\ active-cut   & 0.608 & $-0.702$ & $< 10^{-6}$ \\
+Air-cut vs.\ damage       & 0.624 & $-0.586$ & $5.2 \times 10^{-4}$ \\
+Active-cut vs.\ damage    & 0.267 & $+0.070$ & 0.385 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For the V8 decoder, the largest shift occurs between air-cut and active-cut windows ($d = -0.70$, $p < 10^{-6}$): air-cut windows contain simple, predictable G-code (G0 rapid moves) yielding low NLL, while active-cut windows contain variable coordinates yielding higher NLL.
+A threshold calibrated on one condition would produce mismatched false positive rates on the other.
+Within active-cutting conditions the V8 distributions are stable: active-cut vs.\ damage shows $d = +0.07$ ($p = 0.385$, not significant), so thresholds generalize across standard and damage conditions.
+
+The shorter-context V7 decoder exhibits the same ordering but markedly weaker, statistically non-significant shifts (air-cut vs.\ active-cut KS = 0.327, $p = 0.099$, $d = -0.50$; air-cut vs.\ damage KS = 0.476, $p = 0.108$; active-cut vs.\ damage KS = 0.436, $p = 0.166$). V7's three-token windows simply carry less condition-discriminating information than V8's multi-line windows. Threshold transferability is thus a concern primarily for the multi-line decoder.
+
+\subsection{Window Position Confound}
+\label{sec:ablation_position}
+
+Removing window position encoding from the decoder degrades A1 AUROC from $0.803 \pm 0.050$ to $0.638 \pm 0.030$ ($-16.5$~pp).
+This confirms that position information contributes substantially: CNC programs have deterministic structure (predictable setup commands early, retract sequences late) that a position-aware detector leverages.
+However, the no-position ablation remains well above chance ($0.638 \pm 0.030$ vs.\ 0.500), confirming genuine sensor-to-G-code reconstruction signal beyond program-position priors.
+
+\paragraph{NLL variation with position.}
+NLL varies systematically with window position: low for predictable early-program setup and late-program shutdown, high during mid-program active cutting.
+A position-normalized scoring approach (subtracting position-specific mean NLL) would mitigate this, but insufficient windows per position bin in our dataset prevent reliable estimation.
+
+\subsection{Feature Configuration Ablation}
+\label{sec:ablation_features}
+
+Table~\ref{tab:feature_config} compares three feature configurations.
+
+\begin{table}[t]
+\centering
+\caption{Detection performance across feature configurations (A1 command swap, V7 $S_{\text{mean}}$). AUROC is remarkably stable across configurations, varying by less than 0.02 between the full (f110) and minimal (f56) feature sets. The minimal configuration actually achieves the highest AUROC, likely due to reduced noise from uninformative channels.}
+\label{tab:feature_config}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Configuration & Channels & AUROC & $\Delta$ vs.\ f110 \\
+\midrule
+f110 (full)       & 110 & 0.803 $\pm$ 0.050 & --- \\
+f98 (no redundant) & 98  & 0.796 $\pm$ 0.052 & $-0.007$ \\
+f56 (minimal)      & 56  & 0.812 $\pm$ 0.041 & $+0.009$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+AUROC varies by less than 0.02 across all configurations.
+The minimal f56 set (accelerometers, gyroscopes, audio, electrical) slightly exceeds f110, though the difference is not statistically significant.
+The core physical modalities suffice; additional channels (environmental, color, magnetometer) may introduce marginal noise.
+The f98 configuration offers a practical deployment compromise: 11\% dimensionality reduction with negligible performance impact ($-0.007$).
+
+\subsection{Leave-One-Class-Out (LOCO) Analysis}
+\label{sec:ablation_loco}
+
+LOCO retrains the decoder on 8 of 9 classes and scores the held-out class as anomalous, testing detection of entirely novel operation types.
+
+\begin{table}[t]
+\centering
+\caption{Leave-one-class-out AUROC (mean across 5 CV folds). Face milling classes are the most detectable as novel ($> 0.73$), while pocket and adaptive classes are poorly detected ($< 0.47$), reflecting their sensor-signature similarity to the training distribution.}
+\label{tab:loco}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Held-Out Class & AUROC & Cohen's $d$ \\
+\midrule
+face            & 0.852 & $+1.88$ \\
+face150025      & 0.735 & $+0.79$ \\
+pocket          & 0.323 & $-0.64$ \\
+pocket150025    & 0.472 & $-0.22$ \\
+adaptive        & 0.428 & $-0.31$ \\
+adaptive150025  & 0.409 & $-0.30$ \\
+\bottomrule
+\multicolumn{3}{@{}p{0.80\columnwidth}}{\footnotesize The six non-damage operation classes are shown; the three tool-damage classes are omitted here (their LOCO AUROCs are 0.49--0.64: damageface 0.637, damagepocket 0.567, damageadaptive 0.488).}
+\end{tabular}
+\end{table}
+
+Performance is highly class-dependent.
+Face milling is reliably detected as novel (AUROC = 0.852, $d = 1.88$), producing distinctive signatures that the decoder cannot reconstruct when trained on other classes.
+Pocket and adaptive classes are poorly detected (AUROC = 0.323--0.472) because their sensor signatures overlap with remaining training classes.
+LOCO-style detection is therefore unreliable in general; the reconstruction-mismatch framework is better suited to detecting modifications within known programs (A1--A4) than detecting unknown programs.
