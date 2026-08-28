@@ -1,0 +1,14 @@
+{
+  "metric": "class-conditional modal command predictor (test-derived per-op-class modal), accuracy over COMMAND positions",
+  "per_fold_accuracy": [
+    0.5746,
+    0.581,
+    0.5748,
+    0.5747,
+    0.576
+  ],
+  "mean_accuracy": 0.5762,
+  "std_accuracy": 0.0028,
+  "n_folds": 5,
+  "source": "checkpoints/full_window_5fold/fold_*/results/predictions.npz cmd_t@COMMAND x preprocessed_f98/full_window/fold_*/test_sequences.npz operation_type_names"
+}

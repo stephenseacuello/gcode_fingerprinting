@@ -1,0 +1,28 @@
+% Headline 5-fold metrics. Reports both teacher-forced (TF, sweep-time) and
+% autoregressive (AR, deployment-true) numbers per head. Categorical heads
+% carry a single reference-conditioned value; measured free-running AR
+% categorical accuracy collapses (command 0.483, type 0.551, param-type 0.533;
+% audit/ar_categorical_freerunning.json, see footnote). The autoregressive-token
+% heads (token, sequence, numeric) drop under AR due to exposure bias.
+\begin{table*}[!t]
+\centering
+\caption{Headline test-set metrics for the G-Code Decoder under 5-fold file-level cross-validation, full-window targets, no positional metadata exposed. Mean $\pm$ std over 5 folds. Two evaluation regimes are reported: teacher-forced (TF), where each step receives the ground-truth previous token, and autoregressive (AR, greedy / beam-width 1), where the decoder consumes its own previous predictions. The categorical heads --- type, command, parameter-type, sign --- report a single reference-conditioned value (the AR column is marked `--'); measured free-running categorical accuracy is reported in the footnote. Only the autoregressive-token heads (token, sequence, numeric) carry distinct TF and AR values.}
+\label{tab:headline}
+\resizebox{0.77\textwidth}{!}{%
+\begin{tabular}{l r r r r}
+\toprule
+Head & TF Accuracy & AR Accuracy & Macro Precision & Macro F1 \\
+\midrule
+Token       & $0.7811 \pm 0.0216$ & $0.2148 \pm 0.0685$ & $0.4099 \pm 0.0406$ & $0.3899 \pm 0.0405$ \\
+Sequence$^{\ddagger}$ & -- & $0.0263 \pm 0.0185$ & --                  & --                  \\
+Type        & $0.9838 \pm 0.0085$ & --                  & $0.9091 \pm 0.0352$ & $0.8833 \pm 0.0451$ \\
+Command     & $0.8875 \pm 0.0558$ & --                  & $0.9342 \pm 0.0407$ & $0.8790 \pm 0.1084$ \\
+Param-type  & $0.9931 \pm 0.0036$ & --                  & $0.9914 \pm 0.0073$ & $0.9857 \pm 0.0130$ \\
+Sign        & $0.9888 \pm 0.0063$ & --                  & $0.9658 \pm 0.0215$ & $0.9724 \pm 0.0157$ \\
+Numeric (overall digit) & $0.5850 \pm 0.0331$ & $0.1038 \pm 0.0322$ & --      & --                  \\
+\bottomrule
+\end{tabular}%
+}
+\par\smallskip
+\footnotesize\textit{Macro precision and F1 are unweighted means over all observed classes; the categorical heads carry a single (reference-conditioned) value. Numeric is the digit-head accuracy pooled across all six digit positions; the per-position bathtub is characterized in Section~\ref{sec:numeric-decomposition}. The TF / AR gap on the token and numeric heads is the exposure-bias signature; the categorical AR column is marked `--' because those values are reference-conditioned; measured free-running categorical accuracy collapses (command $0.483 \pm 0.049$, type $0.551 \pm 0.087$, parameter-type $0.533 \pm 0.046$; \texttt{audit/ar\_categorical\_freerunning.json}). $\ddagger$~Sequence exact-match is reported only under AR; a sequence-level TF score is not separately well-defined (see Section~\ref{sec:results-headline}).}
+\end{table*}

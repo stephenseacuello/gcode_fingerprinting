@@ -1,0 +1,790 @@
+{
+  "meta": {
+    "source_npz": "/home/seacuello/Documents/gcode_fingerprinting/outputs/decoder20260511/preprocessed_f98/full_window/fold_1/train_sequences.npz",
+    "source_vocab": "/home/seacuello/Documents/gcode_fingerprinting/data/gcode_vocab_v8.json",
+    "vocab_size": 2418,
+    "pad_id": 0,
+    "n_windows": 303,
+    "tokens_per_window": 1339,
+    "note": "H_emp is empirical Shannon entropy (bits) over training-fold-1 targets. H_max is log2(|subset|)."
+  },
+  "token": {
+    "h_emp": 6.9707148911127295,
+    "h_max": 11.239598529249124,
+    "n_observations": 94330,
+    "subset_size": 2418
+  },
+  "type": {
+    "h_emp": 0.4689955935892812,
+    "h_max": 1.0,
+    "n_observations": 10,
+    "subset_size": 2
+  },
+  "command": {
+    "h_emp": 1.6137874676079829,
+    "h_max": 2.0,
+    "n_observations": 4223,
+    "subset_size": 4,
+    "tokens_in_subset": [
+      "G0",
+      "G1",
+      "G2",
+      "G3"
+    ]
+  },
+  "param_type": {
+    "h_emp": 1.7458319637129145,
+    "h_max": 2.584962500721156,
+    "n_observations": 44976,
+    "subset_size": 6,
+    "tokens_in_subset": [
+      "F",
+      "R",
+      "S",
+      "X",
+      "Y",
+      "Z"
+    ]
+  },
+  "sign_x": {
+    "h_emp": 0.34677670216878453,
+    "h_max": 1.0,
+    "n_observations": 17676,
+    "p_pos": 0.9350531794523648,
+    "p_neg": 0.06494682054763522
+  },
+  "sign_y": {
+    "h_emp": 0.05845837589466412,
+    "h_max": 1.0,
+    "n_observations": 17305,
+    "p_pos": 0.9932389482808437,
+    "p_neg": 0.006761051719156313
+  },
+  "sign_z": {
+    "h_emp": 0.9892131257090278,
+    "h_max": 1.0,
+    "n_observations": 6976,
+    "p_pos": 0.4389334862385321,
+    "p_neg": 0.5610665137614679
+  },
+  "sign_f": {
+    "h_emp": 0.0,
+    "h_max": 1.0,
+    "n_observations": 45,
+    "p_pos": 1.0,
+    "p_neg": 0.0
+  },
+  "sign_s": {
+    "h_emp": 0.0,
+    "h_max": 1.0,
+    "n_observations": 0,
+    "p_pos": null,
+    "p_neg": null
+  },
+  "digit_pooled": {
+    "h_emp": 3.00005208348611,
+    "h_max": 3.321928094887362,
+    "n_observations": 477378,
+    "note": "Pooled across all axes and digit slots from digit_entropy.json"
+  },
+  "per_axis_per_slot": {
+    "X": {
+      "0": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 31333,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 1.0
+          },
+          {
+            "digit": 1,
+            "frac": 0.0
+          },
+          {
+            "digit": 2,
+            "frac": 0.0
+          }
+        ],
+        "verdict": "low_entropy_physically_constrained"
+      },
+      "1": {
+        "h_emp": 1.7201442093908366,
+        "h_max": 3.321928094887362,
+        "n_observations": 31333,
+        "top3": [
+          {
+            "digit": 1,
+            "frac": 0.5257396355280375
+          },
+          {
+            "digit": 0,
+            "frac": 0.22564069830530112
+          },
+          {
+            "digit": 3,
+            "frac": 0.12561835764210258
+          }
+        ],
+        "verdict": "low_entropy_physically_constrained"
+      },
+      "2": {
+        "h_emp": 3.114606292242211,
+        "h_max": 3.321928094887362,
+        "n_observations": 31333,
+        "top3": [
+          {
+            "digit": 6,
+            "frac": 0.20508728816264002
+          },
+          {
+            "digit": 4,
+            "frac": 0.17371461398525517
+          },
+          {
+            "digit": 5,
+            "frac": 0.16589538186576452
+          }
+        ],
+        "verdict": "intermediate"
+      },
+      "3": {
+        "h_emp": 3.298150556661499,
+        "h_max": 3.321928094887362,
+        "n_observations": 31333,
+        "top3": [
+          {
+            "digit": 2,
+            "frac": 0.1295439313184183
+          },
+          {
+            "digit": 3,
+            "frac": 0.11665017712954392
+          },
+          {
+            "digit": 5,
+            "frac": 0.111607570293301
+          }
+        ],
+        "verdict": "high_entropy_quasi_uniform"
+      },
+      "4": {
+        "h_emp": 3.261341320339665,
+        "h_max": 3.321928094887362,
+        "n_observations": 31333,
+        "top3": [
+          {
+            "digit": 5,
+            "frac": 0.17866147512207578
+          },
+          {
+            "digit": 4,
+            "frac": 0.12584176427408802
+          },
+          {
+            "digit": 8,
+            "frac": 0.1027032202470239
+          }
+        ],
+        "verdict": "intermediate"
+      },
+      "5": {
+        "h_emp": 3.2685434053534372,
+        "h_max": 3.321928094887362,
+        "n_observations": 31333,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.1526824753454824
+          },
+          {
+            "digit": 4,
+            "frac": 0.1337248268598602
+          },
+          {
+            "digit": 9,
+            "frac": 0.1311077777423164
+          }
+        ],
+        "verdict": "intermediate"
+      }
+    },
+    "Y": {
+      "0": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 30670,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 1.0
+          },
+          {
+            "digit": 1,
+            "frac": 0.0
+          },
+          {
+            "digit": 2,
+            "frac": 0.0
+          }
+        ],
+        "verdict": "low_entropy_physically_constrained"
+      },
+      "1": {
+        "h_emp": 1.6072034685938206,
+        "h_max": 3.321928094887362,
+        "n_observations": 30670,
+        "top3": [
+          {
+            "digit": 1,
+            "frac": 0.5549722856211281
+          },
+          {
+            "digit": 0,
+            "frac": 0.21894359308770786
+          },
+          {
+            "digit": 2,
+            "frac": 0.17681773720247798
+          }
+        ],
+        "verdict": "low_entropy_physically_constrained"
+      },
+      "2": {
+        "h_emp": 3.116417283253794,
+        "h_max": 3.321928094887362,
+        "n_observations": 30670,
+        "top3": [
+          {
+            "digit": 6,
+            "frac": 0.21503097489403325
+          },
+          {
+            "digit": 4,
+            "frac": 0.17186175415715682
+          },
+          {
+            "digit": 5,
+            "frac": 0.16491685686338442
+          }
+        ],
+        "verdict": "intermediate"
+      },
+      "3": {
+        "h_emp": 3.2896983615760877,
+        "h_max": 3.321928094887362,
+        "n_observations": 30670,
+        "top3": [
+          {
+            "digit": 8,
+            "frac": 0.13671340071731333
+          },
+          {
+            "digit": 7,
+            "frac": 0.1270296706879687
+          },
+          {
+            "digit": 6,
+            "frac": 0.11626997065536354
+          }
+        ],
+        "verdict": "high_entropy_quasi_uniform"
+      },
+      "4": {
+        "h_emp": 3.310032100553954,
+        "h_max": 3.321928094887362,
+        "n_observations": 30670,
+        "top3": [
+          {
+            "digit": 5,
+            "frac": 0.12641017280730354
+          },
+          {
+            "digit": 4,
+            "frac": 0.11946527551353114
+          },
+          {
+            "digit": 6,
+            "frac": 0.10241278121943267
+          }
+        ],
+        "verdict": "high_entropy_quasi_uniform"
+      },
+      "5": {
+        "h_emp": 3.28591041680384,
+        "h_max": 3.321928094887362,
+        "n_observations": 30670,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.1644277795891751
+          },
+          {
+            "digit": 9,
+            "frac": 0.11056406912292142
+          },
+          {
+            "digit": 3,
+            "frac": 0.10678187153570264
+          }
+        ],
+        "verdict": "intermediate"
+      }
+    },
+    "Z": {
+      "0": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 11929,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 1.0
+          },
+          {
+            "digit": 1,
+            "frac": 0.0
+          },
+          {
+            "digit": 2,
+            "frac": 0.0
+          }
+        ],
+        "verdict": "low_entropy_physically_constrained"
+      },
+      "1": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 11929,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 1.0
+          },
+          {
+            "digit": 1,
+            "frac": 0.0
+          },
+          {
+            "digit": 2,
+            "frac": 0.0
+          }
+        ],
+        "verdict": "low_entropy_physically_constrained"
+      },
+      "2": {
+        "h_emp": 0.7020609531693927,
+        "h_max": 3.321928094887362,
+        "n_observations": 11929,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.8597535417889177
+          },
+          {
+            "digit": 1,
+            "frac": 0.11853466342526615
+          },
+          {
+            "digit": 6,
+            "frac": 0.010562494760667281
+          }
+        ],
+        "verdict": "low_entropy_cam_quantized"
+      },
+      "3": {
+        "h_emp": 3.259800567359863,
+        "h_max": 3.321928094887362,
+        "n_observations": 11929,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.16866459887668706
+          },
+          {
+            "digit": 1,
+            "frac": 0.13655796797719844
+          },
+          {
+            "digit": 2,
+            "frac": 0.1256601559225417
+          }
+        ],
+        "verdict": "intermediate"
+      },
+      "4": {
+        "h_emp": 3.3105159065147016,
+        "h_max": 3.321928094887362,
+        "n_observations": 11929,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.1358035040657222
+          },
+          {
+            "digit": 5,
+            "frac": 0.10612792354765697
+          },
+          {
+            "digit": 3,
+            "frac": 0.10411601978372034
+          }
+        ],
+        "verdict": "high_entropy_quasi_uniform"
+      },
+      "5": {
+        "h_emp": 3.3058449296533823,
+        "h_max": 3.321928094887362,
+        "n_observations": 11929,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.13462989353675917
+          },
+          {
+            "digit": 1,
+            "frac": 0.11392405063291139
+          },
+          {
+            "digit": 7,
+            "frac": 0.1054572889596781
+          }
+        ],
+        "verdict": "high_entropy_quasi_uniform"
+      }
+    },
+    "R": {
+      "0": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 5472,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 1.0
+          },
+          {
+            "digit": 1,
+            "frac": 0.0
+          },
+          {
+            "digit": 2,
+            "frac": 0.0
+          }
+        ],
+        "verdict": "low_entropy_physically_constrained"
+      },
+      "1": {
+        "h_emp": 0.17059433535204113,
+        "h_max": 3.321928094887362,
+        "n_observations": 5472,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.9756944444444444
+          },
+          {
+            "digit": 5,
+            "frac": 0.023391812865497075
+          },
+          {
+            "digit": 7,
+            "frac": 0.0009137426900584795
+          }
+        ],
+        "verdict": "low_entropy_physically_constrained"
+      },
+      "2": {
+        "h_emp": 1.1754506430550422,
+        "h_max": 3.321928094887362,
+        "n_observations": 5472,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.6984649122807017
+          },
+          {
+            "digit": 1,
+            "frac": 0.2507309941520468
+          },
+          {
+            "digit": 4,
+            "frac": 0.023391812865497075
+          }
+        ],
+        "verdict": "low_entropy_cam_quantized"
+      },
+      "3": {
+        "h_emp": 1.8409680998075197,
+        "h_max": 3.321928094887362,
+        "n_observations": 5472,
+        "top3": [
+          {
+            "digit": 8,
+            "frac": 0.39766081871345027
+          },
+          {
+            "digit": 7,
+            "frac": 0.3115862573099415
+          },
+          {
+            "digit": 1,
+            "frac": 0.2498172514619883
+          }
+        ],
+        "verdict": "low_entropy_cam_quantized"
+      },
+      "4": {
+        "h_emp": 2.3912091673244547,
+        "h_max": 3.321928094887362,
+        "n_observations": 5472,
+        "top3": [
+          {
+            "digit": 3,
+            "frac": 0.3391812865497076
+          },
+          {
+            "digit": 4,
+            "frac": 0.28252923976608185
+          },
+          {
+            "digit": 8,
+            "frac": 0.18567251461988304
+          }
+        ],
+        "verdict": "low_entropy_cam_quantized"
+      },
+      "5": {
+        "h_emp": 2.0919886111964314,
+        "h_max": 3.321928094887362,
+        "n_observations": 5472,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.4241593567251462
+          },
+          {
+            "digit": 2,
+            "frac": 0.30043859649122806
+          },
+          {
+            "digit": 6,
+            "frac": 0.15332602339181287
+          }
+        ],
+        "verdict": "low_entropy_cam_quantized"
+      }
+    },
+    "F": {
+      "0": {
+        "h_emp": 1.9907604399026673,
+        "h_max": 3.321928094887362,
+        "n_observations": 159,
+        "top3": [
+          {
+            "digit": 1,
+            "frac": 0.29559748427672955
+          },
+          {
+            "digit": 4,
+            "frac": 0.25157232704402516
+          },
+          {
+            "digit": 2,
+            "frac": 0.23270440251572327
+          }
+        ],
+        "verdict": "intermediate"
+      },
+      "1": {
+        "h_emp": 1.9907604399026673,
+        "h_max": 3.321928094887362,
+        "n_observations": 159,
+        "top3": [
+          {
+            "digit": 3,
+            "frac": 0.29559748427672955
+          },
+          {
+            "digit": 0,
+            "frac": 0.25157232704402516
+          },
+          {
+            "digit": 2,
+            "frac": 0.23270440251572327
+          }
+        ],
+        "verdict": "intermediate"
+      },
+      "2": {
+        "h_emp": 1.5070141171998888,
+        "h_max": 3.321928094887362,
+        "n_observations": 159,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.48427672955974843
+          },
+          {
+            "digit": 3,
+            "frac": 0.29559748427672955
+          },
+          {
+            "digit": 2,
+            "frac": 0.22012578616352202
+          }
+        ],
+        "verdict": "low_entropy_cam_quantized"
+      },
+      "3": {
+        "h_emp": 0.7603971182966425,
+        "h_max": 3.321928094887362,
+        "n_observations": 159,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.779874213836478
+          },
+          {
+            "digit": 9,
+            "frac": 0.22012578616352202
+          },
+          {
+            "digit": 1,
+            "frac": 0.0
+          }
+        ],
+        "verdict": "low_entropy_cam_quantized"
+      },
+      "4": {
+        "h_emp": 0.7603971182966425,
+        "h_max": 3.321928094887362,
+        "n_observations": 159,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.779874213836478
+          },
+          {
+            "digit": 9,
+            "frac": 0.22012578616352202
+          },
+          {
+            "digit": 1,
+            "frac": 0.0
+          }
+        ],
+        "verdict": "low_entropy_cam_quantized"
+      },
+      "5": {
+        "h_emp": 0.7603971182966425,
+        "h_max": 3.321928094887362,
+        "n_observations": 159,
+        "top3": [
+          {
+            "digit": 0,
+            "frac": 0.779874213836478
+          },
+          {
+            "digit": 9,
+            "frac": 0.22012578616352202
+          },
+          {
+            "digit": 1,
+            "frac": 0.0
+          }
+        ],
+        "verdict": "low_entropy_cam_quantized"
+      }
+    },
+    "I": {
+      "0": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "1": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "2": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "3": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "4": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "5": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      }
+    },
+    "J": {
+      "0": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "1": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "2": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "3": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "4": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      },
+      "5": {
+        "h_emp": 0.0,
+        "h_max": 3.321928094887362,
+        "n_observations": 0,
+        "top3": [],
+        "verdict": "no_data"
+      }
+    }
+  }
+}

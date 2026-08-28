@@ -1,0 +1,354 @@
+{
+  "per_fold": [
+    {
+      "n_samples": 132,
+      "n_positions": 6,
+      "per_position": [
+        {
+          "n_observed": 145,
+          "accuracy": 1.0,
+          "mean_abs_digit_error": 0.0,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 0.0
+        },
+        {
+          "n_observed": 145,
+          "accuracy": 0.7241379310344828,
+          "mean_abs_digit_error": 0.7724137931034483,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 3.0
+        },
+        {
+          "n_observed": 145,
+          "accuracy": 0.5586206896551724,
+          "mean_abs_digit_error": 1.3103448275862069,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 5.0
+        },
+        {
+          "n_observed": 145,
+          "accuracy": 0.5655172413793104,
+          "mean_abs_digit_error": 1.606896551724138,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 6.0
+        },
+        {
+          "n_observed": 145,
+          "accuracy": 0.6206896551724138,
+          "mean_abs_digit_error": 0.6896551724137931,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 3.0
+        },
+        {
+          "n_observed": 145,
+          "accuracy": 0.8275862068965517,
+          "mean_abs_digit_error": 1.5517241379310345,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 9.0
+        }
+      ],
+      "per_axis": {
+        "X": {
+          "digit_accuracy": 0.6879432624113475,
+          "full_value_correct_pct": 0.48936170212765956,
+          "n_value_positions": 94
+        },
+        "Y": {
+          "digit_accuracy": 0.7248062015503876,
+          "full_value_correct_pct": 0.5116279069767442,
+          "n_value_positions": 43
+        },
+        "J": {
+          "digit_accuracy": 1.0,
+          "full_value_correct_pct": 1.0,
+          "n_value_positions": 4
+        },
+        "Z": {
+          "digit_accuracy": 1.0,
+          "full_value_correct_pct": 1.0,
+          "n_value_positions": 4
+        }
+      },
+      "fold": 1
+    },
+    {
+      "n_samples": 110,
+      "n_positions": 6,
+      "per_position": [
+        {
+          "n_observed": 125,
+          "accuracy": 1.0,
+          "mean_abs_digit_error": 0.0,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 0.0
+        },
+        {
+          "n_observed": 125,
+          "accuracy": 0.752,
+          "mean_abs_digit_error": 0.696,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 3.0
+        },
+        {
+          "n_observed": 125,
+          "accuracy": 0.6,
+          "mean_abs_digit_error": 1.296,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 5.0
+        },
+        {
+          "n_observed": 125,
+          "accuracy": 0.624,
+          "mean_abs_digit_error": 1.336,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 6.0
+        },
+        {
+          "n_observed": 125,
+          "accuracy": 0.688,
+          "mean_abs_digit_error": 0.624,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 4.0
+        },
+        {
+          "n_observed": 125,
+          "accuracy": 0.896,
+          "mean_abs_digit_error": 0.936,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 9.0
+        }
+      ],
+      "per_axis": {
+        "Y": {
+          "digit_accuracy": 0.75177304964539,
+          "full_value_correct_pct": 0.5319148936170213,
+          "n_value_positions": 47
+        },
+        "X": {
+          "digit_accuracy": 0.7380952380952381,
+          "full_value_correct_pct": 0.5857142857142857,
+          "n_value_positions": 70
+        },
+        "Z": {
+          "digit_accuracy": 1.0,
+          "full_value_correct_pct": 1.0,
+          "n_value_positions": 4
+        },
+        "J": {
+          "digit_accuracy": 1.0,
+          "full_value_correct_pct": 1.0,
+          "n_value_positions": 4
+        }
+      },
+      "fold": 2
+    },
+    {
+      "n_samples": 108,
+      "n_positions": 6,
+      "per_position": [
+        {
+          "n_observed": 118,
+          "accuracy": 1.0,
+          "mean_abs_digit_error": 0.0,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 0.0
+        },
+        {
+          "n_observed": 118,
+          "accuracy": 0.711864406779661,
+          "mean_abs_digit_error": 0.7966101694915254,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 3.0
+        },
+        {
+          "n_observed": 118,
+          "accuracy": 0.6016949152542372,
+          "mean_abs_digit_error": 1.2457627118644068,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 4.1499999999999915
+        },
+        {
+          "n_observed": 118,
+          "accuracy": 0.6271186440677966,
+          "mean_abs_digit_error": 1.4322033898305084,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 6.0
+        },
+        {
+          "n_observed": 118,
+          "accuracy": 0.7203389830508474,
+          "mean_abs_digit_error": 0.5423728813559322,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 3.0
+        },
+        {
+          "n_observed": 118,
+          "accuracy": 0.8220338983050848,
+          "mean_abs_digit_error": 1.5847457627118644,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 9.0
+        }
+      ],
+      "per_axis": {
+        "X": {
+          "digit_accuracy": 0.71875,
+          "full_value_correct_pct": 0.4875,
+          "n_value_positions": 80
+        },
+        "Y": {
+          "digit_accuracy": 0.7990196078431373,
+          "full_value_correct_pct": 0.6470588235294118,
+          "n_value_positions": 34
+        },
+        "J": {
+          "digit_accuracy": 0.875,
+          "full_value_correct_pct": 0.75,
+          "n_value_positions": 4
+        }
+      },
+      "fold": 3
+    },
+    {
+      "n_samples": 108,
+      "n_positions": 6,
+      "per_position": [
+        {
+          "n_observed": 121,
+          "accuracy": 1.0,
+          "mean_abs_digit_error": 0.0,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 0.0
+        },
+        {
+          "n_observed": 121,
+          "accuracy": 0.7851239669421488,
+          "mean_abs_digit_error": 0.6033057851239669,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 3.0
+        },
+        {
+          "n_observed": 121,
+          "accuracy": 0.6776859504132231,
+          "mean_abs_digit_error": 1.0413223140495869,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 4.0
+        },
+        {
+          "n_observed": 121,
+          "accuracy": 0.6694214876033058,
+          "mean_abs_digit_error": 1.1900826446280992,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 6.0
+        },
+        {
+          "n_observed": 121,
+          "accuracy": 0.743801652892562,
+          "mean_abs_digit_error": 0.5041322314049587,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 3.0
+        },
+        {
+          "n_observed": 121,
+          "accuracy": 0.8842975206611571,
+          "mean_abs_digit_error": 1.0413223140495869,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 9.0
+        }
+      ],
+      "per_axis": {
+        "X": {
+          "digit_accuracy": 0.775,
+          "full_value_correct_pct": 0.55,
+          "n_value_positions": 80
+        },
+        "Y": {
+          "digit_accuracy": 0.7878787878787878,
+          "full_value_correct_pct": 0.5757575757575758,
+          "n_value_positions": 33
+        },
+        "J": {
+          "digit_accuracy": 1.0,
+          "full_value_correct_pct": 1.0,
+          "n_value_positions": 4
+        },
+        "Z": {
+          "digit_accuracy": 1.0,
+          "full_value_correct_pct": 1.0,
+          "n_value_positions": 4
+        }
+      },
+      "fold": 4
+    },
+    {
+      "n_samples": 93,
+      "n_positions": 6,
+      "per_position": [
+        {
+          "n_observed": 107,
+          "accuracy": 1.0,
+          "mean_abs_digit_error": 0.0,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 0.0
+        },
+        {
+          "n_observed": 107,
+          "accuracy": 0.7850467289719626,
+          "mean_abs_digit_error": 0.5981308411214953,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 3.0
+        },
+        {
+          "n_observed": 107,
+          "accuracy": 0.6542056074766355,
+          "mean_abs_digit_error": 1.1401869158878504,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 5.0
+        },
+        {
+          "n_observed": 107,
+          "accuracy": 0.6728971962616822,
+          "mean_abs_digit_error": 1.205607476635514,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 5.699999999999989
+        },
+        {
+          "n_observed": 107,
+          "accuracy": 0.7102803738317757,
+          "mean_abs_digit_error": 0.5327102803738317,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 2.6999999999999886
+        },
+        {
+          "n_observed": 107,
+          "accuracy": 0.8878504672897196,
+          "mean_abs_digit_error": 1.0093457943925233,
+          "p50_abs_digit_error": 0.0,
+          "p95_abs_digit_error": 9.0
+        }
+      ],
+      "per_axis": {
+        "X": {
+          "digit_accuracy": 0.760752688172043,
+          "full_value_correct_pct": 0.6451612903225806,
+          "n_value_positions": 62
+        },
+        "Y": {
+          "digit_accuracy": 0.7850877192982456,
+          "full_value_correct_pct": 0.5526315789473685,
+          "n_value_positions": 38
+        },
+        "J": {
+          "digit_accuracy": 1.0,
+          "full_value_correct_pct": 1.0,
+          "n_value_positions": 4
+        },
+        "Z": {
+          "digit_accuracy": 1.0,
+          "full_value_correct_pct": 1.0,
+          "n_value_positions": 3
+        }
+      },
+      "fold": 5
+    }
+  ]
+}

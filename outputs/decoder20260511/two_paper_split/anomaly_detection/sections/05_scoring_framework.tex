@@ -7,7 +7,7 @@ Let $\mathbf{y} = (y_1, \ldots, y_T)$ denote the claimed G-code token sequence a
 \subsection{Negative Log-Likelihood (NLL) Scores}
 \label{sec:nll_score}
 
-NLL-based scores measure decoder ``surprise'' when presented with the claimed G-code sequence.
+NLL-based scores measure the surprisal the decoder assigns to the claimed G-code sequence.
 Under normal operation, the decoder assigns high probability to correct tokens (low NLL); under attack, predictions diverge from claimed tokens (elevated NLL).
 
 \paragraph{Mean NLL ($S_{\text{mean}}$).}
@@ -24,12 +24,12 @@ $S_{\max}$ selects the single most anomalous token:
     S_{\max}(\mathbf{y}) = \max_{t \in \{1, \ldots, T\}} \left[ -\log p(y_t \mid y_{<t}, \tilde{\mathbf{z}}) \right]
     \label{eq:s_max}
 \end{equation}
-This score is critical for the V8 multi-line decoder, where most tokens in an attacked window may be unmodified.
-If an A2 perturbation modifies a single X value within a 63-token sequence, $S_{\text{mean}}$ dilutes the signal by averaging the anomalous token with 62 normal tokens, while $S_{\max}$ captures it directly.
+For the V8 multi-line decoder, where most tokens in an attacked window may be unmodified, $S_{\max}$ avoids diluting a localized anomaly.
+If an A2 perturbation modifies a single X value within a 63-token sequence, $S_{\text{mean}}$ averages the anomalous token with 62 normal tokens, while $S_{\max}$ captures it directly.
 
 \paragraph{Scale dependence.}
 For V7 ($T = 3$ content tokens), $S_{\text{mean}}$ and $S_{\max}$ are highly correlated because a single anomalous token dominates both.
-For V8 ($T \leq 63$), they diverge: $S_{\max}$ outperforms on localized attacks (e.g., single coordinate perturbation), while $S_{\text{mean}}$ outperforms on diffuse attacks (e.g., A4 cross-operation swap).
+For V8 ($T \leq 63$), the two scores diverge, with $S_{\max}$ outperforming on localized attacks (e.g., single coordinate perturbation) and $S_{\text{mean}}$ outperforming on diffuse attacks (e.g., A4 cross-operation swap).
 
 \subsection{Rank-Based Score}
 \label{sec:rank_score}
@@ -47,8 +47,10 @@ Under attack, even when the perturbed value receives non-negligible probability 
 \paragraph{Advantage over NLL.}
 Rank-based scoring is \emph{invariant to absolute probability magnitudes}.
 For low-confidence numeric tokens (Section~\ref{sec:results_two_populations}), the decoder assigns similar, modest probability to the original and perturbed tokens, so $\Delta\text{NLL}$ is small.
-However, the decoder's \emph{ranking} may still favor the original value: if the original has rank 45 and the perturbed token rank 120, the rank score detects the shift despite negligible absolute probabilities.
-Empirically, rank-based scoring outperforms NLL by up to 16 percentage points: on A2 with $\delta = 0.001$~mm, V7 Rank achieves AUROC = 0.859 versus V7 NLL = 0.697 (Section~\ref{sec:results_anomaly}).
+The decoder's \emph{ranking} may still favor the original value, however.
+If the original has rank 45 and the perturbed token rank 120, the rank score detects the shift despite negligible absolute probabilities.
+Empirically, rank-based scoring outperforms NLL by up to 16 percentage points.
+On A2 with $\delta = 0.001$~in, V7 Rank achieves AUROC = 0.859 versus V7 NLL = 0.697 (Section~\ref{sec:results_anomaly}).
 
 \subsection{Confidence-Weighted Score}
 \label{sec:confidence_score}
@@ -71,10 +73,12 @@ We evaluate a disagreement score measuring inconsistency across the decoder's ou
 where $\hat{y}_t^{(\text{type})}$ and $\hat{y}_t^{(\text{legacy})}$ are the argmax predictions of the type and legacy heads, and $\text{expected\_type}(\cdot)$ maps a vocabulary token to its grammatical type.
 
 \paragraph{Negative result.}
-Multi-head disagreement achieves AUROC $= 0.500$ across all attack types and perturbation magnitudes in both decoders---no better than chance.
-The jointly trained heads share the same Transformer trunk and produce highly correlated outputs: under attack, all heads are confused in the same direction, producing consistent but incorrect predictions.
+Multi-head disagreement achieves AUROC $= 0.500$, no better than chance, across all attack types and perturbation magnitudes in both decoders.
+The jointly trained heads share the same Transformer trunk and produce highly correlated outputs.
+Under attack, all heads are confused in the same direction, producing consistent but incorrect predictions.
 The baseline disagreement rate is only 0.008, providing insufficient variance for discrimination.
-We report this because multi-head disagreement has been proposed as a general-purpose uncertainty signal; our results show it is ineffective when heads share a common backbone.
+We report this negative result because multi-head disagreement has been proposed as a general-purpose uncertainty signal.
+Our results show it is ineffective when heads share a common backbone.
 
 \subsection{Hybrid Multi-Scale Score}
 \label{sec:hybrid_score}
@@ -83,18 +87,20 @@ Different scoring methods and decoder scales excel on different attack types (Se
 \begin{equation}
     S_{\text{hybrid}} = \begin{cases}
         S_{\text{mean}}^{(\text{V7})} & \text{for structural attacks (A1 command swap, A3 parameter substitution)} \\
-        S_{\text{rank}}^{(\text{V7})} & \text{for small coordinate perturbations (A2, $\delta \leq 0.1$~mm)} \\
-        S_{\max}^{(\text{V8})} & \text{for large coordinate perturbations (A2, $\delta > 0.1$~mm)} \\
-        S_{\text{rank}}^{(\text{V8})} & \text{for semantic/cross-operation attacks (A4)}
+        S_{\text{rank}}^{(\text{V7})} & \text{for small coordinate perturbations (A2, $\delta \leq 0.1$~in)} \\
+        S_{\max}^{(\text{V8})} & \text{for large coordinate perturbations (A2, $\delta > 0.1$~in)} \\
+        S_{\text{mean}}^{(\text{V8})} & \text{for semantic/cross-operation attacks (A4)}
     \end{cases}
     \label{eq:s_hybrid}
 \end{equation}
 
 When the attack type is unknown, the hybrid score can be approximated by computing all component scores, z-score normalizing each using training-set statistics, and taking the maximum:
 \begin{equation}
-    S_{\text{hybrid-max}} = \max\left\{ \tilde{S}_{\text{mean}}^{(\text{V7})}, \; \tilde{S}_{\text{rank}}^{(\text{V7})}, \; \tilde{S}_{\max}^{(\text{V8})}, \; \tilde{S}_{\text{rank}}^{(\text{V8})} \right\}
+    S_{\text{hybrid-max}} = \max\left\{ \tilde{S}_{\text{mean}}^{(\text{V7})}, \; \tilde{S}_{\text{rank}}^{(\text{V7})}, \; \tilde{S}_{\max}^{(\text{V8})}, \; \tilde{S}_{\text{mean}}^{(\text{V8})} \right\}
     \label{eq:s_hybrid_max}
 \end{equation}
 where $\tilde{S}$ denotes z-score normalization.
-This max-over-normalized-scores approach trades per-attack-type optimality for generality, at the cost of a slightly elevated false positive rate due to the heavier right tail of the maximum over multiple scores.
-We did not separately evaluate hybrid-max; the grid-searched ensemble (Section~\ref{sec:results_anomaly_head}) provides a more principled weight optimization over the same component scores.
+This max-over-normalized-scores approach trades per-attack-type optimality for generality.
+The maximum over multiple scores has a heavier right tail, which slightly elevates the false positive rate.
+We did not separately evaluate hybrid-max.
+The grid-searched ensemble (Section~\ref{sec:results_anomaly_head}) provides a more principled weight optimization over the same component scores.

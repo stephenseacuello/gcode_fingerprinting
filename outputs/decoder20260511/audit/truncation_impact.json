@@ -1,0 +1,1482 @@
+{
+  "caps_tested": [
+    8,
+    14,
+    16,
+    32,
+    64,
+    128
+  ],
+  "reports": [
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_1/test_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 132,
+        "content_token_count_min": 1,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 2.992424242424242,
+        "total_content_tokens": 395,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 26,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 12,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 5,
+        "per_file_tokens_max": 35,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 9.461538461538462,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 9,
+            "pct_files_truncated": 34.61538461538461,
+            "tokens_lost": 84,
+            "pct_tokens_lost": 34.146341463414636
+          },
+          "14": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 19.23076923076923,
+            "tokens_lost": 38,
+            "pct_tokens_lost": 15.447154471544716
+          },
+          "16": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 19.23076923076923,
+            "tokens_lost": 28,
+            "pct_tokens_lost": 11.382113821138212
+          },
+          "32": {
+            "source_files_truncated": 1,
+            "pct_files_truncated": 3.8461538461538463,
+            "tokens_lost": 4,
+            "pct_tokens_lost": 1.6260162601626016
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_1/train_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 303,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.0825082508250827,
+        "total_content_tokens": 934,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 69,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 6,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 5,
+        "per_file_tokens_max": 18,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 8.927536231884059,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 26,
+            "pct_files_truncated": 37.68115942028985,
+            "tokens_lost": 186,
+            "pct_tokens_lost": 30.194805194805195
+          },
+          "14": {
+            "source_files_truncated": 14,
+            "pct_files_truncated": 20.28985507246377,
+            "tokens_lost": 54,
+            "pct_tokens_lost": 8.766233766233766
+          },
+          "16": {
+            "source_files_truncated": 12,
+            "pct_files_truncated": 17.391304347826086,
+            "tokens_lost": 26,
+            "pct_tokens_lost": 4.220779220779221
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_1/val_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 110,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.0272727272727273,
+        "total_content_tokens": 333,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 25,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 6,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 5,
+        "per_file_tokens_max": 17,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 8.84,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 9,
+            "pct_files_truncated": 36.0,
+            "tokens_lost": 66,
+            "pct_tokens_lost": 29.86425339366516
+          },
+          "14": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 20.0,
+            "tokens_lost": 20,
+            "pct_tokens_lost": 9.049773755656108
+          },
+          "16": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 20.0,
+            "tokens_lost": 10,
+            "pct_tokens_lost": 4.524886877828054
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_2/test_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 113,
+        "content_token_count_min": 1,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.0265486725663715,
+        "total_content_tokens": 342,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 25,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 5,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 6,
+        "per_file_tokens_max": 14,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 8.44,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 9,
+            "pct_files_truncated": 36.0,
+            "tokens_lost": 51,
+            "pct_tokens_lost": 24.170616113744074
+          },
+          "14": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 20.0,
+            "tokens_lost": 5,
+            "pct_tokens_lost": 2.3696682464454977
+          },
+          "16": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_2/train_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 327,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.091743119266055,
+        "total_content_tokens": 1011,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 71,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 9,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 6,
+        "per_file_tokens_max": 26,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 8.591549295774648,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 26,
+            "pct_files_truncated": 36.61971830985915,
+            "tokens_lost": 158,
+            "pct_tokens_lost": 25.901639344262296
+          },
+          "14": {
+            "source_files_truncated": 13,
+            "pct_files_truncated": 18.309859154929576,
+            "tokens_lost": 27,
+            "pct_tokens_lost": 4.426229508196721
+          },
+          "16": {
+            "source_files_truncated": 1,
+            "pct_files_truncated": 1.408450704225352,
+            "tokens_lost": 11,
+            "pct_tokens_lost": 1.8032786885245902
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_2/val_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 105,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.1142857142857143,
+        "total_content_tokens": 327,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 24,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 5,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 6,
+        "per_file_tokens_max": 14,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 8.416666666666666,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 9,
+            "pct_files_truncated": 37.5,
+            "tokens_lost": 49,
+            "pct_tokens_lost": 24.257425742574256
+          },
+          "14": {
+            "source_files_truncated": 4,
+            "pct_files_truncated": 16.666666666666668,
+            "tokens_lost": 4,
+            "pct_tokens_lost": 1.9801980198019802
+          },
+          "16": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_3/test_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 106,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.1132075471698113,
+        "total_content_tokens": 330,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 24,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 6,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 6,
+        "per_file_tokens_max": 17,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 9.041666666666666,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 9,
+            "pct_files_truncated": 37.5,
+            "tokens_lost": 64,
+            "pct_tokens_lost": 29.493087557603687
+          },
+          "14": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 20.833333333333332,
+            "tokens_lost": 18,
+            "pct_tokens_lost": 8.294930875576037
+          },
+          "16": {
+            "source_files_truncated": 4,
+            "pct_files_truncated": 16.666666666666668,
+            "tokens_lost": 8,
+            "pct_tokens_lost": 3.686635944700461
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_3/train_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 331,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.0755287009063443,
+        "total_content_tokens": 1018,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 72,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 11,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 6,
+        "per_file_tokens_max": 32,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 9.041666666666666,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 26,
+            "pct_files_truncated": 36.111111111111114,
+            "tokens_lost": 193,
+            "pct_tokens_lost": 29.646697388632873
+          },
+          "14": {
+            "source_files_truncated": 13,
+            "pct_files_truncated": 18.055555555555557,
+            "tokens_lost": 62,
+            "pct_tokens_lost": 9.523809523809524
+          },
+          "16": {
+            "source_files_truncated": 11,
+            "pct_files_truncated": 15.277777777777779,
+            "tokens_lost": 37,
+            "pct_tokens_lost": 5.6835637480798775
+          },
+          "32": {
+            "source_files_truncated": 1,
+            "pct_files_truncated": 1.3888888888888888,
+            "tokens_lost": 1,
+            "pct_tokens_lost": 0.15360983102918588
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_3/val_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 108,
+        "content_token_count_min": 1,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.064814814814815,
+        "total_content_tokens": 331,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 24,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 6,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 6,
+        "per_file_tokens_max": 17,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 9.166666666666666,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 9,
+            "pct_files_truncated": 37.5,
+            "tokens_lost": 66,
+            "pct_tokens_lost": 30.0
+          },
+          "14": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 20.833333333333332,
+            "tokens_lost": 20,
+            "pct_tokens_lost": 9.090909090909092
+          },
+          "16": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 20.833333333333332,
+            "tokens_lost": 10,
+            "pct_tokens_lost": 4.545454545454546
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_4/test_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 108,
+        "content_token_count_min": 1,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.0277777777777777,
+        "total_content_tokens": 327,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 24,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 5,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 5,
+        "per_file_tokens_max": 14,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 8.375,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 9,
+            "pct_files_truncated": 37.5,
+            "tokens_lost": 51,
+            "pct_tokens_lost": 25.37313432835821
+          },
+          "14": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 20.833333333333332,
+            "tokens_lost": 5,
+            "pct_tokens_lost": 2.487562189054726
+          },
+          "16": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_4/train_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 344,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.0436046511627906,
+        "total_content_tokens": 1047,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 75,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 10,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 5,
+        "per_file_tokens_max": 29,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 8.44,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 27,
+            "pct_files_truncated": 36.0,
+            "tokens_lost": 167,
+            "pct_tokens_lost": 26.382306477093206
+          },
+          "14": {
+            "source_files_truncated": 13,
+            "pct_files_truncated": 17.333333333333332,
+            "tokens_lost": 31,
+            "pct_tokens_lost": 4.897314375987362
+          },
+          "16": {
+            "source_files_truncated": 2,
+            "pct_files_truncated": 2.6666666666666665,
+            "tokens_lost": 16,
+            "pct_tokens_lost": 2.527646129541864
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_4/val_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 93,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.064516129032258,
+        "total_content_tokens": 285,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 21,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 5,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 5,
+        "per_file_tokens_max": 14,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 8.333333333333334,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 8,
+            "pct_files_truncated": 38.095238095238095,
+            "tokens_lost": 44,
+            "pct_tokens_lost": 25.142857142857142
+          },
+          "14": {
+            "source_files_truncated": 4,
+            "pct_files_truncated": 19.047619047619047,
+            "tokens_lost": 4,
+            "pct_tokens_lost": 2.2857142857142856
+          },
+          "16": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_5/test_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 93,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.096774193548387,
+        "total_content_tokens": 288,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 21,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 6,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 6,
+        "per_file_tokens_max": 17,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 9.047619047619047,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 8,
+            "pct_files_truncated": 38.095238095238095,
+            "tokens_lost": 56,
+            "pct_tokens_lost": 29.473684210526315
+          },
+          "14": {
+            "source_files_truncated": 4,
+            "pct_files_truncated": 19.047619047619047,
+            "tokens_lost": 16,
+            "pct_tokens_lost": 8.421052631578947
+          },
+          "16": {
+            "source_files_truncated": 4,
+            "pct_files_truncated": 19.047619047619047,
+            "tokens_lost": 8,
+            "pct_tokens_lost": 4.2105263157894735
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_5/train_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 320,
+        "content_token_count_min": 2,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.103125,
+        "total_content_tokens": 993,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 73,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 6,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 6,
+        "per_file_tokens_max": 18,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 8.972602739726028,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 27,
+            "pct_files_truncated": 36.986301369863014,
+            "tokens_lost": 190,
+            "pct_tokens_lost": 29.00763358778626
+          },
+          "14": {
+            "source_files_truncated": 14,
+            "pct_files_truncated": 19.17808219178082,
+            "tokens_lost": 53,
+            "pct_tokens_lost": 8.091603053435115
+          },
+          "16": {
+            "source_files_truncated": 12,
+            "pct_files_truncated": 16.438356164383563,
+            "tokens_lost": 25,
+            "pct_tokens_lost": 3.816793893129771
+          },
+          "32": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_5/val_sequences.npz",
+      "direct_truncation": {
+        "n_samples": 132,
+        "content_token_count_min": 1,
+        "content_token_count_max": 6,
+        "content_token_count_median": 3.0,
+        "content_token_count_mean": 3.022727272727273,
+        "total_content_tokens": 399,
+        "cap_impact": {
+          "8": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "14": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "16": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "32": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "64": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "samples_truncated": 0,
+            "pct_samples_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      },
+      "hypothetical_multiline_truncation": {
+        "interpretation": "Per source_file: concatenate all unique G-code lines that appear across all windows of that file, tokenise, then test caps. Overestimate of per-window multi-line target token count.",
+        "n_source_files": 26,
+        "per_file_lines_min": 1,
+        "per_file_lines_max": 11,
+        "per_file_lines_median": 2.0,
+        "per_file_tokens_min": 6,
+        "per_file_tokens_max": 32,
+        "per_file_tokens_median": 6.0,
+        "per_file_tokens_mean": 9.5,
+        "cap_impact": {
+          "8": {
+            "source_files_truncated": 9,
+            "pct_files_truncated": 34.61538461538461,
+            "tokens_lost": 81,
+            "pct_tokens_lost": 32.79352226720648
+          },
+          "14": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 19.23076923076923,
+            "tokens_lost": 35,
+            "pct_tokens_lost": 14.17004048582996
+          },
+          "16": {
+            "source_files_truncated": 5,
+            "pct_files_truncated": 19.23076923076923,
+            "tokens_lost": 25,
+            "pct_tokens_lost": 10.121457489878543
+          },
+          "32": {
+            "source_files_truncated": 1,
+            "pct_files_truncated": 3.8461538461538463,
+            "tokens_lost": 1,
+            "pct_tokens_lost": 0.4048582995951417
+          },
+          "64": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          },
+          "128": {
+            "source_files_truncated": 0,
+            "pct_files_truncated": 0.0,
+            "tokens_lost": 0,
+            "pct_tokens_lost": 0.0
+          }
+        }
+      }
+    }
+  ]
+}

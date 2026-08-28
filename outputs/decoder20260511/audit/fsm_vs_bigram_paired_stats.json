@@ -1,0 +1,66 @@
+{
+  "baseline": {
+    "token": {
+      "bigram_mean": 0.21480132386091927,
+      "fsm_mean": 0.2120683202469278,
+      "delta_mean": -0.0027330036139914526,
+      "delta_std": 0.014217049442700913,
+      "paired_t_stat": -0.38446846865185336,
+      "paired_t_p": 0.7201970012602787,
+      "wilcoxon_stat": 7.0,
+      "wilcoxon_p": 1.0
+    },
+    "numeric": {
+      "bigram_mean": 0.10381266016075803,
+      "fsm_mean": 0.09968365340950702,
+      "delta_mean": -0.00412900675125101,
+      "delta_std": 0.011329794468753051,
+      "paired_t_stat": -0.7288758437125376,
+      "paired_t_p": 0.5064603409899574,
+      "wilcoxon_stat": 4.0,
+      "wilcoxon_p": 0.4375
+    },
+    "command": {
+      "bigram_mean": 0.887520041378999,
+      "fsm_mean": 0.887520041378999,
+      "delta_mean": 0.0,
+      "delta_std": 0.0,
+      "paired_t_stat": NaN,
+      "paired_t_p": NaN,
+      "wilcoxon_stat": 7.5,
+      "wilcoxon_p": 1.0
+    }
+  },
+  "with_shortcuts": {
+    "token": {
+      "bigram_mean": 0.2895486397263384,
+      "fsm_mean": 0.2891921493545715,
+      "delta_mean": -0.0003564903717669154,
+      "delta_std": 0.00307570920368645,
+      "paired_t_stat": -0.23181019280992957,
+      "paired_t_p": 0.8280616256421566,
+      "wilcoxon_stat": 5.0,
+      "wilcoxon_p": 0.625
+    },
+    "numeric": {
+      "bigram_mean": 0.18348805664894968,
+      "fsm_mean": 0.18353936536213253,
+      "delta_mean": 5.130871318285712e-05,
+      "delta_std": 0.0015417641588239858,
+      "paired_t_stat": 0.06655844590653082,
+      "paired_t_p": 0.9501271832604006,
+      "wilcoxon_stat": 7.0,
+      "wilcoxon_p": 1.0
+    },
+    "command": {
+      "bigram_mean": 0.8818427894878079,
+      "fsm_mean": 0.8818427894878079,
+      "delta_mean": 0.0,
+      "delta_std": 0.0,
+      "paired_t_stat": NaN,
+      "paired_t_p": NaN,
+      "wilcoxon_stat": 7.5,
+      "wilcoxon_p": 1.0
+    }
+  }
+}

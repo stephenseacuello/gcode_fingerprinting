@@ -1,0 +1,477 @@
+{
+  "meta": {
+    "design": "A (evaluation-masking; no retrain)",
+    "purpose": "Action item 2, 2026-05-21 follow-up meeting -- isolate the numeric-token contribution to the AR sequence collapse.",
+    "regimes": {
+      "TF": "beam_0 (teacher-forced)",
+      "AR": "beam_1 (autoregressive)"
+    },
+    "folds": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "numeric_token_rule": "startswith('NUM_') or contains '.'",
+    "caveat": "AR is a contaminated lower bound: numeric errors desync the structural decode before the metric masks them. Design B (retrain with numeric->placeholder) is the clean test."
+  },
+  "TF": {
+    "source": "beam_0_all_predictions.json",
+    "per_fold": [
+      {
+        "fold": 1,
+        "n_windows": 132,
+        "n_tokens": 37592,
+        "full_token_acc": 0.7468078314535007,
+        "struct_token_acc": 0.924161277283751,
+        "num_token_acc": 0.5496067415730337,
+        "full_seq_exact": 0.015151515151515152,
+        "struct_seq_exact": 0.20454545454545456,
+        "struct_subseq_exact": 0.20454545454545456,
+        "len_mismatch_rate": 0.30303030303030304
+      },
+      {
+        "fold": 2,
+        "n_windows": 110,
+        "n_tokens": 34496,
+        "full_token_acc": 0.7740027829313544,
+        "struct_token_acc": 0.9694415173867229,
+        "num_token_acc": 0.5599757060431217,
+        "full_seq_exact": 0.0,
+        "struct_seq_exact": 0.13636363636363635,
+        "struct_subseq_exact": 0.08181818181818182,
+        "len_mismatch_rate": 0.0
+      },
+      {
+        "fold": 3,
+        "n_windows": 106,
+        "n_tokens": 32713,
+        "full_token_acc": 0.7762051783694556,
+        "struct_token_acc": 0.9723566804688867,
+        "num_token_acc": 0.5601310548631633,
+        "full_seq_exact": 0.02830188679245283,
+        "struct_seq_exact": 0.2641509433962264,
+        "struct_subseq_exact": 0.2358490566037736,
+        "len_mismatch_rate": 0.0
+      },
+      {
+        "fold": 4,
+        "n_windows": 108,
+        "n_tokens": 32812,
+        "full_token_acc": 0.8058332317444837,
+        "struct_token_acc": 0.9685556524266201,
+        "num_token_acc": 0.6264496700198628,
+        "full_seq_exact": 0.05555555555555555,
+        "struct_seq_exact": 0.23148148148148148,
+        "struct_subseq_exact": 0.23148148148148148,
+        "len_mismatch_rate": 0.0
+      },
+      {
+        "fold": 5,
+        "n_windows": 93,
+        "n_tokens": 29708,
+        "full_token_acc": 0.8027467348862259,
+        "struct_token_acc": 0.9674922600619195,
+        "num_token_acc": 0.6229231202478175,
+        "full_seq_exact": 0.03225806451612903,
+        "struct_seq_exact": 0.22580645161290322,
+        "struct_subseq_exact": 0.22580645161290322,
+        "len_mismatch_rate": 0.0
+      }
+    ],
+    "aggregate": {
+      "full_token_acc": {
+        "mean": 0.7811191518770041,
+        "std": 0.02413811634285472,
+        "per_fold": [
+          0.7468078314535007,
+          0.7740027829313544,
+          0.7762051783694556,
+          0.8058332317444837,
+          0.8027467348862259
+        ]
+      },
+      "struct_token_acc": {
+        "mean": 0.96040147752558,
+        "std": 0.020339438764190223,
+        "per_fold": [
+          0.924161277283751,
+          0.9694415173867229,
+          0.9723566804688867,
+          0.9685556524266201,
+          0.9674922600619195
+        ]
+      },
+      "num_token_acc": {
+        "mean": 0.5838172585493998,
+        "std": 0.037571951871470465,
+        "per_fold": [
+          0.5496067415730337,
+          0.5599757060431217,
+          0.5601310548631633,
+          0.6264496700198628,
+          0.6229231202478175
+        ]
+      },
+      "full_seq_exact": {
+        "mean": 0.026253404403130516,
+        "std": 0.020684302460084365,
+        "per_fold": [
+          0.015151515151515152,
+          0.0,
+          0.02830188679245283,
+          0.05555555555555555,
+          0.03225806451612903
+        ]
+      },
+      "struct_seq_exact": {
+        "mean": 0.2124695934799404,
+        "std": 0.047605656927127,
+        "per_fold": [
+          0.20454545454545456,
+          0.13636363636363635,
+          0.2641509433962264,
+          0.23148148148148148,
+          0.22580645161290322
+        ]
+      },
+      "struct_subseq_exact": {
+        "mean": 0.19590012521235894,
+        "std": 0.06489562758751931,
+        "per_fold": [
+          0.20454545454545456,
+          0.08181818181818182,
+          0.2358490566037736,
+          0.23148148148148148,
+          0.22580645161290322
+        ]
+      },
+      "len_mismatch_rate": {
+        "mean": 0.06060606060606061,
+        "std": 0.13551927136362363,
+        "per_fold": [
+          0.30303030303030304,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "structural_position_profile": [
+      {
+        "bin": 0,
+        "rel_pos": "0.0-0.1",
+        "struct_token_acc": 0.9292611478789193,
+        "n": 9217
+      },
+      {
+        "bin": 1,
+        "rel_pos": "0.1-0.2",
+        "struct_token_acc": 0.9715785869193014,
+        "n": 8761
+      },
+      {
+        "bin": 2,
+        "rel_pos": "0.2-0.3",
+        "struct_token_acc": 0.9697282421740626,
+        "n": 8721
+      },
+      {
+        "bin": 3,
+        "rel_pos": "0.3-0.4",
+        "struct_token_acc": 0.9685779816513761,
+        "n": 8720
+      },
+      {
+        "bin": 4,
+        "rel_pos": "0.4-0.5",
+        "struct_token_acc": 0.9606598984771574,
+        "n": 8668
+      },
+      {
+        "bin": 5,
+        "rel_pos": "0.5-0.6",
+        "struct_token_acc": 0.9690230341540905,
+        "n": 8813
+      },
+      {
+        "bin": 6,
+        "rel_pos": "0.6-0.7",
+        "struct_token_acc": 0.9663411832280299,
+        "n": 8705
+      },
+      {
+        "bin": 7,
+        "rel_pos": "0.7-0.8",
+        "struct_token_acc": 0.958728706985252,
+        "n": 8747
+      },
+      {
+        "bin": 8,
+        "rel_pos": "0.8-0.9",
+        "struct_token_acc": 0.9611683848797251,
+        "n": 8730
+      },
+      {
+        "bin": 9,
+        "rel_pos": "0.9-1.0",
+        "struct_token_acc": 0.9389321856461557,
+        "n": 8597
+      }
+    ],
+    "dot_token_examples": [
+      [
+        "X0.",
+        131
+      ],
+      [
+        "Z0.",
+        112
+      ],
+      [
+        "Y0.",
+        99
+      ],
+      [
+        "F40.",
+        68
+      ],
+      [
+        "F22.",
+        35
+      ]
+    ],
+    "n_distinct_tokens": 2173
+  },
+  "AR": {
+    "source": "beam_1_all_predictions.json",
+    "per_fold": [
+      {
+        "fold": 1,
+        "n_windows": 132,
+        "n_tokens": 37592,
+        "full_token_acc": 0.20469780804426474,
+        "struct_token_acc": 0.29623080032336296,
+        "num_token_acc": 0.10292134831460674,
+        "full_seq_exact": 0.015151515151515152,
+        "struct_seq_exact": 0.045454545454545456,
+        "struct_subseq_exact": 0.030303030303030304,
+        "len_mismatch_rate": 0.9393939393939394
+      },
+      {
+        "fold": 2,
+        "n_windows": 110,
+        "n_tokens": 34386,
+        "full_token_acc": 0.2293084394811842,
+        "struct_token_acc": 0.3557837174264829,
+        "num_token_acc": 0.09164895232310963,
+        "full_seq_exact": 0.0,
+        "struct_seq_exact": 0.0,
+        "struct_subseq_exact": 0.0,
+        "len_mismatch_rate": 0.990909090909091
+      },
+      {
+        "fold": 3,
+        "n_windows": 106,
+        "n_tokens": 32607,
+        "full_token_acc": 0.23485754592572147,
+        "struct_token_acc": 0.34851241124347165,
+        "num_token_acc": 0.11043299498907876,
+        "full_seq_exact": 0.02830188679245283,
+        "struct_seq_exact": 0.10377358490566038,
+        "struct_subseq_exact": 0.05660377358490566,
+        "len_mismatch_rate": 0.8773584905660378
+      },
+      {
+        "fold": 4,
+        "n_windows": 108,
+        "n_tokens": 32704,
+        "full_token_acc": 0.31002323874755383,
+        "struct_token_acc": 0.4507223489501082,
+        "num_token_acc": 0.15589158710834883,
+        "full_seq_exact": 0.05555555555555555,
+        "struct_seq_exact": 0.07407407407407407,
+        "struct_subseq_exact": 0.05555555555555555,
+        "len_mismatch_rate": 0.8796296296296297
+      },
+      {
+        "fold": 5,
+        "n_windows": 93,
+        "n_tokens": 29615,
+        "full_token_acc": 0.09728178288029715,
+        "struct_token_acc": 0.13509830640451626,
+        "num_token_acc": 0.056251760067586594,
+        "full_seq_exact": 0.03225806451612903,
+        "struct_seq_exact": 0.06451612903225806,
+        "struct_subseq_exact": 0.06451612903225806,
+        "len_mismatch_rate": 0.8924731182795699
+      }
+    ],
+    "aggregate": {
+      "full_token_acc": {
+        "mean": 0.21523376301580427,
+        "std": 0.07679829107449265,
+        "per_fold": [
+          0.20469780804426474,
+          0.2293084394811842,
+          0.23485754592572147,
+          0.31002323874755383,
+          0.09728178288029715
+        ]
+      },
+      "struct_token_acc": {
+        "mean": 0.3172695168695884,
+        "std": 0.1160798195208019,
+        "per_fold": [
+          0.29623080032336296,
+          0.3557837174264829,
+          0.34851241124347165,
+          0.4507223489501082,
+          0.13509830640451626
+        ]
+      },
+      "num_token_acc": {
+        "mean": 0.10342932856054612,
+        "std": 0.03593778719019983,
+        "per_fold": [
+          0.10292134831460674,
+          0.09164895232310963,
+          0.11043299498907876,
+          0.15589158710834883,
+          0.056251760067586594
+        ]
+      },
+      "full_seq_exact": {
+        "mean": 0.026253404403130516,
+        "std": 0.020684302460084365,
+        "per_fold": [
+          0.015151515151515152,
+          0.0,
+          0.02830188679245283,
+          0.05555555555555555,
+          0.03225806451612903
+        ]
+      },
+      "struct_seq_exact": {
+        "mean": 0.05756366669330759,
+        "std": 0.038459372609284,
+        "per_fold": [
+          0.045454545454545456,
+          0.0,
+          0.10377358490566038,
+          0.07407407407407407,
+          0.06451612903225806
+        ]
+      },
+      "struct_subseq_exact": {
+        "mean": 0.04139569769514991,
+        "std": 0.026471647803120547,
+        "per_fold": [
+          0.030303030303030304,
+          0.0,
+          0.05660377358490566,
+          0.05555555555555555,
+          0.06451612903225806
+        ]
+      },
+      "len_mismatch_rate": {
+        "mean": 0.9159528537556536,
+        "std": 0.04880604840348172,
+        "per_fold": [
+          0.9393939393939394,
+          0.990909090909091,
+          0.8773584905660378,
+          0.8796296296296297,
+          0.8924731182795699
+        ]
+      }
+    },
+    "structural_position_profile": [
+      {
+        "bin": 0,
+        "rel_pos": "0.0-0.1",
+        "struct_token_acc": 0.4821253938932957,
+        "n": 9203
+      },
+      {
+        "bin": 1,
+        "rel_pos": "0.1-0.2",
+        "struct_token_acc": 0.453399059956437,
+        "n": 8723
+      },
+      {
+        "bin": 2,
+        "rel_pos": "0.2-0.3",
+        "struct_token_acc": 0.3979111672213933,
+        "n": 8713
+      },
+      {
+        "bin": 3,
+        "rel_pos": "0.3-0.4",
+        "struct_token_acc": 0.3673398730525101,
+        "n": 8665
+      },
+      {
+        "bin": 4,
+        "rel_pos": "0.4-0.5",
+        "struct_token_acc": 0.32200852240009215,
+        "n": 8683
+      },
+      {
+        "bin": 5,
+        "rel_pos": "0.5-0.6",
+        "struct_token_acc": 0.27630084071801864,
+        "n": 8802
+      },
+      {
+        "bin": 6,
+        "rel_pos": "0.6-0.7",
+        "struct_token_acc": 0.2747747747747748,
+        "n": 8658
+      },
+      {
+        "bin": 7,
+        "rel_pos": "0.7-0.8",
+        "struct_token_acc": 0.2507757728996667,
+        "n": 8701
+      },
+      {
+        "bin": 8,
+        "rel_pos": "0.8-0.9",
+        "struct_token_acc": 0.2070857142857143,
+        "n": 8750
+      },
+      {
+        "bin": 9,
+        "rel_pos": "0.9-1.0",
+        "struct_token_acc": 0.15817790530846484,
+        "n": 8364
+      }
+    ],
+    "dot_token_examples": [
+      [
+        "Z0.",
+        107
+      ],
+      [
+        "X0.",
+        102
+      ],
+      [
+        "Y0.",
+        77
+      ],
+      [
+        "F40.",
+        57
+      ],
+      [
+        "F22.",
+        35
+      ]
+    ],
+    "n_distinct_tokens": 2170
+  }
+}

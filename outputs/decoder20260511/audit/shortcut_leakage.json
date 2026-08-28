@@ -1,0 +1,239 @@
+{
+  "reports": [
+    {
+      "fold_dir": "outputs/decoder20260304/preprocessed_v7/fold_1",
+      "n_train": 303,
+      "n_val": 110,
+      "n_test": 132,
+      "n_classes_train": 22,
+      "val_unseen_labels": 1,
+      "test_unseen_labels": 10,
+      "feature_names": [
+        "window_index",
+        "total_windows",
+        "norm_position",
+        "operation_type",
+        "source_file_hash"
+      ],
+      "majority_class": {
+        "label_id": 8,
+        "val_acc": 0.21818181818181817,
+        "test_acc": 0.20454545454545456
+      },
+      "operation_type_baseline": {
+        "val_acc": 0.43636363636363634,
+        "test_acc": 0.4318181818181818
+      },
+      "operation_x_window_lookup": {
+        "val_acc": 0.8545454545454545,
+        "test_acc": 0.803030303030303
+      },
+      "logistic_regression": {
+        "val_acc": 0.3669724770642202,
+        "test_acc": 0.319672131147541,
+        "error": null
+      },
+      "xgboost": {
+        "val_acc": 0.8715596330275229,
+        "test_acc": 0.7540983606557377,
+        "feature_importance": [
+          0.1595604121685028,
+          0.44490623474121094,
+          0.2256103754043579,
+          0.16238434612751007,
+          0.00753861153498292
+        ],
+        "error": null
+      },
+      "fold": 1
+    },
+    {
+      "fold_dir": "outputs/decoder20260304/preprocessed_v7/fold_2",
+      "n_train": 327,
+      "n_val": 105,
+      "n_test": 113,
+      "n_classes_train": 24,
+      "val_unseen_labels": 0,
+      "test_unseen_labels": 2,
+      "feature_names": [
+        "window_index",
+        "total_windows",
+        "norm_position",
+        "operation_type",
+        "source_file_hash"
+      ],
+      "majority_class": {
+        "label_id": 7,
+        "val_acc": 0.21904761904761905,
+        "test_acc": 0.20353982300884957
+      },
+      "operation_type_baseline": {
+        "val_acc": 0.49523809523809526,
+        "test_acc": 0.48672566371681414
+      },
+      "operation_x_window_lookup": {
+        "val_acc": 0.9523809523809523,
+        "test_acc": 0.8849557522123894
+      },
+      "logistic_regression": {
+        "val_acc": 0.41904761904761906,
+        "test_acc": 0.3153153153153153,
+        "error": null
+      },
+      "xgboost": {
+        "val_acc": 0.9333333333333333,
+        "test_acc": 0.9009009009009009,
+        "feature_importance": [
+          0.13967840373516083,
+          0.4897361397743225,
+          0.1431683599948883,
+          0.21463119983673096,
+          0.012785826809704304
+        ],
+        "error": null
+      },
+      "fold": 2
+    },
+    {
+      "fold_dir": "outputs/decoder20260304/preprocessed_v7/fold_3",
+      "n_train": 331,
+      "n_val": 108,
+      "n_test": 106,
+      "n_classes_train": 26,
+      "val_unseen_labels": 2,
+      "test_unseen_labels": 0,
+      "feature_names": [
+        "window_index",
+        "total_windows",
+        "norm_position",
+        "operation_type",
+        "source_file_hash"
+      ],
+      "majority_class": {
+        "label_id": 9,
+        "val_acc": 0.2037037037037037,
+        "test_acc": 0.2169811320754717
+      },
+      "operation_type_baseline": {
+        "val_acc": 0.4444444444444444,
+        "test_acc": 0.44339622641509435
+      },
+      "operation_x_window_lookup": {
+        "val_acc": 0.9351851851851852,
+        "test_acc": 0.9433962264150944
+      },
+      "logistic_regression": {
+        "val_acc": 0.3113207547169811,
+        "test_acc": 0.3490566037735849,
+        "error": null
+      },
+      "xgboost": {
+        "val_acc": 0.8867924528301887,
+        "test_acc": 0.9339622641509434,
+        "feature_importance": [
+          0.154343843460083,
+          0.44500869512557983,
+          0.14194026589393616,
+          0.2454187422990799,
+          0.013288457877933979
+        ],
+        "error": null
+      },
+      "fold": 3
+    },
+    {
+      "fold_dir": "outputs/decoder20260304/preprocessed_v7/fold_4",
+      "n_train": 344,
+      "n_val": 93,
+      "n_test": 108,
+      "n_classes_train": 26,
+      "val_unseen_labels": 0,
+      "test_unseen_labels": 2,
+      "feature_names": [
+        "window_index",
+        "total_windows",
+        "norm_position",
+        "operation_type",
+        "source_file_hash"
+      ],
+      "majority_class": {
+        "label_id": 8,
+        "val_acc": 0.1935483870967742,
+        "test_acc": 0.2037037037037037
+      },
+      "operation_type_baseline": {
+        "val_acc": 0.5053763440860215,
+        "test_acc": 0.49074074074074076
+      },
+      "operation_x_window_lookup": {
+        "val_acc": 0.978494623655914,
+        "test_acc": 0.9444444444444444
+      },
+      "logistic_regression": {
+        "val_acc": 0.3118279569892473,
+        "test_acc": 0.27358490566037735,
+        "error": null
+      },
+      "xgboost": {
+        "val_acc": 0.946236559139785,
+        "test_acc": 0.9150943396226415,
+        "feature_importance": [
+          0.16295190155506134,
+          0.44893017411231995,
+          0.1420021504163742,
+          0.23605144023895264,
+          0.01006428524851799
+        ],
+        "error": null
+      },
+      "fold": 4
+    },
+    {
+      "fold_dir": "outputs/decoder20260304/preprocessed_v7/fold_5",
+      "n_train": 320,
+      "n_val": 132,
+      "n_test": 93,
+      "n_classes_train": 23,
+      "val_unseen_labels": 5,
+      "test_unseen_labels": 0,
+      "feature_names": [
+        "window_index",
+        "total_windows",
+        "norm_position",
+        "operation_type",
+        "source_file_hash"
+      ],
+      "majority_class": {
+        "label_id": 8,
+        "val_acc": 0.20454545454545456,
+        "test_acc": 0.1935483870967742
+      },
+      "operation_type_baseline": {
+        "val_acc": 0.4318181818181818,
+        "test_acc": 0.46236559139784944
+      },
+      "operation_x_window_lookup": {
+        "val_acc": 0.8333333333333334,
+        "test_acc": 0.946236559139785
+      },
+      "logistic_regression": {
+        "val_acc": 0.28346456692913385,
+        "test_acc": 0.41935483870967744,
+        "error": null
+      },
+      "xgboost": {
+        "val_acc": 0.84251968503937,
+        "test_acc": 0.946236559139785,
+        "feature_importance": [
+          0.16547712683677673,
+          0.4325252175331116,
+          0.19691228866577148,
+          0.19604575634002686,
+          0.009039589203894138
+        ],
+        "error": null
+      },
+      "fold": 5
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "n_folds": 5,
+  "n_bootstrap": 10000,
+  "per_axis": {
+    "X": {
+      "mae_mean": 0.2771994374050917,
+      "mae_ci_lo": 0.17684108178559793,
+      "mae_ci_hi": 0.43153145760711187,
+      "has_axis_f1_mean": 1.0,
+      "has_axis_f1_ci_lo": 1.0,
+      "has_axis_f1_ci_hi": 1.0
+    },
+    "Y": {
+      "mae_mean": 0.17915789200587737,
+      "mae_ci_lo": 0.13531187701728176,
+      "mae_ci_hi": 0.2518401372212693,
+      "has_axis_f1_mean": 1.0,
+      "has_axis_f1_ci_lo": 1.0,
+      "has_axis_f1_ci_hi": 1.0
+    },
+    "Z": {
+      "mae_mean": 0.04210776607683242,
+      "mae_ci_lo": 0.020290043290043292,
+      "mae_ci_hi": 0.06323628590971273,
+      "has_axis_f1_mean": 1.0,
+      "has_axis_f1_ci_lo": 1.0,
+      "has_axis_f1_ci_hi": 1.0
+    },
+    "R": {
+      "mae_mean": 0.01764480989007571,
+      "mae_ci_lo": 0.009517148345153664,
+      "mae_ci_hi": 0.025917881471272285,
+      "has_axis_f1_mean": 0.9829347123464771,
+      "has_axis_f1_ci_lo": 0.9488041370394311,
+      "has_axis_f1_ci_hi": 1.0
+    },
+    "F": {
+      "mae_mean": 8.88622084623323,
+      "mae_ci_lo": 6.306035087719298,
+      "mae_ci_hi": 11.201960784313727,
+      "has_axis_f1_mean": 0.9359300823223655,
+      "has_axis_f1_ci_lo": 0.903898344990546,
+      "has_axis_f1_ci_hi": 0.9728021978021978
+    }
+  }
+}

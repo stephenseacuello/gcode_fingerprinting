@@ -7,14 +7,20 @@
 Systematic error analysis (Experiment~9) reveals two distinct failure modes.
 
 \paragraph{False positives.}
-False positives cluster in three categories: (1)~windows containing rare but legitimate G-code patterns---unusual coordinates near workpiece boundaries, infrequent M-codes, and cutting/rapid-traverse transitions---that are underrepresented in training data; (2)~program-boundary windows (startup/shutdown sequences) where the decoder predicts with moderate but imperfect confidence; and (3)~tool-change sequences (M6--G43--G0), where the decoder assigns $p \approx 0.15$ to M6 versus $p \approx 0.45$ to the more common G1, producing NLL of 4.2 versus a normal-window mean of 3.1~nats.
+False positives cluster in three categories.
+The first is windows containing rare but legitimate G-code patterns (unusual coordinates near workpiece boundaries, infrequent M-codes, and cutting/rapid-traverse transitions) that are underrepresented in training data.
+The second is program-boundary windows (startup/shutdown sequences), where the decoder predicts with moderate but imperfect confidence.
+The third is tool-change sequences (M6--G43--G0), where the decoder assigns $p \approx 0.15$ to M6 versus $p \approx 0.45$ to the more common G1, producing NLL of 4.2 versus a normal-window mean of 3.1~nats.
 
-For the V7 decoder, reconstruction errors concentrate in the \emph{middle} of each program (early 17.5\%, middle 50.8\%, late 31.7\%; Cram\'er's $V = 0.353$, $\chi^2$ significant across folds), where active-cutting coordinate density is highest, and are sparsest in the predictable early-program setup. The position--error-type association is statistically significant, not uniform.
+For the V7 decoder, reconstruction errors concentrate in the \emph{middle} of each program, where active-cutting coordinate density is highest, and are sparsest in the predictable early-program setup (early 17.5\%, middle 50.8\%, late 31.7\%).
+The position--error-type association is statistically significant (Cram\'er's $V = 0.353$, $\chi^2$ significant across folds) rather than uniform.
 
 \paragraph{False negatives.}
 Two scenarios produce the most challenging false negatives.
-Coordinate perturbations (A2) that modify low-confidence numeric tokens produce small $\Delta$NLL---insufficient for reliable NLL-based detection (rank scoring partially recovers these; Section~\ref{sec:results_two_populations}).
-Parameter substitutions (A3) are the hardest attack type overall (best AUROC = 0.621) because swapping parameter letters preserves the numeric value, and the V7 decoder's high parameter-token error rate (45.3\%) means substituted parameters often receive non-negligible probability.
+Coordinate perturbations (A2) that modify low-confidence numeric tokens produce small $\Delta$NLL values, insufficient for reliable NLL-based detection.
+Rank scoring partially recovers these cases (Section~\ref{sec:results_two_populations}).
+Parameter substitutions (A3) are the hardest attack type overall (best AUROC = 0.621).
+Swapping parameter letters preserves the numeric value, and the V7 decoder's high parameter-token error rate (45.3\%) means substituted parameters often receive non-negligible probability.
 
 \subsection{Scoring Method Complementarity}
 \label{sec:disc_multiscale}
@@ -26,28 +32,38 @@ Short-context decoding (V7) localizes per-token anomalies; multi-line decoding (
 This parallels the resolution trade-off in signal processing and motivates running both decoders in parallel.
 
 \paragraph{NLL/rank complementarity.}
-For uncertain numeric tokens, the decoder assigns negligible probability to all candidates ($p = 0.003$ original vs.\ $p = 0.002$ perturbed, $\Delta$NLL = 0.41~nats---within noise).
-Rank scoring bypasses this by detecting \emph{ordinal} shifts: if the original value sits at rank~45 and the perturbed value at rank~120, the normalized difference of 0.105 is detectable even when absolute probabilities are negligible.
-Conversely, rank scoring fails on parameter substitutions (A3 AUROC = 0.500) because it only operates on numeric tokens.
-A grid-searched ensemble over NLL, rank, and Mahalanobis distance matches the best individual scorer per attack type (AUROC = 0.859 on A2, 0.647 on A4) but does not exceed it; a combined logistic regression yields AUROC = $0.663 \pm 0.020$, confirming that no single linear combination dominates. We note that these grid-searched weights are tuned on the evaluation windows and so represent an \emph{in-sample upper bound}; the per-attack-type routing of Eq.~\ref{eq:s_hybrid} is the deployable alternative.
+For uncertain numeric tokens, the decoder assigns negligible probability to all candidates ($p = 0.003$ original vs.\ $p = 0.002$ perturbed, $\Delta$NLL = 0.41~nats, within noise).
+Rank scoring bypasses this limitation by detecting \emph{ordinal} shifts.
+If the original value sits at rank~45 and the perturbed value at rank~120, the normalized difference of 0.105 is detectable even when absolute probabilities are negligible.
+Conversely, rank scoring fails on parameter substitutions (A3 AUROC = 0.500) because it operates only on numeric tokens.
+A grid-searched ensemble over NLL, rank, and Mahalanobis distance matches the best individual scorer per attack type (AUROC = 0.859 on A2, 0.647 on A4) but does not exceed it.
+A combined logistic regression yields AUROC = $0.663 \pm 0.020$, confirming that no single linear combination dominates.
+The grid-searched weights are tuned on the evaluation windows and therefore represent an \emph{in-sample upper bound}.
+The per-attack-type routing of Eq.~\ref{eq:s_hybrid} is the deployable alternative.
 
 \paragraph{Continuous vs.\ discrete scoring.}
 Replacing continuous NLL with binary argmax comparison degrades detection in most settings because it discards graded confidence.
-The exception is V7 on A4 (argmax AUROC = 0.629 vs.\ NLL = 0.366), where discrete disagreements avoid dilution by uncertain tokens---further evidence that the confident/uncertain token split governs detection behavior.
+The exception is V7 on A4 (argmax AUROC = 0.629 vs.\ NLL = 0.366), where discrete disagreements avoid dilution by uncertain tokens.
+This exception is further evidence that the confident/uncertain token split governs detection behavior.
 
 \subsection{Temporal Detection via CUSUM}
 \label{sec:disc_cusum}
 
 CUSUM control charts~\cite{page1954cusum} applied to the NLL time series across consecutive windows (Experiment~18) achieve a mean detection rate of 65.9\% ($\pm$ 13.0\%) with detection latency of 1.3 windows.
-The 38.6\% false alarm rate renders the current CUSUM implementation impractical for deployment. This high rate stems from per-window NLL variance, which causes frequent threshold crossings even under normal operation. Practical deployment would require either (a) substantially longer averaging windows, (b) adaptive thresholds conditioned on operation type, or (c) a different temporal aggregation strategy.
+The 38.6\% false alarm rate renders the current CUSUM implementation impractical for deployment.
+We attribute this high rate to per-window NLL variance, which causes frequent threshold crossings even under normal operation.
+Practical deployment would require either (a) substantially longer averaging windows, (b) adaptive thresholds conditioned on operation type, or (c) a different temporal aggregation strategy.
 
 \subsection{Cost-Benefit Analysis for Deployment}
 \label{sec:disc_cost}
 
-The complete sensor instrumentation costs \$492 (Table~\ref{tab:sensor_cost})---of which the six Arduino boards account for \$198 (\$33 each) and the DAQ, aggregator, and cabling the remainder---representing 0.1--1.0\% of a typical production CNC machine (\$50K--\$500K) and amortized over a 10--20 year operational lifetime.
-Measured decoder inference is 5.8~ms per window on an RTX~A6000 GPU (11{,}000$\times$ faster than the 64-second window) and 22.3~ms on an Intel Xeon CPU (2{,}870$\times$ real-time), exclusive of sensor encoding---a negligible duty cycle either way.
+The complete sensor instrumentation costs \$492 (Table~\ref{tab:sensor_cost}), of which the six Arduino boards account for \$198 (\$33 each) and the DAQ, aggregator, and cabling account for the remainder.
+This cost represents 0.1--1.0\% of a typical production CNC machine (\$50K--\$500K) and is amortized over a 10--20 year operational lifetime.
+Measured decoder inference, exclusive of sensor encoding, is 5.8~ms per window on an RTX~A6000 GPU (11{,}000$\times$ faster than the 64-second window) and 22.3~ms on an Intel Xeon CPU (2{,}870$\times$ real-time), a negligible duty cycle in either case.
 
-To illustrate the economic case, we construct a simplified cost model with the parameters used in our analysis: sensor hardware cost of \$492, 5000 windows/day, investigation cost of \$50/alarm, attack probability of $10^{-3}$/day, and \$10K damage per undetected attack. Under these assumptions---which we emphasize are illustrative, not empirical---the system yields positive expected value. Real deployment would require facility-specific calibration of attack probability and damage cost parameters.
+To illustrate the economic case, we construct a simplified cost model with the parameters used in our analysis: sensor hardware cost of \$492, 5000 windows/day, investigation cost of \$50/alarm, attack probability of $10^{-3}$/day, and \$10K damage per undetected attack.
+Under these assumptions, which are illustrative, not empirical, the system yields positive expected value.
+Real deployment would require facility-specific calibration of attack probability and damage cost parameters.
 
 \subsection{Comparison to Prior Work}
 \label{sec:disc_comparison}
@@ -75,18 +91,20 @@ Chhetri~\cite{chhetri2016kcad} & Kinetic & Kinetic fingerprinting & Geometry dev
 \end{table}
 
 Our approach differs from prior methods in three respects: (1)~it performs \emph{integrity verification} (sensor vs.\ claimed G-code) rather than fault detection from a statistical baseline; (2)~it uses \emph{multi-modal} input (110 channels, 7 modality groups); and (3)~it requires no labeled attack examples.
-The trade-off is complexity: our system needs 6 sensor boards and a trained deep learning model, whereas power monitoring~\cite{kimmell2025,moore2017power} needs a single sensor and simple statistical rules.
-This complexity is justified when the threat model includes subtle attacks ($\delta = 0.001$~mm coordinate perturbations) invisible to energy monitoring.
+The trade-off is complexity.
+Our system needs 6 sensor boards and a trained deep learning model, whereas power monitoring~\cite{kimmell2025,moore2017power} needs a single sensor and simple statistical rules.
+This complexity is justified when the threat model includes subtle attacks ($\delta = 0.001$~in coordinate perturbations) invisible to energy monitoring.
 
 \subsection{Analytical vs.\ Experimental Detection Rates}
 \label{sec:disc_gap}
 
-Prior work on this dataset~\cite{eacuello2026decoder} reported analytical detection rates of 98.7\% for command injection and 97.8\% for structural attacks by reinterpreting decoder reconstruction accuracy as a detection metric.
-Our experimental evaluation---which generates actual attack variants, computes per-token NLL, and evaluates detection at controlled false-positive rates---yields substantially lower AUROCs (0.803 for A1 command swap, 0.621 for A3 parameter substitution).
+An earlier analytical treatment of this dataset reported detection rates of 98.7\% for command injection and 97.8\% for structural attacks by reinterpreting decoder reconstruction accuracy as a detection metric; the companion recoverability paper~\cite{eacuello2026decoder} has since dropped that framing.
+Our experimental evaluation, which generates actual attack variants, computes per-token NLL, and evaluates detection at controlled false-positive rates, yields substantially lower AUROCs (0.803 for A1 command swap, 0.621 for A3 parameter substitution).
 
 Three factors explain the gap.
-First, the analytical approach assumes that any reconstruction error is a detection signal; experimentally, reconstruction errors on \emph{normal} windows produce false positives that degrade AUROC.
+First, the analytical approach assumes that any reconstruction error is a detection signal.
+Experimentally, reconstruction errors on \emph{normal} windows produce false positives that degrade AUROC.
 Second, the confidence gradient (Section~\ref{sec:results_two_populations}) means a large share of numeric tokens are low-confidence and contribute noise rather than signal to the mean NLL, diluting detection power.
 Third, the analytical rates count per-token accuracy rather than per-window detection decisions, which is a more permissive metric.
 
-This gap underscores the importance of experimental evaluation: analytical detection rates can substantially overstate operational performance.
+This gap shows that analytical detection rates can substantially overstate operational performance; detection claims require experimental evaluation.

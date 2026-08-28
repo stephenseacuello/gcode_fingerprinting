@@ -1,0 +1,6857 @@
+{
+  "reports": [
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_1/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "131 samples (99.2%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            132,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            132,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            132,
+            1327
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 132,
+      "tokens_shape": [
+        132,
+        1327
+      ],
+      "content_token_length": {
+        "n": 132,
+        "min": 47,
+        "max": 1327,
+        "mean": 284.65909090909093,
+        "median": 124.0,
+        "p05": 84.0,
+        "p95": 1306.0,
+        "unique_values": 68
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 132
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 132,
+        "min": 47,
+        "max": 1327,
+        "mean": 284.65909090909093,
+        "median": 124.0,
+        "p05": 84.0,
+        "p95": 1306.0,
+        "unique_values": 68
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "224": 1,
+        "237": 4,
+        "223": 5,
+        "115": 2,
+        "121": 2,
+        "134": 1,
+        "163": 2,
+        "110": 1,
+        "135": 1,
+        "162": 1,
+        "24": 2,
+        "19": 6,
+        "17": 4,
+        "18": 11,
+        "29": 3,
+        "26": 1,
+        "30": 5,
+        "32": 4,
+        "40": 5,
+        "49": 2,
+        "22": 4,
+        "14": 12,
+        "16": 16,
+        "25": 3,
+        "15": 1,
+        "11": 1,
+        "21": 2,
+        "222": 2,
+        "28": 2,
+        "53": 1,
+        "33": 2,
+        "50": 2,
+        "67": 1,
+        "62": 1,
+        "56": 1,
+        "42": 1,
+        "31": 2,
+        "37": 1,
+        "46": 1,
+        "61": 1,
+        "114": 1,
+        "122": 1,
+        "137": 1,
+        "166": 1,
+        "123": 1,
+        "136": 2,
+        "27": 1,
+        "34": 1,
+        "111": 1,
+        "118": 1,
+        "164": 1
+      },
+      "gcode_texts_distinct": 102,
+      "gcode_texts_examples": [
+        "X1.6269 Y1.4641 Z0.0949\nX1.6234 Y1.6873 Z0.0851\nX1.4546 Y1.5534 Z0.0759\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\n",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X1.5689 Y1.4526 Z0.097\nX1.6755 Y1.6447 Z0.0875\nX1.4562 Y1.6041 Z0.0777\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 26,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 131,
+        "samples_at_npz_max_dim": 2,
+        "pct_exceeding_target": 99.24242424242425
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_1/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "303 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            303,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            303,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            303,
+            1339
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            303
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            303
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            303
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 303,
+      "tokens_shape": [
+        303,
+        1339
+      ],
+      "content_token_length": {
+        "n": 303,
+        "min": 84,
+        "max": 1339,
+        "mean": 311.3201320132013,
+        "median": 123.0,
+        "p05": 84.0,
+        "p95": 1307.0,
+        "unique_values": 103
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 303
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 303,
+        "min": 84,
+        "max": 1339,
+        "mean": 311.3201320132013,
+        "median": 123.0,
+        "p05": 84.0,
+        "p95": 1307.0,
+        "unique_values": 103
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "224": 3,
+        "237": 11,
+        "223": 11,
+        "222": 5,
+        "115": 2,
+        "123": 3,
+        "136": 5,
+        "163": 5,
+        "114": 4,
+        "121": 2,
+        "134": 1,
+        "161": 1,
+        "109": 1,
+        "118": 2,
+        "108": 1,
+        "164": 2,
+        "23": 6,
+        "19": 6,
+        "17": 17,
+        "18": 22,
+        "32": 8,
+        "29": 13,
+        "30": 11,
+        "33": 6,
+        "39": 2,
+        "48": 5,
+        "38": 5,
+        "47": 2,
+        "21": 5,
+        "14": 27,
+        "16": 42,
+        "22": 5,
+        "26": 2,
+        "25": 1,
+        "225": 1,
+        "221": 3,
+        "31": 5,
+        "27": 6,
+        "40": 1,
+        "53": 1,
+        "34": 2,
+        "49": 2,
+        "37": 3,
+        "28": 5,
+        "50": 3,
+        "236": 1,
+        "113": 1,
+        "122": 2,
+        "133": 3,
+        "162": 2,
+        "15": 2,
+        "35": 2,
+        "116": 1,
+        "124": 1,
+        "137": 2,
+        "36": 1,
+        "165": 1,
+        "24": 1,
+        "112": 1,
+        "119": 2,
+        "46": 1,
+        "111": 1,
+        "138": 1,
+        "167": 1
+      },
+      "gcode_texts_distinct": 214,
+      "gcode_texts_examples": [
+        "X1.5944 Y1.454 Z0.0961\nX1.5822 Y1.6971 Z0.0836\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0 Z0.2\nZ0.1\nX1.5123 Y1.4",
+        "X1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4681 Y1.5165 Z0.0476\nX1.4883 Y1.4895 Z0.0464\n",
+        "X1.586 Y1.453 Z0.0964\nX1.6704 Y1.6515 Z0.0872\nX1.4562 Y1.6041 Z0.0777\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 69,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 303,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_1/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "110 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            110,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            110,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            110,
+            1327
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            110
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            110
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            110
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 110,
+      "tokens_shape": [
+        110,
+        1327
+      ],
+      "content_token_length": {
+        "n": 110,
+        "min": 84,
+        "max": 1327,
+        "mean": 313.3909090909091,
+        "median": 124.5,
+        "p05": 84.0,
+        "p95": 1307.55,
+        "unique_values": 65
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 110
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 110,
+        "min": 84,
+        "max": 1327,
+        "mean": 313.3909090909091,
+        "median": 124.5,
+        "p05": 84.0,
+        "p95": 1307.55,
+        "unique_values": 65
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "113": 2,
+        "120": 2,
+        "138": 1,
+        "166": 2,
+        "24": 3,
+        "19": 7,
+        "17": 6,
+        "18": 4,
+        "21": 3,
+        "14": 9,
+        "16": 15,
+        "221": 2,
+        "29": 4,
+        "25": 1,
+        "32": 3,
+        "38": 2,
+        "48": 1,
+        "28": 2,
+        "27": 2,
+        "30": 5,
+        "34": 2,
+        "40": 1,
+        "49": 1,
+        "223": 4,
+        "222": 1,
+        "236": 1,
+        "114": 1,
+        "123": 1,
+        "136": 3,
+        "164": 3,
+        "224": 1,
+        "237": 3,
+        "23": 1,
+        "42": 1,
+        "52": 1,
+        "39": 1,
+        "50": 1,
+        "121": 2,
+        "135": 1,
+        "112": 1,
+        "111": 1,
+        "33": 1,
+        "47": 1
+      },
+      "gcode_texts_distinct": 95,
+      "gcode_texts_examples": [
+        "X-0.0224 Y-0.2728 Z0.0027\nX0.3411 Y3.382\nY0.1212\nX3.0258 Y0.027\nG0 X-0.0258 Y-0.2861\nZ0.6\nG0 Z0.2\nZ0.05\nX-0.0257 Y-0.285",
+        "X3.385 Y2.3826\nY2.1655\nY0.1755\nX3.3453 Y0.0741\nX3.1704 Y0.0331\nX3.0258 Y0.027\nX2.8449 Y0.0253\nX2.664 Y0.0251\nX2.3384 Y0.",
+        "X3.1219\nX3.1872 Y3.1764\nX3.226 Y3.0007\nX3.2333 Y2.82\nX3.2347 Y2.6391\nX3.2349 Y2.4582\nX3.235 Y2.1325\nY0.6491\nY0.2918\nX3.2"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 25,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 110,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_2/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "112 samples (99.1%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            113,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            113,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            113,
+            1319
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            113
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            113
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            113
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 113,
+      "tokens_shape": [
+        113,
+        1319
+      ],
+      "content_token_length": {
+        "n": 113,
+        "min": 47,
+        "max": 1319,
+        "mean": 306.0265486725664,
+        "median": 121.0,
+        "p05": 84.0,
+        "p95": 1310.3999999999999,
+        "unique_values": 64
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 113
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 113,
+        "min": 47,
+        "max": 1319,
+        "mean": 306.0265486725664,
+        "median": 121.0,
+        "p05": 84.0,
+        "p95": 1310.3999999999999,
+        "unique_values": 64
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "112": 2,
+        "119": 1,
+        "133": 1,
+        "162": 1,
+        "113": 1,
+        "120": 1,
+        "138": 1,
+        "166": 1,
+        "24": 2,
+        "19": 8,
+        "17": 5,
+        "18": 5,
+        "21": 2,
+        "14": 9,
+        "16": 14,
+        "22": 1,
+        "23": 1,
+        "15": 2,
+        "221": 2,
+        "29": 4,
+        "25": 3,
+        "32": 3,
+        "38": 1,
+        "48": 1,
+        "28": 3,
+        "27": 2,
+        "30": 3,
+        "34": 1,
+        "40": 3,
+        "49": 2,
+        "31": 1,
+        "37": 1,
+        "50": 1,
+        "26": 1,
+        "224": 2,
+        "237": 4,
+        "53": 1,
+        "222": 2,
+        "115": 2,
+        "123": 1,
+        "136": 2,
+        "163": 2,
+        "11": 1,
+        "223": 2,
+        "121": 2,
+        "134": 1,
+        "164": 1
+      },
+      "gcode_texts_distinct": 98,
+      "gcode_texts_examples": [
+        "Z0.6\nX0.0258 Y3.2965\nX3.3763 Y3.1784\nX3.0258 Y0.027\nG0 X-0.0258 Y-0.2861\nG0 Z0.2\nZ0.05\nX-0.0246 Y-0.2814 Z0.0103\nX-0.019",
+        "X3.3843 Y2.9253\nX3.3849 Y2.672\nX3.385 Y2.3826\nY2.1655\nY0.1755\nX3.2777 Y0.0486\nX3.1343 Y0.0307\nX2.9535 Y0.026\nX2.7726 Y0.",
+        "X3.1219\nX3.2175 Y3.0726\nX3.2303 Y2.9285\nX3.2341 Y2.7476\nX3.2348 Y2.5667\nX3.235 Y2.1325\nY0.6491\nY0.2918\nX3.1368 Y0.2076\nX"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 25,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 112,
+        "samples_at_npz_max_dim": 2,
+        "pct_exceeding_target": 99.11504424778761
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_2/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "327 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            327,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            327,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            327,
+            1339
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            327
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            327
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            327
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 327,
+      "tokens_shape": [
+        327,
+        1339
+      ],
+      "content_token_length": {
+        "n": 327,
+        "min": 84,
+        "max": 1339,
+        "mean": 303.59938837920487,
+        "median": 126.0,
+        "p05": 84.0,
+        "p95": 1307.0,
+        "unique_values": 111
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 327
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 327,
+        "min": 84,
+        "max": 1339,
+        "mean": 303.59938837920487,
+        "median": 126.0,
+        "p05": 84.0,
+        "p95": 1307.0,
+        "unique_values": 111
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 13,
+        "237": 10,
+        "222": 5,
+        "111": 2,
+        "120": 1,
+        "136": 5,
+        "164": 2,
+        "110": 1,
+        "121": 4,
+        "135": 2,
+        "162": 2,
+        "114": 5,
+        "123": 2,
+        "163": 4,
+        "134": 1,
+        "161": 1,
+        "119": 1,
+        "138": 1,
+        "167": 1,
+        "109": 1,
+        "118": 2,
+        "108": 1,
+        "24": 3,
+        "19": 8,
+        "17": 14,
+        "18": 26,
+        "23": 3,
+        "32": 8,
+        "29": 12,
+        "30": 12,
+        "33": 6,
+        "39": 2,
+        "48": 4,
+        "38": 5,
+        "47": 2,
+        "22": 7,
+        "14": 30,
+        "16": 45,
+        "21": 6,
+        "26": 2,
+        "25": 2,
+        "225": 1,
+        "221": 2,
+        "40": 3,
+        "50": 3,
+        "67": 1,
+        "62": 1,
+        "56": 1,
+        "42": 1,
+        "31": 6,
+        "37": 2,
+        "46": 2,
+        "61": 1,
+        "27": 6,
+        "53": 1,
+        "34": 3,
+        "49": 3,
+        "35": 2,
+        "28": 5,
+        "36": 1,
+        "236": 2,
+        "113": 1,
+        "166": 2,
+        "122": 2,
+        "137": 3,
+        "116": 1,
+        "124": 1,
+        "224": 2,
+        "15": 1,
+        "133": 1,
+        "115": 1,
+        "165": 1
+      },
+      "gcode_texts_distinct": 233,
+      "gcode_texts_examples": [
+        "X1.586 Y1.453 Z0.0964\nX1.6704 Y1.6515 Z0.0872\nX1.4562 Y1.6041 Z0.0777\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X1.5437 Y1.4565 Z0.0979\nX1.6877 Y1.6224 Z0.0884\nX1.4687 Y1.6356 Z0.0789\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\n"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 71,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 327,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_2/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "105 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            105,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            105,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            105,
+            1327
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            105
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            105
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            105
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 105,
+      "tokens_shape": [
+        105,
+        1327
+      ],
+      "content_token_length": {
+        "n": 105,
+        "min": 84,
+        "max": 1327,
+        "mean": 309.7142857142857,
+        "median": 125.0,
+        "p05": 84.0,
+        "p95": 1306.8,
+        "unique_values": 62
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 105
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 105,
+        "min": 84,
+        "max": 1327,
+        "mean": 309.7142857142857,
+        "median": 125.0,
+        "p05": 84.0,
+        "p95": 1306.8,
+        "unique_values": 62
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 5,
+        "237": 4,
+        "115": 1,
+        "123": 2,
+        "136": 3,
+        "163": 1,
+        "111": 1,
+        "118": 1,
+        "164": 3,
+        "23": 3,
+        "19": 3,
+        "17": 8,
+        "18": 6,
+        "32": 4,
+        "29": 4,
+        "30": 6,
+        "33": 3,
+        "38": 1,
+        "47": 1,
+        "21": 2,
+        "14": 9,
+        "16": 14,
+        "22": 1,
+        "222": 1,
+        "221": 1,
+        "28": 1,
+        "34": 1,
+        "42": 1,
+        "52": 1,
+        "37": 1,
+        "48": 1,
+        "113": 1,
+        "122": 1,
+        "133": 1,
+        "114": 1,
+        "224": 1,
+        "27": 1,
+        "39": 1,
+        "50": 2,
+        "24": 1,
+        "40": 1
+      },
+      "gcode_texts_distinct": 90,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097\nX1.6648 Y1.658 Z0.0869\nX1.4544 Y1.5958 Z0.0774\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X-0.0251 Y-0.2834 Z0.0137\nX0.1967 Y3.3728\nX3.3845 Y2.8891\nX3.0258 Y0.027\nG0 X-0.0258 Y-0.2861\nZ0.6\nG0 Z0.2\nZ0.05\nG1 Z0.0"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 105,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_3/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "106 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            106,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            106,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            106,
+            1327
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            106
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            106
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            106
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 106,
+      "tokens_shape": [
+        106,
+        1327
+      ],
+      "content_token_length": {
+        "n": 106,
+        "min": 84,
+        "max": 1327,
+        "mean": 307.6132075471698,
+        "median": 124.0,
+        "p05": 84.0,
+        "p95": 1311.5,
+        "unique_values": 64
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 106
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 106,
+        "min": 84,
+        "max": 1327,
+        "mean": 307.6132075471698,
+        "median": 124.0,
+        "p05": 84.0,
+        "p95": 1311.5,
+        "unique_values": 64
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 2,
+        "237": 4,
+        "224": 3,
+        "115": 3,
+        "123": 1,
+        "136": 2,
+        "163": 2,
+        "111": 1,
+        "118": 1,
+        "164": 1,
+        "23": 3,
+        "19": 5,
+        "17": 7,
+        "18": 6,
+        "32": 3,
+        "29": 2,
+        "30": 8,
+        "33": 2,
+        "38": 2,
+        "47": 1,
+        "21": 2,
+        "14": 9,
+        "16": 14,
+        "22": 1,
+        "222": 1,
+        "221": 2,
+        "28": 1,
+        "34": 2,
+        "42": 1,
+        "52": 1,
+        "27": 2,
+        "40": 1,
+        "49": 1,
+        "37": 1,
+        "48": 1,
+        "50": 1,
+        "122": 1,
+        "137": 1,
+        "165": 1,
+        "24": 1,
+        "121": 1,
+        "134": 1
+      },
+      "gcode_texts_distinct": 90,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097\nX1.6648 Y1.658 Z0.0869\nX1.4544 Y1.5958 Z0.0774\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X1.5944 Y1.454 Z0.0961\nX1.5822 Y1.6971 Z0.0836\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0 Z0.2\nZ0.1\nX1.5123 Y1.4"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 106,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_3/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "331 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            331,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            331,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            331,
+            1339
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            331
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            331
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            331
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 331,
+      "tokens_shape": [
+        331,
+        1339
+      ],
+      "content_token_length": {
+        "n": 331,
+        "min": 84,
+        "max": 1339,
+        "mean": 305.761329305136,
+        "median": 126.0,
+        "p05": 84.0,
+        "p95": 1306.5,
+        "unique_values": 112
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 331
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 331,
+        "min": 84,
+        "max": 1339,
+        "mean": 305.761329305136,
+        "median": 126.0,
+        "p05": 84.0,
+        "p95": 1306.5,
+        "unique_values": 112
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 13,
+        "237": 10,
+        "224": 1,
+        "222": 5,
+        "236": 2,
+        "111": 2,
+        "120": 2,
+        "136": 6,
+        "164": 4,
+        "110": 1,
+        "121": 5,
+        "135": 2,
+        "162": 2,
+        "116": 1,
+        "124": 1,
+        "137": 2,
+        "163": 3,
+        "114": 6,
+        "134": 1,
+        "161": 1,
+        "123": 3,
+        "133": 1,
+        "119": 1,
+        "138": 2,
+        "167": 1,
+        "113": 2,
+        "166": 3,
+        "108": 1,
+        "118": 1,
+        "24": 5,
+        "19": 9,
+        "17": 16,
+        "18": 21,
+        "32": 8,
+        "29": 13,
+        "30": 10,
+        "33": 6,
+        "39": 2,
+        "48": 3,
+        "38": 3,
+        "47": 2,
+        "21": 6,
+        "14": 30,
+        "16": 46,
+        "22": 6,
+        "23": 2,
+        "15": 2,
+        "25": 2,
+        "221": 3,
+        "40": 4,
+        "50": 4,
+        "67": 1,
+        "62": 1,
+        "56": 1,
+        "42": 1,
+        "31": 7,
+        "37": 3,
+        "46": 2,
+        "61": 1,
+        "28": 6,
+        "27": 5,
+        "34": 3,
+        "49": 3,
+        "35": 2,
+        "36": 1,
+        "225": 1,
+        "112": 1,
+        "122": 1,
+        "26": 2,
+        "53": 1
+      },
+      "gcode_texts_distinct": 236,
+      "gcode_texts_examples": [
+        "X1.5437 Y1.4565 Z0.0979\nX1.6755 Y1.6447 Z0.0875\nX1.4544 Y1.5958 Z0.0774\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\n",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4554 Y1.5985 Z0.0506\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X1.6028 Y1.4557 Z0.0958\nX1.6524 Y1.6697 Z0.0863\nX1.4544 Y1.5958 Z0.0774\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\n"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 72,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 331,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_3/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "107 samples (99.1%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            108,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            108,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            108,
+            1325
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 108,
+      "tokens_shape": [
+        108,
+        1325
+      ],
+      "content_token_length": {
+        "n": 108,
+        "min": 47,
+        "max": 1325,
+        "mean": 301.51851851851853,
+        "median": 120.0,
+        "p05": 84.0,
+        "p95": 1307.65,
+        "unique_values": 61
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 108
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 108,
+        "min": 47,
+        "max": 1325,
+        "mean": 301.51851851851853,
+        "median": 120.0,
+        "p05": 84.0,
+        "p95": 1307.65,
+        "unique_values": 61
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 5,
+        "237": 4,
+        "109": 1,
+        "118": 1,
+        "136": 2,
+        "163": 2,
+        "23": 2,
+        "19": 5,
+        "17": 4,
+        "18": 10,
+        "21": 2,
+        "14": 9,
+        "16": 13,
+        "22": 2,
+        "222": 2,
+        "30": 3,
+        "27": 2,
+        "29": 5,
+        "32": 4,
+        "39": 1,
+        "50": 1,
+        "33": 1,
+        "38": 2,
+        "48": 2,
+        "113": 1,
+        "122": 1,
+        "133": 2,
+        "164": 1,
+        "25": 3,
+        "15": 1,
+        "11": 1,
+        "115": 1,
+        "123": 1,
+        "224": 1,
+        "28": 2,
+        "40": 2,
+        "53": 1,
+        "26": 1,
+        "49": 1,
+        "112": 1,
+        "119": 1,
+        "162": 1
+      },
+      "gcode_texts_distinct": 89,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097\nX1.6524 Y1.6697 Z0.0863\nX1.4527 Y1.5788 Z0.0768\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X1.586 Y1.453 Z0.0964\nX1.6704 Y1.6515 Z0.0872\nX1.4562 Y1.6041 Z0.0777\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 107,
+        "samples_at_npz_max_dim": 2,
+        "pct_exceeding_target": 99.07407407407408
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_4/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "107 samples (99.1%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            108,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            108,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            108,
+            1325
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 108,
+      "tokens_shape": [
+        108,
+        1325
+      ],
+      "content_token_length": {
+        "n": 108,
+        "min": 47,
+        "max": 1325,
+        "mean": 302.72222222222223,
+        "median": 122.5,
+        "p05": 84.0,
+        "p95": 1306.65,
+        "unique_values": 65
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 108
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 108,
+        "min": 47,
+        "max": 1325,
+        "mean": 302.72222222222223,
+        "median": 122.5,
+        "p05": 84.0,
+        "p95": 1306.65,
+        "unique_values": 65
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 6,
+        "237": 3,
+        "114": 1,
+        "123": 1,
+        "136": 2,
+        "163": 2,
+        "109": 1,
+        "118": 1,
+        "23": 1,
+        "19": 5,
+        "17": 5,
+        "18": 8,
+        "21": 2,
+        "14": 9,
+        "16": 14,
+        "22": 2,
+        "26": 2,
+        "222": 2,
+        "30": 5,
+        "27": 2,
+        "29": 5,
+        "32": 3,
+        "39": 1,
+        "50": 1,
+        "31": 1,
+        "37": 1,
+        "48": 2,
+        "33": 1,
+        "38": 1,
+        "113": 1,
+        "122": 2,
+        "133": 1,
+        "164": 1,
+        "115": 1,
+        "137": 1,
+        "165": 1,
+        "236": 1,
+        "40": 1,
+        "49": 1,
+        "28": 1,
+        "34": 1,
+        "42": 1,
+        "52": 1,
+        "25": 1,
+        "15": 1,
+        "11": 1
+      },
+      "gcode_texts_distinct": 92,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097\nX1.6524 Y1.6697 Z0.0863\nX1.4527 Y1.5788 Z0.0768\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X1.586 Y1.453 Z0.0964\nX1.6704 Y1.6515 Z0.0872\nX1.4562 Y1.6041 Z0.0777\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 107,
+        "samples_at_npz_max_dim": 2,
+        "pct_exceeding_target": 99.07407407407408
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_4/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "344 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            344,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            344,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            344,
+            1339
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            344
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            344
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            344
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 344,
+      "tokens_shape": [
+        344,
+        1339
+      ],
+      "content_token_length": {
+        "n": 344,
+        "min": 84,
+        "max": 1339,
+        "mean": 302.3924418604651,
+        "median": 126.0,
+        "p05": 84.0,
+        "p95": 1307.0,
+        "unique_values": 119
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 344
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 344,
+        "min": 84,
+        "max": 1339,
+        "mean": 302.3924418604651,
+        "median": 126.0,
+        "p05": 84.0,
+        "p95": 1307.0,
+        "unique_values": 119
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 12,
+        "237": 11,
+        "224": 3,
+        "222": 4,
+        "236": 1,
+        "115": 3,
+        "121": 5,
+        "134": 1,
+        "163": 5,
+        "112": 2,
+        "119": 1,
+        "133": 2,
+        "162": 3,
+        "113": 2,
+        "135": 2,
+        "166": 2,
+        "110": 1,
+        "116": 1,
+        "124": 1,
+        "137": 1,
+        "123": 4,
+        "136": 7,
+        "114": 3,
+        "120": 1,
+        "138": 1,
+        "111": 1,
+        "118": 2,
+        "164": 4,
+        "24": 6,
+        "19": 13,
+        "17": 17,
+        "18": 21,
+        "23": 4,
+        "32": 8,
+        "29": 11,
+        "30": 14,
+        "33": 6,
+        "39": 2,
+        "48": 3,
+        "38": 4,
+        "47": 2,
+        "21": 6,
+        "14": 30,
+        "16": 46,
+        "22": 6,
+        "15": 2,
+        "26": 1,
+        "221": 4,
+        "40": 4,
+        "50": 4,
+        "67": 1,
+        "62": 1,
+        "56": 1,
+        "42": 1,
+        "25": 1,
+        "31": 6,
+        "37": 3,
+        "46": 2,
+        "61": 1,
+        "28": 6,
+        "27": 7,
+        "34": 4,
+        "49": 4,
+        "35": 2,
+        "36": 1,
+        "225": 1,
+        "53": 1,
+        "108": 1
+      },
+      "gcode_texts_distinct": 245,
+      "gcode_texts_examples": [
+        "X1.5437 Y1.4565 Z0.0979\nX1.6755 Y1.6447 Z0.0875\nX1.4544 Y1.5958 Z0.0774\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\n",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4554 Y1.5985 Z0.0506\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X1.5689 Y1.4526 Z0.097\nX1.6648 Y1.658 Z0.0869\nX1.4544 Y1.5958 Z0.0774\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 75,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 344,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_4/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "93 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            93,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            93,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            93,
+            1327
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 93,
+      "tokens_shape": [
+        93,
+        1327
+      ],
+      "content_token_length": {
+        "n": 93,
+        "min": 84,
+        "max": 1327,
+        "mean": 318.93548387096774,
+        "median": 123.0,
+        "p05": 84.0,
+        "p95": 1308.3999999999999,
+        "unique_values": 55
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 93
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 93,
+        "min": 84,
+        "max": 1327,
+        "mean": 318.93548387096774,
+        "median": 123.0,
+        "p05": 84.0,
+        "p95": 1308.3999999999999,
+        "unique_values": 55
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 2,
+        "237": 4,
+        "222": 2,
+        "111": 2,
+        "120": 1,
+        "136": 1,
+        "164": 1,
+        "114": 2,
+        "121": 1,
+        "134": 1,
+        "161": 1,
+        "32": 4,
+        "29": 4,
+        "30": 2,
+        "33": 2,
+        "38": 2,
+        "47": 1,
+        "21": 2,
+        "14": 9,
+        "16": 13,
+        "18": 8,
+        "19": 1,
+        "23": 2,
+        "17": 5,
+        "25": 3,
+        "221": 1,
+        "40": 2,
+        "50": 1,
+        "224": 2,
+        "28": 2,
+        "53": 1,
+        "48": 1,
+        "122": 1,
+        "137": 1,
+        "166": 1,
+        "22": 1,
+        "119": 1,
+        "138": 1,
+        "167": 1
+      },
+      "gcode_texts_distinct": 77,
+      "gcode_texts_examples": [
+        "X1.6028 Y1.4557 Z0.0958\nX1.6524 Y1.6697 Z0.0863\nX1.4544 Y1.5958 Z0.0774\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\n",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4681 Y1.5165 Z0.0476\n",
+        "X1.5437 Y1.4565 Z0.0979\nX1.6951 Y1.598 Z0.0893\nX1.5023 Y1.6734 Z0.0807\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 21,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 93,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_5/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "93 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            93,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            93,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            93,
+            1327
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 93,
+      "tokens_shape": [
+        93,
+        1327
+      ],
+      "content_token_length": {
+        "n": 93,
+        "min": 84,
+        "max": 1327,
+        "mean": 318.2903225806452,
+        "median": 125.0,
+        "p05": 84.0,
+        "p95": 1306.0,
+        "unique_values": 51
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 93
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 93,
+        "min": 84,
+        "max": 1327,
+        "mean": 318.2903225806452,
+        "median": 125.0,
+        "p05": 84.0,
+        "p95": 1306.0,
+        "unique_values": 51
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 4,
+        "237": 3,
+        "222": 2,
+        "111": 1,
+        "120": 1,
+        "136": 2,
+        "164": 2,
+        "114": 1,
+        "121": 1,
+        "134": 1,
+        "161": 1,
+        "108": 1,
+        "118": 1,
+        "32": 4,
+        "29": 5,
+        "30": 3,
+        "33": 2,
+        "38": 2,
+        "47": 1,
+        "21": 3,
+        "14": 9,
+        "16": 13,
+        "18": 8,
+        "19": 1,
+        "23": 2,
+        "17": 5,
+        "25": 2,
+        "221": 1,
+        "40": 1,
+        "50": 2,
+        "48": 1,
+        "115": 1,
+        "122": 1,
+        "137": 1,
+        "165": 1,
+        "27": 1,
+        "39": 1,
+        "236": 1
+      },
+      "gcode_texts_distinct": 77,
+      "gcode_texts_examples": [
+        "X1.6028 Y1.4557 Z0.0958\nX1.6524 Y1.6697 Z0.0863\nX1.4544 Y1.5958 Z0.0774\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\n",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4681 Y1.5165 Z0.0476\n",
+        "X1.5437 Y1.4565 Z0.0979\nX1.6951 Y1.598 Z0.0893\nX1.5023 Y1.6734 Z0.0807\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 21,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 93,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_5/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "320 samples (100.0%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            320,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            320,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            320,
+            1339
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            320
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            320
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            320
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 320,
+      "tokens_shape": [
+        320,
+        1339
+      ],
+      "content_token_length": {
+        "n": 320,
+        "min": 84,
+        "max": 1339,
+        "mean": 309.9125,
+        "median": 124.5,
+        "p05": 84.0,
+        "p95": 1307.05,
+        "unique_values": 107
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 320
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 320,
+        "min": 84,
+        "max": 1339,
+        "mean": 309.9125,
+        "median": 124.5,
+        "p05": 84.0,
+        "p95": 1307.05,
+        "unique_values": 107
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "223": 11,
+        "237": 11,
+        "224": 3,
+        "222": 5,
+        "236": 1,
+        "112": 1,
+        "121": 4,
+        "136": 7,
+        "164": 3,
+        "116": 1,
+        "124": 1,
+        "137": 1,
+        "163": 7,
+        "115": 3,
+        "123": 4,
+        "114": 3,
+        "133": 2,
+        "162": 2,
+        "111": 2,
+        "118": 2,
+        "109": 1,
+        "24": 4,
+        "19": 11,
+        "17": 17,
+        "18": 20,
+        "23": 5,
+        "32": 8,
+        "29": 13,
+        "30": 13,
+        "33": 6,
+        "39": 2,
+        "48": 5,
+        "38": 5,
+        "47": 2,
+        "21": 6,
+        "14": 27,
+        "16": 43,
+        "22": 5,
+        "15": 2,
+        "26": 2,
+        "221": 4,
+        "225": 1,
+        "27": 7,
+        "34": 3,
+        "40": 2,
+        "49": 3,
+        "31": 5,
+        "53": 1,
+        "28": 5,
+        "35": 2,
+        "37": 3,
+        "50": 3,
+        "46": 1,
+        "113": 1,
+        "122": 1,
+        "119": 1,
+        "138": 1,
+        "167": 1,
+        "134": 1,
+        "110": 1,
+        "135": 1,
+        "36": 1
+      },
+      "gcode_texts_distinct": 231,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097\nX1.6648 Y1.658 Z0.0869\nX1.4544 Y1.5958 Z0.0774\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG0",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X1.5689 Y1.4526 Z0.097\nX1.6524 Y1.6697 Z0.0863\nX1.4527 Y1.5788 Z0.0768\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 73,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 320,
+        "samples_at_npz_max_dim": 1,
+        "pct_exceeding_target": 100.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/full_window/fold_5/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "131 samples (99.2%) exceed max_token_len=64 content cap"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            132,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            132,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            132,
+            1327
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 132,
+      "tokens_shape": [
+        132,
+        1327
+      ],
+      "content_token_length": {
+        "n": 132,
+        "min": 47,
+        "max": 1327,
+        "mean": 284.8863636363636,
+        "median": 121.0,
+        "p05": 84.0,
+        "p95": 1306.45,
+        "unique_values": 75
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 132
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 132,
+        "min": 47,
+        "max": 1327,
+        "mean": 284.8863636363636,
+        "median": 121.0,
+        "p05": 84.0,
+        "p95": 1306.45,
+        "unique_values": 75
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "224": 2,
+        "237": 4,
+        "223": 5,
+        "24": 2,
+        "19": 7,
+        "17": 5,
+        "18": 9,
+        "29": 2,
+        "26": 1,
+        "30": 5,
+        "32": 3,
+        "40": 4,
+        "49": 2,
+        "22": 4,
+        "14": 12,
+        "16": 17,
+        "25": 3,
+        "15": 1,
+        "11": 1,
+        "222": 1,
+        "28": 4,
+        "53": 1,
+        "33": 1,
+        "50": 1,
+        "67": 1,
+        "62": 1,
+        "56": 1,
+        "42": 2,
+        "31": 2,
+        "37": 1,
+        "46": 1,
+        "61": 1,
+        "114": 2,
+        "122": 1,
+        "137": 1,
+        "166": 3,
+        "34": 2,
+        "52": 1,
+        "123": 1,
+        "136": 1,
+        "164": 1,
+        "113": 2,
+        "120": 1,
+        "138": 1,
+        "21": 1,
+        "112": 1,
+        "119": 1,
+        "133": 1,
+        "162": 1,
+        "121": 1,
+        "135": 1,
+        "27": 1
+      },
+      "gcode_texts_distinct": 107,
+      "gcode_texts_examples": [
+        "X1.6269 Y1.4641 Z0.0949\nX1.6234 Y1.6873 Z0.0851\nX1.4546 Y1.5534 Z0.0759\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\n",
+        "X1.4664 Y1.6304 Z0.0518\nX1.4573 Y1.6067 Z0.0509\nX1.4532 Y1.5733 Z0.0497\nX1.4583 Y1.5399 Z0.0485\nX1.4725 Y1.5093 Z0.0473\n",
+        "X1.5689 Y1.4526 Z0.097\nX1.6755 Y1.6447 Z0.0875\nX1.4562 Y1.6041 Z0.0777\nX1.5101 Y1.4715 Z0.0723\nG0 X1.4919 Y1.4848\nZ0.6\nG"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 26,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 131,
+        "samples_at_npz_max_dim": 2,
+        "pct_exceeding_target": 99.24242424242425
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_1/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            7932,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            7932,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            7932,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            7932
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            7932
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            7932
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            7932
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            7932
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            7932
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            7932
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            7932
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            7932
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            7932
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            7932
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 7932,
+      "tokens_shape": [
+        7932,
+        8
+      ],
+      "content_token_length": {
+        "n": 7932,
+        "min": 1,
+        "max": 8,
+        "mean": 4.737518910741301,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 14,
+        "2": 632,
+        "3": 1107,
+        "4": 2446,
+        "5": 61,
+        "6": 2818,
+        "7": 850,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 7932,
+        "min": 1,
+        "max": 8,
+        "mean": 4.737518910741301,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 7932
+      },
+      "gcode_texts_distinct": 1464,
+      "gcode_texts_examples": [
+        "X1.6269 Y1.4641 Z0.0949",
+        "X1.6234 Y1.6873 Z0.0851",
+        "X1.4546 Y1.5534 Z0.0759"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 26,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_1/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            19584,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            19584,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            19584,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            19584
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            19584
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            19584
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            19584
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            19584
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            19584
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            19584
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            19584
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            19584
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            19584
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            19584
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 19584,
+      "tokens_shape": [
+        19584,
+        8
+      ],
+      "content_token_length": {
+        "n": 19584,
+        "min": 0,
+        "max": 8,
+        "mean": 4.816687091503268,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "content_token_length_hist": {
+        "0": 1,
+        "1": 12,
+        "2": 1479,
+        "3": 2245,
+        "4": 6066,
+        "5": 127,
+        "6": 7863,
+        "7": 1780,
+        "8": 11,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 19584,
+        "min": 0,
+        "max": 8,
+        "mean": 4.816687091503268,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 19584
+      },
+      "gcode_texts_distinct": 1971,
+      "gcode_texts_examples": [
+        "X1.5944 Y1.454 Z0.0961",
+        "X1.5822 Y1.6971 Z0.0836",
+        "X1.5101 Y1.4715 Z0.0723"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 69,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 11,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_1/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            7278,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            7278,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            7278,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            7278
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            7278
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            7278
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            7278
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            7278
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            7278
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            7278
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            7278
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            7278
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            7278
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            7278
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 7278,
+      "tokens_shape": [
+        7278,
+        8
+      ],
+      "content_token_length": {
+        "n": 7278,
+        "min": 1,
+        "max": 8,
+        "mean": 4.736191261335532,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 4,
+        "2": 614,
+        "3": 808,
+        "4": 2445,
+        "5": 50,
+        "6": 2719,
+        "7": 634,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 7278,
+        "min": 1,
+        "max": 8,
+        "mean": 4.736191261335532,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 7278
+      },
+      "gcode_texts_distinct": 1415,
+      "gcode_texts_examples": [
+        "X-0.0224 Y-0.2728 Z0.0027",
+        "X0.3411 Y3.382",
+        "Y0.1212"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 25,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_2/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            7249,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            7249,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            7249,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            7249
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            7249
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            7249
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            7249
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            7249
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            7249
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            7249
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            7249
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            7249
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            7249
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            7249
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 7249,
+      "tokens_shape": [
+        7249,
+        8
+      ],
+      "content_token_length": {
+        "n": 7249,
+        "min": 1,
+        "max": 8,
+        "mean": 4.737756931990619,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 4,
+        "2": 618,
+        "3": 802,
+        "4": 2423,
+        "5": 51,
+        "6": 2710,
+        "7": 637,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 7249,
+        "min": 1,
+        "max": 8,
+        "mean": 4.737756931990619,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 7249
+      },
+      "gcode_texts_distinct": 1353,
+      "gcode_texts_examples": [
+        "Z0.6",
+        "X0.0258 Y3.2965",
+        "X3.3763 Y3.1784"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 25,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_2/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            20772,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            20772,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            20772,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            20772
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            20772
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            20772
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            20772
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            20772
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            20772
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            20772
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            20772
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            20772
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            20772
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            20772
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 20772,
+      "tokens_shape": [
+        20772,
+        8
+      ],
+      "content_token_length": {
+        "n": 20772,
+        "min": 0,
+        "max": 8,
+        "mean": 4.779607163489312,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "content_token_length_hist": {
+        "0": 1,
+        "1": 20,
+        "2": 1614,
+        "3": 2546,
+        "4": 6503,
+        "5": 139,
+        "6": 7965,
+        "7": 1973,
+        "8": 11,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 20772,
+        "min": 0,
+        "max": 8,
+        "mean": 4.779607163489312,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 20772
+      },
+      "gcode_texts_distinct": 1995,
+      "gcode_texts_examples": [
+        "X1.6269 Y1.4641 Z0.0949",
+        "X1.6234 Y1.6873 Z0.0851",
+        "X1.4546 Y1.5534 Z0.0759"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 71,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 11,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_2/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            6773,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            6773,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            6773,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            6773
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            6773
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            6773
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            6773
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            6773
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            6773
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            6773
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            6773
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            6773
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            6773
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            6773
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 6773,
+      "tokens_shape": [
+        6773,
+        8
+      ],
+      "content_token_length": {
+        "n": 6773,
+        "min": 1,
+        "max": 8,
+        "mean": 4.835671046803484,
+        "median": 5.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 6,
+        "2": 493,
+        "3": 812,
+        "4": 2031,
+        "5": 48,
+        "6": 2725,
+        "7": 654,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 6773,
+        "min": 1,
+        "max": 8,
+        "mean": 4.835671046803484,
+        "median": 5.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 6773
+      },
+      "gcode_texts_distinct": 1473,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097",
+        "X1.6648 Y1.658 Z0.0869",
+        "X1.4544 Y1.5958 Z0.0774"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_3/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            6728,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            6728,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            6728,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            6728
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            6728
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            6728
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            6728
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            6728
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            6728
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            6728
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            6728
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            6728
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            6728
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            6728
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 6728,
+      "tokens_shape": [
+        6728,
+        8
+      ],
+      "content_token_length": {
+        "n": 6728,
+        "min": 1,
+        "max": 8,
+        "mean": 4.831599286563614,
+        "median": 5.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 4,
+        "2": 500,
+        "3": 800,
+        "4": 2021,
+        "5": 49,
+        "6": 2708,
+        "7": 642,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 6728,
+        "min": 1,
+        "max": 8,
+        "mean": 4.831599286563614,
+        "median": 5.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 6728
+      },
+      "gcode_texts_distinct": 1420,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097",
+        "X1.6648 Y1.658 Z0.0869",
+        "X1.4544 Y1.5958 Z0.0774"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_3/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            21309,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            21309,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            21309,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            21309
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            21309
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            21309
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            21309
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            21309
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            21309
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            21309
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            21309
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            21309
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            21309
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            21309
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 21309,
+      "tokens_shape": [
+        21309,
+        8
+      ],
+      "content_token_length": {
+        "n": 21309,
+        "min": 0,
+        "max": 8,
+        "mean": 4.74949551832559,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "content_token_length_hist": {
+        "0": 1,
+        "1": 19,
+        "2": 1728,
+        "3": 2551,
+        "4": 6918,
+        "5": 142,
+        "6": 7964,
+        "7": 1975,
+        "8": 11,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 21309,
+        "min": 0,
+        "max": 8,
+        "mean": 4.74949551832559,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 21309
+      },
+      "gcode_texts_distinct": 1998,
+      "gcode_texts_examples": [
+        "X1.5437 Y1.4565 Z0.0979",
+        "X1.6755 Y1.6447 Z0.0875",
+        "X1.4544 Y1.5958 Z0.0774"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 72,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 11,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_3/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            6757,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            6757,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            6757,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            6757
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            6757
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            6757
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            6757
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            6757
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            6757
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            6757
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            6757
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            6757
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            6757
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            6757
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 6757,
+      "tokens_shape": [
+        6757,
+        8
+      ],
+      "content_token_length": {
+        "n": 6757,
+        "min": 1,
+        "max": 8,
+        "mean": 4.834097972472991,
+        "median": 6.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 7,
+        "2": 497,
+        "3": 809,
+        "4": 2018,
+        "5": 47,
+        "6": 2728,
+        "7": 647,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 6757,
+        "min": 1,
+        "max": 8,
+        "mean": 4.834097972472991,
+        "median": 6.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 6757
+      },
+      "gcode_texts_distinct": 1418,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097",
+        "X1.6524 Y1.6697 Z0.0863",
+        "X1.4527 Y1.5788 Z0.0768"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_4/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            6764,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            6764,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            6764,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            6764
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            6764
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            6764
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            6764
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            6764
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            6764
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            6764
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            6764
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            6764
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            6764
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            6764
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 6764,
+      "tokens_shape": [
+        6764,
+        8
+      ],
+      "content_token_length": {
+        "n": 6764,
+        "min": 1,
+        "max": 8,
+        "mean": 4.83619160260201,
+        "median": 5.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 6,
+        "2": 491,
+        "3": 808,
+        "4": 2036,
+        "5": 44,
+        "6": 2721,
+        "7": 654,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 6764,
+        "min": 1,
+        "max": 8,
+        "mean": 4.83619160260201,
+        "median": 5.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 6764
+      },
+      "gcode_texts_distinct": 1419,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097",
+        "X1.6524 Y1.6697 Z0.0863",
+        "X1.4527 Y1.5788 Z0.0768"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_4/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            21841,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            21841,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            21841,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            21841
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            21841
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            21841
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            21841
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            21841
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            21841
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            21841
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            21841
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            21841
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            21841
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            21841
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 21841,
+      "tokens_shape": [
+        21841,
+        8
+      ],
+      "content_token_length": {
+        "n": 21841,
+        "min": 0,
+        "max": 8,
+        "mean": 4.762098804999771,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "content_token_length_hist": {
+        "0": 1,
+        "1": 21,
+        "2": 1739,
+        "3": 2702,
+        "4": 6909,
+        "5": 150,
+        "6": 8227,
+        "7": 2080,
+        "8": 12,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 21841,
+        "min": 0,
+        "max": 8,
+        "mean": 4.762098804999771,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 21841
+      },
+      "gcode_texts_distinct": 1969,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097",
+        "X1.6648 Y1.658 Z0.0869",
+        "X1.4544 Y1.5958 Z0.0774"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 75,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 12,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_4/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            6189,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            6189,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            6189,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            6189
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            6189
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            6189
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            6189
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            6189
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            6189
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            6189
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            6189
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            6189
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            6189
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            6189
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 6189,
+      "tokens_shape": [
+        6189,
+        8
+      ],
+      "content_token_length": {
+        "n": 6189,
+        "min": 1,
+        "max": 8,
+        "mean": 4.791888835029892,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 3,
+        "2": 495,
+        "3": 650,
+        "4": 2012,
+        "5": 44,
+        "6": 2452,
+        "7": 530,
+        "8": 3,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 6189,
+        "min": 1,
+        "max": 8,
+        "mean": 4.791888835029892,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 6189
+      },
+      "gcode_texts_distinct": 1372,
+      "gcode_texts_examples": [
+        "X1.6028 Y1.4557 Z0.0958",
+        "X1.6524 Y1.6697 Z0.0863",
+        "X1.4544 Y1.5958 Z0.0774"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 21,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 3,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_5/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            6173,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            6173,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            6173,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            6173
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            6173
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            6173
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            6173
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            6173
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            6173
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            6173
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            6173
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            6173
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            6173
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            6173
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 6173,
+      "tokens_shape": [
+        6173,
+        8
+      ],
+      "content_token_length": {
+        "n": 6173,
+        "min": 1,
+        "max": 8,
+        "mean": 4.794589340677143,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 3,
+        "2": 497,
+        "3": 654,
+        "4": 1988,
+        "5": 43,
+        "6": 2448,
+        "7": 537,
+        "8": 3,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 6173,
+        "min": 1,
+        "max": 8,
+        "mean": 4.794589340677143,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 6173
+      },
+      "gcode_texts_distinct": 1542,
+      "gcode_texts_examples": [
+        "X1.6028 Y1.4557 Z0.0958",
+        "X1.6524 Y1.6697 Z0.0863",
+        "X1.4544 Y1.5958 Z0.0774"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 21,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 3,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_5/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            20674,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            20674,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            20674,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            20674
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            20674
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            20674
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            20674
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            20674
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            20674
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            20674
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            20674
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            20674
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            20674
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            20674
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 20674,
+      "tokens_shape": [
+        20674,
+        8
+      ],
+      "content_token_length": {
+        "n": 20674,
+        "min": 0,
+        "max": 8,
+        "mean": 4.796943020218632,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "content_token_length_hist": {
+        "0": 1,
+        "1": 14,
+        "2": 1596,
+        "3": 2400,
+        "4": 6494,
+        "5": 135,
+        "6": 8135,
+        "7": 1887,
+        "8": 12,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 20674,
+        "min": 0,
+        "max": 8,
+        "mean": 4.796943020218632,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 9
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 20674
+      },
+      "gcode_texts_distinct": 1974,
+      "gcode_texts_examples": [
+        "X1.5689 Y1.4526 Z0.097",
+        "X1.6648 Y1.658 Z0.0869",
+        "X1.4544 Y1.5958 Z0.0774"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 73,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 12,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260511/preprocessed/per_row/fold_5/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "token_length",
+        "window_length",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file",
+        "line_in_window_index",
+        "n_lines_in_window",
+        "label_mode"
+      ],
+      "issues": [
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            7947,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            7947,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            7947,
+            8
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            7947
+          ]
+        },
+        "token_length": {
+          "dtype": "int64",
+          "shape": [
+            7947
+          ]
+        },
+        "window_length": {
+          "dtype": "int64",
+          "shape": [
+            7947
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            7947
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            7947
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            7947
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            7947
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            7947
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            7947
+          ]
+        },
+        "line_in_window_index": {
+          "dtype": "int64",
+          "shape": [
+            7947
+          ]
+        },
+        "n_lines_in_window": {
+          "dtype": "int64",
+          "shape": [
+            7947
+          ]
+        },
+        "label_mode": {
+          "dtype": "object",
+          "shape": []
+        }
+      },
+      "n_samples": 7947,
+      "tokens_shape": [
+        7947,
+        8
+      ],
+      "content_token_length": {
+        "n": 7947,
+        "min": 1,
+        "max": 8,
+        "mean": 4.732477664527495,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 13,
+        "2": 632,
+        "3": 1106,
+        "4": 2475,
+        "5": 60,
+        "6": 2817,
+        "7": 840,
+        "8": 4,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 7947,
+        "min": 1,
+        "max": 8,
+        "mean": 4.732477664527495,
+        "median": 4.0,
+        "p05": 2.0,
+        "p95": 7.0,
+        "unique_values": 8
+      },
+      "npz_lengths_interpretation": "matches derived content_token_length exactly",
+      "gcode_texts_line_count_distribution": {
+        "1": 7947
+      },
+      "gcode_texts_distinct": 1496,
+      "gcode_texts_examples": [
+        "X1.6269 Y1.4641 Z0.0949",
+        "X1.6234 Y1.6873 Z0.0851",
+        "X1.4546 Y1.5534 Z0.0759"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 26,
+      "truncation_check": {
+        "max_token_len_target": 64,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    }
+  ],
+  "max_token_len": 64
+}

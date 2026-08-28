@@ -1,0 +1,142 @@
+{
+  "description": "Combined non-neural baselines on the mean-pooled encoder embedding the decoder consumes (fold 1, per-row V8 targets): a scikit-learn HistGradientBoosting (HGB) tree-booster per head, and the two-layer MLP probe. This is the combined artifact the decoder papers' Non-Neural Baseline section cites.",
+  "provenance": {
+    "hgb_source": "audit/xgboost_baseline_v8.json",
+    "hgb_note": "That artifact's config.baseline string says 'XGBoost' but the trained model is sklearn HistGradientBoostingClassifier (the installed xgboost build is GPU-only); see scripts/analysis/xgboost_baseline.py docstring.",
+    "mlp_source": "audit/encoder_probe_v8.json",
+    "mlp_note": "The original probe run recorded accuracy only; the command-head macro-F1 here is a seeded retrain of the identical probe (scripts/analysis/encoder_linear_probe.py architecture, same memory/data/epochs). Its test accuracy is reported alongside as a validity anchor against the original recorded accuracy.",
+    "generator": "scripts/analysis/nonneural_baselines_export.py"
+  },
+  "config": {
+    "memory_root": "/home/seacuello/Documents/gcode_fingerprinting/outputs/decoder20260511/checkpoints/hp_sweep_stage2/scheduled_sampling_0.5/fold_1/encoder_memory",
+    "data_root": "/home/seacuello/Documents/gcode_fingerprinting/outputs/decoder20260511/preprocessed_f98/per_row/fold_1",
+    "hgb_config": {
+      "memory_root": "/home/seacuello/Documents/gcode_fingerprinting/outputs/decoder20260511/checkpoints/hp_sweep_stage2/scheduled_sampling_0.5/fold_1/encoder_memory",
+      "data_root": "/home/seacuello/Documents/gcode_fingerprinting/outputs/decoder20260511/preprocessed_f98/per_row/fold_1",
+      "baseline": "XGBoost on mean-pooled encoder memory",
+      "n_train": 19584,
+      "n_val": 7273,
+      "n_test": 7937,
+      "feature_dim": 256,
+      "elapsed_seconds": 24.06632399559021
+    }
+  },
+  "hgb_results_per_head": {
+    "command_5class": {
+      "accuracy": 0.6586871613959935,
+      "macro_precision": 0.27334879873448725,
+      "macro_recall": 0.22003900241811927,
+      "macro_f1": 0.23200453774881943,
+      "support": 7937,
+      "class_counts_test": {
+        "0": 5886,
+        "1": 86,
+        "4": 395,
+        "2": 1095,
+        "3": 475
+      }
+    },
+    "has_X_binary": {
+      "accuracy": 0.8853471084792743,
+      "macro_precision": 0.44267355423963717,
+      "macro_recall": 0.5,
+      "macro_f1": 0.46959369152632985,
+      "support": 7937,
+      "class_counts_test": {
+        "1": 7027,
+        "0": 910
+      }
+    },
+    "has_Y_binary": {
+      "accuracy": 0.8663222880181429,
+      "macro_precision": 0.43316114400907146,
+      "macro_recall": 0.5,
+      "macro_f1": 0.4641868628907041,
+      "support": 7937,
+      "class_counts_test": {
+        "1": 6876,
+        "0": 1061
+      }
+    },
+    "has_Z_binary": {
+      "accuracy": 0.8820713115786821,
+      "macro_precision": 0.8820498751447317,
+      "macro_recall": 0.8382104883643258,
+      "macro_f1": 0.8553182439617195,
+      "support": 7937,
+      "class_counts_test": {
+        "1": 2490,
+        "0": 5447
+      }
+    },
+    "has_F_binary": {
+      "accuracy": 0.9943303515182059,
+      "macro_precision": 0.49716517575910296,
+      "macro_recall": 0.5,
+      "macro_f1": 0.49857855834228315,
+      "support": 7937,
+      "class_counts_test": {
+        "0": 7892,
+        "1": 45
+      }
+    },
+    "sign_X_3class": {
+      "accuracy": 0.8098777875771702,
+      "macro_precision": 0.3763841445929424,
+      "macro_recall": 0.39384535769194895,
+      "macro_f1": 0.3811917886505202,
+      "support": 7937,
+      "class_counts_test": {
+        "2": 6517,
+        "1": 910,
+        "0": 510
+      }
+    },
+    "sign_Y_3class": {
+      "accuracy": 0.8578808113896939,
+      "macro_precision": 0.2859602704632313,
+      "macro_recall": 0.3333333333333333,
+      "macro_f1": 0.30783489307834894,
+      "support": 7937,
+      "class_counts_test": {
+        "2": 6809,
+        "1": 1061,
+        "0": 67
+      }
+    },
+    "sign_Z_3class": {
+      "accuracy": 0.7834194279954643,
+      "macro_precision": 0.4597146660256913,
+      "macro_recall": 0.5693903972916503,
+      "macro_f1": 0.5053706935000508,
+      "support": 7937,
+      "class_counts_test": {
+        "2": 1146,
+        "1": 5447,
+        "0": 1344
+      }
+    }
+  },
+  "mlp_probe_results": {
+    "probe_command_acc": 0.7735920548439026,
+    "probe_has_X_acc": 0.8853471279144287,
+    "probe_has_Y_acc": 0.8663222789764404,
+    "probe_has_Z_acc": 0.9269245266914368,
+    "probe_has_F_acc": 0.9943303465843201,
+    "probe_has_S_acc": 1.0,
+    "probe_sign_X_acc": 0.8210911154747009,
+    "probe_sign_Y_acc": 0.8578808307647705,
+    "probe_sign_Z_acc": 0.803956151008606,
+    "probe_operation_type_acc": 0.8457855582237244,
+    "probe_val_X_rmse": 0.9741799855416292,
+    "probe_val_Y_rmse": 0.799461244429877,
+    "probe_val_Z_rmse": 0.09676600947058069
+  },
+  "mlp_command_rerun": {
+    "seed": 42,
+    "test_accuracy": 0.774473982613078,
+    "test_macro_f1": 0.24820362974051774,
+    "val_accuracy_best": 0.8493056297302246,
+    "n_test": 7937
+  }
+}

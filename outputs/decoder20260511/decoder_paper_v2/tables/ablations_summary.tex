@@ -3,7 +3,7 @@
 % except where noted as fold-1 only.
 \begin{table}[ht]
 \centering
-\caption{Ablation matrix. Each ablation row reports both teacher-forced (TF) and autoregressive (AR, beam-width-1 greedy) test accuracy where the metric depends on the regime. The categorical heads (type, command, param-type, sign) are independent classifiers on the encoder memory and report identical accuracies under both regimes; a single value is given. The pattern-aware row is a fold-1 pilot (Section~\ref{sec:abl-pattern}); the sensor-modality effect is summarized here and broken out per modality at full 5-fold in Table~\ref{tab:sensor_ablation}.}
+\caption{Ablation matrix. Each ablation row reports both teacher-forced (TF) and autoregressive (AR, beam-width-1 greedy) test accuracy where the metric depends on the regime. The categorical heads (type, command, param-type, sign) are independent classifiers on the encoder memory and report identical accuracies under both regimes; a single value is given. The pattern-aware row is a fold-1 pilot (Supplementary Section~S8); the sensor-modality effect is summarized here and broken out per modality at full 5-fold in Table~\ref{tab:sensor_ablation}. Numbers from \texttt{outputs/decoder20260511/audit/ar\_aggregate.json} (5-fold AR) and the per-fold \texttt{metrics.json} (5-fold TF), commit \texttt{db246b0}.}
 \label{tab:ablations}
 \small
 \resizebox{\textwidth}{!}{%

@@ -4,9 +4,9 @@
 \subsection{Machine and Material}
 \label{sec:machine}
 
-All experiments use a Bantam Tools Desktop CNC Milling Machine, a 3-axis vertical milling center with a $140 \times 114 \times 38$~mm work envelope, 26,000~RPM maximum spindle speed, and 0.003~mm positioning resolution.
+All experiments use a Bantam Tools desktop CNC mill, a 3-axis vertical milling center with a $140 \times 114 \times 38$~mm work envelope, 26,000~RPM maximum spindle speed, and 0.003~mm positioning resolution.
 The workpiece material is ultra-high molecular weight polyethylene (UHMW-PE), selected for machinability and safe data collection (no hazardous chips or coolant).
-All cuts use a 1/8\textquotesingle\textquotesingle\ (3.175~mm) 2-flute carbide end mill.
+All cuts use a 1/4\textquotesingle\textquotesingle\ (6.35~mm) 2-flute high-speed steel end mill.
 
 \subsection{Dataset}
 \label{sec:dataset}
@@ -22,15 +22,15 @@ Table~\ref{tab:dataset_classes} summarizes the class distribution.
 \toprule
 Toolpath & Condition & Files & Description \\
 \midrule
-Face milling    & Standard          & 20 & Flat surface generation \\
-Face milling    & Modified (150025) & 20 & Altered feed/depth parameters \\
-Pocket milling  & Standard          & 20 & Enclosed rectangular pocket \\
-Pocket milling  & Modified (150025) & 20 & Altered feed/depth parameters \\
+Face milling    & Standard          & 16 & Flat surface generation \\
+Face milling    & Modified (150025) & 15 & Active cut in UHMW-PE \\
+Pocket milling  & Standard          & 19 & Enclosed rectangular pocket \\
+Pocket milling  & Modified (150025) & 19 & Active cut in UHMW-PE \\
 Adaptive clearing & Standard        & 20 & Constant-engagement roughing \\
-Adaptive clearing & Modified (150025) & 20 & Altered feed/depth parameters \\
-Face milling    & Tool damage       & 5  & Drive band removed (spindle runout) \\
-Pocket milling  & Tool damage       & 5  & Drive band removed (spindle runout) \\
-Adaptive clearing & Tool damage     & 5  & Drive band removed (spindle runout) \\
+Adaptive clearing & Modified (150025) & 17 & Active cut in UHMW-PE \\
+Face milling    & Spindle damage    & 4  & Drive band removed (spindle runout) \\
+Pocket milling  & Spindle damage    & 5  & Drive band removed (spindle runout) \\
+Adaptive clearing & Spindle damage  & 5  & Drive band removed (spindle runout) \\
 \midrule
 \multicolumn{2}{@{}l}{\textbf{Total}} & \textbf{120} & \\
 \bottomrule
@@ -38,12 +38,12 @@ Adaptive clearing & Tool damage     & 5  & Drive band removed (spindle runout) \
 \end{table}
 
 The three toolpath types produce distinct G-code structures (different command sequences, coordinate patterns, parameter distributions) and distinct \emph{quasi-static} sensor signatures (trajectory-dependent magnetometer and drive-current patterns, thermal drift), providing a diverse evaluation ground.
-We emphasize the regime explicitly: at the effective 4~Hz sampling rate (256 samples per 64-second window), the instrumentation captures program structure and slow process state, \emph{not} tooth-passing vibration---at 26{,}000~RPM with a 2-flute tool the tooth-passing frequency is ${\sim}867$~Hz, two orders of magnitude above the ${\sim}2$~Hz Nyquist limit. The detector therefore keys on program-structure and quasi-static physics rather than cutting-force or vibration spectra, and references to ``physics'' throughout should be read in that sense.
+At the effective 4~Hz sampling rate (256 samples per 64-second window), the instrumentation captures program structure and slow process state, \emph{not} tooth-passing vibration. At the commanded 12{,}000~RPM with a 2-flute tool, the tooth-passing frequency is ${\sim}400$~Hz, two orders of magnitude above the ${\sim}2$~Hz Nyquist limit. The detector therefore keys on program-structure and quasi-static physics rather than cutting-force or vibration spectra. References to \emph{physics} throughout should be read in that sense.
 
 \paragraph{Sensor instrumentation.}
 Six Arduino Nano 33 BLE Sense Lite boards are attached at different machine locations (spindle housing, worktable, column, base).
 Each board provides 9-DOF inertial measurement (accelerometer, gyroscope, magnetometer), environmental sensors (temperature, humidity, pressure), audio level (microphone RMS), and color/proximity sensing (APDS-9960).
-After feature engineering (spectral decomposition, windowed statistics, cross-channel correlations), each board contributes 18--24 channels.
+After feature engineering (spectral decomposition, windowed statistics, cross-channel correlations), each board contributes 17 channels (102 across the six boards).
 An additional module provides spindle and axis drive current readings (8 channels), yielding 110 total channels per time step in the default (f110) configuration.
 Table~\ref{tab:sensor_cost} itemizes the hardware cost.
 
@@ -73,12 +73,13 @@ Sensor features are standardized per-channel using training-set statistics.
 Three feature configurations are evaluated:
 \begin{itemize}
     \item \textbf{f110 (full)}: All 110 sensor channels.
-    \item \textbf{f98}: 98 channels after removing features with pairwise $|r| > 0.95$.
+    \item \textbf{f98}: 98 channels after removing the proximity and pressure channels.
     \item \textbf{f56}: 56 channels retaining only accelerometer, gyroscope, audio, and electrical modalities.
 \end{itemize}
 
 \paragraph{Dataset size.}
-After windowing, the dataset comprises approximately 545 sensor windows across all 120 files---modest by deep learning standards, motivating cross-validation with bootstrap confidence intervals rather than single-split point estimates.
+After windowing, the dataset comprises approximately 545 sensor windows across all 120 files.
+This size is modest by deep learning standards and motivates cross-validation with bootstrap confidence intervals rather than single-split point estimates.
 
 \subsection{Attack Generation Protocol}
 \label{sec:attack_generation}
@@ -112,7 +113,9 @@ All results use 5-fold file-level stratified cross-validation.
 File-level splitting prevents information leakage from temporally correlated sensor signals within a single file.
 
 \paragraph{Bootstrap confidence intervals.}
-95\% confidence intervals are computed by bootstrap resampling of test windows ($B = 5000$ iterations). Because windows within a file are temporally correlated, these window-level intervals can understate uncertainty relative to the effective (file-level) sample size; we therefore also report per-fold AUROC ranges (Appendix~\ref{app:perfold}) as a conservative cross-check.
+95\% confidence intervals are computed by bootstrap resampling of test windows ($B = 5000$ iterations).
+Because windows within a file are temporally correlated, these window-level intervals can understate uncertainty relative to the effective (file-level) sample size.
+We therefore also report per-fold AUROC ranges (Appendix~\ref{app:perfold}) as a conservative cross-check.
 
 \paragraph{Multiple comparison correction.}
 We apply Holm--Bonferroni correction~\cite{holm1979simple} to control the family-wise error rate at $\alpha = 0.05$.

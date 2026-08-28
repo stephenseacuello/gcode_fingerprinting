@@ -2,7 +2,7 @@
 
 \subsection{Task Difficulty: Trivial Baseline Analysis}
 
-Before presenting the sensor-based classification results, we establish the inherent difficulty of the three-class toolpath discrimination task. Table~\ref{tab:trivial_baselines} reports classification accuracy using only trivial metadata features---no sensor data.
+We first establish the inherent difficulty of the three-class toolpath discrimination task. Table~\ref{tab:trivial_baselines} reports classification accuracy using only trivial metadata features (no sensor data).
 
 \begin{table}[H]
 \caption{Classification accuracy using trivial (non-sensor) features only, with the RF classifier and 5-fold CV. These features are derived from machine state columns, not from the IMU or electrical sensor data.}\label{tab:trivial_baselines}
@@ -21,7 +21,7 @@ Random noise                                  & $35.3 \pm 7.8$  & 10 \\
 \end{tabular}
 \end{table}
 
-The trivial baselines reveal that the three toolpath types are inherently separable from program metadata alone. The G-code line range achieves 100\% accuracy because the three toolpath programs have different line counts (985, 111, and 193 lines for adaptive, face, and pocket, respectively). Mean axis position achieves 98\% because each program traverses a different region of the machine's workspace. This contextualizes all subsequent results: perfect classification of these three toolpath types does not \textit{per se} validate the sensor-based methodology. Instead, the value of the sensor-based approach lies in its potential applicability to scenarios where metadata is unavailable or insufficient---such as cross-machine transfer, within-toolpath-type parameter discrimination, or anomaly detection.
+The trivial baselines reveal that the three toolpath types are inherently separable from program metadata alone. The G-code line range achieves 100\% accuracy because the three toolpath programs have different line counts (985, 111, and 193 lines for adaptive, face, and pocket, respectively). Mean axis position achieves 98\% because each program traverses a different region of the machine's workspace. This contextualizes all subsequent results. Perfect classification of these three toolpath types does not \textit{per se} validate the sensor-based methodology. Instead, the value of the sensor-based approach lies in its potential applicability to scenarios where metadata is unavailable or insufficient, such as cross-machine transfer, within-toolpath-type parameter discrimination, or anomaly detection.
 
 \subsection{Sensor-Based Classification Performance}
 
@@ -42,7 +42,7 @@ Z-score      & $100.0 \pm 0.0$ & $94.0 \pm 5.5$ & $94.0 \pm 5.5$ \\
 \end{tabular}
 \end{table}
 
-RF achieves 100\% accuracy across all four isolation methods. While this result is consistent with the trivial baseline analysis (the task is inherently easy), the sensor features achieve it without access to program metadata. The isolation methods provide a meaningful improvement for SVM (+4--8 pp over raw) and MLP (+8--10 pp), suggesting that air-cut referencing removes noise or machine-specific variation that these classifiers are sensitive to.
+RF achieves 100\% accuracy across all four isolation methods. While this result is consistent with the trivial baseline analysis (the task is inherently easy), the sensor features achieve it without access to program metadata. The isolation methods improve accuracy for SVM (+4--8 pp over raw) and MLP (+8--10 pp), suggesting that air-cut referencing removes noise or machine-specific variation that these classifiers are sensitive to.
 
 \subsection{Repeated Cross-Validation: Robustness Analysis}
 
@@ -71,11 +71,11 @@ Z-score    & MLP & 95.0 & 6.7 & 70.0 & 100.0 \\
 \end{tabular}
 \end{table}
 
-The repeated CV reveals a key finding invisible in the standard 5-fold results: \textbf{raw RF occasionally misclassifies} (minimum fold accuracy 90\%), while subtracted, ratio, and z-score RF maintain perfect accuracy across all 100 evaluations. Per-sample analysis across all 20 repeats identifies one specific run---pocket150025\_001---that raw RF misclassifies in 55\% of evaluations, while all three referenced methods classify it correctly in 100\% of evaluations.
+In the repeated CV, \textbf{raw RF occasionally misclassifies} (minimum fold accuracy 90\%), while subtracted, ratio, and z-score RF maintain perfect accuracy across all 100 evaluations; this difference is invisible in the standard 5-fold results. Per-sample analysis across all 20 repeats identifies one specific run, pocket150025\_001, that raw RF misclassifies in 55\% of evaluations, while all three referenced methods classify it correctly in 100\% of evaluations.
 
 \subsection{Statistical Significance Analysis}
 
-To rigorously quantify whether the performance differences are statistically significant, we apply several complementary tests to the 100 fold-level accuracy values from the repeated CV.
+We apply several complementary significance tests to the 100 fold-level accuracy values from the repeated CV.
 
 \textbf{Friedman test.} A Friedman non-parametric ANOVA across the four isolation methods (using RF) yields $\chi^2 = 33.0$, $p < 10^{-6}$, confirming that the methods do not perform equally. Post-hoc pairwise Wilcoxon signed-rank tests with Bonferroni correction show that raw is significantly different from each referenced method ($p_{\mathrm{Bonf}} = 0.011$ for raw vs.\ subtracted, ratio, and z-score), while the three referenced methods are statistically indistinguishable ($p = 1.0$). A separate Friedman test across classifiers (RF vs.\ SVM vs.\ MLP, using subtracted features) yields $\chi^2 = 87.3$, $p < 10^{-6}$, confirming that classifier choice significantly affects accuracy.
 
@@ -90,7 +90,7 @@ To rigorously quantify whether the performance differences are statistically sig
     \label{fig:bootstrap_ci}
 \end{figure}
 
-\textbf{Effect size.} Cohen's $d$ for raw vs.\ each referenced method is $d = 0.49$. However, Cohen's $d$ assumes approximately normal distributions away from boundaries, which is violated here (referenced methods have zero variance at the 100\% ceiling). A more appropriate non-parametric measure is Cliff's delta, which quantifies the probability that a randomly chosen fold from the referenced method outperforms one from the raw method. With 100 raw-method folds and 100 referenced-method folds, Cliff's $\delta = 0.022$ (the proportion of pairs where raw $<$ referenced minus the proportion where raw $>$ referenced), reflecting the fact that raw achieves 100\% in most folds but fails in a small fraction. The degenerate bootstrap CI $[1.000, 1.000]$ for referenced methods reflects a performance ceiling rather than precise estimation.
+\textbf{Effect size.} Cohen's $d$ for raw vs.\ each referenced method is $d = 0.49$. However, Cohen's $d$ assumes approximately normal distributions away from boundaries, which is violated here (referenced methods have zero variance at the 100\% ceiling). A more appropriate non-parametric measure is Cliff's delta, which quantifies the probability that a randomly chosen fold from the referenced method outperforms one from the raw method. With 100 raw-method folds and 100 referenced-method folds, Cliff's $\delta = 0.022$ (the proportion of pairs where raw $<$ referenced minus the proportion where raw $>$ referenced), because raw achieves 100\% in most folds but fails in a small fraction. The degenerate bootstrap CI $[1.000, 1.000]$ for referenced methods reflects a performance ceiling rather than precise estimation.
 
 \textbf{Caveats on higher-order statistics.} The temporal bins contain 6--39 timesteps each (depending on run length and bin count). Computing skewness and kurtosis from such small samples yields unreliable 3rd and 4th moment estimates. The feature statistic ablation (Section~\ref{sec:ablation}) shows that mean + RMS alone (2 statistics, no higher-order moments) achieves 98\% accuracy, confirming that the classification does not depend critically on these unreliable estimators.
 
@@ -141,7 +141,7 @@ Figure~\ref{fig:importance} shows the top 20 features by RF Gini importance.
     \label{fig:importance}
 \end{figure}
 
-Analysis of the top 50 features reveals a striking channel-type distribution: magnetometer channels dominate (24 features, 26.5\% of total importance), followed by environmental channels---pressure, temperature, proximity (14 features, 13.4\%)---and color sensors (6 features, 6.0\%). Accelerometer and gyroscope channels, which one might expect to dominate based on cutting force mechanics, account for only 2 of the top 50 features. Among sensor modules, y\_bed\_\_3 (bed-mounted, 17 features) and frame\_r2 (frame right, 13 features) contribute most.
+Among the top 50 features, magnetometer channels dominate (24 features, 26.5\% of total importance), followed by environmental channels (pressure, temperature, proximity; 14 features, 13.4\%) and color sensors (6 features, 6.0\%). Accelerometer and gyroscope channels, which one might expect to dominate based on cutting force mechanics, account for only 2 of the top 50 features. Among sensor modules, y\_bed\_\_3 (bed-mounted, 17 features) and frame\_r2 (frame right, 13 features) contribute most.
 
 To understand \emph{why} these channels dominate, Figure~\ref{fig:physical_interpretation} plots four physically distinct sensor channels across the three toolpath types.
 
@@ -152,15 +152,15 @@ To understand \emph{why} these channels dominate, Figure~\ref{fig:physical_inter
     \label{fig:physical_interpretation}
 \end{figure}
 
-The physical interpretation reveals several important findings:
+The physical interpretation supports four findings:
 
-\textbf{Magnetometer dominance reflects workspace position, not cutting forces.} The top-ranked feature (frame\_r2.Mx) shows a large static offset between toolpath types: adaptive clearing operates at Mx~$\approx +6.2$ while facing and pocketing sit at Mx~$\approx -2.5$. This offset arises because the three G-code programs traverse different regions of the machine workspace, where the local magnetic field differs due to proximity to stepper motor permanent magnets and ferromagnetic structural components. At the \SI{4}{\hertz} effective sampling rate, the magnetometer measures the quasi-static magnetic field at the sensor's position---essentially acting as an indirect position encoder---rather than detecting time-varying fields from motor current waveforms (which would require sampling at $\geq 10\times$ the stepper electrical frequency). While highly discriminative, this signal reflects \emph{program geometry} rather than \emph{cutting dynamics}---it is the sensor-domain analog of the trivial position baseline (Table~\ref{tab:trivial_baselines}).
+\textbf{Magnetometer dominance reflects workspace position, not cutting forces.} The top-ranked feature (frame\_r2.Mx) shows a large static offset between toolpath types: adaptive clearing operates at Mx~$\approx +6.2$ while facing and pocketing sit at Mx~$\approx -2.5$. The three G-code programs traverse different regions of the machine workspace, and we attribute the offset to the local magnetic field differing between those regions, consistent with varying proximity to stepper motor permanent magnets and ferromagnetic structural components. At the \SI{4}{\hertz} effective sampling rate, the magnetometer measures the quasi-static magnetic field at the sensor's position (in effect acting as an indirect position encoder) rather than detecting time-varying fields from motor current waveforms (which would require sampling at $\geq 10\times$ the stepper electrical frequency). While highly discriminative, this signal reflects \emph{program geometry} rather than \emph{cutting dynamics}; it is the sensor-domain analog of the trivial position baseline (Table~\ref{tab:trivial_baselines}).
 
-\textbf{Bed-mounted magnetometer tracks table position.} The y\_bed\_\_3 magnetometer Mx shows strong temporal evolution (temporal CV = 0.4--1.0), with progressive drift that tracks the Y-axis table position as it moves through the machine's static magnetic field landscape. Because the bed-mounted sensor physically translates with the worktable, its magnetometer reading changes as its proximity to the Y-axis stepper motor's permanent magnets varies throughout the toolpath. This makes y\_bed\_\_3.Mx an indirect position encoder for the Y-axis, rather than a motor current sensor (which would require bandwidth far above \SI{4}{\hertz}). Different toolpath geometries produce different Y-axis motion profiles, creating distinct temporal magnetic signatures.
+\textbf{Bed-mounted magnetometer tracks table position.} The y\_bed\_\_3 magnetometer Mx shows strong temporal evolution (temporal CV = 0.4--1.0), with progressive drift that tracks the Y-axis table position as it moves through the machine's static magnetic field landscape. The bed-mounted sensor physically translates with the worktable, and we attribute the drift to its changing proximity to the Y-axis stepper motor's permanent magnets over the toolpath. Under this interpretation, y\_bed\_\_3.Mx is an indirect position encoder for the Y-axis rather than a motor current sensor (which would require bandwidth far above \SI{4}{\hertz}). Different toolpath geometries produce different Y-axis motion profiles, creating distinct temporal magnetic signatures.
 
 \textbf{Spindle current distinguishes cutting from non-cutting but not between toolpath types.} Spindle current is nearly identical across all three active-cutting types (5.245--5.257~A, temporal CV~$< 0.002$). While spindle current rises when the tool engages material (distinguishing active from air cutting), the 0.025'' depth of cut on this desktop CNC produces cutting loads too small relative to the spindle's no-load draw ($\sim$5.2~A at 12{,}000~RPM) to differentiate between toolpath engagement patterns at 4~Hz sampling. Higher cutting depths or higher sampling rates would likely increase this channel's discriminative power.
 
-\textbf{Accelerometer channels capture quasi-static motion differences.} The accelerometer Az on the bed sensor shows distinct temporal profiles per toolpath type, with adaptive clearing most stable and facing showing periodic variations corresponding to pass reversals. However, absolute acceleration differences are small ($\sim$\SI{20}{\milli\g}), which is near the LSM9DS1's bias uncertainty floor (\SI{10}{}--\SI{50}{\milli\g}; see Section~\ref{sec:experimental_setup}). At \SI{4}{\hertz} sampling, these channels measure low-frequency trajectory dynamics and gravitational tilt changes rather than cutting-induced vibration (which occurs at \SI{400}{\hertz}+). It is important to distinguish two senses of ``process-relevant'' here: at \SI{4}{\hertz}, the accelerometer features are \emph{trajectory-relevant}---they encode how the machine moves through space during each toolpath---but they are \emph{not force-relevant}, as they do not capture cutting-force-induced vibration. On a higher-bandwidth measurement system, the same accelerometer channels would also capture force signatures, providing a more directly process-physical signal. Their lower importance ranking in this study reflects the small absolute trajectory-dynamics differences compared to the magnetometer's large position-dependent offsets.
+\textbf{Accelerometer channels capture quasi-static motion differences.} The accelerometer Az on the bed sensor shows distinct temporal profiles per toolpath type, with adaptive clearing most stable and facing showing periodic variations corresponding to pass reversals. However, absolute acceleration differences are small ($\sim$\SI{20}{\milli\g}), which is near the LSM9DS1's bias uncertainty floor (\SI{10}{}--\SI{50}{\milli\g}; see Section~\ref{sec:experimental_setup}). At \SI{4}{\hertz} sampling, these channels measure low-frequency trajectory dynamics and gravitational tilt changes rather than cutting-induced vibration (which occurs at \SI{400}{\hertz}+). Two senses of ``process-relevant'' must be distinguished here. At \SI{4}{\hertz}, the accelerometer features are \emph{trajectory-relevant} (they encode how the machine moves through space during each toolpath) but they are \emph{not force-relevant}, as they do not capture cutting-force-induced vibration. On a higher-bandwidth measurement system, the same accelerometer channels would also capture force signatures, providing a more directly process-physical signal. Their lower importance ranking in this study reflects the small absolute trajectory-dynamics differences compared to the magnetometer's large position-dependent offsets.
 
 Figure~\ref{fig:gcode_phases} annotates the temporal fingerprints with G-code phase information, linking the sensor signal evolution to program structure.
 
@@ -171,7 +171,7 @@ Figure~\ref{fig:gcode_phases} annotates the temporal fingerprints with G-code ph
     \label{fig:gcode_phases}
 \end{figure}
 
-The phase-annotated figure confirms that facing programs terminate earlier (bins 16--20 are retract/idle), producing a distinctive signal drop, while adaptive and pocketing maintain cutting through bin 19. The temporal fingerprint structure directly tracks the G-code program sequence---different programs produce different temporal bin compositions, which drives the classification.
+The phase-annotated figure confirms that facing programs terminate earlier (bins 16--20 are retract/idle), producing a distinctive signal drop, while adaptive and pocketing maintain cutting through bin 19. The temporal fingerprint structure directly tracks the G-code program sequence; different programs produce different temporal bin compositions, which drives the classification.
 
 Table~\ref{tab:temporal_cv} quantifies the temporal variability of each key sensor channel across toolpath types. Channels with high temporal coefficient of variation (CV) exhibit strong temporal structure that could encode either process dynamics or program geometry; channels with low CV are temporally flat.
 
@@ -210,7 +210,7 @@ The table reveals two physically distinct discrimination mechanisms: (1)~the fra
 
 \subsubsection{Effect of Air-Cut Referencing on Feature Confounds}
 
-A critical question is whether air-cut subtraction removes the workspace-position confound. Table~\ref{tab:confound_removal} compares the channel-type distribution of top features between the raw and subtracted isolation methods.
+We next test whether air-cut subtraction removes the workspace-position confound. Table~\ref{tab:confound_removal} compares the channel-type distribution of top features between the raw and subtracted isolation methods.
 
 \begin{table}[H]
 \caption{Distribution of channel types among the top 20 most important features, for raw vs.\ subtracted isolation. Air-cut subtraction reduces magnetometer dominance from 61\% to 21\% of feature importance, shifting weight toward electrical and environmental channels.}\label{tab:confound_removal}
@@ -229,7 +229,7 @@ Other            & 2 features           & 3 features \\
 \end{tabular}
 \end{table}
 
-Air-cut subtraction reduces the magnetometer's share of the top 20 features from 61\% (raw) to 21\% (subtracted), and elevates electrical motor current features from 0 to 4 of the top 20. This shift occurs because the air-cut reference captures a similar workspace trajectory, so subtracting it partially removes position-dependent magnetic field offsets. The remaining discriminative signal is more likely to reflect motor load and quasi-static motion differences rather than workspace geometry.
+Air-cut subtraction reduces the magnetometer's share of the top 20 features from 61\% (raw) to 21\% (subtracted), and elevates electrical motor current features from 0 to 4 of the top 20. We attribute this shift to the air-cut reference capturing a similar workspace trajectory, so that subtracting it partially removes position-dependent magnetic field offsets. The remaining discriminative signal is more likely to reflect motor load and quasi-static motion differences rather than workspace geometry.
 
 \subsubsection{Classification Without Position-Confounded Channels}
 
@@ -257,7 +257,7 @@ Three findings emerge: (1)~removing all magnetometers drops accuracy by only $\s
 
 \subsubsection{Full Pipeline Without Magnetometers}
 
-To definitively test whether air-cut referencing provides value beyond position encoding, we re-run the complete pipeline using only non-confounded channels (accelerometer, gyroscope, RMS, temperature, and the eight electrical-current channels---784 features, excluding all magnetometer, color, pressure, and proximity channels; Table~\ref{tab:nomag_pipeline}).
+To test whether air-cut referencing provides value beyond position encoding, we re-run the complete pipeline using only non-confounded channels (accelerometer, gyroscope, RMS, temperature, and the eight electrical-current channels; 784 features, excluding all magnetometer, color, pressure, and proximity channels; Table~\ref{tab:nomag_pipeline}).
 
 \begin{table}[H]
 \caption{Repeated CV (20$\times$5-fold) with confound-free features only (784 features, no magnetometers/color/pressure/proximity). The subtracted and ratio methods hold 100\% across all 100 folds; z-score remains near-perfect (99.0\%, min 90\%); raw degrades to 96.7\%.}\label{tab:nomag_pipeline}
@@ -277,18 +277,18 @@ Z-score    & MLP & 90.0 & 13.0 & 36.4 & 100.0 \\
 \end{tabular}
 \end{table}
 
-This is the paper's strongest empirical result. With all position-confounded channels removed, raw RF features degrade to 96.7\% mean accuracy (minimum fold 81.8\%), while \textbf{the subtracted and ratio methods maintain perfect 100\% accuracy across all 100 evaluations and z-score remains near-perfect at 99.0\% (minimum fold 90\%)}. The effect is larger for the noise-sensitive MLP: raw reaches only 79.9\% while z-score recovers to 90.0\%. This demonstrates that air-cut referencing provides a genuine classification benefit that is independent of the magnetometer position-encoding confound identified in Section~\ref{sec:physics}---though on this confound-free set the benefit is a few percentage points and a variance reduction (subtracted/ratio reaching the ceiling) rather than the uniform jump to 100\% observed when position-confounded channels are present.\footnote{Note that temperature is retained in this ``confound-free'' set despite showing run-order correlation $r = 0.98$ within the adaptive class (Section~\ref{sec:discussion}). Temperature is a within-class drift effect, not a between-class confound, so it remains a defensible process-relevant channel. A stricter definition excluding temperature does not materially change the results.}
+With all position-confounded channels removed, raw RF features degrade to 96.7\% mean accuracy (minimum fold 81.8\%), while \textbf{the subtracted and ratio methods maintain perfect 100\% accuracy across all 100 evaluations and z-score remains near-perfect at 99.0\% (minimum fold 90\%)}. The effect is larger for the noise-sensitive MLP, where raw reaches only 79.9\% and z-score recovers to 90.0\%. This demonstrates that air-cut referencing provides a genuine classification benefit that is independent of the magnetometer position-encoding confound identified in Section~\ref{sec:physics}. On this confound-free set, however, the benefit is a few percentage points and a variance reduction (subtracted/ratio reaching the ceiling) rather than the uniform jump to 100\% observed when position-confounded channels are present.\footnote{Temperature is retained in this ``confound-free'' set despite showing run-order correlation $r = 0.98$ within the adaptive class (Section~\ref{sec:discussion}). Temperature is a within-class drift effect, not a between-class confound, so it remains a defensible process-relevant channel. A stricter definition excluding temperature does not materially change the results.}
 
 Noise robustness was also re-evaluated on the 784-feature confound-free set: subtracted features maintain 100\% accuracy up to $0.5\times$ additive noise and 99.0\% at $1.0\times$ noise, while raw features drop to 91.2\% at $1.0\times$ and 71.3\% at $2.0\times$. The robustness advantage persists when position-confounded channels are excluded, confirming that air-cut referencing improves resilience to feature-level perturbations on the underlying motion-dynamics signal.
 
-\subsection{Damaged-Tool Detection: A Position-Controlled Task}\label{sec:damage}
+\subsection{Damaged-Spindle Detection: A Position-Controlled Task}\label{sec:damage}
 
-The experiments above isolate the process-relevant signal by \emph{removing} position-confounded channels. A complementary and stronger test instead holds workspace position \emph{constant} while varying only the process. We use the vetted set of damaged-tool runs: 14 runs (5/4/5 for adaptive/facing/pocketing) that execute the \emph{same} CAM-generated G-code programs as the normal active cuts but with a damaged tool. Because the program---and hence the nominal toolpath and workspace region---is identical to the normal runs by construction, workspace position cannot separate the normal-vs-damaged label, so any discrimination must arise from process dynamics (the altered cutting behavior of the damaged tool). This is precisely the within-region test that the magnetometer position-encoder cannot solve, and it maps directly onto a manufacturing-monitoring use case (tool-condition / anomaly detection).
+The experiments above isolate the process-relevant signal by \emph{removing} position-confounded channels. A complementary and stronger test instead holds workspace position \emph{constant} while varying only the process. We use the vetted set of damaged-spindle runs: 14 air-cut runs (5/4/5 for adaptive/facing/pocketing) that execute the same CAM toolpath strategies with one spindle drive band removed to induce spindle runout. The toolpath geometry, and hence the workspace region, matches the normal runs, so workspace position provides little separation between the normal-vs-damaged labels. Because the damaged runs are air-cuts and the normal runs are active cuts, however, the process difference couples two factors: spindle condition (runout) and cutting engagement (material load). This is the within-region test that the magnetometer position-encoder cannot solve; it demonstrates process-dynamics detection under position control, but the coupled design means it does not by itself validate tool-condition monitoring.
 
-We pool the 51 normal active runs and 14 damaged-tool runs (the same vetted set used throughout the paper) into a binary task (majority-class baseline 78.5\%) and classify with the same RF temporal-binning pipeline under 20$\times$5-fold repeated CV (Table~\ref{tab:damage}).
+We pool the 51 normal active runs (the same vetted set used throughout the paper) and the 14 damaged-spindle runs into a binary task (majority-class baseline 78.5\%) and classify with the same RF temporal-binning pipeline under 20$\times$5-fold repeated CV (Table~\ref{tab:damage}).
 
 \begin{table}[H]
-\caption{Damaged-tool detection (binary: 51 normal active vs.\ 14 damaged-tool runs, same G-code programs). Mean over 20$\times$5-fold repeated CV; majority-class baseline 78.5\%. Per-type accuracy (same program, workspace held constant): adaptive 100\%, facing 100\%, pocketing 100\%.}\label{tab:damage}
+\caption{Damaged-spindle detection (binary: 51 normal active vs.\ 14 damaged-spindle air-cut runs, same toolpath strategies). Mean over 20$\times$5-fold repeated CV; majority-class baseline 78.5\%. Per-type accuracy (same program, workspace held constant): adaptive 100\%, facing 100\%, pocketing 100\%.}\label{tab:damage}
 \centering
 \begin{tabular}{lccc}
 \toprule
@@ -300,7 +300,7 @@ Subtracted & $98.5 \pm 3.1$ & 0.970 & 0.990 \\
 \end{tabular}
 \end{table}
 
-Random Forest reaches 98.5\% accuracy (balanced accuracy 0.990, damage-class $F_1 = 0.97$), far above the 78.5\% majority baseline, and per-type accuracy is 100\% for all three toolpath types---where the same program holds the workspace constant. Two findings make this the paper's most process-relevant result. First, the discriminative signal flips entirely away from position: the channel-type importance (from a Random Forest fit on the full set) is now dominated by the \textbf{accelerometer (44.7\%)} and \textbf{acoustic RMS (29.6\%)}---process-dynamics channels, $\sim$74\% combined---with the magnetometer contributing only \textbf{0.1\%}, versus the 61\% it commanded on the position-confounded three-class task (Section~\ref{sec:physics}). A damaged tool perturbs the cutting vibration and acoustic signature, and the sensor array detects it. Second, air-cut referencing is \emph{neutral} here (raw and subtracted both 98.5\%): when workspace position is already held constant there is no position-dependent offset for the air-cut baseline to remove, exactly as the causal model (Section~\ref{sec:causal_dag}) predicts---referencing helps when the position confound is present and is neither beneficial nor harmful when it is absent. The dataset is small (14 damaged-tool runs from a single session), so this is a demonstration rather than a validated detector; but it establishes that the sensor array does carry process-relevant information, recoverable once the position confound is controlled, and that the methodology extends naturally to tool-condition monitoring.
+Random Forest reaches 98.5\% accuracy (balanced accuracy 0.990, damage-class $F_1 = 0.97$), far above the 78.5\% majority baseline, and per-type accuracy is 100\% for all three toolpath types, where the same program holds the workspace constant. Two findings follow. First, the discriminative signal shifts almost entirely away from position. The channel-type importance (from a Random Forest fit on the full set) is now dominated by the \textbf{accelerometer (44.7\%)} and \textbf{acoustic RMS (29.6\%)}, process-dynamics channels amounting to $\sim$74\% combined, with the magnetometer contributing only \textbf{0.1\%}, versus the 61\% of top-20 feature importance it commanded on the position-confounded three-class task (Section~\ref{sec:physics}). Spindle runout and the absence of cutting engagement both perturb the vibration and acoustic signature; this design cannot attribute the separation to either factor alone. Second, air-cut referencing is \emph{neutral} here (raw and subtracted both 98.5\%). When workspace position is already held constant there is no position-dependent offset for the air-cut baseline to remove, as the causal model (Section~\ref{sec:causal_dag}) predicts; referencing helps when the position confound is present and is neither beneficial nor harmful when it is absent. The dataset is small (14 damaged-spindle runs from a single session), so this is a demonstration rather than a validated detector; but it establishes that the sensor array does carry process-relevant information, recoverable once the position confound is controlled. The clean damage-only comparison, damaged-spindle air-cuts against normal air-cuts of the same programs, is left to future work.
 
 \subsection{Permutation Test}
 
@@ -308,7 +308,7 @@ A permutation test with 1{,}000 label shuffles using the full 1{,}540-feature se
 
 \subsection{Effective Dimensionality}
 
-Despite the nominal 1{,}540-feature space (30:1 feature-to-sample ratio), PCA analysis reveals that 7 components explain 50\% of variance and 30 components explain 90\%. The effective dimensionality is high relative to the sample count ($n = 51$), but only 0.15\% of feature pairs have $|r| > 0.95$, indicating moderate rather than extreme redundancy. The RF classifier's success at full dimensionality, combined with its degradation under PCA (Section~\ref{sec:ablation}), suggests it exploits many individually weak but collectively informative features---a regime where tree-based ensembles excel.
+Despite the nominal 1{,}540-feature space (30:1 feature-to-sample ratio), PCA analysis reveals that 7 components explain 50\% of variance and 30 components explain 90\%. The effective dimensionality is high relative to the sample count ($n = 51$), but only 0.15\% of feature pairs have $|r| > 0.95$, indicating moderate rather than extreme redundancy. The RF classifier's success at full dimensionality, combined with its degradation under PCA (Section~\ref{sec:ablation}), suggests it exploits many individually weak but collectively informative features, a regime where tree-based ensembles excel.
 
 \subsection{Internal Held-Out Split (Same Session)}
 
@@ -355,11 +355,11 @@ Electrical      & $-11.0$ & $3.7$  & 112 \\
 \end{tabular}
 \end{table}
 
-Magnetometer channels achieve the highest median SNR ($-3.7$~dB) and max SNR ($24.2$~dB), with the top 6 highest-SNR features all being magnetometer (Mx, Mz) channels from the frame\_r2 sensor. This quantitatively confirms the position-encoding finding from Section~\ref{sec:physics}: the channels with the largest signal-to-noise ratio for class discrimination are those most affected by workspace position. Accelerometer and gyroscope channels have negative median SNR (within-class variance exceeds between-class variance for typical features), reflecting that the trajectory dynamics they capture vary substantially within each toolpath class. Electrical current channels have the lowest median SNR ($-11.0$~dB), consistent with their near-constant behavior under shallow UHMW-PE cutting.
+Magnetometer channels achieve the highest median SNR ($-3.7$~dB) and max SNR ($24.2$~dB), with the top 6 highest-SNR features all being magnetometer (Mx, Mz) channels from the frame\_r2 sensor. This quantitatively confirms the position-encoding finding from Section~\ref{sec:physics}: the channels with the largest signal-to-noise ratio for class discrimination are those most affected by workspace position. Accelerometer and gyroscope channels have negative median SNR (within-class variance exceeds between-class variance for typical features), reflecting the within-class variability of the trajectory dynamics they capture. Electrical current channels have the lowest median SNR ($-11.0$~dB), consistent with their near-constant behavior under shallow UHMW-PE cutting.
 
 \subsection{Run-Order Confound Analysis}
 
-Section~\ref{sec:discussion} reports that several features show statistically significant temporal drift correlated with run order (e.g., temperature, $r = 0.98$ for adaptive class). To verify that this within-class drift does not confound the between-class classification, we compute the partial correlation between each top-importance feature and the class label, controlling for run order. Across the top 20 features, the partial correlations differ from the raw correlations by an average of $-1.7\%$ (with several features actually showing slightly stronger partial correlations, indicating that run order is not aliased with class). This rules out run-order temporal drift as an explanation for the classification results: the class signal in these features is essentially independent of when each run was collected.
+Section~\ref{sec:discussion} reports that several features show statistically significant temporal drift correlated with run order (e.g., temperature, $r = 0.98$ for adaptive class). To verify that this within-class drift does not confound the between-class classification, we compute the partial correlation between each top-importance feature and the class label, controlling for run order. Across the top 20 features, the partial correlations differ from the raw correlations by an average of $-1.7\%$ (with several features showing slightly stronger partial correlations, indicating that run order is not aliased with class). This rules out run-order temporal drift as an explanation for the classification results. The class signal in these features is essentially independent of when each run was collected.
 
 \subsection{Fine-Grained Learning Curve}
 
@@ -372,7 +372,7 @@ Figure~\ref{fig:learning_curve_fine} extends the learning curve analysis (Sectio
     \label{fig:learning_curve_fine}
 \end{figure}
 
-With only \textbf{2 runs per class} (6 training samples total), z-score referencing achieves 98.9\% accuracy, ratio achieves 96.9\%, subtracted achieves 93.6\%, and raw features lag at 84.0\%. This demonstrates that air-cut referencing dramatically improves data efficiency: the same accuracy that raw features require ${\sim}10$ training runs to reach is achieved by z-score with only 2. For applications where labeled training data is expensive (e.g., destructive testing or high-volume production), this difference is practically meaningful.
+With only \textbf{2 runs per class} (6 training samples total), z-score referencing achieves 98.9\% accuracy, ratio achieves 96.9\%, subtracted achieves 93.6\%, and raw features lag at 84.0\%. Air-cut referencing therefore improves data efficiency; the accuracy that raw features require ${\sim}10$ training runs to reach, z-score achieves with only 2. For applications where labeled training data is expensive (e.g., destructive testing or high-volume production), this difference is practically meaningful.
 
 \subsection{Calibration Analysis}
 
@@ -393,7 +393,7 @@ Z-score    & \textbf{0.077} & \textbf{0.083} & 0.923 \\
 \end{tabular}
 \end{table}
 
-Air-cut referenced methods achieve $\sim$35\% lower ECE than raw features (0.077--0.084 vs.\ 0.119) and lower log loss, indicating better-calibrated probability estimates. The mean prediction confidence is also higher for referenced methods ($\sim$0.92 vs.\ 0.88), meaning the classifier is more decisive when air-cut referencing is applied. This calibration improvement is practically valuable: well-calibrated probabilities enable confidence-thresholding for novelty detection and selective abstention.
+Air-cut referenced methods achieve $\sim$35\% lower ECE than raw features (0.077--0.084 vs.\ 0.119) and lower log loss, indicating better-calibrated probability estimates. The mean prediction confidence is also higher for referenced methods ($\sim$0.92 vs.\ 0.88), meaning the classifier is more decisive when air-cut referencing is applied. Well-calibrated probabilities enable confidence-thresholding for novelty detection and selective abstention, which gives this calibration improvement practical value.
 
 \subsection{MiniRocket Comparison}
 
@@ -415,7 +415,7 @@ Temporal binning + RF (confound-free, referenced) & $100.0\% \pm 0.0$ & 784 \\
 \end{tabular}
 \end{table}
 
-MiniRocket achieves 96\% accuracy, comparable to but slightly below our temporal binning approach. This benchmark places our method within the competitive range of modern time-series classification techniques while preserving interpretability through explicit per-bin statistics, sensor-channel attribution, and physical analysis of dominant features---advantages that random convolutional kernel methods do not provide.
+MiniRocket achieves 96\% accuracy, comparable to but slightly below our temporal binning approach. This benchmark places our method within the competitive range of modern time-series classification techniques while preserving interpretability through explicit per-bin statistics, sensor-channel attribution, and physical analysis of dominant features, advantages that random convolutional kernel methods do not provide.
 
 \subsection{Visual Comparison: Full vs.\ Confound-Free Pipeline}
 
@@ -428,7 +428,7 @@ Figure~\ref{fig:confound_free_viz} visualizes the full classification accuracy c
     \label{fig:confound_free_viz}
 \end{figure}
 
-The visualization makes the headline finding immediate: in the confound-free condition (right panel), the gap between raw and referenced methods widens dramatically. For RF, raw drops from $\sim$99\% to 96.7\% while the subtracted and ratio methods stay at 100\% and z-score at 99.0\%. For MLP, raw drops to $\sim$80\% while z-score recovers to 90\%. The position-confounded channels were inflating the raw baseline; removing them reveals the true (more modest) magnitude of the air-cut referencing benefit.
+In the confound-free condition (right panel), the gap between raw and referenced methods widens. For RF, raw drops from $\sim$99\% to 96.7\% while the subtracted and ratio methods stay at 100\% and z-score at 99.0\%. For MLP, raw drops to $\sim$80\% while z-score recovers to 90\%. The position-confounded channels were inflating the raw baseline; removing them reveals the true (more modest) magnitude of the air-cut referencing benefit.
 
 \subsection{Mutual Information Decomposition}\label{sec:mi}
 
@@ -461,9 +461,9 @@ Electrical    & 0.179 & 0.024 & 0.180 & 100.3\% & 112 \\
     \label{fig:mi_decomposition}
 \end{figure}
 
-The MI analysis quantitatively confirms the position-encoding finding from Section~\ref{sec:physics}: for nearly every channel type, MI(feature; position) is comparable to or exceeds MI(feature; class), with ratios above 100\% indicating that position information saturates the class signal. Pressure (the only ratio below 100\%) carries class information beyond position, but this reflects barometric session-day variation rather than process physics. Of the 1{,}540 features, 362 have MI(class) $> 0.5$~bits, 422 have MI(position) $> 0.5$~bits, and \textbf{321 of those (89\%) overlap}---meaning the vast majority of high-class-information features are also high-position-information features. Temperature shows an interesting pattern with the highest MI(order) value (0.325 bits), reflecting the within-class warming drift identified in Section~\ref{sec:discussion}; this is one of the few channels where information is genuinely tied to recording chronology rather than class structure or position.
+The MI analysis quantitatively confirms the position-encoding finding from Section~\ref{sec:physics}. For nearly every channel type, MI(feature; position) is comparable to or exceeds MI(feature; class), with ratios above 100\% indicating that position information saturates the class signal. Pressure (the only ratio below 100\%) carries class information beyond position, but this reflects barometric session-day variation rather than process physics. Of the 1{,}540 features, 362 have MI(class) $> 0.5$~bits, 422 have MI(position) $> 0.5$~bits, and \textbf{321 of those (89\%) overlap}, meaning that the vast majority of high-class-information features are also high-position-information features. Temperature has the highest MI(order) value (0.325 bits), reflecting the within-class warming drift identified in Section~\ref{sec:discussion}; this is one of the few channels where information is genuinely tied to recording chronology rather than class structure or position.
 
-We note one methodological caveat: the position proxy is defined as the first principal component of the magnetometer feature subspace, which makes the MI(magnetometer feature; position) measurement slightly circular by construction---the magnetometer features are partly being correlated with a transformation of themselves. This circularity inflates the magnetometer ratio (110.5\%) by an unknown amount. However, the more consequential cross-sensor finding is unaffected: accelerometer (123.3\%), gyroscope (114.2\%), vibration RMS (111.1\%), proximity (103.2\%), color (105.4\%), and electrical (100.3\%) channels all exceed the 100\% threshold despite being computed independently of the magnetometer subspace, demonstrating that workspace position dominates the discriminative content across the entire sensor array.
+One methodological caveat applies. The position proxy is defined as the first principal component of the magnetometer feature subspace, which makes the MI(magnetometer feature; position) measurement slightly circular by construction (the magnetometer features are partly being correlated with a transformation of themselves). This circularity inflates the magnetometer ratio (110.5\%) by an unknown amount. The more consequential cross-sensor finding is unaffected, however: accelerometer (123.3\%), gyroscope (114.2\%), vibration RMS (111.1\%), proximity (103.2\%), color (105.4\%), and electrical (100.3\%) channels all exceed the 100\% threshold despite being computed independently of the magnetometer subspace, demonstrating that workspace position dominates the discriminative content across the entire sensor array.
 
 \subsection{Bayesian Posterior Analysis}\label{sec:bayesian}
 
@@ -491,7 +491,7 @@ Z-score    & 1020/1020 & 99.93\% & [99.64\%, 100.00\%] & 0.9998 \\
     \label{fig:bayesian_posterior}
 \end{figure}
 
-The posterior accuracy difference between any referenced method and raw has median $1.05\%$ with a 95\% credible interval of $[0.46\%, 1.84\%]$, and $P(\text{referenced} > \text{raw}) \geq 0.9997$. This Bayesian framing provides three advantages over the frequentist tests: (1)~it produces a properly bounded credible interval despite the ceiling effect in the referenced methods, replacing the degenerate frequentist CI $[1.000, 1.000]$ with the principled $[0.9964, 0.99997]$; (2)~it gives a direct probability statement about the comparison rather than a $p$-value against a null hypothesis; and (3)~it makes explicit that the magnitude of the effect, while small in absolute terms ($\sim$1 percentage point), is overwhelmingly likely to be a real positive effect rather than noise. One caveat: the Beta--Binomial model treats the 1{,}020 fold-level predictions as independent Bernoulli trials, but they derive from only 51 runs evaluated $\sim$20 times each (raw's 11 errors trace largely to a single borderline run). The effective sample size is therefore closer to 51 than 1{,}020, so the credible interval and $P(\text{referenced} > \text{raw})$ should be read as optimistic upper bounds on certainty rather than calibrated probabilities; the run-level Cliff's-delta analysis, which localizes the effect to one run, is the more conservative summary.
+The posterior accuracy difference between any referenced method and raw has median $1.05\%$ with a 95\% credible interval of $[0.46\%, 1.84\%]$, and $P(\text{referenced} > \text{raw}) \geq 0.9997$. This Bayesian framing provides three advantages over the frequentist tests: (1)~it produces a properly bounded credible interval despite the ceiling effect in the referenced methods, replacing the degenerate frequentist CI $[1.000, 1.000]$ with the principled $[0.9964, 0.99997]$; (2)~it gives a direct probability statement about the comparison rather than a $p$-value against a null hypothesis; and (3)~it makes explicit that the magnitude of the effect, while small in absolute terms ($\sim$1 percentage point), is overwhelmingly likely to be a real positive effect rather than noise. One caveat applies. The Beta--Binomial model treats the 1{,}020 fold-level predictions as independent Bernoulli trials, but they derive from only 51 runs evaluated $\sim$20 times each (raw's 11 errors trace largely to a single borderline run). The effective sample size is therefore closer to 51 than 1{,}020, so the credible interval and $P(\text{referenced} > \text{raw})$ should be read as optimistic upper bounds on certainty rather than calibrated probabilities; the run-level Cliff's-delta analysis, which localizes the effect to one run, is the more conservative summary.
 
 \subsection{Temporal Fingerprints}\label{sec:fingerprints}
 
@@ -513,7 +513,7 @@ Figure~\ref{fig:fingerprint_overlay} presents the temporal fingerprint overlay, 
     \label{fig:fingerprint_overlay}
 \end{figure}
 
-Adaptive clearing produces the highest absolute magnetometer values (reflecting its workspace location) with gradual temporal variation, while facing and pocketing occupy a different region with more temporal structure. After air-cut subtraction (right panel), the inter-class separation is reduced but still clearly present, confirming that some discriminative information survives the referencing process and is not purely position-dependent.
+Adaptive clearing produces the highest absolute magnetometer values (reflecting its workspace location) with gradual temporal variation, while facing and pocketing occupy a different region with more temporal structure. After air-cut subtraction (right panel), the inter-class separation is reduced but still present, confirming that some discriminative information survives the referencing process and is not purely position-dependent.
 
 \subsection{Generalization Analysis}
 
@@ -534,7 +534,7 @@ Z-score    & $100.0 \pm 0.0$ & $100.0 \pm 0.0$ & $100.0 \pm 0.0$ \\
 \end{tabular}
 \end{table}
 
-Raw features degrade slightly at $K = 3$ (99.0\%), while all referenced methods maintain 100\%---consistent with the repeated CV finding that air-cut referencing improves robustness.
+Raw features degrade slightly at $K = 3$ (99.0\%), while all referenced methods maintain 100\%, consistent with the repeated CV finding that air-cut referencing improves robustness.
 
 \subsection{Harder Classification Tasks}
 
@@ -550,7 +550,7 @@ Binary classification of air-cut vs.\ active-cut runs (ignoring toolpath type) a
 
 \subsubsection{Cross-Condition Transfer}
 
-A critical test for the air-cut referencing hypothesis is whether models transfer across cutting conditions. We train an RF classifier on \textit{air-cut data only} (55 runs, 3 toolpath classes) and test on \textit{active-cut data} (51 runs):
+Whether models transfer across cutting conditions is a direct test of the air-cut referencing hypothesis. We train an RF classifier on \textit{air-cut data only} (55 runs, 3 toolpath classes) and test on \textit{active-cut data} (51 runs):
 
 \begin{table}[H]
 \caption{Cross-condition transfer accuracy. Models trained on one condition are tested on the other without retraining.}\label{tab:cross_condition}
@@ -565,7 +565,7 @@ Active $\rightarrow$ Air   & 40.0 & 51 / 55 \\
 \end{tabular}
 \end{table}
 
-Both transfer directions achieve near-chance accuracy ($\sim$37--40\% vs.\ 33\% random baseline), demonstrating that raw sensor features learned from one cutting condition do not transfer to the other. This result has two important implications: (1)~it confirms that the air and active sensor signals are fundamentally different---the machine dynamics (captured by air cuts) and process dynamics (added by active cuts) produce distinct feature distributions; and (2)~it motivates the air-cut referencing methodology, since the process component isolated by subtraction/normalization may be more transferable than the raw signal.
+Both transfer directions achieve near-chance accuracy ($\sim$37--40\% vs.\ 33\% random baseline), demonstrating that raw sensor features learned from one cutting condition do not transfer to the other. This result has two implications: (1)~it confirms that the air and active sensor signals are fundamentally different, with the machine dynamics (captured by air cuts) and process dynamics (added by active cuts) producing distinct feature distributions; and (2)~it motivates the air-cut referencing methodology, since the process component isolated by subtraction/normalization may be more transferable than the raw signal.
 
 \subsubsection{Leave-One-Type-Out: Unknown Toolpath Detection}
 
@@ -585,4 +585,4 @@ Pocket (19)    & Adaptive: 16, Face: 3   & $0.63 \pm 0.06$ & 0.52 \\
 \end{tabular}
 \end{table}
 
-When adaptive or face toolpaths are held out, the classifier consistently predicts ``pocket'' with moderate confidence (0.67--0.79). When pocket is held out, predictions split between adaptive (84\%) and face (16\%) with lower confidence (min 0.52). The reduced confidence for unknown types suggests that a confidence-thresholding approach could potentially detect novel toolpath types---a direction for future work in anomaly detection.
+When adaptive or face toolpaths are held out, the classifier consistently predicts ``pocket'' with moderate confidence (0.67--0.79). When pocket is held out, predictions split between adaptive (84\%) and face (16\%) with lower confidence (min 0.52). The reduced confidence for unknown types suggests that a confidence-thresholding approach could potentially detect novel toolpath types, a direction for future work in anomaly detection.

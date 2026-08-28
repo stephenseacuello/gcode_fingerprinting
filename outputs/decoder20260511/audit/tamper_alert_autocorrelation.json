@@ -1,0 +1,98 @@
+{
+  "attack": "command_swap",
+  "per_fold": {
+    "1": {
+      "n_samples": 132,
+      "rho_honest_lag1": 0.41112668240383904,
+      "honest_alert_rate": 0.30303030303030304,
+      "real": {
+        "fpr": 0.30303030303030304,
+        "tpr": 0.905982905982906
+      },
+      "modal_substituted": {
+        "fpr": 0.3712121212121212,
+        "tpr": 0.8717948717948718,
+        "modal_pred_share": 0.1590909090909091
+      }
+    },
+    "2": {
+      "n_samples": 110,
+      "rho_honest_lag1": 0.18536949946633202,
+      "honest_alert_rate": 0.2636363636363636,
+      "real": {
+        "fpr": 0.2636363636363636,
+        "tpr": 0.9263157894736842
+      },
+      "modal_substituted": {
+        "fpr": 0.43636363636363634,
+        "tpr": 0.8315789473684211,
+        "modal_pred_share": 0.15454545454545454
+      }
+    },
+    "3": {
+      "n_samples": 106,
+      "rho_honest_lag1": 0.6025139031360369,
+      "honest_alert_rate": 0.33962264150943394,
+      "real": {
+        "fpr": 0.33962264150943394,
+        "tpr": 0.9574468085106383
+      },
+      "modal_substituted": {
+        "fpr": 0.37735849056603776,
+        "tpr": 0.8191489361702128,
+        "modal_pred_share": 0.12264150943396226
+      }
+    },
+    "4": {
+      "n_samples": 108,
+      "rho_honest_lag1": 0.18151924690737375,
+      "honest_alert_rate": 0.2037037037037037,
+      "real": {
+        "fpr": 0.2037037037037037,
+        "tpr": 0.9583333333333334
+      },
+      "modal_substituted": {
+        "fpr": 0.37037037037037035,
+        "tpr": 0.8541666666666666,
+        "modal_pred_share": 0.1388888888888889
+      }
+    },
+    "5": {
+      "n_samples": 93,
+      "rho_honest_lag1": 0.7242506521172057,
+      "honest_alert_rate": 0.3978494623655914,
+      "real": {
+        "fpr": 0.3978494623655914,
+        "tpr": 0.8518518518518519
+      },
+      "modal_substituted": {
+        "fpr": 0.3978494623655914,
+        "tpr": 0.8271604938271605,
+        "modal_pred_share": 0.3548387096774194
+      }
+    }
+  },
+  "aggregate": {
+    "rho_honest_lag1": {
+      "mean": 0.4209559968061575,
+      "std": 0.21811854191869923
+    },
+    "real_fpr": {
+      "mean": 0.3015684948490791,
+      "std": 0.06593427574697215
+    },
+    "real_tpr": {
+      "mean": 0.9199861378304828,
+      "std": 0.03937574169119877
+    },
+    "modal_fpr": {
+      "mean": 0.3906308161755514,
+      "std": 0.024929202556700714
+    },
+    "modal_tpr": {
+      "mean": 0.8407699831654665,
+      "std": 0.019386479079716024
+    }
+  },
+  "interpretation": "rho_honest_lag1 is the empirical within-file lag-1 autocorrelation of the honest command-swap alert; feed it into tamper_aggregation_correlated.py instead of the assumed 0.6 ceiling. If modal_substituted TPR/FPR approx real TPR/FPR, the row-level alert is closed-vocabulary/prior-driven rather than sensor-conditioned (referee R3 M1)."
+}

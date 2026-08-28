@@ -62,27 +62,24 @@ def decompose_value_to_digits(
     max_value = (10 ** max_int_digits) - (10 ** -n_decimal_digits)
     abs_value = min(abs_value, max_value)
 
-    # Split into integer and decimal parts
-    int_part = int(abs_value)
-    dec_part = abs_value - int_part
+    # Round-to-scaled-integer extraction. Float-precision loss is absorbed
+    # exactly once by ``round`` rather than allowed to propagate through the
+    # repeated ``dec_part *= 10; int(dec_part)`` multiply-and-truncate chain,
+    # which silently corrupted terminal digits (e.g. 3.2750 -> [..,7,4,9]
+    # instead of [..,7,5,0], 0.0710 -> [..,7,0,9] instead of [..,7,1,0]).
+    # Mirrors the patched digit_value_head.encode_values_to_digits.
+    total_positions = max_int_digits + n_decimal_digits
+    scale = 10 ** n_decimal_digits
+    scaled = int(round(abs_value * scale))
+    max_scaled = 10 ** total_positions - 1
+    scaled = min(scaled, max_scaled)  # clamp to representable range
 
-    # Extract integer digits (right-padded with leading zeros)
-    int_digits = []
-    remaining = int_part
-    for _ in range(max_int_digits):
-        int_digits.append(remaining % 10)
-        remaining //= 10
-    int_digits.reverse()  # Most significant first
+    digits = []
+    for pos in range(total_positions):
+        divisor = 10 ** (total_positions - 1 - pos)
+        digits.append((scaled // divisor) % 10)
 
-    # Extract decimal digits
-    dec_digits = []
-    for _ in range(n_decimal_digits):
-        dec_part *= 10
-        digit = int(dec_part)
-        dec_digits.append(min(digit, 9))  # Clamp to 0-9
-        dec_part -= digit
-
-    return (sign, int_digits + dec_digits)
+    return (sign, digits)
 
 
 def compose_digits_to_value(

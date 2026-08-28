@@ -1,0 +1,30 @@
+{
+  "per-row (32 tokens)": {
+    "seq_len": 32,
+    "median_ms": 36.25639365054667,
+    "p95_ms": 146.60284428391594,
+    "n_runs": 10
+  },
+  "medium (256 tokens)": {
+    "seq_len": 256,
+    "median_ms": 61.21958373114467,
+    "p95_ms": 194.5832191733642,
+    "n_runs": 10
+  },
+  "full-window (1024 tokens)": {
+    "seq_len": 1024,
+    "median_ms": 233.62613306380808,
+    "p95_ms": 308.15031542442733,
+    "n_runs": 10
+  },
+  "per-row AR (32 tokens)": {
+    "target_len": 32,
+    "median_ms": 1449.817060958594,
+    "n_runs": 3
+  },
+  "medium AR (256 tokens)": {
+    "target_len": 256,
+    "median_ms": 13783.980637323111,
+    "n_runs": 3
+  }
+}

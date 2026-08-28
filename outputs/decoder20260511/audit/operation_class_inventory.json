@@ -1,0 +1,62 @@
+{
+  "description": "Per-operation-class inventory of the 120-file aligned CNC corpus used in 5-fold file-level CV (files enumerated in audit/file_fold_assignment.csv). Operation class = aligned-recording filename prefix (strip _<run>_aligned.csv).",
+  "definitions": {
+    "n_files": "distinct aligned recordings of this class used in CV",
+    "n_gcode_rows": "sum over the class of distinct G-code instruction lines (CSV column gcode_line) covered by each recording",
+    "n_aligned_samples": "sum of aligned 4 Hz sensor rows across the class"
+  },
+  "n_classes": 9,
+  "per_class": {
+    "adaptive": {
+      "n_files": 20,
+      "n_gcode_rows": 5917,
+      "n_aligned_samples": 6918
+    },
+    "adaptive150025": {
+      "n_files": 17,
+      "n_gcode_rows": 4769,
+      "n_aligned_samples": 8534
+    },
+    "damageadaptive": {
+      "n_files": 5,
+      "n_gcode_rows": 1391,
+      "n_aligned_samples": 2490
+    },
+    "damageface": {
+      "n_files": 4,
+      "n_gcode_rows": 256,
+      "n_aligned_samples": 2260
+    },
+    "damagepocket": {
+      "n_files": 5,
+      "n_gcode_rows": 510,
+      "n_aligned_samples": 3063
+    },
+    "face": {
+      "n_files": 16,
+      "n_gcode_rows": 1054,
+      "n_aligned_samples": 12393
+    },
+    "face150025": {
+      "n_files": 15,
+      "n_gcode_rows": 974,
+      "n_aligned_samples": 11514
+    },
+    "pocket": {
+      "n_files": 19,
+      "n_gcode_rows": 4355,
+      "n_aligned_samples": 5710
+    },
+    "pocket150025": {
+      "n_files": 19,
+      "n_gcode_rows": 1975,
+      "n_aligned_samples": 12294
+    }
+  },
+  "totals": {
+    "n_files": 120,
+    "n_gcode_rows": 21201,
+    "n_aligned_samples": 65176
+  },
+  "files_not_found_in_data_dir": []
+}

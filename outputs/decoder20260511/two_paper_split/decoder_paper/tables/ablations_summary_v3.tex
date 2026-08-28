@@ -1,0 +1,42 @@
+% Generated from outputs/decoder20260511/audit/ar_aggregate.json (5-fold AR)
+% and the per-fold metrics.json (5-fold TF). All cells are mean over folds
+% except where noted as fold-1 only.
+\begin{table}[!htbp]
+\centering
+\caption{Ablation matrix. Each ablation row reports both teacher-forced (TF) and autoregressive (AR, beam-width-1 greedy) test accuracy where the metric depends on the regime. The categorical heads (type, command, param-type, sign) are independent classifiers on the encoder memory and report identical accuracies under both regimes; a single value is given. The pattern-aware row is a fold-1 pilot (Appendix~\ref{app3:protocol}); the sensor-modality effect is summarized here and broken out per modality in Table~\ref{tab:sensor_ablation} (5-fold; audio-RMS $n=4$). Numbers from \texttt{outputs/decoder20260511/audit/ar\_aggregate.json} (5-fold AR) and the per-fold \texttt{metrics.json} (5-fold TF), commit \texttt{db246b0}.}
+\label{tab:ablations}
+\small
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l c c c c c c}
+\toprule
+\textbf{Configuration} & \textbf{Token (TF / AR)} & \textbf{Sequence (AR)} & \textbf{Type} & \textbf{Command} & \textbf{Param-type} & \textbf{Numeric (TF / AR)} \\
+\midrule
+\textbf{Baseline} (no shortcuts, full-window)
+ & $0.781 \pm 0.022$ / $0.215 \pm 0.069$
+ & $0.026 \pm 0.019$
+ & $0.984 \pm 0.009$
+ & $0.888 \pm 0.056$
+ & $0.993 \pm 0.004$
+ & $0.585 \pm 0.033$ / $0.104 \pm 0.032$ \\
++ positional metadata
+ & $0.754 \pm 0.033$ / $\mathbf{0.290 \pm 0.016}$
+ & $\mathbf{0.102 \pm 0.022}$
+ & $0.982 \pm 0.011$
+ & $0.882 \pm 0.056$
+ & $0.993 \pm 0.004$
+ & $0.532 \pm 0.054$ / $\mathbf{0.184 \pm 0.017}$ \\
++ sequence classifier (pattern-aware, fold-1)
+ & $0.694$ / --
+ & $0.010$
+ & $0.975$
+ & $0.536$
+ & $0.952$
+ & $0.392$ / -- \\
+$-$ any single sensor modality (5-fold; rms $n=4$)
+ & \multicolumn{6}{c}{\footnotesize command $0.449$--$0.484$ (uniform $-40$ to $-44$~pp; between-modality ANOVA $p=0.998$); token $\sim$0.74; type / param-type within $\sim$1--4~pp of baseline. Full per-modality breakdown: Table~\ref{tab:sensor_ablation}.} \\
+\bottomrule
+\end{tabular}%
+}
+\par\smallskip
+\footnotesize\textit{The TF / AR gap is the exposure-bias signature analyzed in Section~\ref{sec:disc-mode-collapse}: token and numeric heads consume their own previous predictions under AR and accumulate compounding errors over the $\sim$1{,}000-token full-window sequence. Categorical heads are unaffected. The \emph{+ positional metadata} ablation reverses sign across regimes: under TF it is mildly harmful or neutral, under AR it produces +7.5~pp on token, +8.0~pp on numeric, and +7.6~pp on sequence, with $\sim$4$\times$ tighter fold-to-fold variance on the token head. Section~\ref{sec:abl-positional} interprets this as mitigation of autoregressive mode collapse rather than a positional shortcut.}
+\end{table}

@@ -1,0 +1,667 @@
+{
+  "meta": {
+    "source_npzs": {
+      "1": "outputs/decoder20260511/preprocessed_f98/full_window/fold_1/train_sequences.npz",
+      "2": "outputs/decoder20260511/preprocessed_f98/full_window/fold_2/train_sequences.npz",
+      "3": "outputs/decoder20260511/preprocessed_f98/full_window/fold_3/train_sequences.npz",
+      "4": "outputs/decoder20260511/preprocessed_f98/full_window/fold_4/train_sequences.npz",
+      "5": "outputs/decoder20260511/preprocessed_f98/full_window/fold_5/train_sequences.npz"
+    },
+    "source_vocab": "data/gcode_vocab_v8.json",
+    "vocab_size": 2418,
+    "pad_id": 0,
+    "folds": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "n_windows_per_fold": {
+      "1": 303,
+      "2": 327,
+      "3": 331,
+      "4": 344,
+      "5": 320
+    },
+    "units": "bits (log2)",
+    "sd_definition": "sample sd (ddof=1) across the 5 per-fold h_emp values",
+    "note": "Per-head GLOBAL empirical Shannon entropy over training targets, aggregated across all 5 folds. Reconstructed directly from the fold NPZs using the same decomposition as the per-op-class view. The fold-1 original per_head_source_entropy.json additionally embedded a per_axis_per_slot block sourced from audit/digit_entropy.json (a separate decoder-free apparatus, NOT a function of these NPZs); that block is intentionally NOT recomputed here. digit_pooled here is recomputed from the NPZ NUMERIC positions."
+  },
+  "per_head": {
+    "token": {
+      "h_emp_mean_5fold": 6.973517574397522,
+      "h_emp_sd_5fold": 0.003247711298410766,
+      "h_emp_fold1": 6.970714891112663,
+      "h_emp_delta_vs_fold1": 0.0028026832848588867,
+      "h_emp_per_fold": {
+        "1": 6.970714891112663,
+        "2": 6.970242357778376,
+        "3": 6.978285679111414,
+        "4": 6.974083497470697,
+        "5": 6.974261446514454
+      },
+      "n_observations_per_fold": {
+        "1": 94330,
+        "2": 99278,
+        "3": 101207,
+        "4": 104017,
+        "5": 99172
+      }
+    },
+    "type": {
+      "h_emp_mean_5fold": 1.2415117763358876,
+      "h_emp_sd_5fold": 0.006202163016027288,
+      "h_emp_fold1": 1.233668638636754,
+      "h_emp_delta_vs_fold1": 0.007843137699133695,
+      "h_emp_per_fold": {
+        "1": 1.233668638636754,
+        "2": 1.2459730362765316,
+        "3": 1.242904139967335,
+        "4": 1.2483602456989207,
+        "5": 1.236652821099897
+      },
+      "n_observations_per_fold": {
+        "1": 94330,
+        "2": 99278,
+        "3": 101207,
+        "4": 104017,
+        "5": 99172
+      }
+    },
+    "command": {
+      "h_emp_mean_5fold": 1.6700326511936328,
+      "h_emp_sd_5fold": 0.009253896298927403,
+      "h_emp_fold1": 1.655849397861948,
+      "h_emp_delta_vs_fold1": 0.014183253331684798,
+      "h_emp_per_fold": {
+        "1": 1.655849397861948,
+        "2": 1.673170797747574,
+        "3": 1.6746826038824765,
+        "4": 1.6799180787919448,
+        "5": 1.666542377684222
+      },
+      "n_observations_per_fold": {
+        "1": 4243,
+        "2": 4773,
+        "3": 4780,
+        "4": 5056,
+        "5": 4528
+      }
+    },
+    "param_type": {
+      "h_emp_mean_5fold": 1.7435424459820479,
+      "h_emp_sd_5fold": 0.003089578829295029,
+      "h_emp_fold1": 1.7460115434805128,
+      "h_emp_delta_vs_fold1": -0.0024690974984649117,
+      "h_emp_per_fold": {
+        "1": 1.7460115434805128,
+        "2": 1.7457521057102725,
+        "3": 1.738345986327568,
+        "4": 1.7436199826133207,
+        "5": 1.7439826117785648
+      },
+      "n_observations_per_fold": {
+        "1": 89953,
+        "2": 94341,
+        "3": 96263,
+        "4": 98781,
+        "5": 94495
+      }
+    },
+    "sign_x": {
+      "h_emp_mean_5fold": 0.34877930526024814,
+      "h_emp_sd_5fold": 0.002740817393985772,
+      "h_emp_fold1": 0.34677670216878453,
+      "h_emp_delta_vs_fold1": 0.002002603091463606,
+      "h_emp_per_fold": {
+        "1": 0.34677670216878453,
+        "2": 0.35211634128949115,
+        "3": 0.34652452938747413,
+        "4": 0.3514067978334948,
+        "5": 0.3470721556219961
+      },
+      "n_observations_per_fold": {
+        "1": 17676,
+        "2": 18601,
+        "3": 19081,
+        "4": 19530,
+        "5": 18624
+      }
+    },
+    "sign_y": {
+      "h_emp_mean_5fold": 0.06395632480830801,
+      "h_emp_sd_5fold": 0.004508743664112177,
+      "h_emp_fold1": 0.05845837589466412,
+      "h_emp_delta_vs_fold1": 0.005497948913643892,
+      "h_emp_per_fold": {
+        "1": 0.05845837589466412,
+        "2": 0.06536875185536738,
+        "3": 0.06772069956478972,
+        "4": 0.06829245822126973,
+        "5": 0.059941338505449165
+      },
+      "n_observations_per_fold": {
+        "1": 17305,
+        "2": 18230,
+        "3": 18707,
+        "4": 19131,
+        "5": 18227
+      }
+    },
+    "sign_z": {
+      "h_emp_mean_5fold": 0.9903188205539928,
+      "h_emp_sd_5fold": 0.0007721714210919429,
+      "h_emp_fold1": 0.9892131257090278,
+      "h_emp_delta_vs_fold1": 0.0011056948449650328,
+      "h_emp_per_fold": {
+        "1": 0.9892131257090278,
+        "2": 0.9906643943819291,
+        "3": 0.990716466766693,
+        "4": 0.991140056374556,
+        "5": 0.989860059537758
+      },
+      "n_observations_per_fold": {
+        "1": 6976,
+        "2": 7031,
+        "3": 7033,
+        "4": 7253,
+        "5": 7203
+      }
+    },
+    "sign_f": {
+      "h_emp_mean_5fold": 0.0,
+      "h_emp_sd_5fold": 0.0,
+      "h_emp_fold1": -0.0,
+      "h_emp_delta_vs_fold1": 0.0,
+      "h_emp_per_fold": {
+        "1": -0.0,
+        "2": -0.0,
+        "3": -0.0,
+        "4": -0.0,
+        "5": -0.0
+      },
+      "n_observations_per_fold": {
+        "1": 45,
+        "2": 50,
+        "3": 50,
+        "4": 53,
+        "5": 48
+      }
+    },
+    "sign_s": {
+      "h_emp_mean_5fold": 0.0,
+      "h_emp_sd_5fold": 0.0,
+      "h_emp_fold1": 0.0,
+      "h_emp_delta_vs_fold1": 0.0,
+      "h_emp_per_fold": {
+        "1": 0.0,
+        "2": 0.0,
+        "3": -0.0,
+        "4": -0.0,
+        "5": -0.0
+      },
+      "n_observations_per_fold": {
+        "1": 0,
+        "2": 0,
+        "3": 1,
+        "4": 1,
+        "5": 1
+      }
+    },
+    "digit_pooled": {
+      "h_emp_mean_5fold": 2.638485662172402,
+      "h_emp_sd_5fold": 0.0014884626527237024,
+      "h_emp_fold1": 2.6367824140099243,
+      "h_emp_delta_vs_fold1": 0.0017032481624776885,
+      "h_emp_per_fold": {
+        "1": 2.6367824140099243,
+        "2": 2.638352249347085,
+        "3": 2.6406821256538646,
+        "4": 2.6390317258856895,
+        "5": 2.6375797959654474
+      },
+      "n_observations_per_fold": {
+        "1": 269856,
+        "2": 283020,
+        "3": 288786,
+        "4": 296340,
+        "5": 283482
+      }
+    }
+  },
+  "per_fold_full": {
+    "1": {
+      "token": {
+        "h_emp": 6.970714891112663,
+        "h_max": 11.239598529249124,
+        "n_observations": 94330,
+        "subset_size": 2418
+      },
+      "type": {
+        "h_emp": 1.233668638636754,
+        "h_max": 1.0,
+        "n_observations": 94330,
+        "subset_size": 4
+      },
+      "command": {
+        "h_emp": 1.655849397861948,
+        "h_max": 2.807354922057604,
+        "n_observations": 4243,
+        "subset_size": 7,
+        "tokens_in_subset": [
+          "G0",
+          "G1",
+          "G2",
+          "G3",
+          "G53",
+          "G55",
+          "M30"
+        ]
+      },
+      "param_type": {
+        "h_emp": 1.7460115434805128,
+        "h_max": 2.584962500721156,
+        "n_observations": 89953,
+        "subset_size": 6,
+        "tokens_in_subset": [
+          "F",
+          "R",
+          "T2",
+          "X",
+          "Y",
+          "Z"
+        ]
+      },
+      "sign_x": {
+        "h_emp": 0.34677670216878453,
+        "h_max": 1.0,
+        "n_observations": 17676,
+        "p_pos": 0.9350531794523648,
+        "p_neg": 0.06494682054763522
+      },
+      "sign_y": {
+        "h_emp": 0.05845837589466412,
+        "h_max": 1.0,
+        "n_observations": 17305,
+        "p_pos": 0.9932389482808437,
+        "p_neg": 0.006761051719156313
+      },
+      "sign_z": {
+        "h_emp": 0.9892131257090278,
+        "h_max": 1.0,
+        "n_observations": 6976,
+        "p_pos": 0.4389334862385321,
+        "p_neg": 0.5610665137614679
+      },
+      "sign_f": {
+        "h_emp": -0.0,
+        "h_max": 1.0,
+        "n_observations": 45,
+        "p_pos": 1.0,
+        "p_neg": 0.0
+      },
+      "sign_s": {
+        "h_emp": 0.0,
+        "h_max": 1.0,
+        "n_observations": 0,
+        "p_pos": null,
+        "p_neg": null
+      },
+      "digit_pooled": {
+        "h_emp": 2.6367824140099243,
+        "h_max": 3.321928094887362,
+        "n_observations": 269856,
+        "note": "Recomputed from NPZ (NUMERIC positions, 6 slots pooled). The fold-1 original sourced this from audit/digit_entropy.json; values agree to estimator precision."
+      }
+    },
+    "2": {
+      "token": {
+        "h_emp": 6.970242357778376,
+        "h_max": 11.239598529249124,
+        "n_observations": 99278,
+        "subset_size": 2418
+      },
+      "type": {
+        "h_emp": 1.2459730362765316,
+        "h_max": 1.0,
+        "n_observations": 99278,
+        "subset_size": 4
+      },
+      "command": {
+        "h_emp": 1.673170797747574,
+        "h_max": 2.807354922057604,
+        "n_observations": 4773,
+        "subset_size": 7,
+        "tokens_in_subset": [
+          "G0",
+          "G1",
+          "G2",
+          "G3",
+          "G53",
+          "G55",
+          "M30"
+        ]
+      },
+      "param_type": {
+        "h_emp": 1.7457521057102725,
+        "h_max": 2.584962500721156,
+        "n_observations": 94341,
+        "subset_size": 6,
+        "tokens_in_subset": [
+          "F",
+          "R",
+          "T2",
+          "X",
+          "Y",
+          "Z"
+        ]
+      },
+      "sign_x": {
+        "h_emp": 0.35211634128949115,
+        "h_max": 1.0,
+        "n_observations": 18601,
+        "p_pos": 0.9336594806730821,
+        "p_neg": 0.06634051932691791
+      },
+      "sign_y": {
+        "h_emp": 0.06536875185536738,
+        "h_max": 1.0,
+        "n_observations": 18230,
+        "p_pos": 0.9922654964344487,
+        "p_neg": 0.007734503565551289
+      },
+      "sign_z": {
+        "h_emp": 0.9906643943819291,
+        "h_max": 1.0,
+        "n_observations": 7031,
+        "p_pos": 0.44318020196273644,
+        "p_neg": 0.5568197980372636
+      },
+      "sign_f": {
+        "h_emp": -0.0,
+        "h_max": 1.0,
+        "n_observations": 50,
+        "p_pos": 1.0,
+        "p_neg": 0.0
+      },
+      "sign_s": {
+        "h_emp": 0.0,
+        "h_max": 1.0,
+        "n_observations": 0,
+        "p_pos": null,
+        "p_neg": null
+      },
+      "digit_pooled": {
+        "h_emp": 2.638352249347085,
+        "h_max": 3.321928094887362,
+        "n_observations": 283020,
+        "note": "Recomputed from NPZ (NUMERIC positions, 6 slots pooled). The fold-1 original sourced this from audit/digit_entropy.json; values agree to estimator precision."
+      }
+    },
+    "3": {
+      "token": {
+        "h_emp": 6.978285679111414,
+        "h_max": 11.239598529249124,
+        "n_observations": 101207,
+        "subset_size": 2418
+      },
+      "type": {
+        "h_emp": 1.242904139967335,
+        "h_max": 1.0,
+        "n_observations": 101207,
+        "subset_size": 4
+      },
+      "command": {
+        "h_emp": 1.6746826038824765,
+        "h_max": 3.0,
+        "n_observations": 4780,
+        "subset_size": 8,
+        "tokens_in_subset": [
+          "G0",
+          "G1",
+          "G2",
+          "G3",
+          "G53",
+          "G55",
+          "M3",
+          "M30"
+        ]
+      },
+      "param_type": {
+        "h_emp": 1.738345986327568,
+        "h_max": 2.807354922057604,
+        "n_observations": 96263,
+        "subset_size": 7,
+        "tokens_in_subset": [
+          "F",
+          "R",
+          "S",
+          "T2",
+          "X",
+          "Y",
+          "Z"
+        ]
+      },
+      "sign_x": {
+        "h_emp": 0.34652452938747413,
+        "h_max": 1.0,
+        "n_observations": 19081,
+        "p_pos": 0.9351187044704156,
+        "p_neg": 0.06488129552958441
+      },
+      "sign_y": {
+        "h_emp": 0.06772069956478972,
+        "h_max": 1.0,
+        "n_observations": 18707,
+        "p_pos": 0.9919281552360079,
+        "p_neg": 0.008071844763992088
+      },
+      "sign_z": {
+        "h_emp": 0.990716466766693,
+        "h_max": 1.0,
+        "n_observations": 7033,
+        "p_pos": 0.4433385468505616,
+        "p_neg": 0.5566614531494384
+      },
+      "sign_f": {
+        "h_emp": -0.0,
+        "h_max": 1.0,
+        "n_observations": 50,
+        "p_pos": 1.0,
+        "p_neg": 0.0
+      },
+      "sign_s": {
+        "h_emp": -0.0,
+        "h_max": 1.0,
+        "n_observations": 1,
+        "p_pos": 1.0,
+        "p_neg": 0.0
+      },
+      "digit_pooled": {
+        "h_emp": 2.6406821256538646,
+        "h_max": 3.321928094887362,
+        "n_observations": 288786,
+        "note": "Recomputed from NPZ (NUMERIC positions, 6 slots pooled). The fold-1 original sourced this from audit/digit_entropy.json; values agree to estimator precision."
+      }
+    },
+    "4": {
+      "token": {
+        "h_emp": 6.974083497470697,
+        "h_max": 11.239598529249124,
+        "n_observations": 104017,
+        "subset_size": 2418
+      },
+      "type": {
+        "h_emp": 1.2483602456989207,
+        "h_max": 1.0,
+        "n_observations": 104017,
+        "subset_size": 4
+      },
+      "command": {
+        "h_emp": 1.6799180787919448,
+        "h_max": 3.4594316186372973,
+        "n_observations": 5056,
+        "subset_size": 11,
+        "tokens_in_subset": [
+          "G0",
+          "G1",
+          "G17",
+          "G2",
+          "G3",
+          "G53",
+          "G55",
+          "G90",
+          "G94",
+          "M3",
+          "M30"
+        ]
+      },
+      "param_type": {
+        "h_emp": 1.7436199826133207,
+        "h_max": 2.807354922057604,
+        "n_observations": 98781,
+        "subset_size": 7,
+        "tokens_in_subset": [
+          "F",
+          "R",
+          "S",
+          "T2",
+          "X",
+          "Y",
+          "Z"
+        ]
+      },
+      "sign_x": {
+        "h_emp": 0.3514067978334948,
+        "h_max": 1.0,
+        "n_observations": 19530,
+        "p_pos": 0.9338453661034306,
+        "p_neg": 0.06615463389656938
+      },
+      "sign_y": {
+        "h_emp": 0.06829245822126973,
+        "h_max": 1.0,
+        "n_observations": 19131,
+        "p_pos": 0.9918456954680884,
+        "p_neg": 0.008154304531911558
+      },
+      "sign_z": {
+        "h_emp": 0.991140056374556,
+        "h_max": 1.0,
+        "n_observations": 7253,
+        "p_pos": 0.44464359575348134,
+        "p_neg": 0.5553564042465187
+      },
+      "sign_f": {
+        "h_emp": -0.0,
+        "h_max": 1.0,
+        "n_observations": 53,
+        "p_pos": 1.0,
+        "p_neg": 0.0
+      },
+      "sign_s": {
+        "h_emp": -0.0,
+        "h_max": 1.0,
+        "n_observations": 1,
+        "p_pos": 1.0,
+        "p_neg": 0.0
+      },
+      "digit_pooled": {
+        "h_emp": 2.6390317258856895,
+        "h_max": 3.321928094887362,
+        "n_observations": 296340,
+        "note": "Recomputed from NPZ (NUMERIC positions, 6 slots pooled). The fold-1 original sourced this from audit/digit_entropy.json; values agree to estimator precision."
+      }
+    },
+    "5": {
+      "token": {
+        "h_emp": 6.974261446514454,
+        "h_max": 11.239598529249124,
+        "n_observations": 99172,
+        "subset_size": 2418
+      },
+      "type": {
+        "h_emp": 1.236652821099897,
+        "h_max": 1.0,
+        "n_observations": 99172,
+        "subset_size": 4
+      },
+      "command": {
+        "h_emp": 1.666542377684222,
+        "h_max": 3.4594316186372973,
+        "n_observations": 4528,
+        "subset_size": 11,
+        "tokens_in_subset": [
+          "G0",
+          "G1",
+          "G17",
+          "G2",
+          "G3",
+          "G53",
+          "G55",
+          "G90",
+          "G94",
+          "M3",
+          "M30"
+        ]
+      },
+      "param_type": {
+        "h_emp": 1.7439826117785648,
+        "h_max": 2.807354922057604,
+        "n_observations": 94495,
+        "subset_size": 7,
+        "tokens_in_subset": [
+          "F",
+          "R",
+          "S",
+          "T2",
+          "X",
+          "Y",
+          "Z"
+        ]
+      },
+      "sign_x": {
+        "h_emp": 0.3470721556219961,
+        "h_max": 1.0,
+        "n_observations": 18624,
+        "p_pos": 0.9349763745704467,
+        "p_neg": 0.06502362542955327
+      },
+      "sign_y": {
+        "h_emp": 0.059941338505449165,
+        "h_max": 1.0,
+        "n_observations": 18227,
+        "p_pos": 0.9930323146979755,
+        "p_neg": 0.006967685302024469
+      },
+      "sign_z": {
+        "h_emp": 0.989860059537758,
+        "h_max": 1.0,
+        "n_observations": 7203,
+        "p_pos": 0.440788560322088,
+        "p_neg": 0.559211439677912
+      },
+      "sign_f": {
+        "h_emp": -0.0,
+        "h_max": 1.0,
+        "n_observations": 48,
+        "p_pos": 1.0,
+        "p_neg": 0.0
+      },
+      "sign_s": {
+        "h_emp": -0.0,
+        "h_max": 1.0,
+        "n_observations": 1,
+        "p_pos": 1.0,
+        "p_neg": 0.0
+      },
+      "digit_pooled": {
+        "h_emp": 2.6375797959654474,
+        "h_max": 3.321928094887362,
+        "n_observations": 283482,
+        "note": "Recomputed from NPZ (NUMERIC positions, 6 slots pooled). The fold-1 original sourced this from audit/digit_entropy.json; values agree to estimator precision."
+      }
+    }
+  }
+}

@@ -8,43 +8,55 @@ CNC process monitoring has traditionally focused on tool wear, chatter, and surf
 Cuka and Kim~\cite{cuka2022fuzzy} demonstrated fuzzy logic-based tool condition monitoring via multi-sensor fusion, and Wang et al.~\cite{wang2023deep} surveyed the shift from hand-crafted statistical features to deep learning representations for process monitoring.
 
 More recently, researchers have addressed \emph{adversarial} threats to CNC systems.
-Energy-based methods monitor spindle power to detect unauthorized G-code modifications~\cite{kimmell2025}, achieving strong detection of gross toolpath changes but missing subtle coordinate perturbations that preserve the power envelope.
+Energy-based methods monitor spindle power to detect unauthorized G-code modifications~\cite{kimmell2025}; they detect gross toolpath changes but miss subtle coordinate perturbations that preserve the power envelope.
 CNN-based vibration analysis~\cite{coelho2024} detects tool breakage and collisions but requires retraining on labeled anomaly examples for each new attack type.
-The broader manufacturing cybersecurity literature has documented the threat landscape: Yampolskiy et al.~\cite{yampolskiy2018security} taxonomized additive manufacturing attacks by surface and impact; Belikovetsky et al.~\cite{belikovetsky2017dr0wned} demonstrated a complete attack chain inducing fatigue failure while maintaining external conformance; Graves et al.~\cite{graves2023cyberphysical} identified G-code integrity verification as an open problem.
+The broader manufacturing cybersecurity literature documents the threat landscape.
+Yampolskiy et al.~\cite{yampolskiy2018security} taxonomized additive manufacturing attacks by surface and impact.
+Belikovetsky et al.~\cite{belikovetsky2017dr0wned} demonstrated a complete attack chain inducing fatigue failure while maintaining external conformance.
+Graves et al.~\cite{graves2023cyberphysical} identified G-code integrity verification as an open problem.
 
-The critical gap is the distinction between \emph{fault detection} and \emph{integrity verification}.
+These methods leave a gap between \emph{fault detection} and \emph{integrity verification}.
 Process monitoring detects deviations from expected statistical behavior but does not verify that what was executed matches what was \emph{commanded}.
-An adversary producing a slightly different but physically plausible toolpath may evade fault detectors entirely, because the process appears ``normal''---it is simply the wrong program.
-Our reconstruction-mismatch approach addresses this gap by learning the inverse mapping from sensor signals to G-code, detecting any discrepancy between commanded and executed programs.
+An adversary producing a slightly different but physically plausible toolpath may evade fault detectors entirely, because the executed process remains statistically indistinguishable from normal behavior even though it follows the wrong program.
+Our reconstruction-mismatch approach addresses this gap by learning the inverse mapping from sensor signals to G-code and detecting discrepancies between commanded and executed programs.
 
 \subsection{Manufacturing Side-Channel Analysis}
 \label{sec:rw_sidechannel}
 
 Offensive side-channel research has shown that CNC and additive manufacturing processes leak substantial information through acoustic, electromagnetic, and power channels.
-Acoustic emissions can reconstruct 3D printer toolpath geometry with sub-millimeter accuracy~\cite{al2016acoustic}; even a nearby smartphone captures sufficient data to reconstruct printed geometry~\cite{hojjati2016leave}.
-Actuator power signatures can detect sabotage in additive manufacturing~\cite{gatlin2019detecting}, and spindle power profiles discriminate gross toolpath changes but not small coordinate perturbations~\cite{moore2017power}.
+Acoustic emissions can reconstruct 3D printer toolpath geometry with sub-millimeter accuracy~\cite{al2016acoustic}, and even a nearby smartphone captures sufficient data to reconstruct printed geometry~\cite{hojjati2016leave}.
+Actuator power signatures can detect sabotage in additive manufacturing~\cite{gatlin2019detecting}.
+Spindle power profiles discriminate gross toolpath changes but not small coordinate perturbations~\cite{moore2017power}.
 
-Our work \emph{inverts} this paradigm: rather than extracting proprietary information from sensor signals (IP theft), we use sensor signals to \emph{verify} G-code integrity (defensive monitoring).
-This leverages the same physical coupling between machining parameters and sensor responses, applied for security rather than espionage.
-The closest analogue is network intrusion detection via language-model perplexity on protocol sequences~\cite{brown2018recurrent}---we apply the same principle to G-code tokens reconstructed from physical sensor measurements.
+Our work \emph{inverts} this paradigm.
+Rather than extracting proprietary information from sensor signals (IP theft), we use sensor signals to \emph{verify} G-code integrity (defensive monitoring).
+This defensive use leverages the same physical coupling between machining parameters and sensor responses, applied for security rather than espionage.
+The closest analogue is network intrusion detection via language-model perplexity on protocol sequences~\cite{brown2018recurrent}.
+We apply the same principle to G-code tokens reconstructed from physical sensor measurements.
 
 \subsection{Sequence-Level Anomaly Detection}
 \label{sec:rw_sequence_anomaly}
 
-Reconstruction-error-based anomaly detection is well established~\cite{chalapathy2019deep}: autoencoders threshold reconstruction loss to identify out-of-distribution inputs~\cite{an2015variational}, while LSTMs with dynamic thresholding capture temporal dependencies in spacecraft telemetry~\cite{hundman2018detecting}, and Transformer architectures such as TranAD use self-conditioning and adversarial training for multivariate time-series anomaly detection~\cite{tuli2022tranad}.
-In the discrete domain, language models score anomalies via perplexity or NLL, flagging ``surprising'' sequences~\cite{brown2018recurrent}, an approach successfully applied to system log anomaly detection.
+Reconstruction-error-based anomaly detection is well established~\cite{chalapathy2019deep}.
+Autoencoders threshold reconstruction loss to identify out-of-distribution inputs~\cite{an2015variational}.
+LSTMs with dynamic thresholding capture temporal dependencies in spacecraft telemetry~\cite{hundman2018detecting}, and Transformer architectures such as TranAD use self-conditioning and adversarial training for multivariate time-series anomaly detection~\cite{tuli2022tranad}.
+In the discrete domain, language models score anomalies via perplexity or NLL, flagging sequences to which the model assigns low probability~\cite{brown2018recurrent}; this approach has been applied to system log anomaly detection.
 
-Our reconstruction target differs from both continuous time series and free-form text: G-code is a \emph{structured token sequence} with strict grammar.
+Our reconstruction target differs from both continuous time series and free-form text.
+G-code is a \emph{structured token sequence} with strict grammar.
 Each line begins with a command token (G0, G1, etc.) followed by parameter--value pairs, where parameter letters and numeric values occupy distinct fields.
-This structure provides an additional grammar-violation detection signal unavailable in other domains, and motivates our multi-head decoder with separate heads for token type, command, parameter, and numeric value.
-No prior work has applied autoregressive token-level anomaly scoring to G-code sequences reconstructed from multi-modal sensor inputs; the closest analog uses language models for IT log-file anomaly detection~\cite{brown2018recurrent}, which lacks G-code's mixed vocabulary and grammatical constraints.
+This structure provides an additional grammar-violation detection signal unavailable in other domains.
+It also motivates our multi-head decoder, with separate heads for token type, command, parameter, and numeric value.
+No prior work has applied autoregressive token-level anomaly scoring to G-code sequences reconstructed from multi-modal sensor inputs.
+The closest analog, language-model scoring of IT log files~\cite{brown2018recurrent}, lacks G-code's mixed vocabulary and grammatical constraints.
 
 \subsection{Calibration and Confidence Estimation}
 \label{sec:rw_calibration}
 
-Modern neural networks are often poorly calibrated: softmax probabilities do not reflect true predictive accuracy~\cite{guo2017calibration}.
-Temperature scaling---a single learned scalar on a validation set---is widely recommended as a default calibration strategy~\cite{guo2017calibration,platt1999probabilistic,naeini2015obtaining}.
-For anomaly detection, calibration matters because thresholds are set from score distributions; miscalibrated scores make operating-point selection unreliable.
+Modern neural networks are often poorly calibrated, with softmax probabilities that do not reflect true predictive accuracy~\cite{guo2017calibration}.
+Temperature scaling, a single scalar learned on a validation set, is widely recommended as a default calibration strategy~\cite{guo2017calibration,platt1999probabilistic,naeini2015obtaining}.
+For anomaly detection, calibration matters because thresholds are set from score distributions.
+Miscalibrated scores make operating-point selection unreliable.
 OOD detection methods based on softmax thresholding~\cite{hendrycks2017baseline}, Mahalanobis distance~\cite{lee2018simple}, ODIN perturbation~\cite{liang2018enhancing}, and energy scoring~\cite{liu2020energy} all depend on well-calibrated confidence estimates.
 
 As we show in Section~\ref{sec:results_calibration}, temperature scaling produces mixed results on our decoder, cautioning against uncritical application of post-hoc calibration methods.

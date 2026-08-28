@@ -1,0 +1,121 @@
+{
+  "description": "Free-running autoregressive categorical accuracy: the categorical heads (type/command/param-type) scored from a forward pass conditioned on the GENERATED token stream (greedy AR + FSM grammar, the deployment-default decode), on the released full_window_5fold checkpoints. Closes the \"free-running categorical accuracy unmeasured\" gap: the old headline table's identical TF/AR categorical values were computed from the teacher-forced pass in both regimes.",
+  "generator": "scripts/experiments/ar_categorical_freerunning.sh (+ --ar_categorical in scripts/evaluation/run_decoder_quick_test.py)",
+  "decode": "beam_width=1 (greedy AR), FSM grammar active, max_token_len=1400, seed 42",
+  "per_fold": {
+    "1": {
+      "token_accuracy": 0.17543208567490193,
+      "sequence_accuracy": 0.015151515151515152,
+      "type_accuracy": 0.5037111653059061,
+      "command_accuracy": 0.39220404234841194,
+      "param_type_accuracy": 0.49458055775093146,
+      "numeric_accuracy": 0.07767867223664898
+    },
+    "2": {
+      "token_accuracy": 0.22930194805194806,
+      "sequence_accuracy": 0.0,
+      "type_accuracy": 0.5870245825602969,
+      "command_accuracy": 0.48287220026350464,
+      "param_type_accuracy": 0.5702615375236237,
+      "numeric_accuracy": 0.09144668658172285
+    },
+    "3": {
+      "token_accuracy": 0.23623635863418213,
+      "sequence_accuracy": 0.02830188679245283,
+      "type_accuracy": 0.5694677956775593,
+      "command_accuracy": 0.534944480731548,
+      "param_type_accuracy": 0.5561573178594456,
+      "numeric_accuracy": 0.11063829787234042
+    },
+    "4": {
+      "token_accuracy": 0.3074484944532488,
+      "sequence_accuracy": 0.05555555555555555,
+      "type_accuracy": 0.6788674875045715,
+      "command_accuracy": 0.4928571428571429,
+      "param_type_accuracy": 0.5819566754515653,
+      "numeric_accuracy": 0.15446422832165585
+    },
+    "5": {
+      "token_accuracy": 0.11192271442035816,
+      "sequence_accuracy": 0.03225806451612903,
+      "type_accuracy": 0.4172276827790494,
+      "command_accuracy": 0.5112,
+      "param_type_accuracy": 0.46310288821410917,
+      "numeric_accuracy": 0.06419038203516701
+    }
+  },
+  "aggregate": {
+    "command_accuracy": {
+      "mean": 0.4828155732401215,
+      "std_population": 0.048650559166918336,
+      "per_fold": [
+        0.3922,
+        0.4829,
+        0.5349,
+        0.4929,
+        0.5112
+      ]
+    },
+    "type_accuracy": {
+      "mean": 0.5512597427654766,
+      "std_population": 0.08731535236879062,
+      "per_fold": [
+        0.5037,
+        0.587,
+        0.5695,
+        0.6789,
+        0.4172
+      ]
+    },
+    "param_type_accuracy": {
+      "mean": 0.533211795359935,
+      "std_population": 0.046223100529289664,
+      "per_fold": [
+        0.4946,
+        0.5703,
+        0.5562,
+        0.582,
+        0.4631
+      ]
+    },
+    "token_accuracy": {
+      "mean": 0.2120683202469278,
+      "std_population": 0.06534497025544517,
+      "per_fold": [
+        0.1754,
+        0.2293,
+        0.2362,
+        0.3074,
+        0.1119
+      ]
+    },
+    "sequence_accuracy": {
+      "mean": 0.026253404403130516,
+      "std_population": 0.018500602547165908,
+      "per_fold": [
+        0.0152,
+        0.0,
+        0.0283,
+        0.0556,
+        0.0323
+      ]
+    },
+    "numeric_accuracy": {
+      "mean": 0.09968365340950702,
+      "std_population": 0.031409408637556466,
+      "per_fold": [
+        0.0777,
+        0.0914,
+        0.1106,
+        0.1545,
+        0.0642
+      ]
+    }
+  },
+  "reference_conditioned": {
+    "command": 0.8875,
+    "type": 0.9838,
+    "param_type": 0.9931,
+    "note": "released headline (TF-pass) values for contrast"
+  }
+}

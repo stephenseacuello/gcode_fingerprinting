@@ -84,11 +84,54 @@ run_cell() {  # $1=cell-key (sensor__modality | baseline)  $2=fold
     for suf in $sufs; do excl+=" --exclude-column ${sensor}.${suf}"; done
   fi
 
+  # Idempotency: skip if a cell already has decoder metrics.
+  if [[ -s "${DEC}/results/metrics.json" ]]; then
+    local prev_cmd
+    prev_cmd=$(python3 -c "import json;print(round(json.load(open('${DEC}/results/metrics.json'))['test_metrics']['command_accuracy'],4))" 2>/dev/null || echo "?")
+    log "SKIP cell=${key} fold=${f} -- already complete (command=${prev_cmd})"
+    echo -e "${key}\t${f}\tCACHED\t-\t${prev_cmd}\tskip_done" >> "$SUMMARY"
+    return 0
+  fi
+
   local BASE_FW="${ROOT}/lomo/baseline/fold_${f}/full_window"
+  # Trap: clean up regenerable / redundant artifacts on cell exit:
+  #   - preprocessing NPZs
+  #   - decoder/encoder memory cache
+  #   - the multi-GB training_history.json
+  #   - final_decoder.pt (redundant with best_decoder.pt) and best_test_model.pt
+  #     (redundant with best_model.pt) -- 100-250 MB each per cell
+  #   - predictions.npz under decoder/results (not consumed by the aggregator)
+  #   - shrink decoder metrics.json to {test_metrics, val_metrics, best_epoch}
+  #     -- saves ~80-130 MB per cell while preserving every field the
+  #     aggregator and per-class analyses read. Uses a helper script
+  #     (scripts/analysis/shrink_decoder_metrics.py) so the trap body
+  #     stays free of multi-line python that bash double-quoting mangled.
+  # Note: best_decoder.pt and encoder/checkpoint/best_model.pt are also
+  # removed at cell-exit because by then the cell has already written
+  # metrics.json (the paper-facing artifact) and we cannot afford the
+  # ~230 MB per-cell residual at the 6x6 nested sweep's scale. Re-running
+  # a cell from scratch is the recovery path if those checkpoints are
+  # ever needed.
   if $is_base; then
-    trap 'rm -f "${ENC}"/data/*sequences*.npz 2>/dev/null' RETURN
+    trap "rm -f \"${ENC}\"/data/*sequences*.npz 2>/dev/null;
+          rm -rf \"${DEC}/encoder_memory\" 2>/dev/null;
+          rm -f  \"${DEC}/results/training_history.json\" 2>/dev/null;
+          rm -f  \"${DEC}/decoder_checkpoint/final_decoder.pt\" 2>/dev/null;
+          rm -f  \"${DEC}/decoder_checkpoint/best_decoder.pt\" 2>/dev/null;
+          rm -f  \"${ENC}/checkpoint/best_test_model.pt\" 2>/dev/null;
+          rm -f  \"${ENC}/checkpoint/best_model.pt\" 2>/dev/null;
+          rm -f  \"${DEC}/results/predictions.npz\" 2>/dev/null;
+          python3 scripts/analysis/shrink_decoder_metrics.py \"${DEC}/results/metrics.json\" 2>/dev/null" RETURN
   else
-    trap 'rm -f "${FW}"/*sequences*.npz "${ENC}"/data/*sequences*.npz 2>/dev/null' RETURN
+    trap "rm -f \"${FW}\"/*sequences*.npz \"${ENC}\"/data/*sequences*.npz 2>/dev/null;
+          rm -rf \"${DEC}/encoder_memory\" 2>/dev/null;
+          rm -f  \"${DEC}/results/training_history.json\" 2>/dev/null;
+          rm -f  \"${DEC}/decoder_checkpoint/final_decoder.pt\" 2>/dev/null;
+          rm -f  \"${DEC}/decoder_checkpoint/best_decoder.pt\" 2>/dev/null;
+          rm -f  \"${ENC}/checkpoint/best_test_model.pt\" 2>/dev/null;
+          rm -f  \"${ENC}/checkpoint/best_model.pt\" 2>/dev/null;
+          rm -f  \"${DEC}/results/predictions.npz\" 2>/dev/null;
+          python3 scripts/analysis/shrink_decoder_metrics.py \"${DEC}/results/metrics.json\" 2>/dev/null" RETURN
   fi
   log "==== cell=${key} fold=${f} (GPU${GPU}) drop=[${excl## }] ===="
 

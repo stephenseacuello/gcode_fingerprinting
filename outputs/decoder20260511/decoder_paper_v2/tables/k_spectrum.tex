@@ -27,8 +27,9 @@ $t(4)\!=\!-0.85$, $p\!=\!0.44$, n.s.). The $+11.1$~pp K=335 advantage
 over the original headline is therefore the SS/dw training-schedule
 change, not vocabulary cardinality.}
 \label{tab:k_spectrum}
-\setlength{\tabcolsep}{4pt}
-\small
+\setlength{\tabcolsep}{3pt}
+\footnotesize
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{l c c c c c}
 \toprule
 Variant & $K$ & TF token & AR token [95\% CI] & TF seq exact & AR seq exact \\
@@ -39,7 +40,7 @@ $K\!=\!335$ (2-digit)              &   335 & $0.977 \pm 0.013$ & $0.429 \pm 0.12
 $K\!=\!69$ (1-digit)               &    69 & $0.965 \pm 0.025$ & $0.415 \pm 0.036$ \tiny{[0.39, 0.44]} & $0.250 \pm 0.067$ & $0.051 \pm 0.034$ \\
 $K\!=\!24$ (placeholder, Design B) &    24 & $0.927 \pm 0.024$ & $0.405 \pm 0.143$ \tiny{[0.28, 0.50]} & $0.068 \pm 0.017$ & $0.066 \pm 0.014$ \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \par\smallskip
 \footnotesize\textit{\textsuperscript{\dag}Headline: scheduled-sampling
 SS$=$0.5, digit-head loss weight dw$=$1.0.

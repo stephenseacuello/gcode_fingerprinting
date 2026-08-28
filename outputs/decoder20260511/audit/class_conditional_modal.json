@@ -1,0 +1,15 @@
+{
+  "metric": "class-conditional modal command predictor, FIRST-command-position basis, accuracy over test windows",
+  "per_fold_accuracy": [
+    0.7949,
+    0.7895,
+    0.8298,
+    0.8125,
+    0.8272
+  ],
+  "mean_accuracy": 0.8108,
+  "std_accuracy": 0.0183,
+  "n_folds": 5,
+  "note": "Computed from cmd_t at first COMMAND position (ids 0-5), avoiding the prior fold-1 UNK-as-modal artifact.",
+  "source": "checkpoints/full_window_5fold/fold_*/results/predictions.npz x preprocessed_f98/full_window/fold_*/test_sequences.npz"
+}

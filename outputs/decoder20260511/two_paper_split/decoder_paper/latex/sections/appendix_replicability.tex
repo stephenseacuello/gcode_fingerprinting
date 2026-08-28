@@ -233,9 +233,9 @@ one A6000 at batch size 1, sequence length 32 (per-row mode);
 1.5--3~seconds at sequence length up to 1{,}400 (full-window mode).
 Latencies include the grammar-mask multiply at every step.
 \item \textbf{Memory footprint.} The decoder weight checkpoint is
-$\sim$125~MB; together with the frozen 8.6~M-parameter encoder, the
-combined inference graph uses $\sim$160~MB of VRAM for weights and
-remains below 500~MB total at batch size 1 including KV cache and
+$\sim$125~MB; together with the frozen encoder ($\approx$5.1~M active
+parameters; $\sim$110~MB full checkpoint on disk), the combined
+inference graph remains below 500~MB total at batch size 1 including KV cache and
 encoder-memory tensors.
 \item \textbf{CPU inference cost (host CPU, no GPU).} A single
 teacher-forced forward pass at batch~1 takes 36~ms median (per-row,

@@ -246,7 +246,7 @@ ax.plot(fpr_rank, tpr_rank, color='tab:orange', linewidth=2.0,
 ax.plot([0, 1], [0, 1], '--', color='gray', linewidth=0.8)
 ax.set_xlabel('False Positive Rate')
 ax.set_ylabel('True Positive Rate')
-ax.set_title(r'(b) A2: Coord $\Delta X$=0.1 mm')
+ax.set_title(r'(b) A2: Coord $\Delta X$=0.1 in')
 ax.legend(loc='lower right')
 ax.set_xlim([-0.01, 1.01])
 ax.set_ylim([-0.01, 1.01])
@@ -379,10 +379,10 @@ bins2 = np.linspace(lo2, hi2, 31)
 ax.hist(all_a2_rank_normal, bins=bins2, density=True, alpha=0.5, color='tab:blue',
         label='Normal', edgecolor='none')
 ax.hist(all_a2_rank_attack, bins=bins2, density=True, alpha=0.5, color='tab:orange',
-        label=r'A2 $\Delta X$=0.1 mm', edgecolor='none')
+        label=r'A2 $\Delta X$=0.1 in', edgecolor='none')
 ax.set_xlabel('Rank $S_{rank\\_mean}$')
 ax.set_ylabel('Density')
-ax.set_title(r'(b) Rank Score Distribution: Normal vs. A2 Coord $\Delta X$=0.1 mm')
+ax.set_title(r'(b) Rank Score Distribution: Normal vs. A2 Coord $\Delta X$=0.1 in')
 ax.legend()
 
 fig.tight_layout()

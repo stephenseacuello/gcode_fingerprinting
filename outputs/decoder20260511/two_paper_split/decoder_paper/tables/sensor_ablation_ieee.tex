@@ -1,0 +1,26 @@
+% Sensor-modality ablation: V8 5-fold for six modalities; audio-RMS n=4 (zero_rms/fold_5 results/metrics.json unrecoverable).
+% Built from outputs/decoder20260511/ablations/sensor/zero_<mod>/fold_{1..5}/results/metrics.json (audio-RMS: folds 1-4)
+\begin{table*}[!t]
+\centering
+\caption{Sensor-modality ablation (mean $\pm$ std; $n=5$ folds per modality, except audio-RMS at $n=4$ --- one fold's ablation run was unrecoverable). Each row zeros the named sensor channels at the encoder input and re-evaluates the decoder; the encoder is \emph{not} retrained, so this is a lower bound on modality value. A one-way ANOVA across the seven zeroed-modality groups on command accuracy is not significant ($F=0.07$, $p=0.998$): the seven modalities are statistically indistinguishable from one another. Every modality versus the full-modality baseline \emph{is} significant (Welch $t$, $p<0.001$ in all seven cases), with a uniform $\sim$40--44~pp command-accuracy collapse. Token, type, and parameter-type heads stay within $\sim$4~pp of baseline for every removal.}
+\label{tab:sensor_ablation}
+\resizebox{0.77\textwidth}{!}{%
+\begin{tabular}{l r r r r r}
+\toprule
+Modality removed & Token & Type & Command & Param-type & Numeric \\
+\midrule
+\textit{baseline (5-fold)} & $0.781 \pm 0.022$ & $0.984 \pm 0.009$ & $0.888 \pm 0.056$ & $0.993 \pm 0.004$ & $0.585 \pm 0.033$ \\
+\midrule
+zero accelerometer & $0.743 \pm 0.010$ & $0.979 \pm 0.010$ & $0.484 \pm 0.096$ & $0.978 \pm 0.002$ & $0.471 \pm 0.008$ \\
+zero color         & $0.741 \pm 0.010$ & $0.977 \pm 0.008$ & $0.457 \pm 0.108$ & $0.977 \pm 0.004$ & $0.471 \pm 0.009$ \\
+zero electrical    & $0.741 \pm 0.009$ & $0.976 \pm 0.009$ & $0.449 \pm 0.086$ & $0.978 \pm 0.002$ & $0.465 \pm 0.009$ \\
+zero environmental & $0.743 \pm 0.010$ & $0.977 \pm 0.008$ & $0.474 \pm 0.077$ & $0.978 \pm 0.002$ & $0.470 \pm 0.011$ \\
+zero gyroscope     & $0.741 \pm 0.009$ & $0.979 \pm 0.005$ & $0.462 \pm 0.049$ & $0.978 \pm 0.003$ & $0.469 \pm 0.006$ \\
+zero magnetometer  & $0.735 \pm 0.018$ & $0.975 \pm 0.010$ & $0.465 \pm 0.084$ & $0.978 \pm 0.002$ & $0.466 \pm 0.017$ \\
+zero rms           & $0.739 \pm 0.010$ & $0.978 \pm 0.007$ & $0.460 \pm 0.088$ & $0.978 \pm 0.002$ & $0.465 \pm 0.010$ \\
+\bottomrule
+\end{tabular}%
+}
+\par\smallskip
+\footnotesize\textit{The uniform command collapse with a non-significant between-modality ANOVA ($p=0.998$) is the key result: the inference-time zeroing test confirms all modalities are jointly necessary but cannot rank them. The genuine modality-importance ranking is provided by the leave-one-modality-out encoder retraining (Section~\ref{sec:abl-lomo}).}
+\end{table*}

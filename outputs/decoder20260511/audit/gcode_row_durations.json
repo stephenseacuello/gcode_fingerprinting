@@ -1,0 +1,506 @@
+{
+  "summary": {
+    "sample_rate_hz": 4.0,
+    "sample_period_s": 0.25,
+    "n_row_execution_instances": 21541,
+    "n_files": 120,
+    "duration_samples": {
+      "mean": 2.896940717701128,
+      "median": 1.0,
+      "p10": 1.0,
+      "p90": 7.0,
+      "max": 181.0
+    },
+    "duration_seconds": {
+      "mean": 0.724235179425282,
+      "median": 0.25,
+      "p90": 1.75
+    },
+    "frac_le_1_sample_0p25s": 0.7771226962536558,
+    "frac_le_2_samples_0p50s": 0.8306021076087461,
+    "frac_le_4_samples_1p00s": 0.8627733160020427,
+    "frac_ge_256_samples_64s": 0.0
+  },
+  "per_file": {
+    "adaptive150025_001_aligned": {
+      "n_row_instances": 283,
+      "median_samples": 1.0
+    },
+    "adaptive150025_002_aligned": {
+      "n_row_instances": 282,
+      "median_samples": 1.0
+    },
+    "adaptive150025_003_aligned": {
+      "n_row_instances": 283,
+      "median_samples": 1.0
+    },
+    "adaptive150025_004_aligned": {
+      "n_row_instances": 282,
+      "median_samples": 1.0
+    },
+    "adaptive150025_005_aligned": {
+      "n_row_instances": 281,
+      "median_samples": 1.0
+    },
+    "adaptive150025_006_aligned": {
+      "n_row_instances": 282,
+      "median_samples": 1.0
+    },
+    "adaptive150025_007_aligned": {
+      "n_row_instances": 278,
+      "median_samples": 1.0
+    },
+    "adaptive150025_008_aligned": {
+      "n_row_instances": 283,
+      "median_samples": 1.0
+    },
+    "adaptive150025_012_aligned": {
+      "n_row_instances": 281,
+      "median_samples": 1.0
+    },
+    "adaptive150025_013_aligned": {
+      "n_row_instances": 281,
+      "median_samples": 1.0
+    },
+    "adaptive150025_014_aligned": {
+      "n_row_instances": 280,
+      "median_samples": 1.0
+    },
+    "adaptive150025_015_aligned": {
+      "n_row_instances": 284,
+      "median_samples": 1.0
+    },
+    "adaptive150025_016_aligned": {
+      "n_row_instances": 283,
+      "median_samples": 1.0
+    },
+    "adaptive150025_017_aligned": {
+      "n_row_instances": 282,
+      "median_samples": 1.0
+    },
+    "adaptive150025_018_aligned": {
+      "n_row_instances": 280,
+      "median_samples": 1.0
+    },
+    "adaptive150025_019_aligned": {
+      "n_row_instances": 282,
+      "median_samples": 1.0
+    },
+    "adaptive150025_020_aligned": {
+      "n_row_instances": 281,
+      "median_samples": 1.0
+    },
+    "adaptive_001_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_002_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_003_aligned": {
+      "n_row_instances": 296,
+      "median_samples": 1.0
+    },
+    "adaptive_004_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_005_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_006_aligned": {
+      "n_row_instances": 296,
+      "median_samples": 1.0
+    },
+    "adaptive_007_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_008_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_009_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_010_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_011_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_012_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_013_aligned": {
+      "n_row_instances": 296,
+      "median_samples": 1.0
+    },
+    "adaptive_014_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_015_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_016_aligned": {
+      "n_row_instances": 297,
+      "median_samples": 1.0
+    },
+    "adaptive_017_aligned": {
+      "n_row_instances": 295,
+      "median_samples": 1.0
+    },
+    "adaptive_018_aligned": {
+      "n_row_instances": 296,
+      "median_samples": 1.0
+    },
+    "adaptive_019_aligned": {
+      "n_row_instances": 296,
+      "median_samples": 1.0
+    },
+    "adaptive_020_aligned": {
+      "n_row_instances": 296,
+      "median_samples": 1.0
+    },
+    "damageadaptive_001_aligned": {
+      "n_row_instances": 282,
+      "median_samples": 1.0
+    },
+    "damageadaptive_002_aligned": {
+      "n_row_instances": 282,
+      "median_samples": 1.0
+    },
+    "damageadaptive_003_aligned": {
+      "n_row_instances": 279,
+      "median_samples": 1.0
+    },
+    "damageadaptive_004_aligned": {
+      "n_row_instances": 279,
+      "median_samples": 1.0
+    },
+    "damageadaptive_005_aligned": {
+      "n_row_instances": 280,
+      "median_samples": 1.0
+    },
+    "damageface_002_aligned": {
+      "n_row_instances": 66,
+      "median_samples": 1.0
+    },
+    "damageface_003_aligned": {
+      "n_row_instances": 67,
+      "median_samples": 1.0
+    },
+    "damageface_004_aligned": {
+      "n_row_instances": 66,
+      "median_samples": 1.0
+    },
+    "damageface_005_aligned": {
+      "n_row_instances": 67,
+      "median_samples": 1.0
+    },
+    "damagepocket_001_aligned": {
+      "n_row_instances": 106,
+      "median_samples": 3.0
+    },
+    "damagepocket_002_aligned": {
+      "n_row_instances": 104,
+      "median_samples": 3.0
+    },
+    "damagepocket_003_aligned": {
+      "n_row_instances": 103,
+      "median_samples": 3.0
+    },
+    "damagepocket_004_aligned": {
+      "n_row_instances": 104,
+      "median_samples": 3.0
+    },
+    "damagepocket_005_aligned": {
+      "n_row_instances": 103,
+      "median_samples": 3.0
+    },
+    "face150025_001_aligned": {
+      "n_row_instances": 67,
+      "median_samples": 1.0
+    },
+    "face150025_002_aligned": {
+      "n_row_instances": 69,
+      "median_samples": 1.0
+    },
+    "face150025_003_aligned": {
+      "n_row_instances": 66,
+      "median_samples": 1.0
+    },
+    "face150025_004_aligned": {
+      "n_row_instances": 67,
+      "median_samples": 1.0
+    },
+    "face150025_010_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 1.0
+    },
+    "face150025_011_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 1.0
+    },
+    "face150025_012_aligned": {
+      "n_row_instances": 66,
+      "median_samples": 1.0
+    },
+    "face150025_013_aligned": {
+      "n_row_instances": 69,
+      "median_samples": 1.0
+    },
+    "face150025_014_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 1.0
+    },
+    "face150025_015_aligned": {
+      "n_row_instances": 69,
+      "median_samples": 1.0
+    },
+    "face150025_016_aligned": {
+      "n_row_instances": 71,
+      "median_samples": 1.0
+    },
+    "face150025_017_aligned": {
+      "n_row_instances": 67,
+      "median_samples": 1.0
+    },
+    "face150025_018_aligned": {
+      "n_row_instances": 67,
+      "median_samples": 1.0
+    },
+    "face150025_019_aligned": {
+      "n_row_instances": 67,
+      "median_samples": 1.0
+    },
+    "face150025_020_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 1.0
+    },
+    "face_005_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 2.0
+    },
+    "face_006_aligned": {
+      "n_row_instances": 69,
+      "median_samples": 2.0
+    },
+    "face_007_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 2.0
+    },
+    "face_008_aligned": {
+      "n_row_instances": 66,
+      "median_samples": 2.0
+    },
+    "face_009_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 2.0
+    },
+    "face_010_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 2.0
+    },
+    "face_011_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 2.0
+    },
+    "face_012_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 2.0
+    },
+    "face_013_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 2.0
+    },
+    "face_014_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 2.0
+    },
+    "face_015_aligned": {
+      "n_row_instances": 68,
+      "median_samples": 2.0
+    },
+    "face_016_aligned": {
+      "n_row_instances": 69,
+      "median_samples": 2.0
+    },
+    "face_017_aligned": {
+      "n_row_instances": 69,
+      "median_samples": 2.0
+    },
+    "face_018_aligned": {
+      "n_row_instances": 69,
+      "median_samples": 2.0
+    },
+    "face_019_aligned": {
+      "n_row_instances": 69,
+      "median_samples": 2.0
+    },
+    "face_020_aligned": {
+      "n_row_instances": 69,
+      "median_samples": 2.0
+    },
+    "pocket150025_001_aligned": {
+      "n_row_instances": 112,
+      "median_samples": 2.0
+    },
+    "pocket150025_002_aligned": {
+      "n_row_instances": 103,
+      "median_samples": 3.0
+    },
+    "pocket150025_003_aligned": {
+      "n_row_instances": 111,
+      "median_samples": 2.0
+    },
+    "pocket150025_004_aligned": {
+      "n_row_instances": 106,
+      "median_samples": 2.5
+    },
+    "pocket150025_005_aligned": {
+      "n_row_instances": 106,
+      "median_samples": 2.5
+    },
+    "pocket150025_006_aligned": {
+      "n_row_instances": 211,
+      "median_samples": 3.0
+    },
+    "pocket150025_007_aligned": {
+      "n_row_instances": 103,
+      "median_samples": 3.0
+    },
+    "pocket150025_008_aligned": {
+      "n_row_instances": 104,
+      "median_samples": 3.0
+    },
+    "pocket150025_009_aligned": {
+      "n_row_instances": 114,
+      "median_samples": 2.0
+    },
+    "pocket150025_011_aligned": {
+      "n_row_instances": 109,
+      "median_samples": 3.0
+    },
+    "pocket150025_012_aligned": {
+      "n_row_instances": 105,
+      "median_samples": 3.0
+    },
+    "pocket150025_013_aligned": {
+      "n_row_instances": 107,
+      "median_samples": 3.0
+    },
+    "pocket150025_014_aligned": {
+      "n_row_instances": 109,
+      "median_samples": 3.0
+    },
+    "pocket150025_015_aligned": {
+      "n_row_instances": 108,
+      "median_samples": 3.0
+    },
+    "pocket150025_016_aligned": {
+      "n_row_instances": 108,
+      "median_samples": 3.0
+    },
+    "pocket150025_017_aligned": {
+      "n_row_instances": 106,
+      "median_samples": 3.0
+    },
+    "pocket150025_018_aligned": {
+      "n_row_instances": 106,
+      "median_samples": 3.0
+    },
+    "pocket150025_019_aligned": {
+      "n_row_instances": 106,
+      "median_samples": 3.0
+    },
+    "pocket150025_020_aligned": {
+      "n_row_instances": 104,
+      "median_samples": 3.0
+    },
+    "pocket_001_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_002_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_003_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_004_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_005_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_006_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_007_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_008_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_009_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_010_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_011_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_012_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_013_aligned": {
+      "n_row_instances": 230,
+      "median_samples": 1.0
+    },
+    "pocket_014_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_015_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_016_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    },
+    "pocket_017_aligned": {
+      "n_row_instances": 230,
+      "median_samples": 1.0
+    },
+    "pocket_018_aligned": {
+      "n_row_instances": 230,
+      "median_samples": 1.0
+    },
+    "pocket_019_aligned": {
+      "n_row_instances": 231,
+      "median_samples": 1.0
+    }
+  }
+}

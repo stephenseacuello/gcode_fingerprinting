@@ -1,0 +1,10 @@
+{
+  "n_samples": 549,
+  "ambient_dim": 256,
+  "effective_dim_80pct": 9,
+  "effective_dim_90pct": 16,
+  "effective_dim_95pct": 24,
+  "effective_dim_99pct": 40,
+  "pc1_var": 0.2589966058731079,
+  "pc2_var": 0.17874960601329803
+}

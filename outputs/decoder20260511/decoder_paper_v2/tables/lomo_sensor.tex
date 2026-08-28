@@ -4,7 +4,8 @@
 \centering
 \caption{Leave-one-sensor-out (LOSO) encoder retraining, full-window, five-fold. Each row: the encoder retrained from scratch with that sensor unit's channels removed (15 channels per unit), then a fresh decoder trained on it (headline recipe). \emph{Command} is the five-fold mean $\pm$ s.d. $\Delta$\,Command is the \emph{fold-paired} effect --- the mean over folds of command$(m,f)-$command$(\text{baseline},f)$ --- which removes the large fold-to-fold variance. $p_{\text{Holm}}$ is the Holm-corrected one-sample $t$-test of those per-fold deltas against zero. Contrast with the inference-time zeroing of Table~\ref{tab:sensor_ablation}, which holds a frozen encoder fixed.}
 \label{tab:lomo_sensor}
-\small
+\footnotesize
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{l c c c c c}
 \toprule
 \textbf{Sensor unit removed} & \textbf{Command} & \textbf{Token} & \textbf{Numeric} & \textbf{$\Delta$ Command (paired)} & \textbf{$p_{\text{Holm}}$} \\

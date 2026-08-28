@@ -174,7 +174,7 @@ def run_fold(fold: int, output_dir: Path) -> dict:
             detection_10.append(det_10)
 
             logger.info(
-                f"    delta={delta:8.3f}mm: n={n_attacks:5d}, "
+                f"    delta={delta:8.3f}in: n={n_attacks:5d}, "
                 f"det@1%={det_01:.3f}, det@5%={det_05:.3f}, det@10%={det_10:.3f}"
             )
 
@@ -346,7 +346,7 @@ def generate_figures(agg_results: dict, output_dir: Path, fold_results: list):
             ax.semilogx(fine_d, logistic_fn(fine_d), "--", color=color, alpha=0.5)
 
     ax.axhline(y=0.95, color="gray", linestyle="--", linewidth=0.8, label="95% detection")
-    ax.set_xlabel(r"$\delta$ (mm)")
+    ax.set_xlabel(r"$\delta$ (in)")
     ax.set_ylabel("Detection Rate at FPR=5%")
     ax.set_title("Graded Coordinate Injection: Detection Rate vs Delta")
     ax.set_ylim(-0.05, 1.05)

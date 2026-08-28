@@ -1,0 +1,69 @@
+{
+  "per_command": {
+    "G0": 1.575948039331585,
+    "G1": 1.2603178064796794,
+    "G2": 1.584962500721156,
+    "G3": 1.6183981851397287
+  },
+  "weighted_average": 1.501926603937787,
+  "interpretation": "Conditional entropy H(param_type | command) in bits, computed over explicit G0/G1/G2/G3 lines in train_sequences.npz (fold_1, full_window). For each command, we count the axis letters (X/Y/Z/F/S/I/J/K/R) that appear on the same physical line as the command token, then compute Shannon entropy of that empirical distribution. The weighted average uses per-command parameter counts as weights. Low H(param|cmd) means the parameter axis is highly predictable once the command is known (e.g., G0/G1 are dominated by X/Y/Z; G2/G3 add I/J/K offsets). This entropy is an upper bound on what a per-command axis-prior baseline could exploit without conditioning on numerical state.",
+  "support": {
+    "commands_seen": [
+      "G0",
+      "G1",
+      "G2",
+      "G3"
+    ],
+    "param_counts_per_command": {
+      "G0": {
+        "X": 69,
+        "Y": 69,
+        "Z": 87
+      },
+      "G1": {
+        "X": 1266,
+        "Y": 928,
+        "F": 57,
+        "Z": 53
+      },
+      "G2": {
+        "X": 983,
+        "Y": 983,
+        "R": 983
+      },
+      "G3": {
+        "X": 841,
+        "Y": 841,
+        "R": 841,
+        "F": 11
+      }
+    },
+    "total_param_tokens_per_command": {
+      "G0": 225,
+      "G3": 2534,
+      "G1": 2304,
+      "G2": 2949
+    },
+    "modal_per_command_entropy": {
+      "G0": 1.5908591329391328,
+      "G1": 1.6427057605443218,
+      "G2": 1.584962500721156,
+      "G3": 1.5281020308684752
+    },
+    "modal_weighted_average": 1.59051810233473,
+    "n_windows": 303,
+    "source_npz": "outputs/decoder20260511/preprocessed_f98/full_window/fold_1/train_sequences.npz",
+    "axis_vocab": [
+      "X",
+      "Y",
+      "Z",
+      "F",
+      "S",
+      "I",
+      "J",
+      "K",
+      "R"
+    ],
+    "definition": "H(param_type | command=c) = -sum_a p(a|c) log2 p(a|c); weighted_avg = sum_c P(c) * H(param_type | command=c)"
+  }
+}

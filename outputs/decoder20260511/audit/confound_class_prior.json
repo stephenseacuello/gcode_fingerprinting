@@ -1,0 +1,146 @@
+{
+  "per_fold": {
+    "1": {
+      "n_command_positions": 2078,
+      "decoder_command_acc": 0.5519730510105871,
+      "class_prior_command_acc": 0.568334937439846,
+      "within_window_modal_acc": 0.5837343599615015,
+      "decoder_acc_heterogeneous_windows": 0.5515414258188824,
+      "decoder_acc_homogeneous_windows": 1.0,
+      "n_heterogeneous_windows": 115,
+      "n_homogeneous_windows": 2,
+      "frac_heterogeneous_windows": 0.9829059829059829,
+      "modal_command_by_class": {
+        "adaptive": "G0",
+        "adaptive150025": "G0",
+        "damageadaptive": "G0",
+        "damageface": "G2",
+        "damagepocket": "G1",
+        "face": "G2",
+        "face150025": "G3",
+        "pocket": "G0",
+        "pocket150025": "G1"
+      }
+    },
+    "2": {
+      "n_command_positions": 1518,
+      "decoder_command_acc": 0.8570487483530962,
+      "class_prior_command_acc": 0.5770750988142292,
+      "within_window_modal_acc": 0.5922266139657444,
+      "decoder_acc_heterogeneous_windows": 0.8569545154911009,
+      "decoder_acc_homogeneous_windows": 1.0,
+      "n_heterogeneous_windows": 94,
+      "n_homogeneous_windows": 1,
+      "frac_heterogeneous_windows": 0.9894736842105263,
+      "modal_command_by_class": {
+        "adaptive": "G0",
+        "adaptive150025": "G0",
+        "damageadaptive": "G0",
+        "damageface": "G2",
+        "damagepocket": "G1",
+        "face": "G2",
+        "face150025": "G2",
+        "pocket": "G0",
+        "pocket150025": "G1"
+      }
+    },
+    "3": {
+      "n_command_positions": 1531,
+      "decoder_command_acc": 0.8484650555192684,
+      "class_prior_command_acc": 0.5747877204441542,
+      "within_window_modal_acc": 0.5852384062704115,
+      "decoder_acc_heterogeneous_windows": 0.8482668410725964,
+      "decoder_acc_homogeneous_windows": 1.0,
+      "n_heterogeneous_windows": 92,
+      "n_homogeneous_windows": 2,
+      "frac_heterogeneous_windows": 0.9787234042553191,
+      "modal_command_by_class": {
+        "adaptive": "G0",
+        "adaptive150025": "G0",
+        "damageadaptive": "G0",
+        "damageface": "G2",
+        "damagepocket": "G1",
+        "face": "G2",
+        "face150025": "G3",
+        "pocket": "G0",
+        "pocket150025": "G1"
+      }
+    },
+    "4": {
+      "n_command_positions": 1540,
+      "decoder_command_acc": 0.8636363636363636,
+      "class_prior_command_acc": 0.5681818181818182,
+      "within_window_modal_acc": 0.587012987012987,
+      "decoder_acc_heterogeneous_windows": 0.863370201691607,
+      "decoder_acc_homogeneous_windows": 1.0,
+      "n_heterogeneous_windows": 93,
+      "n_homogeneous_windows": 3,
+      "frac_heterogeneous_windows": 0.96875,
+      "modal_command_by_class": {
+        "adaptive": "G0",
+        "adaptive150025": "G0",
+        "damageadaptive": "G0",
+        "damageface": "G2",
+        "damagepocket": "G1",
+        "face": "G2",
+        "face150025": "G3",
+        "pocket": "G0",
+        "pocket150025": "G1"
+      }
+    },
+    "5": {
+      "n_command_positions": 1250,
+      "decoder_command_acc": 0.852,
+      "class_prior_command_acc": 0.5736,
+      "within_window_modal_acc": 0.5888,
+      "decoder_acc_heterogeneous_windows": 0.8515248796147673,
+      "decoder_acc_homogeneous_windows": 1.0,
+      "n_heterogeneous_windows": 77,
+      "n_homogeneous_windows": 4,
+      "frac_heterogeneous_windows": 0.9506172839506173,
+      "modal_command_by_class": {
+        "adaptive": "G0",
+        "adaptive150025": "G0",
+        "damageadaptive": "G0",
+        "damageface": "G2",
+        "damagepocket": "G1",
+        "face": "G2",
+        "face150025": "G3",
+        "pocket": "G0",
+        "pocket150025": "G1"
+      }
+    }
+  },
+  "aggregate": {
+    "decoder_command_acc": {
+      "mean": 0.7946246437038631,
+      "std": 0.12143302946105303,
+      "n_folds": 5
+    },
+    "class_prior_command_acc": {
+      "mean": 0.5723959149760096,
+      "std": 0.003558524016339911,
+      "n_folds": 5
+    },
+    "within_window_modal_acc": {
+      "mean": 0.5874024734421288,
+      "std": 0.0029500967841918557,
+      "n_folds": 5
+    },
+    "decoder_acc_heterogeneous_windows": {
+      "mean": 0.7943315727377909,
+      "std": 0.1215031754397256,
+      "n_folds": 5
+    },
+    "decoder_acc_homogeneous_windows": {
+      "mean": 1.0,
+      "std": 0.0,
+      "n_folds": 5
+    },
+    "frac_heterogeneous_windows": {
+      "mean": 0.9740940710644891,
+      "std": 0.013530200629318883,
+      "n_folds": 5
+    }
+  }
+}

@@ -23,8 +23,11 @@ def select_clean_features(feature_cols):
     """Select only non-confounded features (no mag, color, pressure, proximity)."""
     clean = []
     for f in feature_cols:
-        # Keep electrical features
-        if any(e in f for e in cfg.ELECTRICAL_COLS):
+        # Keep electrical features — exact electrical-channel match, excluding
+        # Arduino IMU modules (the config token 'spindle' must NOT substring-match
+        # the IMU module 'spindle2', which previously leaked 238 IMU features incl.
+        # 126 magnetometer/color/pressure/proximity confounds into this "clean" set).
+        if any(e in f for e in cfg.ELECTRICAL_COLS) and not any(m in f for m in cfg.ARDUINO_MODULES):
             clean.append(f); continue
         # Keep accel, gyro, RMS, temp from Arduino modules
         if any(ch in f for ch in CONFOUND_FREE):

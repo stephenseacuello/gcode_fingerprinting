@@ -47,7 +47,9 @@ def save_fig(fig, name):
 def select_clean_features(feature_cols):
     clean = []
     for f in feature_cols:
-        if any(e in f for e in cfg.ELECTRICAL_COLS):
+        # electrical: exact electrical-channel match, excluding Arduino IMU modules
+        # ('spindle' must not substring-match the IMU module 'spindle2').
+        if any(e in f for e in cfg.ELECTRICAL_COLS) and not any(m in f for m in cfg.ARDUINO_MODULES):
             clean.append(f); continue
         if any(ch in f for ch in CONFOUND_FREE):
             clean.append(f)
@@ -529,7 +531,7 @@ def experiment_15():
     ax.set_xticks(x + width)
     ax.set_xticklabels([m.capitalize() for m in methods])
     ax.set_ylabel("Accuracy (20×5-fold CV)")
-    ax.set_title("(a) Full feature set (1{,}540 features)")
+    ax.set_title("(a) Full feature set (1,540 features)")
     ax.set_ylim(0.7, 1.05)
     ax.legend(fontsize=9, loc="lower right")
 
@@ -550,7 +552,7 @@ def experiment_15():
     ax.set_xticks(x + width)
     ax.set_xticklabels([m.capitalize() for m in methods])
     ax.set_ylabel("Accuracy (20×5-fold CV)")
-    ax.set_title("(b) Confound-free features (910 features, no mag/color/pressure/proximity)")
+    ax.set_title("(b) Confound-free features (784 features, no mag/color/pressure/proximity)")
     ax.set_ylim(0.7, 1.05)
     ax.legend(fontsize=9, loc="lower right")
 

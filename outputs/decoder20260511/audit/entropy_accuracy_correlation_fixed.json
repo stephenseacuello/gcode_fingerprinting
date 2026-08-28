@@ -1,0 +1,451 @@
+{
+  "results": {
+    "all_54": {
+      "n": 54,
+      "pearson_r": -0.6794168618530946,
+      "pearson_p": 1.619404979569037e-08,
+      "spearman_rho": -0.669614439123693,
+      "spearman_p": 3.0845401319786094e-08
+    },
+    "no_token_45": {
+      "n": 45,
+      "pearson_r": -0.6961759852301496,
+      "pearson_p": 1.0970381677852633e-07,
+      "spearman_rho": -0.5467900790212261,
+      "spearman_p": 0.00010179829119966034
+    },
+    "no_token_type_36": {
+      "n": 36,
+      "pearson_r": -0.6879650205401173,
+      "pearson_p": 3.544140578860645e-06,
+      "spearman_rho": -0.5978505707727074,
+      "spearman_p": 0.00011790531709655152
+    },
+    "best6_30": {
+      "n": 30,
+      "pearson_r": -0.659825148404428,
+      "pearson_p": 7.287544221740382e-05,
+      "spearman_rho": -0.5136818687430478,
+      "spearman_p": 0.0036911201883307932
+    },
+    "numeric_18": {
+      "n": 18,
+      "pearson_r": -0.872947509170626,
+      "pearson_p": 2.274657340432311e-06,
+      "spearman_rho": -0.9174406604747163,
+      "spearman_p": 8.355803529821193e-08
+    },
+    "within_head": {
+      "token": {
+        "pearson_r": -0.7953718062056816,
+        "spearman_rho": -0.7833333333333333,
+        "n": 9
+      },
+      "type": {
+        "pearson_r": -0.85467375628913,
+        "spearman_rho": -0.7333333333333334,
+        "n": 9
+      },
+      "command": {
+        "pearson_r": 0.3840647432833575,
+        "spearman_rho": 0.4435185266405332,
+        "n": 9
+      },
+      "param_type": {
+        "pearson_r": -0.27916760330342016,
+        "spearman_rho": -0.08333333333333334,
+        "n": 9
+      },
+      "sign": {
+        "pearson_r": -0.18884952974620117,
+        "spearman_rho": -0.5166666666666667,
+        "n": 9
+      },
+      "digit": {
+        "pearson_r": -0.8950085101879461,
+        "spearman_rho": -0.8666666666666667,
+        "n": 9
+      }
+    }
+  },
+  "cells": [
+    {
+      "head": "token",
+      "op_class": "adaptive",
+      "entropy_bits": 6.359424945757807,
+      "accuracy": 0.7998877839260148,
+      "n_windows": 40
+    },
+    {
+      "head": "token",
+      "op_class": "adaptive150025",
+      "entropy_bits": 6.148548051876174,
+      "accuracy": 0.7053730426773104,
+      "n_windows": 68
+    },
+    {
+      "head": "token",
+      "op_class": "damageadaptive",
+      "entropy_bits": 5.839474062099983,
+      "accuracy": 0.768205666316894,
+      "n_windows": 20
+    },
+    {
+      "head": "token",
+      "op_class": "damageface",
+      "entropy_bits": 4.134558975611015,
+      "accuracy": 0.8887423043095867,
+      "n_windows": 20
+    },
+    {
+      "head": "token",
+      "op_class": "damagepocket",
+      "entropy_bits": 4.917388147764661,
+      "accuracy": 0.8008550855085509,
+      "n_windows": 30
+    },
+    {
+      "head": "token",
+      "op_class": "face",
+      "entropy_bits": 4.203487361436981,
+      "accuracy": 0.9693161893629456,
+      "n_windows": 144
+    },
+    {
+      "head": "token",
+      "op_class": "face150025",
+      "entropy_bits": 4.209850304324831,
+      "accuracy": 0.8389217619986851,
+      "n_windows": 84
+    },
+    {
+      "head": "token",
+      "op_class": "pocket",
+      "entropy_bits": 6.300375541048189,
+      "accuracy": 0.7106625258799172,
+      "n_windows": 19
+    },
+    {
+      "head": "token",
+      "op_class": "pocket150025",
+      "entropy_bits": 4.997141362504489,
+      "accuracy": 0.76533992323466,
+      "n_windows": 124
+    },
+    {
+      "head": "type",
+      "op_class": "adaptive",
+      "entropy_bits": 1.0201055068122962,
+      "accuracy": 0.996265913400147,
+      "n_windows": 40
+    },
+    {
+      "head": "type",
+      "op_class": "adaptive150025",
+      "entropy_bits": 1.0303087804463003,
+      "accuracy": 0.9927540681608843,
+      "n_windows": 68
+    },
+    {
+      "head": "type",
+      "op_class": "damageadaptive",
+      "entropy_bits": 1.0213434438380182,
+      "accuracy": 0.9909758656873032,
+      "n_windows": 20
+    },
+    {
+      "head": "type",
+      "op_class": "damageface",
+      "entropy_bits": 1.3699174322949121,
+      "accuracy": 0.945910290237467,
+      "n_windows": 20
+    },
+    {
+      "head": "type",
+      "op_class": "damagepocket",
+      "entropy_bits": 1.579920160681242,
+      "accuracy": 0.9327182718271827,
+      "n_windows": 30
+    },
+    {
+      "head": "type",
+      "op_class": "face",
+      "entropy_bits": 1.3860248994231228,
+      "accuracy": 0.9883109292811222,
+      "n_windows": 144
+    },
+    {
+      "head": "type",
+      "op_class": "face150025",
+      "entropy_bits": 1.3607551093963492,
+      "accuracy": 0.9385272846811308,
+      "n_windows": 84
+    },
+    {
+      "head": "type",
+      "op_class": "pocket",
+      "entropy_bits": 1.0348096368601527,
+      "accuracy": 0.9965758878802357,
+      "n_windows": 19
+    },
+    {
+      "head": "type",
+      "op_class": "pocket150025",
+      "entropy_bits": 1.5918989894517352,
+      "accuracy": 0.9443714180556286,
+      "n_windows": 124
+    },
+    {
+      "head": "command",
+      "op_class": "adaptive",
+      "entropy_bits": 1.3143204867061788,
+      "accuracy": 1.0,
+      "n_windows": 40
+    },
+    {
+      "head": "command",
+      "op_class": "adaptive150025",
+      "entropy_bits": 1.6258145836939113,
+      "accuracy": 0.9253731343283582,
+      "n_windows": 68
+    },
+    {
+      "head": "command",
+      "op_class": "damageadaptive",
+      "entropy_bits": 0.9182958340544896,
+      "accuracy": 0.9333333333333333,
+      "n_windows": 20
+    },
+    {
+      "head": "command",
+      "op_class": "damageface",
+      "entropy_bits": 1.7157679400990609,
+      "accuracy": 0.9523809523809523,
+      "n_windows": 20
+    },
+    {
+      "head": "command",
+      "op_class": "damagepocket",
+      "entropy_bits": 1.259926726578124,
+      "accuracy": 0.8848848848848849,
+      "n_windows": 30
+    },
+    {
+      "head": "command",
+      "op_class": "face",
+      "entropy_bits": 1.9115030401080415,
+      "accuracy": 0.9887048192771084,
+      "n_windows": 144
+    },
+    {
+      "head": "command",
+      "op_class": "face150025",
+      "entropy_bits": 1.7238394385371907,
+      "accuracy": 0.9354094579008074,
+      "n_windows": 84
+    },
+    {
+      "head": "command",
+      "op_class": "pocket",
+      "entropy_bits": 1.5,
+      "accuracy": 1.0,
+      "n_windows": 19
+    },
+    {
+      "head": "command",
+      "op_class": "pocket150025",
+      "entropy_bits": 1.245920883385128,
+      "accuracy": 0.8220239492838695,
+      "n_windows": 124
+    },
+    {
+      "head": "param_type",
+      "op_class": "adaptive",
+      "entropy_bits": 1.6222043785649072,
+      "accuracy": 0.9978643264862346,
+      "n_windows": 40
+    },
+    {
+      "head": "param_type",
+      "op_class": "adaptive150025",
+      "entropy_bits": 1.0558032354299252,
+      "accuracy": 0.996141975308642,
+      "n_windows": 68
+    },
+    {
+      "head": "param_type",
+      "op_class": "damageadaptive",
+      "entropy_bits": 1.053069640864392,
+      "accuracy": 0.9977871443624868,
+      "n_windows": 20
+    },
+    {
+      "head": "param_type",
+      "op_class": "damageface",
+      "entropy_bits": 1.720265819156505,
+      "accuracy": 0.984313725490196,
+      "n_windows": 20
+    },
+    {
+      "head": "param_type",
+      "op_class": "damagepocket",
+      "entropy_bits": 1.6284706917092144,
+      "accuracy": 0.9540094339622641,
+      "n_windows": 30
+    },
+    {
+      "head": "param_type",
+      "op_class": "face",
+      "entropy_bits": 1.7034806353536511,
+      "accuracy": 0.9983585029546946,
+      "n_windows": 144
+    },
+    {
+      "head": "param_type",
+      "op_class": "face150025",
+      "entropy_bits": 1.719290811246776,
+      "accuracy": 0.9899485167933317,
+      "n_windows": 84
+    },
+    {
+      "head": "param_type",
+      "op_class": "pocket",
+      "entropy_bits": 1.6819611598418225,
+      "accuracy": 0.9984401247900168,
+      "n_windows": 19
+    },
+    {
+      "head": "param_type",
+      "op_class": "pocket150025",
+      "entropy_bits": 1.6288891562031698,
+      "accuracy": 0.9623226339716214,
+      "n_windows": 124
+    },
+    {
+      "head": "sign",
+      "op_class": "adaptive",
+      "entropy_bits": 0.6628331424835376,
+      "accuracy": 0.9965052615229294,
+      "n_windows": 40
+    },
+    {
+      "head": "sign",
+      "op_class": "adaptive150025",
+      "entropy_bits": 0.060040986095233013,
+      "accuracy": 0.9988888888888889,
+      "n_windows": 68
+    },
+    {
+      "head": "sign",
+      "op_class": "damageadaptive",
+      "entropy_bits": 0.07262125490797743,
+      "accuracy": 0.9985247629083246,
+      "n_windows": 20
+    },
+    {
+      "head": "sign",
+      "op_class": "damageface",
+      "entropy_bits": 0.6789538995185758,
+      "accuracy": 0.9450980392156862,
+      "n_windows": 20
+    },
+    {
+      "head": "sign",
+      "op_class": "damagepocket",
+      "entropy_bits": 0.1265315922233647,
+      "accuracy": 0.972877358490566,
+      "n_windows": 30
+    },
+    {
+      "head": "sign",
+      "op_class": "face",
+      "entropy_bits": 0.6852457397507011,
+      "accuracy": 0.987360472751149,
+      "n_windows": 144
+    },
+    {
+      "head": "sign",
+      "op_class": "face150025",
+      "entropy_bits": 0.6693944231258898,
+      "accuracy": 0.9387104682520225,
+      "n_windows": 84
+    },
+    {
+      "head": "sign",
+      "op_class": "pocket",
+      "entropy_bits": 0.6639284341170126,
+      "accuracy": 0.9987201023918086,
+      "n_windows": 19
+    },
+    {
+      "head": "sign",
+      "op_class": "pocket150025",
+      "entropy_bits": 0.11769822544718053,
+      "accuracy": 0.9517839922854388,
+      "n_windows": 124
+    },
+    {
+      "head": "digit",
+      "op_class": "adaptive",
+      "entropy_bits": 2.5853756892344917,
+      "accuracy": 0.753718013435328,
+      "n_windows": 40
+    },
+    {
+      "head": "digit",
+      "op_class": "adaptive150025",
+      "entropy_bits": 2.7219944212002347,
+      "accuracy": 0.6555041152263374,
+      "n_windows": 68
+    },
+    {
+      "head": "digit",
+      "op_class": "damageadaptive",
+      "entropy_bits": 2.708696083055028,
+      "accuracy": 0.6680716543730242,
+      "n_windows": 20
+    },
+    {
+      "head": "digit",
+      "op_class": "damageface",
+      "entropy_bits": 2.5148291395796427,
+      "accuracy": 0.8370915032679739,
+      "n_windows": 20
+    },
+    {
+      "head": "digit",
+      "op_class": "damagepocket",
+      "entropy_bits": 2.5464532451195487,
+      "accuracy": 0.6958529874213837,
+      "n_windows": 30
+    },
+    {
+      "head": "digit",
+      "op_class": "face",
+      "entropy_bits": 2.353194364638587,
+      "accuracy": 0.9423287371416065,
+      "n_windows": 144
+    },
+    {
+      "head": "digit",
+      "op_class": "face150025",
+      "entropy_bits": 2.5250567864091744,
+      "accuracy": 0.8390945493176433,
+      "n_windows": 84
+    },
+    {
+      "head": "digit",
+      "op_class": "pocket",
+      "entropy_bits": 2.5263431175223277,
+      "accuracy": 0.7508332666719996,
+      "n_windows": 19
+    },
+    {
+      "head": "digit",
+      "op_class": "pocket150025",
+      "entropy_bits": 2.5746279594170307,
+      "accuracy": 0.7121504339440694,
+      "n_windows": 124
+    }
+  ]
+}

@@ -45,11 +45,13 @@ Fold & Token Acc.\ (\%) & Numeric Acc.\ (\%) & Command Acc.\ (\%) \\
 \end{tabular}
 \end{table}
 
-Fold-to-fold variation is informative about the stability of the results.
-For A1 command swap ($S_{\text{mean}}$), AUROC ranges from 0.726 to 0.880 (range = 0.154), with the lowest fold (Fold~1) still substantially above chance.
-For A2 X $\delta = 0.001$ ($S_{\text{mean}}$), the range is much wider: 0.554 to 0.984.
+Fold-to-fold variation differs by attack type.
+For A1 command swap ($S_{\text{mean}}$), AUROC ranges from 0.726 to 0.880 (range = 0.154), and the lowest fold (Fold~1) remains well above chance.
+For A2 X $\delta = 0.001$ ($S_{\text{mean}}$), the range is much wider (0.554 to 0.984).
 Fold~1 achieves near-perfect detection (0.984), while Fold~5 is near chance (0.554).
-This high variability reflects the sensitivity of coordinate-attack detection to the specific files in each fold's test set: some files contain more ``confident'' numeric tokens (which are perfectly detectable) than others, and the small number of windows per fold ($\sim$110) means that the confident/uncertain ratio can vary substantially between folds.
+We attribute this variability to the composition of each fold's test set.
+Files differ in their share of confident numeric tokens, the population with the highest per-token detectability.
+With only $\sim$110 windows per fold, the confident/uncertain ratio can vary between folds.
 
 \section{Vocabulary Structure}
 \label{app:vocab}
@@ -74,11 +76,13 @@ Numeric tokens & $\sim$667 & \texttt{NUM\_X\_1492}, \texttt{NUM\_Y\_0175}, \\
 \end{tabular}
 \end{table}
 
-The multi-head output structure decouples these categories: the type head selects among \{command, parameter, numeric, special\}, and the category-specific downstream heads predict within each category.
-This factored structure reduces the effective vocabulary size per head (e.g., the command head predicts over $\sim$30 candidates rather than 712) and enables fine-grained anomaly attribution---when the anomaly score is elevated, the per-head NLL breakdown indicates which token field is anomalous.
+The multi-head output structure decouples these categories.
+The type head selects among \{command, parameter, numeric, special\}, and the category-specific downstream heads predict within each category.
+This factored structure reduces the effective vocabulary size per head; the command head, for example, predicts over $\sim$30 candidates rather than 712.
+It also enables fine-grained anomaly attribution, because the per-head NLL breakdown indicates which token field is anomalous when the anomaly score is elevated.
 
 \paragraph{Numeric tokenization.}
-Numeric values (e.g., the coordinate X-125.4500) are decomposed digit-by-digit using the \texttt{DigitByDigitValueHead}.
+Numeric values (e.g., the coordinate X3.2750) are decomposed digit-by-digit using the \texttt{DigitByDigitValueHead}.
 Each numeric token is decomposed into:
 \begin{enumerate}
     \item A sign token ($+$ or $-$)
@@ -87,33 +91,36 @@ Each numeric token is decomposed into:
     \item Up to 4 decimal digit tokens (tenths, hundredths, thousandths, ten-thousandths)
 \end{enumerate}
 Each numeric token is represented by a sign position plus 6 digit positions, yielding 7 predictions per numeric value.
-The digit-by-digit approach avoids the combinatorial explosion of discretizing continuous axis values into fixed bins: covering the X-axis range of the Bantam Tools machine ($0$--$140$~mm) at $0.001$~mm resolution would require 140,000 bins in a direct discretization scheme, compared to approximately 30 token types in the digit-by-digit scheme (10 digits + sign + decimal point, used combinatorially).
+The digit-by-digit approach avoids the combinatorial explosion of discretizing continuous axis values into fixed bins.
+Covering the machine's X-axis travel ($\approx$5.5~in) at the tokenizer's $0.001$~in grid would require $\sim$5{,}500 bins in a direct discretization scheme, compared to approximately 30 token types in the digit-by-digit scheme (10 digits + sign + decimal point, used combinatorially).
 
 % Scoring method implementation details moved to supplementary material.
 
 \section{Error Case Analysis}
 \label{app:errors}
 
-We present three illustrative examples of detection outcomes to provide intuition about the system's behavior.
+Three cases illustrate detection outcomes: a true positive, a false positive, and a false negative.
 
 \paragraph{Illustrative true positive (A1 command swap).}
 A sensor window during active face-milling contains the normal G-code sequence: G1 X-10.500 Y5.250 F200.
-The decoder assigns $p = 0.72$ to G1 (the correct command) and $p = 0.01$ to G0 (the attacker's substitution), yielding per-token NLL of 0.33 nats (normal) vs.\ 4.61 nats (attacked)---a $14\times$ increase.
-The $S_{\text{mean}}$ for the attacked window is 2.89 nats vs.\ 1.47 nats for the normal window, well above any reasonable detection threshold.
-This attack is highly detectable because the decoder has learned that G1 (feed-rate interpolation) is the expected motion command during active cutting, and G0 (rapid traverse) would be anomalous in this context.
+The decoder assigns $p = 0.72$ to G1 (the correct command) and $p = 0.01$ to G0 (the attacker's substitution).
+The per-token NLL is 0.33 nats for the normal token and 4.61 nats for the attacked token, a $14\times$ increase.
+The attacked window's $S_{\text{mean}}$ is 2.89 nats versus 1.47 nats for the normal window, well above typical detection thresholds.
+This attack is highly detectable because the decoder has learned that G1 (feed-rate interpolation) is the expected motion command during active cutting and that G0 (rapid traverse) is anomalous in this context.
 
 \paragraph{Illustrative false positive (tool-change sequence).}
 A window during a tool-change sequence contains M6 (tool change) followed by G43 (tool-length compensation) and G0 (rapid positioning).
 The M6 command occurs in fewer than 2\% of training windows, so the decoder assigns only $p \approx 0.15$ to M6 while assigning $p \approx 0.45$ to the more common G1.
-This produces $S_{\text{mean}} = 4.2$ nats, compared to a normal-window mean of 3.1 nats, triggering a false alarm at typical detection thresholds.
-The false positive arises because rare-but-legitimate G-code patterns are underrepresented in training, not because the decoder is making an error in its reconstruction---the decoder correctly identifies M6 as less probable than G1, which is technically accurate but operationally unhelpful.
+This yields $S_{\text{mean}} = 4.2$ nats against a normal-window mean of 3.1 nats, triggering a false alarm at typical detection thresholds.
+The false positive arises because rare but legitimate G-code patterns are underrepresented in training, not because the reconstruction is in error.
+The decoder correctly identifies M6 as less probable than G1; the ranking is technically accurate but operationally unhelpful.
 
 \paragraph{Illustrative false negative (A2 coordinate perturbation in uncertain regime).}
-A coordinate perturbation of $\delta = 0.001$~mm on an X-axis value (X-125.4500 $\to$ X-125.4510) falls in the decoder's low-confidence regime.
+A coordinate perturbation of $\delta = 0.001$~in on an X-axis value (X3.2750 $\to$ X3.2760, one tokenizer grid step) falls in the decoder's low-confidence regime.
 The decoder assigns $p = 0.003$ to the original value and $p = 0.002$ to the perturbed value, yielding $\Delta$NLL $= -\log(0.002) - (-\log(0.003)) = 0.41$ nats.
-The rank of the original value is 47 out of 712; the rank of the perturbed value is 52 out of 712---a difference of only 5 ranks, yielding $\Delta S_{\text{rank}} = 5/712 = 0.007$.
+The original value ranks 47 out of 712 and the perturbed value 52 out of 712, a difference of only 5 ranks that yields $\Delta S_{\text{rank}} = 5/712 = 0.007$.
 Both differences are well within the noise floor of the respective score distributions on normal data.
-This window is fundamentally undetectable by the V7 decoder: the limited context (one G-code line) provides insufficient information to discriminate between X = -125.4500 and X = -125.4510, as both are plausible axis values given the sensor observations.
+The V7 decoder cannot detect this window because its limited context (one G-code line) provides insufficient information to discriminate between X = 3.2750 and X = 3.2760, both of which are plausible axis values given the sensor observations.
 The V8 decoder, by seeing the preceding and following G-code lines, may be able to detect this perturbation if the sequential pattern of X values is sufficiently constrained.
 
 \section{Decoder Hyperparameters}
@@ -157,4 +164,4 @@ Category & Parameter & V7 & V8 \\
 % V8 coordinate detail table moved to supplementary material.
 
 The V8 $S_{\text{mean}}$ scores for coordinate attacks are generally lower than the V7 rank-based scores reported in the main text (Table~\ref{tab:main_results}), because the mean NLL is diluted by the many unperturbed tokens in the 63-token V8 sequence.
-V8 $S_{\max}$ (not shown for all axes) achieves substantially higher AUROC for larger $\delta$ values by isolating the single most anomalous token, as reported in the main results table.
+V8 $S_{\max}$ (not shown for all axes) achieves higher AUROC for larger $\delta$ values by isolating the single most anomalous token, as reported in the main results table.

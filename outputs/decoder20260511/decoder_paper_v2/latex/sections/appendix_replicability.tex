@@ -2,7 +2,7 @@
 % Follows the NeurIPS / Sensors-journal reproducibility-checklist conventions.
 
 \section{Replicability Checklist}
-\label{app:replicability}
+\label{supp:app-replicability}
 
 This section documents implementation details necessary for an independent
 team to reproduce the headline results. The checklist follows the NeurIPS
@@ -15,8 +15,8 @@ and \emph{Sensors} reproducibility-checklist conventions.
 \item \textbf{Code repository.} The full source tree, including
 preprocessing, training, evaluation, and figure-generation scripts, is
 released alongside the manuscript. Critical scripts:
-\texttt{scripts/evaluation/run\_decoder\_quick\_test.py} (training
-driver), \texttt{scripts/analysis/aggregate\_v8\_results.py}
+\texttt{scripts/\allowbreak evaluation/\allowbreak run\_decoder\_quick\_test.py} (training
+driver), \texttt{scripts/\allowbreak analysis/\allowbreak aggregate\_v8\_results.py}
 (metric aggregator), and the experiment shells under
 \texttt{scripts/experiments/}.
 \item \textbf{Dataset.} The 120-file corpus, per-fold preprocessed NPZ
@@ -24,15 +24,30 @@ files, and decoded prediction JSONs are released under CC~BY~4.0 with a
 Zenodo DOI minted at acceptance, as stated in
 Appendix~\ref{app:companion}; the release is self-contained.
 \item \textbf{Hyperparameter sweep records.} All 34 cells of the 3-stage
-HP sweep are recorded under \texttt{outputs/decoder20260511/checkpoints/}
+HP sweep are recorded under \texttt{outputs/\allowbreak decoder20260511/\allowbreak checkpoints/}
 with per-cell metrics.json. The composite-winner selection logic is in
-\texttt{scripts/analysis/aggregate\_hp\_sweep\_all\_stages.py}.
+\texttt{scripts/\allowbreak analysis/\allowbreak aggregate\_hp\_sweep\_all\_stages.py}.
+\item \textbf{Frozen-encoder weights.} The five per-fold frozen-encoder
+checkpoints required to reproduce every headline number are released at
+\texttt{outputs/\allowbreak decoder20260511/\allowbreak checkpoints/\allowbreak encoder\_v8/\allowbreak fold\{0..4\}/\allowbreak encoder.pt};
+SHA256 hashes for each \texttt{.pt} are listed in the release manifest
+\texttt{checkpoints/\allowbreak encoder\_v8/SHA256SUMS} and reproduced in the
+top-level \texttt{README} alongside the Zenodo DOI. Decoder-side
+preprocessing depends on the encoder forward pass, so independent
+reproduction requires these exact files.
+\item \textbf{Headline and T3.1 checkpoints.} The headline
+SS$=$0.5/dw$=$1.0 cell (\texttt{checkpoints/\allowbreak decoder\_v8/\allowbreak headline/\allowbreak fold\{0..4\}/\allowbreak decoder.pt})
+produces Tables~\ref{tab:headline}, \ref{tab:per_axis}, and the
+calibration / tamper / LOCO / mode-collapse numbers in the body. The
+T3.1 control (\texttt{checkpoints/\allowbreak decoder\_v8/\allowbreak t3\_1\_k2418\_ss0\_dw0/\allowbreak fold\{0..4\}/\allowbreak decoder.pt})
+produces the K=2418 row of Table~\ref{tab:k_spectrum} (AR struct token
+$0.470$). Per-cell SHA256 hashes appear in the same release manifest.
 \item \textbf{Path convention.} All \texttt{audit/\ldots} and
 \texttt{scripts/\ldots} paths cited in this manuscript are relative to the
 released repository root (\texttt{outputs/decoder20260511/} for
 \texttt{audit/}; the project root for \texttt{scripts/}), not to the
 LaTeX source directory; e.g.\ the seed-robustness artifact resolves to
-\texttt{outputs/decoder20260511/audit/seed\_robustness\_full\_window.json}.
+\texttt{outputs/\allowbreak decoder20260511/\allowbreak audit/\allowbreak seed\_robustness\_full\_window.json}.
 \end{itemize}
 
 \subsection{Random Seeds and Determinism}
@@ -59,11 +74,23 @@ reported cross-fold standard deviation ($\pm 0.0558$). The headline
 command accuracy is therefore \emph{seed-robust}: the single-seed point
 estimate is not an artifact of seed~42, and no widening of the reported
 standard deviation is required. Per-seed per-fold numbers are released
-in \texttt{audit/seed\_robustness\_full\_window.json}.
+in \texttt{audit/\allowbreak seed\_robustness\_full\_window.json}.
 \item \textbf{Data-shuffle seed.} The data loader uses
 \texttt{torch.Generator.manual\_seed(seed)} where applicable. CUDNN
 deterministic mode is NOT enforced (the small non-determinism it adds
 is dominated by the seed-variance envelope reported above).
+\item \textbf{Ablation-cell seed transparency.} Every ablation cell
+reported in the paper (LOMO, LOSO, K-spectrum T3.1, no-numeric,
+target-mode contrast, sensor-modality, calibration, tamper) was run at
+seed~42 only; the four-seed robustness measurement above is for the
+headline configuration only. The cross-fold standard deviation in each
+ablation table therefore reflects fold-to-fold variance at a single
+seed, not seed-to-seed variance. The headline four-seed agreement
+($\pm 0.0085$ across seeds vs.\ $\pm 0.0558$ across folds, an order of
+magnitude smaller) bounds the seed contribution to be small relative to
+the fold contribution for that configuration; we do not extrapolate
+this to every ablation cell, and per-cell seed-variance is on the
+artifact roadmap rather than measured here.
 \end{itemize}
 
 \subsection{Hardware}
@@ -106,6 +133,13 @@ CO$_2$/kWh.
 
 \begin{itemize}
 \item Python 3.10.12; PyTorch 2.5.1 with CUDA 12.1; NVIDIA driver 590.48.01.
+\item Pinned versions for the analysis stack (\texttt{requirements.txt} in
+the release): \texttt{numpy==1.26.4}, \texttt{scipy==1.13.1},
+\texttt{scikit-learn==1.5.0}, \texttt{pandas==2.2.2},
+\texttt{matplotlib==3.9.0}, \texttt{tqdm==4.66.4}. The HGB baseline number
+($0.6587$ command / $0.2320$ macro-F1; Section~\ref{sec:results-baseline})
+is sensitive to the scikit-learn minor version and should be reproduced
+under the pinned \texttt{1.5.0}.
 \item scikit-learn (for HGB baseline + metric reporting + StandardScaler);
 SciPy (for ANOVA); XGBoost was a CUDA-only build that failed on the
 CPU-only inference host and was replaced with sklearn HistGradientBoostingClassifier
@@ -172,7 +206,7 @@ ten digit-value classes (0--9). The grid as run contains $630$
 (ablation, drilled-metric) tests: $105$ drilled metrics replicated
 across the $8$ ablation configurations (noise augmentation and the
 seven zeroed-modality ablations), emitted to
-\texttt{audit/anova\_per\_class\_results.json}. Of these, $320$ are
+\texttt{audit/\allowbreak anova\_per\_class\_results.json}. Of these, $320$ are
 significant under BH-FDR and $72$ under Holm-Bonferroni at
 $\alpha=0.05$. Per-class results with $n_{\text{support}} \le 50$ are
 flagged as underpowered (Section~\ref{sec:lim-power}); the
@@ -209,7 +243,7 @@ teacher-forced forward pass at batch~1 takes 36~ms median (per-row,
 (1024-token output) on the host machine's CPU. Autoregressive greedy
 generation on CPU is dramatically slower at $\sim$1.45~s for 32 tokens
 and $\sim$14~s for 256 tokens, reflecting the per-step transformer
-overhead (\texttt{audit/inference\_cost\_cpu.json}). For edge deployment
+overhead (\texttt{audit/\allowbreak inference\_cost\_cpu.json}). For edge deployment
 without GPU, per-row mode with teacher-forced-style streaming (where
 the controller log supplies the previous token) is the only realistic
 configuration; autoregressive deployment requires GPU acceleration.

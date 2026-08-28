@@ -1,0 +1,653 @@
+% SUPERSEDED (2026-08-14): this single-column MDPI intermediate predates the
+% round-4 claim corrections (reference-conditioned framing, Markov null, etc.).
+% The live conference edition is decoder_paper_v5_conf_ieee.tex. Do not submit.
+%=================================================================
+% G-Code Decoder paper (decoder20260511 / Round-2).
+% Working LaTeX draft — numbers filled from RESULTS_TABLE.json + tables/.
+% Compile from this directory: pdflatex; bibtex decoder_paper_v2; pdflatex x2.
+%=================================================================
+\documentclass[sensors,article,submit,moreauthors,pdftex]{Definitions/mdpi}
+
+%=================================================================
+% MDPI frontmatter
+\firstpage{1}
+\makeatletter
+\setcounter{page}{\@firstpage}
+\makeatother
+\pubvolume{1}
+\issuenum{1}
+\articlenumber{0}
+\pubyear{2026}
+\copyrightyear{2026}
+\history{}
+
+%=================================================================
+% Packages
+\usepackage{siunitx}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{graphicx}
+\usepackage{float}
+\setlength{\intextsep}{3pt plus 1pt minus 1pt}
+\setlength{\textfloatsep}{6pt plus 1pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\AtBeginDocument{\setlength{\bibsep}{0pt}\renewcommand{\bibfont}{\footnotesize}}
+\usetikzlibrary{arrows.meta, positioning, decorations.pathreplacing}
+\graphicspath{{../figures/}}
+
+% Custom commands
+\newcommand{\modelname}{G-Code Decoder}
+\newcommand{\encname}{MM-DTAE-LSTM}
+\newcommand{\ie}{\textit{i.e.}}
+\newcommand{\eg}{\textit{e.g.}}
+\newcommand{\etal}{\textit{et al.}}
+\newcommand{\etc}{\textit{etc.}}
+
+% TBD placeholder — renders in red in the PDF so editors cannot miss it.
+% Usage: \TBD{token_acc_5fold} → "[TBD: token_acc_5fold]" in red.
+% See TABLES_REGENERATION_GUIDE.md for the mapping of each key to its
+% authoritative source.
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% MDPI back-matter macros not present in the local (older) mdpi.cls.
+% Provide local definitions so the manuscript renders the standard
+% Sensors back-matter blocks; the production class file will redefine
+% these on submission.
+\providecommand{\institutionalreview}[1]{\medskip\noindent\textbf{Institutional Review Board Statement:} #1\par}
+\providecommand{\informedconsent}[1]{\medskip\noindent\textbf{Informed Consent Statement:} #1\par}
+\providecommand{\dataavailability}[1]{\medskip\noindent\textbf{Data Availability Statement:} #1\par}
+\newcommand{\TBD}[1]{\textcolor{red}{\textbf{[TBD: #1]}}}
+
+%=================================================================
+% Title
+\Title{Per-Field Categorical G-Code Recoverability from Multi-Modal Sensor Embeddings on a Desktop CNC Mill: A Single-Platform Characterization Study}
+
+\newcommand{\orcidauthorA}{0009-0009-0292-9706}
+
+\Author{Stephen S. Eacuello $^{1,}$*\orcidA{}, Romesh S. Prasad $^{1}$ and Manbir S. Sodhi $^{1}$}
+
+\AuthorNames{Stephen S. Eacuello, Romesh S. Prasad and Manbir S. Sodhi}
+
+\address{%
+$^{1}$ \quad Department of Industrial Systems Engineering, University of Rhode Island, Kingston, RI 02881, USA}
+
+\corres{Correspondence: seacuello@uri.edu}
+
+\abstract{
+A cyber-physical attack can alter the executed G-code without altering the loaded file, a forgery invisible to file-hash checks. We characterize \textbf{per-field categorical recoverability} of G-code from a 4~Hz seven-modality sensor stream on a desktop CNC mill (TRL~4), using a grammar-constrained six-head Transformer decoder over a frozen denoising encoder under five-fold file-level cross-validation. Categorical fields are recoverable: the command, parameter-type, and sign heads are teacher-forced/autoregressive invariant, at $\sim\!0.89$ command accuracy. Above the operation-class modal predictor, the decoder adds a $+22$~pp within-class command increment. It is a 4-of-5-fold effect (near-zero on one covariate-shift outlier), survives a class-conditioned null, and is an \emph{upper} bound on sensor-driven recovery. Generative reconstruction is not: token accuracy falls $0.78\!\to\!0.21$ and digit $0.59\!\to\!0.10$ under autoregression, with whole-sequence exact-match at $0.026$, reflecting mode collapse in a stream where $77.7\%$ of blocks occupy $\le\!1$ sample period. On an open-vocabulary leave-one-class-out holdout, command recovery collapses to $0.213$. Coordinate reconstruction is unsupported, its ceiling set by source entropy and a sub-Nyquist floor (companion paper). Tamper operating points are \textbf{illustrative, prior-dominated, and not a validated detector}; the posture is forensic-support post-hoc audit in a single-platform, closed-world scope, not real-time intrusion detection.
+}
+
+\keyword{CNC machining; G-code reconstruction; multi-modal sensor fusion; manufacturing cybersecurity; tamper detection; grammar-constrained inference; forensic audit}
+
+\begin{document}
+
+% =====================================================================
+\section{Introduction}
+\label{sec:introduction}
+
+A Computer Numerical Control (CNC) milling machine drives a cutting tool along G-code-specified multi-axis toolpaths to micrometer tolerances. Every cut leaves a multi-modal sensor signature in machine-frame vibration, acoustic emission, motor-current draw, and ambient temperature and illumination. Whether that signature is informative enough to \emph{recover} the instruction stream line by line, without controller access, is the question this paper takes up, with consequences for sensor-side recoverability bounds and deployment-grade audit of contested runs.
+
+We study a single desktop CNC milling platform (Bantam Tools desktop mill, machinable-wax workpiece, dry stepper-driven cutting, 4~Hz envelope-extracted sensor stream); cross-platform replication on a production-class VMC is future work (Section~\ref{sec:roadmap}) and a precondition for any deployment claim beyond this scope. The intended application is \textbf{forensic-support post-hoc audit}: a controller-independent record of executed instructions, reviewed offline against the controller log when a run is flagged, complementing file-hash signing and controller attestation, not a real-time intrusion-detection system. It also supports offline process verification and human-in-the-loop triage in networked manufacturing environments~\cite{nist2023sp80082,nist2024fmnet,sturm2014cyber,yampolskiy2018security,zhong2017intelligent,kimmell2025cnc}, over a narrow subset of G-code substitutions (command, axis, and motion-sign edits) within the trained toolpath envelope.
+
+Three boundaries are out of scope. First, real-time autonomous SOC tier-1 alerting is \emph{not} a supported deployment posture on this stack (Section~\ref{sec:disc-threat-model}). Second, numeric-coordinate and feed-rate substitutions remain undetectable on the present 4-Hz sensor stack by an information-theoretic bound (Section~\ref{sec:disc-threat-model}). Third, the audit posture is bound to \emph{in-distribution} inputs, closed-world over the V8 token vocabulary (Section~\ref{sec:problem-vocab}) and the nine training-time operation classes (Section~\ref{sec:dataset}); novel-command and novel-operation-class inputs fall outside this envelope (LOCO collapse, Section~\ref{sec:loco}). The wider cost envelope a richer sensor stack could catch~\cite{teti2010advanced,serin2020tool} frames future cross-platform replication, not the present system.
+
+Sensor monitoring of CNC machines is mature but coarse-grained (Section~\ref{sec:related-cnc}). Whether the specific G-code instruction executing at this moment is identifiable from sensors alone has been largely absent from the CNC literature, despite implications for tamper detection, for the dual-use side-channel leakage of manufacturing instructions~\cite{alfaruque2016acoustic,song2016my,chhetri2016kcad,chhetri2017confidentiality,jamarani2024screg,chattopadhyay2025video}, and for root-cause analysis on contested runs.
+
+\paragraph{Why CNC milling is harder than the additive-manufacturing analogue.} In the closest analog, side-channel toolpath reconstruction in additive manufacturing~\cite{alfaruque2016acoustic,song2016my,chhetri2016kcad}, Fused Deposition Modeling deposits material one axis at a time and sensors can be placed freely. CNC milling is a harder signal environment: simultaneous multi-axis interpolation, nonlinear force-engagement, structural vibration through the machine frame, and high-energy chip ejection corrupt sensor signals and constrain sensor placement~\cite{teti2010advanced,wang2018deep}. The mapping is also many-to-one, since many instructions produce similar signatures when cutting parameters coincide and one instruction can be cut at different speeds, depths, or materials.
+
+\paragraph{Building on prior work in our group.} The sensor encoder used here is a prior contribution achieving 96.3\% accuracy on nine-class CNC operation classification via a multi-modal denoising autoencoder over six distributed sensor boards~\cite{encoder_paper}, establishing representational competence at \emph{operation-class} granularity. A companion contribution defined a hybrid grammar-based tokenization of G-code for sequence models~\cite{grammar_paper}. This paper takes the encoder as a fixed feature extractor and the grammar as a vocabulary, asking what its per-window latent carries about the row-level instructions that drove the cut.
+
+\paragraph{Three challenges specific to this task.} Direct G-code generation from sensor signals raises three issues that off-the-shelf sequence-to-sequence models~\cite{sutskever2014sequence,bahdanau2014neural,vaswani2017attention,graves2013speech} do not address. (i)~A 64-second window straddles tens to hundreds of G-code rows, so a naive window-level target destroys row-level information. (ii)~The numeric vocabulary contains thousands of bucket tokens, most absent from any one training fold. (iii)~Positional metadata (window index, file identifier) is a shortcut that inflates accuracy without proving sensor-driven recovery~\cite{meyes2019ablation,jia2016deep}.
+
+\textbf{Research questions.}
+\begin{enumerate}[label=\textbf{RQ\arabic*.}, leftmargin=*]\let\item\olditem
+\item \textbf{Per-field recoverability (window-aggregated).} Which components of a G-code line (command identity, axis presence, motion direction, numeric value) are recoverable from sensor data alone, and with what fidelity? At the released 4-Hz rate, $77.7\%$ of G-code rows occupy $\le\!1$ sample period (Section~\ref{sec:lim-method}), so any answer is a \emph{window-aggregated row-modal recovery} claim, not a sub-sample-resolved per-row claim.
+\item \textbf{The metadata-versus-sensor split.} Does exposing positional metadata (window index, file identifier) to the decoder improve recovery, and which fields benefit?
+\item \textbf{Sensor-modality contribution.} Which of seven sensor groups (accelerometer, gyroscope, magnetometer, environmental, color, audio-RMS, electrical) carry the strongest instruction-level signal?
+\item \textbf{Cross-class generalization.} Does the decoder generalize to machining operation classes it never saw during training (leave-one-class-out)?
+\end{enumerate}
+
+\paragraph{Headline findings (stated as bounds, not raw accuracy).} The central quantities are not the closed-vocabulary $\sim\!0.89$ command accuracy but two bounds that frame it. Above the operation-class modal predictor, the decoder adds a $+22$~pp class-prior-controlled within-class command increment (Section~\ref{sec:disc-confound}), which we report as an \emph{upper} bound on sensor-driven recovery; it is robust to conditioning the null on operation class but is a 4-of-5-fold effect that is zero on one fold. On an open-vocabulary leave-one-class-out holdout, command recovery collapses to a floor of $0.213$ (Section~\ref{sec:loco}). End-to-end generative reconstruction is at floor (autoregressive whole-sequence exact-match $0.026$). We therefore reserve ``recovery'' for the per-field categorical heads and treat generative coordinate reconstruction as unsupported on this stack.
+
+\paragraph{Contributions.}
+\begin{enumerate}[label=\textbf{(\arabic*)}, leftmargin=*]\let\item\olditem
+\item \textbf{Per-row supervised target formulation.} Each sensor window is mapped to the single G-code line firing within it, yielding $\sim$19{,}500 training samples per fold versus $\sim$300 for a window-level alternative and removing within-window label ambiguity.
+
+\item \textbf{\modelname{} architecture.} A Transformer decoder with six structured prediction heads (token, type, motion-command, parameter-type, sign, digit) over the frozen latent of a prior multi-modal denoising encoder~\cite{encoder_paper}, grammar-constrained at the token head so that structurally invalid transitions are masked at runtime~\cite{picard,outlines,xgrammar}.
+
+\item \textbf{Per-axis recoverability characterization} reporting for each field whether the axis is detected, the motion direction is correct, and the numeric value is recovered. The corpus supports X, Y, Z, and R; F at thin support; S, I, and J are not evaluable.
+
+\item \textbf{Ablation matrix} over positional-metadata access, per-row vs. full-window targets, sequence-classifier prior, vocabulary precision, each of seven sensor modalities, and a no-numeric retraining (Section~\ref{sec:results-rq2}) that decomposes the autoregressive mode-collapse into a measurable numeric-desynchronization contribution and a dominant intrinsic structural-stream collapse.
+
+\item \textbf{Cross-class generalization study}: leave-one-class-out across nine operation classes, testing whether the decoder memorizes per-class shortcuts or generalizes within the present envelope.
+
+\item \textbf{From-scratch Transformer seq2seq baseline} (Section~\ref{sec:abl-seq2seq-baseline}) scoping the architectural contribution to autoregressive deployment-mode inference, where the frozen encoder plus grammar-constrained decoder plus structured heads buy the lift. A companion limit paper~\cite{paperB_entropy} accounts for \emph{why} the recoverability pattern takes this shape (Section~\ref{sec:related-sidechan}).
+\end{enumerate}
+
+\paragraph{Scope statement.} Every quantitative result is conditional on this single desktop platform, material class, and 4~Hz sensor stream; cross-platform replication is future work (Section~\ref{sec:roadmap}).
+
+% =====================================================================
+\section{Related Work}
+\label{sec:related}
+
+\subsection{CNC Process Monitoring and Multi-Modal Sensor Fusion}
+\label{sec:related-cnc}
+
+Sensor-based machining monitoring is mature. Force, vibration, acoustic emission, temperature, and motor current are complementary modalities for tool-condition assessment~\cite{teti2010advanced}, historically via hand-crafted Fourier and wavelet features~\cite{zhu2009wavelet,mohanraj2020tool} and later via end-to-end deep feature learning~\cite{wang2018deep,zhao2019machine}. Convolutional networks over vibration spectrograms and raw multi-channel signals address bearing fault detection~\cite{janssens2016convolutional}, surface-roughness classification~\cite{bhandari2021comparative,stathatos2024cnn}, and CNC anomaly detection~\cite{coelho2024anomaly}. Multi-modal fusion spans early, late, and intermediate strategies~\cite{lahat2015multimodal,ramachandram2017deep}, with cross-modal attention useful when modalities are complementary rather than redundant~\cite{cao2023crossattention,wang2024multisensor}; motor-current and servo-drive signatures are an established adjacent modality for load and toolpath inference~\cite{teti2010advanced,wang2018deep}, one of the seven modality groups fused by the encoder used here.
+
+Digital-twin and digital-shadow verification compares observed machine state against a simulated reference of the \emph{intended} program~\cite{bergs2021digital}; the present work instead reconstructs the executed stream from sensors alone, without a reference model or trusted controller, on orthogonal trust assumptions. Two gaps persist relative to instruction-level recovery. Prior target labels are session-level (tool worn / not worn) or coarse class labels (turning vs.\ milling)~\cite{tsanousa2022multisensor}, with per-row instruction targets largely absent. Sensor-group ablations that quantify marginal contribution~\cite{meyes2019ablation,jia2016deep} are also uncommon in CNC monitoring, leaving open which sensors carry instruction-level as distinct from operation-class signal.
+
+\subsection{Sequence-to-Sequence Modeling and Grammar-Constrained Decoding}
+\label{sec:related-seq2seq}
+
+Sequence-to-sequence models, established for natural-language translation~\cite{sutskever2014sequence,bahdanau2014neural,vaswani2017attention}, have been applied to speech~\cite{graves2013speech}, time series~\cite{wen2023transformers}, and robotics~\cite{robotics_s2s}. Long Short-Term Memory networks~\cite{hochreiter1997long} remain common for sequential industrial data with streaming, causally ordered inference~\cite{malhotra2015lstm}, and denoising autoencoders~\cite{vincent2010stacked} learn representations robust to mechanical, electromagnetic, and thermal sensor noise.
+
+When the output follows a known grammar, constrained decoding prunes structurally invalid tokens at inference time, from parser-guided text-to-SQL~\cite{picard} and general code generation~\cite{synchromesh,lmql} to near-zero-overhead per-token masking via reusable automata~\cite{outlines,xgrammar}. Geng \etal~\cite{geng2023gcd} recover structured outputs from off-the-shelf pretrained models without task-specific fine-tuning. G-code is amenable to the same treatment, since instructions are an optional command token followed by address-value pairs under first-order ordering constraints~\cite{grammar_paper,gcode_foundational}. Recent large-language-model G-code generation for additive manufacturing~\cite{gllm,image2gcode,chatcnc} works from natural-language descriptions or images, a distinct task that ignores sensor-conditioned recovery.
+
+\subsection{Side-Channel Reconstruction of Manufacturing Instructions}
+\label{sec:related-sidechan}
+
+The closest analog is side-channel reconstruction of toolpaths in additive manufacturing. Al~Faruque \etal~\cite{alfaruque2016acoustic} recovered Fused Deposition Modeling print geometry from acoustic emissions, Song \etal~\cite{song2016my} reproduced printed objects from a smartphone microphone alone, and Chhetri \etal~\cite{chhetri2016kcad} identified kinetic anomalies indicative of attacks. Later work reconstructs full part geometries from 3D printers via optical~\cite{chattopadhyay2025video} and combined acoustic-magnetic~\cite{jamarani2024screg} side-channels; Sturm \etal~\cite{sturm2014cyber} and Yampolskiy \etal~\cite{yampolskiy2018security} survey cyber-physical attack taxonomies.
+
+That literature typically uses \emph{raw acoustic emission} at kHz--MHz rates, whereas the present work uses an \emph{audio-RMS envelope} scalar feature at $4$~Hz that retains cutting-sound energy magnitude but discards the spectral content driving most prior AM methods, making the recovery reported here not directly comparable and more conservative in its sensor demands. Because CNC milling is a harder sensor environment than additive manufacturing (Section~\ref{sec:introduction}), those methods do not transfer directly. Kimmell \etal~\cite{kimmell2025cnc} detect control-injection attacks via energy-anomaly thresholds, but perform binary detection rather than instruction-level reconstruction. To our knowledge, no prior work reports per-row G-code recovery from CNC sensor data with structured-output evaluation.
+
+A companion limit paper~\cite{paperB_entropy} develops the information-theoretic account of \emph{why} per-field recoverability stratifies as it does, via the per-head and per-toolpath source entropy of the CNC instruction stream and its 4~Hz sub-Nyquist floor; the present work treats those bounds as given.
+
+\subsection{Manufacturing Cybersecurity and Process Verification}
+\label{sec:related-security}
+
+Adversarial G-code substitution in PLC and CNC controllers is an established attack surface~\cite{kimmell2025cnc}, which motivates a controller-independent, out-of-band record of the executed instruction stream as an integrity-checking baseline that controller-resident malware cannot subvert, subject to the sensor path itself being trustworthy (Section~\ref{sec:disc-threat-model}). The present work characterizes only which components of that stream are reconstructable on present-day sensor hardware; the tamper-detection apparatus built on the record, its guarantees, and its sensor-integrity assumptions are deferred to a companion security paper.
+
+\paragraph{Positioning.} Against representative prior work, AM side-channel studies~\cite{alfaruque2016acoustic,song2016my,chhetri2016kcad,chattopadhyay2025video} report toolpath-geometry or binary-anomaly targets without field-level or leave-one-class-out evaluation; CNC studies~\cite{stathatos2024cnn,coelho2024anomaly,kimmell2025cnc} and the encoder contribution~\cite{encoder_paper} report class-level or binary targets; file-hash signing~\cite{belikovetsky2017drowned,nist2024fmnet} and controller attestation~\cite{zonouz2014plc} are orthogonal non-sensor defenses. This work is the only entry with a per-row token-sequence target, field-level evaluation, and a nine-class LOCO test under 5-fold file-level cross-validation.\label{sec:related-comparison} To our knowledge this is the first per-instruction, per-field categorical recovery of CNC \emph{milling} G-code from a multi-modal sensor stream; the cross-validation and LOCO protocol support that claim rather than standing as a co-equal novelty leg.
+
+
+% =====================================================================
+\section{Problem Formulation}
+\label{sec:problem}
+
+\subsection{Task Definition}
+\label{sec:task}
+
+Let $W \in \mathbb{R}^{T \times C}$ denote a sensor window of $T$ samples at $C$ channels, aligned to a CNC milling operation, and $g$ the G-code line executing within $W$. The task is to learn a mapping
+\begin{equation*}
+  f_\theta: W \mapsto \hat{g}, \qquad \hat{g} = (\hat{t}_1, \hat{t}_2, \dots, \hat{t}_L),
+\end{equation*}
+where $\hat{g}$ is a sequence of $L$ G-code tokens from a vocabulary $\mathcal{V}$. Training minimizes a multi-head cross-entropy loss with the auxiliary structured heads of Section~\ref{sec:decoder}; each target ends in an end-of-sequence token. At inference, the decoder generates tokens autoregressively under a grammar mask that zeros structurally invalid transitions in the legacy-token head.
+
+\subsection{Vocabulary and Token Types}
+\label{sec:problem-vocab}
+
+Following CNC-shop convention, each G-code line is a \emph{block}: \emph{rapid moves} (\texttt{G0}, traverse without cutting) or \emph{cutting moves} (\texttt{G1}/\texttt{G2}/\texttt{G3}, linear and arc feeds). Both are tokenized identically by a hybrid scheme disentangling structural primitives from numeric values~\cite{grammar_paper,gcode_foundational}. The vocabulary has four token classes:
+\begin{itemize}
+\item \textbf{SPECIAL tokens}: \texttt{PAD}, \texttt{BOS}, \texttt{EOS}, \texttt{UNK}, \texttt{MASK}.
+\item \textbf{COMMAND tokens}: literal motion or machine commands (\texttt{G0}, \texttt{G1}, \texttt{G2}, \texttt{G3}, \texttt{M3}, \texttt{M5}, \texttt{M30}, \ldots).
+\item \textbf{PARAM tokens}: address letters introducing an axis or rate parameter (\texttt{X}, \texttt{Y}, \texttt{Z}, \texttt{I}, \texttt{J}, \texttt{K}, \texttt{R}, \texttt{F}, \texttt{S}, \texttt{P}).
+\item \textbf{NUMERIC tokens}: bucketed numeric values, one bucket per (axis, magnitude) pair. The vocabulary contains 1{,}048 \texttt{NUM\_X} buckets, 1{,}086 \texttt{NUM\_Y} buckets, and 231 \texttt{NUM\_Z} buckets, with smaller sets for the remaining axes; total vocabulary size 2{,}418. Per-axis quantization precisions, the bucket-index formula, and the out-of-range fallback are in Appendix~\ref{app3:addenda}.
+\end{itemize}
+
+For example, \texttt{G1 X1.4919 Y1.4848 F22.} becomes \texttt{BOS G1 X NUM\_X\_1492 Y NUM\_Y\_1485 F NUM\_F\_22 EOS}. Bucketization discretizes to a fixed precision; the per-position digit head (Section~\ref{sec:decoder}) supplies an auxiliary regression-style signal mitigating the discretization loss.
+
+\subsection{Per-Row Target Formulation}
+\label{sec:per-row}
+
+A naive target assigns one G-code label per window. Here a 256-sample window at 4~Hz spans 64 seconds and averages 60 G-code rows (median 29, max 237), so a window-level target aggregates across rows and discards row-level distinctions such as an \texttt{X} positive versus negative move. We instead emit one $(W, g_r)$ pair per row $r$ firing within $W$, with $g_r$ that row's token sequence. This per-row formulation removes within-window label ambiguity (each pair has exactly one correct target), raises the training-sample count by an order of magnitude ($\sim$19{,}500 per fold versus $\sim$300 window-level), and decouples it from the windowing schedule, blocking positional-shortcut label inference on \texttt{(window\_index, source\_file)}.
+
+A complementary \emph{full-window} formulation (ablation, Section~\ref{sec:results-rq2}) keeps one sample per window with a multi-line target of all fired rows in temporal order: fewer samples but a richer per-sample signal, testing whether row-level autoregressive context closes any per-row recovery gap.
+
+\subsection{Evaluation Metrics}
+\label{sec:metrics}
+
+We report seven metrics:
+
+\begin{enumerate}
+\item \textbf{Token accuracy}: proportion of non-padding positions whose argmax matches the target; the headline metric.
+\item \textbf{Sequence accuracy}: proportion of test samples with \emph{every} non-padding token correct; a strict exact-match metric.
+\item \textbf{Type accuracy}: per-token accuracy on the 4-way SPECIAL/COMMAND/PARAM/NUMERIC type head.
+\item \textbf{Command accuracy}: per-token accuracy on the 6-way motion-command head at COMMAND positions.
+\item \textbf{Parameter-type accuracy}: per-token accuracy on the 10-way axis-letter head at PARAM positions.
+\item \textbf{Sign accuracy}: per-position accuracy on the 3-way (positive, negative, absent) motion-sign head.
+\item \textbf{Numeric (digit) accuracy}: per-digit-position correctness pooled across all six digit positions in NUM tokens; the companion regression measure is the reconstructed-coordinate mean absolute error (MAE).
+\end{enumerate}
+
+Macro precision, recall, and F1 are computed per head with scikit-learn~\cite{pedregosa2011sklearn} on the per-token confusion matrix.
+
+\paragraph{Teacher-forced vs.\ autoregressive evaluation.} \emph{Teacher-forced} (TF) evaluation supplies the ground-truth previous token at every position (the training objective and sweep-time metric); \emph{autoregressive} (AR) evaluation consumes the model's own predictions, measuring end-to-end generation when no controller log anchors the sequence. The categorical heads (type, command, parameter-type, sign) are independent classifiers on the encoder memory and report identical TF and AR accuracies; the autoregressive-token heads score lower under AR because exposure-bias errors compound along the sequence. The headline table reports both regimes for the autoregressive heads and a single number for the categorical heads.
+
+\subsection{Threat Model (Companion Study)}
+\label{sec:problem-threat-model}
+
+The application motivating per-field recoverability is out-of-band verification of the executed instruction stream against controller-resident tampering. The full threat model --- trusted and untrusted elements, the attack-class taxonomy, and per-class detectability --- is developed in a companion security study; the present paper characterizes only which G-code fields are recoverable, the precondition for any such monitor.
+
+% =====================================================================
+\section{Method}
+\label{sec:method}
+
+\subsection{System Overview}
+\label{sec:system-overview}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.66\linewidth]{system_overview.pdf}
+\caption{System overview. A 64-second sensor window ($256$ samples $\times$ $98$ channels across seven modality groups) is mapped by the frozen \encname{} encoder (8.6\,M parameters) to a $256 \times 256$ memory tensor. An 8-layer Transformer decoder ($d_{\text{model}}{=}384$, 12 heads) consumes this memory via cross-attention and generates tokens autoregressively. Six prediction heads share the decoder's hidden state and provide structured output (token, type, motion-command, parameter-type, sign, per-position digit). A static grammar mask zeros structurally invalid token transitions in the legacy-token softmax at inference time.}
+\label{fig:system-overview}
+\end{figure}
+
+The system has three stages (Figure~\ref{fig:system-overview}): a frozen multi-modal encoder produces a memory sequence from the sensor window; a Transformer decoder generates the executing G-code line via cross-attention; and a grammar mask zeros structurally invalid softmax transitions at inference. Encoder training is described in~\cite{encoder_paper}.
+
+\subsection{Sensor Encoder (Frozen)}
+\label{sec:encoder}
+
+The encoder (\encname{}) is a multi-modal denoising autoencoder coupled to a temporal LSTM. Its input is seven modality groups: accelerometer (3-axis, 6 boards = 18 channels), gyroscope (18), magnetometer (18), environmental temperature (6), ambient color (24), audio RMS (6), and motor current (8), totaling $C=98$ channels. Per-modality projection maps each into a shared $d=256$ space; learned modality-weighting gates~\cite{lahat2015multimodal,ramachandram2017deep} fuse them, a multi-head self-attention stack~\cite{vaswani2017attention} captures cross-channel interactions, a denoising reconstruction objective~\cite{vincent2010stacked} encourages noise-robust representations, and a two-layer LSTM~\cite{hochreiter1997long,malhotra2015lstm} produces the temporal memory. The encoder has 8.6~M parameters, trained for 30 epochs on the same file-level 5-fold splits, reaching 96.3\% test-set accuracy on the nine-class operation-type task~\cite{encoder_paper}. Training used AdamW ($\eta\!=\!10^{-4}$), batch size 32, dropout 0.2, denoising noise $\sigma_{\text{noise}}\!=\!0.1$, and early stopping on validation operation-class accuracy; per-fold checkpoint hashes are released.
+
+
+\subsection{Decoder Architecture}
+\label{sec:decoder}
+
+\modelname{} is an 8-layer Transformer decoder with $d_{\text{model}}=384$ and $h=12$ attention heads per layer. Each layer applies masked self-attention over the partial output, cross-attention over the encoder memory, a GELU feed-forward network, and pre-layer-norm residual connections~\cite{ba2016layernorm}, with dropout~\cite{srivastava2014dropout} of $0.1$ after each sub-layer. The decoder has $31.28$~M trainable parameters ($18.9$~M in the Transformer stack; full breakdown in Appendix~\ref{app3:repro}). With the frozen $8.6$~M encoder, total system size is $\approx\!39.9$~M parameters.
+
+\subsubsection{Multi-Head Structured Output}
+\label{sec:multihead}
+
+Six prediction heads share the decoder's final hidden state at each position. Each is a linear projection then softmax (six-position for the digit head), trained jointly with a weighted cross-entropy loss:
+\begin{equation*}
+\mathcal{L}_{\text{decoder}} =
+    \lambda_{\text{tok}}\,\mathcal{L}_{\text{tok}} +
+    \lambda_{\text{type}}\,\mathcal{L}_{\text{type}} +
+    \lambda_{\text{cmd}}\,\mathcal{L}_{\text{cmd}} +
+    \lambda_{\text{param}}\,\mathcal{L}_{\text{param}} +
+    \lambda_{\text{digit}}\,\mathcal{L}_{\text{digit}} +
+    \lambda_{\text{sign}}\,\mathcal{L}_{\text{sign}}.
+\end{equation*}
+Default weights are $\lambda_{\text{tok}}=3.0$ and all auxiliary $\lambda=1.0$; the auxiliary heads regularize the shared representation toward token-type-aware features. A fold-1 Stage-1 sweep over $\lambda_{\text{tok}}\!\in\!\{1, 3, 5\}$ sets the default: $\lambda_{\text{tok}}=1$ under-trains the token head ($-4$~pp TF token validation), $\lambda_{\text{tok}}=5$ costs the categorical heads ($-1$~pp parameter-type and sign), and $\lambda_{\text{tok}}=3$ is the validation-best compromise, a heuristic anchor rather than a 5-fold-optimized hyperparameter.
+
+\paragraph{Legacy token head.} A vocabulary-sized softmax (2{,}418 classes) on the final hidden state; the primary inference output, grammar-masked (Section~\ref{sec:grammar}) before the softmax.
+
+\paragraph{Type head.} A 4-way classifier over \{SPECIAL, COMMAND, PARAM, NUMERIC\}; the coarsest head, its accuracy upper-bounds the decoded sequence's structural sanity.
+
+\paragraph{Motion-command head.} A 6-way classifier over \{G0, G1, G2, G3, G53, M30\} at COMMAND positions. G53 and M30 have very small support ($n\!\approx\!6$ per fold, $\le\!30$ pooled), so their per-class F1 is underpowered (Section~\ref{sec:lim-power}).
+
+\paragraph{Parameter-type head.} A 10-way classifier over \{X, Y, Z, I, J, K, R, F, S, P\} at PARAM positions. Only X, Y, Z, R, and F have positive test-split support; I, J, K, S, P are absent from the test data, their per-class entries regenerable from the released decoded-prediction JSONs.
+
+\paragraph{Sign head.} A 3-way classifier over \{POSITIVE, NEGATIVE, ABSENT\} for the most recent axis-value's sign, supervising motion direction independently of the discretized value.
+
+\paragraph{Per-position digit head.} A six-position 11-way classifier (digits 0--9 plus PAD) reconstructing each NUM token digit-by-digit over the corpus precision range (typically $0\!-\!2\!.X\!X\!X\!X$ for X/Y), underlying the recoverability analysis of Section~\ref{sec:numeric-decomposition}.
+
+\subsubsection{Grammar-Constrained Decoding}
+\label{sec:grammar}
+
+G-code follows a regular grammar: a line starts with an optional command (G/M) token, each address letter is followed by exactly one numeric value, and certain commands (e.g.\ G2, G3) require specific fields. We encode the local part as a static $|V| \times |V|$ binary transition mask on the legacy-token logits at each inference step (BOS $\to$ command/PARAM; PARAM $\to$ matching NUM; NUM $\to$ PARAM/command/EOS). The mask cuts the valid next-token set from $|V|=$ 2{,}418 to 31.8 tokens on average. Implementation follows established runtime grammar-mask patterns~\cite{picard,synchromesh,lmql,outlines,xgrammar,geng2023gcd} (Section~\ref{sec:related-seq2seq}).
+
+\paragraph{Scope and limitations of the local mask.} The bigram mask does not encode command-state-dependent rules (e.g.\ R, valid only with G2/G3, must not follow G0), which require a finite-state grammar (FSM) over multi-token history. A separate inference-time FSM layer tracks the most recent move-command and forbids R/I/J after G0/G1 and any command/PARAM after M30, at autoregressive inference only (teacher-forced training already encodes correct structure); its full state specification is released with the artifacts.
+
+\paragraph{FSM ablation.} With the FSM active, V1 violations drop from 329 ($31\%$ of baseline samples) to $0$ ($100\%$ reduction) and from 333 ($25\%$ of with-shortcuts samples) to $11$ ($97\%$ reduction), at a 5-fold accuracy cost within fold-to-fold noise (paired-$t$ and Wilcoxon all $p>0.4$). It eliminates the dominant grammar-violation class at no measurable accuracy cost; we adopt it as the default deployment-time decoding configuration. Full counts and paired-test statistics are in \texttt{audit/fsm\_vs\_bigram\_paired\_stats.json}.
+
+\subsubsection{Scheduled Sampling}
+\label{sec:scheduled-sampling}
+
+By default the decoder trains with teacher forcing; a scheduled-sampling regime~\cite{scheduled_sampling} optionally replaces each input position with the model's own previous prediction with probability $p$ rising linearly from $0$ to a tuned $p_{\text{max}}$, reducing exposure bias. A composite-score sweep tested $p_{\text{max}} \in \{0.1, 0.2, 0.5, 1.0\}$ against the $p_{\text{max}}\!=\!0$ default on a composite score (fold-1 validation token accuracy plus held-out test command/numeric/sequence accuracy). The headline $p_{\text{max}}\!=\!0.5$ lifted command accuracy $+17$~pp over $p_{\text{max}}\!=\!0$, at the cost of optimization stability at smaller numeric vocabularies. Because the composite score touches held-out test metrics, this is a configuration choice, not an independent generalization estimate.
+
+\subsection{Training Configuration}
+\label{sec:training}
+
+The decoder is optimized with AdamW~\cite{loshchilov2019adamw} ($\eta = 5 \times 10^{-5}$, weight decay 0.05) for up to 300 epochs with early stopping on validation token accuracy (patience 75), a 10-epoch linear warm-up, batch size 64, per-epoch shuffling, and gradient clipping at norm 1.0. The baseline trains \emph{without} positional metadata (\texttt{window\_index}, \texttt{total\_windows}, \texttt{source\_file} are not exposed; Section~\ref{sec:results-rq2} ablates this). The 5-fold loss and token-accuracy curves decrease monotonically, plateauing near epoch 80--100, within the patience-75 budget; they are regenerable from the released training logs and figure scripts.
+
+
+
+
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Dataset}
+\label{sec:dataset}
+
+The corpus is 120 aligned CSV files from a Bantam Tools desktop CNC milling machine~\cite{encoder_paper}. Six distributed multi-sensor boards (\texttt{frame\_l2}, \texttt{frame\_l3}, \texttt{frame\_r2}, \texttt{spindle2}, \texttt{y\_bed\_\_3}, \texttt{y\_bed\_\_4}) sample synchronously at 4~Hz. Each file carries accelerometer (3 axes $\times$ 6 boards = 18 channels), gyroscope (18), magnetometer (18), ambient color sensing (RGBA $\times$ 6 boards = 24), environmental temperature (6), audio root-mean-square (6), and motor-current draw (8), plus an aligned per-sample G-code line. Following the encoder paper's consistency audit~\cite{encoder_paper} we drop proximity and pressure channels, retaining $C=98$ sensor channels.
+
+\paragraph{Sensor mounting and envelope-extraction pipeline.} The six boards (frame uprights, spindle housing, moving Y-bed) each carry an identical $15$-channel inventory, plus 8 controller-side electrical channels. All channels are read at factory-rated sensitivities and envelope-extracted to the released 4~Hz rate by a single-pole IIR rectify-and-low-pass filter at $f_c\!=\!2$~Hz, clock-aligned across boards, trading the kHz-band content of classical acoustic-emission monitoring~\cite{teti2010advanced} for a $\sim 1.5$~kB/s envelope. On-board pre-envelope rates are $1$~kHz (audio), $200$~Hz (MEMS accelerometer/gyroscope/magnetometer), and $\geq\!100$~Hz (temperature, RGBA color, motor current), with no mid-corpus re-calibration; firmware (\texttt{src/firmware/envelope\_extract/}), chip-level part numbers, and electrical-channel mapping are released with the encoder paper~\cite{encoder_paper}.
+
+The dataset spans nine machining operation classes: \texttt{adaptive}, \texttt{adaptive150025}, \texttt{face}, \texttt{face150025}, \texttt{pocket}, \texttt{pocket150025}, \texttt{damageadaptive}, \texttt{damageface}, \texttt{damagepocket}, crossing three motion strategies (face, pocket, adaptive) with a clean baseline, a parameter variant, and a damaged-tool variant. The \texttt{150025} suffix denotes a $150$~mm/min CAM feed (posted to inch-mode G-code) at $25{,}000$~RPM spindle, all other CAM parameters fixed. A run is labelled \texttt{damage*} by an operational rule, not a roughness threshold: cut with a deliberately worn or chipped tool, the cutting-edge defect recorded in the run log. The six clean and parameter-variant classes hold $15$--$20$ files each, the three damaged-tool classes $4$--$5$ each; the per-class inventory, distinct G-code-line counts, and aligned-sample counts are released in \texttt{audit/operation\_class\_inventory.json}.
+
+\paragraph{Platform characterization and generalization risk.} The host is a Bantam Tools desktop CNC mill: cast-aluminum frame, ER11 collet spindle nominally to $\sim 28{,}000$~RPM, stepper-driven 3-axis gantry, no flood coolant, RS274/NGC-compatible dialect, every run cutting a single machinable-wax workpiece dry with one carbide end-mill class. Production VMCs of the Haas/DMG/Okuma class (cast-iron base, BT30/BT40 toolholders, servo drives, flood coolant) are expected to differ in vibration amplitude by $1$--$2$ orders of magnitude, and further in spectral content, acoustic emission, and motor-current signature. The corpus therefore characterizes one low-amplitude, dry, stepper-driven platform; whether the factorization transfers to a production VMC is the open question of Section~\ref{sec:roadmap}.
+
+\subsection{Preprocessing and Windowing}
+\label{sec:preprocessing}
+
+Sliding windows of $T=256$ samples (64 seconds at 4~Hz) at stride 64 give $\sim$1{,}500 windows per fold, each centered on continuous cutting and aligned to its overlapping G-code rows. The per-row target formulation (Section~\ref{sec:per-row}) emits one $(W, g_r)$ pair per G-code row $r$ that fires within window $W$, yielding $\sim$19{,}500 training, $\sim$7{,}000 validation, and $\sim$7{,}500 test pairs per fold. At 4~Hz across the 98 retained \texttt{float32} channels the on-line ingestion budget is $\sim$1.5~kB/s, or $\sim$0.13~GB per machine per 24-hour shift uncompressed.
+
+\paragraph{Sampling-rate context.} The 4~Hz rate constrains what is recoverable. A row-execution-duration audit over the 120-file corpus ($21{,}541$ row-execution instances; \texttt{audit/gcode\_row\_durations.json}) shows the median G-code row executes in a single $0.25$~s sample and $77.7\%$ of instances occupy $\le\!1$ sample period, against the $\geq\!10$~kHz of conventional acoustic-emission and vibration tool-condition monitoring~\cite{teti2010advanced}. Every recoverability result below should be read in that light; the full physical-aliasing discussion is in Section~\ref{sec:lim-method}.
+
+\subsection{Five-Fold File-Level Stratified Cross-Validation}
+\label{sec:cv}
+
+File-level stratified five-fold cross-validation prevents within-file leakage. Each operation class is split across folds in proportion to its frequency, so every fold covers all nine classes; within a fold, train and validation share a partition and test is the held-out partition.
+
+\paragraph{Closed-vocabulary evaluation regime (load-bearing).} A G-code-line \emph{coverage repair} step (Appendix~\ref{app3:addenda}) swaps files between train and test partners until every test line also appears in training. This \emph{constructs} a closed-vocabulary regime where every test line was seen verbatim in the same fold's training ($97.6\%$ of distinct test lines, $99.0\%$ of instances; Section~\ref{sec:lim-dataset}). The headline numbers are therefore within-vocabulary classification, not open-vocabulary recovery; the matched open-vocabulary number is the leave-one-class-out (LOCO) command accuracy of $0.213 \pm 0.191$ (Section~\ref{sec:loco}).
+
+\paragraph{Within-fold non-independence.} Overlapping windows (window $256$, stride $64$, $75\%$ overlap between adjacent windows of a file) make adjacent within-file windows statistically non-independent, so the effective number of independent within-fold observations is below the raw window count, though file-level disjointness across folds holds. The covariate-shift audit (Section~\ref{sec:lim-covariate}) and the bootstrap CIs on the 5-fold means therefore take the per-fold mean as the unit of analysis.
+
+
+\subsection{Statistical Analysis}
+\label{sec:stats}
+
+For each five-fold ablation we report the cross-fold mean and standard deviation, one-way ANOVA against the no-shortcuts baseline (SciPy~\cite{virtanen2020scipy}), and Cohen's $d$. Bootstrap 95\% confidence intervals use $10{,}000$ percentile resamples with the NumPy default RNG seeded at $42$. Paired comparisons add the Hedges' small-sample-corrected effect size $g_z\!=\!J\!\cdot\!d_z$, $J\!=\!1\!-\!3/(4(n\!-\!1)\!-\!1)$; at $n\!=\!5$ folds $J\!\approx\!0.80$, so $g_z$ runs $\sim$$20\%$ below $d_z$ throughout. Significance is marked $\ast\,p<0.05$, $\ast\ast\,p<0.01$, $\ast\ast\ast\,p<0.001$. Reported $\pm$ values follow each audit script's native convention: NumPy population s.d.\ for the headline and sensor-ablation tables, ddof$=$1 sample s.d.\ for the $K$-spectrum and no-numeric tables; the typical $\sim$10--15\% spread between conventions at $n\!=\!5$ changes no significance call or deployment recommendation.
+
+\paragraph{Inferential scope and a caution on $n=5$.} The unit of analysis is the per-fold mean, so every parametric test is on $n=5$ observations per group ($n=4$ for audio-RMS, one fold unrecoverable). We treat all $p$-values as \emph{descriptive}, the bootstrap 95\% intervals as a smoothed, not coverage-calibrated, indication of cross-fold spread, and the nonparametric tests (Mann--Whitney $U$, Wilcoxon) as primary; conclusions rest on effect sizes large relative to that spread. Single-fold pilots are labeled as such and excluded from every quantitative or deployment claim.
+
+\subsection{Software and Compute}
+\label{sec:software}
+
+The decoder is implemented in PyTorch and trained on NVIDIA RTX A6000 GPUs; preprocessing and analysis use scikit-learn~\cite{pedregosa2011sklearn} and SciPy~\cite{virtanen2020scipy}. The \texttt{HistGradientBoosting} non-neural baseline (Section~\ref{sec:results-baseline}) replaces XGBoost~\cite{chen2016xgboost}, whose available build was CUDA-only and failed on the CPU inference host (Appendix~\ref{app3:repro}). Sweeps were tracked with Weights and Biases; full code and configuration are released with the manuscript.
+
+% =====================================================================
+\section{Results}
+\label{sec:experiments}
+
+\subsection{Non-Neural Baseline Comparison}
+\label{sec:results-baseline}
+
+Two lightweight classifiers on the same mean-pooled encoder embedding the decoder consumes, a scikit-learn \texttt{HistGradientBoosting} (HGB) tree-booster and the two-layer MLP probe on the pooled encoder embedding, hit the most-common-class data-coverage ceiling on the binary fields ($\approx\!0.88$ \emph{has-X}, $0.99$ \emph{has-F}) but fall well short on multi-class command identity (HGB macro-F1 $0.23$, MLP $\approx\!0.24$), while HGB reaches macro-F1 $0.86$ on the one within-window-diverse field \emph{has-Z}, so the pooled embedding carries some per-row Z signal. The full comparison is released as \texttt{audit/nonneural\_baselines.json}.
+
+\subsection{RQ1: Headline Accuracy and Per-Field Recoverability}
+\label{sec:results-headline}
+
+Table~\ref{tab:headline} reports headline accuracies and macro precision/recall/F1 per head across five folds under teacher-forced (TF) and autoregressive (AR) evaluation. The categorical heads reach $0.9838 \pm 0.0085$ type accuracy, $0.8875 \pm 0.0558$ command accuracy, $0.9931 \pm 0.0036$ parameter-type accuracy, and $0.9888 \pm 0.0063$ pooled motion-sign accuracy; these encoder-memory per-position classifiers are regime-identical. The autoregressive-token heads diverge: token accuracy $0.7811 \pm 0.0216$ (TF) vs.\ $0.2148 \pm 0.0685$ (AR), numeric $0.5850 \pm 0.0331$ (TF) vs.\ $0.1038 \pm 0.0322$ (AR). Sequence exact-match is reported only under AR (per-fold $\{0.015, 0.000, 0.028, 0.056, 0.032\}$, mean $0.0263 \pm 0.0185$; \texttt{audit/ar\_aggregate.json}); a TF sequence score is ill-defined, so the AR $0.0263$ is the deployment-relevant figure, ; the AR-drop mechanism is autoregressive mode-collapse (companion study). The headline is seed-robust: four seeds span $0.0085$ seed-to-seed, far inside the cross-fold spread (Appendix~\ref{app3:repro}).
+
+We reserve \emph{recovery} for the sensor-conditioned, TF/AR-invariant per-field categorical heads (command, parameter-type, sign); the TF--AR gap on the token and numeric heads is the exposure-bias signature of autoregressive coupling (Section~\ref{sec:metrics}). End-to-end generative reconstruction is at floor (fewer than $3\%$ of windows reproduced verbatim), so this paper claims per-field categorical recoverability, not toolpath reconstruction.
+
+
+\paragraph{Robustness to the numeric-target patch.} A float-epsilon artifact at the finest decimal slots was corrected by a round-encoding retrain (\texttt{checkpoints/full\_window\_5fold\_patched/}). Headline and categorical metrics are \emph{robust} to it: patched vs.\ released 5-fold TF values are command $0.891$/$0.888$, token $0.774$/$0.781$, numeric $0.570$/$0.585$, type $0.983$/$0.984$, param-type $0.993$/$0.993$, and AR sequence $0.029$/$0.026$, every pooled/headline metric drifting $\le\!1.5$~pp, so Table~\ref{tab:headline} uses the released checkpoint. The patched retrain is used only for the numeric tier (Section~\ref{sec:numeric-decomposition}), where the correction concentrates, moving slot-5 accuracy from $0.77$ to $0.99$ while leaving the pooled numeric metric near-unchanged. The supervisory \texttt{target\_tokens} are identical between runs; the corpus-weighted correction rate is $32.5\%$ of numeric positions ($30.1\%$ terminal-zero $9\!\to\!0$ fixes). The historical iterative digitization (\texttt{slot[s] = int(dec\_part * 10) \% 10}) truncated IEEE~754 residuals: across $n\!=\!79{,}563$ audited slot-5 positions it encoded $23.6\%$ of CAM-authored terminal-zero values as slot-5 `9' (worst on X, $32.8\%$; $0.0\%$ on FP-clean R), while the round-to-scaled-integer rewrite (\texttt{src/miracle/model/digit\_value\_head.py}) yields zero corruptions ($4.5\%\!\to\!0.000\%$; \texttt{scripts/analysis/verify\_digit\_encoding\_fix.py}; full characterization in~\cite{paperB_entropy}).
+
+Three caveats govern these numbers. \textbf{First, they are closed-vocabulary, in-distribution} (coverage-repair regime, Section~\ref{sec:cv}; $97.6\%$/$99.0\%$ verbatim test-line overlap), so the command accuracy of $0.8875$ is within-vocabulary classification, \emph{not} a deployment-ready open-vocabulary number. Second, the frozen encoder shared the file-level fold partitions, so the headline $0.888$ carries an unmeasured representation-reuse component atop the per-instruction sensor recovery claimed here (Appendix~\ref{app3:addenda}). Third, three companion numbers anchor it: the LOCO cross-class command accuracy of $0.213 \pm 0.191$, the open-vocabulary floor (Section~\ref{sec:loco}); the class-prior control (Section~\ref{sec:disc-confound}) for the within-class sensor-driven increment over the operation-class modal predictor; and the AR collapse described above.
+
+\input{../tables/headline_5fold_conf.tex}
+
+
+
+The command head's macro F1 ($0.879 \pm 0.108$) is moderately below its raw accuracy ($0.8875 \pm 0.0558$), reflecting the long-tailed class distribution: G1 carries $\sim$830 test instances per fold, G3 $\sim$315, G0 $\sim$65, and G53 and M30 $\sim$6 each. Recovery is strong across all six classes with no collapse (per-class F1 in the released artifacts). The lowest, G2 at $0.82$, traces to bidirectional G1/G2 confusion in arc-rich windows (\texttt{figures/confusion\_matrix\_command\_normalized.pdf}): its largest off-diagonal cells G1$\to$G2 ($n\!=\!373$) and G2$\to$G1 ($n\!=\!253$) are directionally symmetric, a local-pattern ambiguity between linear cuts and arcs, not a one-way bias. Per-class minimum detectable effects ($\sim$$2.3$~pp on G1, $\sim$$8$~pp on G2/G3, $\sim$$19$~pp on G0 at $\alpha\!=\!0.05$, $\beta\!=\!0.20$; \texttt{audit/extended\_rigor\_audits.json}, Section~\ref{sec:lim-power}) bound the per-class column: smaller differences are not statistically distinguishable from sampling noise.
+
+
+
+
+
+The parameter-type head's macro F1 $0.986 \pm 0.013$ closely tracks accuracy: the four well-supported axis letters (X, Y, Z, R) each reach F1 $\ge\!0.989$, and thin-support F reaches F1 $0.958 \pm 0.042$ on only $\sim$$40$ test instances. The full per-class precision/recall/F1 cells are regenerable from the released decoded-prediction JSONs.
+
+\subsection{Per-Axis Recoverability}
+\label{sec:per-axis}
+
+For each axis letter we score \emph{has-axis} (axis present in the predicted block), \emph{sign} (motion sign when present: POSITIVE, NEGATIVE, ABSENT), and \emph{value MAE} (mean absolute error where both predicted and true blocks carry the axis). Table~\ref{tab:per_axis} reports these per axis; near-zero-presence fields cannot be meaningfully evaluated.
+
+
+\input{../tables/per_axis_recoverability_conf.tex}
+
+\begin{figure}[!htbp]
+\centering
+\begin{subfigure}{0.44\linewidth}\centering
+  \includegraphics[width=\linewidth]{per_axis_recoverability.pdf}
+  \caption{Per-axis recoverability (5-fold mean): has-axis F1, motion-sign accuracy, and value MAE (inches). The Y-vs-Z sign asymmetry reflects the near-deterministic Y prior versus Z's balanced sign distribution~\cite{paperB_entropy}.}
+  \label{fig:per_axis}
+\end{subfigure}\hfill
+\begin{subfigure}{0.52\linewidth}\centering
+  \includegraphics[width=0.8\linewidth]{per_digit_position_curve.pdf}
+  \caption{The numeric-recovery ``bathtub'' (per-digit accuracy, 5-fold mean $\pm$ std, teacher-forced, patched retrain): slot~0 at $1.00$ descends to the precision floor at slot~4 ($0.42$, thousandths, the finest CAM digit); slot~5 returns to $0.99$ as a structural zero of the V8 tokenizer's $0.001$ grid (discarding the $\sim\!3.31$-bit source digit), not information-bearing recovery~\cite{paperB_entropy}. Source: \texttt{audit/patched\_numeric\_analysis.json}.}
+  \label{fig:per_digit_position_curve}
+\end{subfigure}
+\caption{The numeric tier: per-axis summary (left) and per-digit decomposition (right).}
+\label{fig:numeric-tier-pair}
+\end{figure}
+
+
+
+Four patterns emerge. First, axis-presence detection is uniformly high: X, Y, and Z reach perfect 5-fold has-axis accuracy ($1.000 \pm 0.000$), R $0.994 \pm 0.012$, and F $0.960 \pm 0.023$ on its thin support. Second, motion-sign recovery is axis-asymmetric but \emph{prior-driven}, not a sensor-separability ranking: Y-sign ($0.997 \pm 0.006$) and X-sign ($0.942 \pm 0.033$) ride near-deterministic priors ($H_{Y}^{\text{sign}}\!=\!0.08$, $H_{X}^{\text{sign}}\!=\!0.38$~bits), while Z-sign ($0.938 \pm 0.023$), the only sensor-bearing balanced-distribution axis ($H_{Z}^{\text{sign}}\!=\!1.04$~bits), scores lower as a harder sensor-driven binary classification, not weaker coupling. Third, the patched-retrain value MAE (\texttt{audit/patched\_numeric\_analysis.json}) is small for Z ($0.009$ patched; $0.012$ on the released checkpoint) and arc-radius R ($0.021$) but larger for X ($0.248$) and Y ($0.205$), all in inches; the per-digit decomposition (Section~\ref{sec:numeric-decomposition}) localizes this to middle digits, and the wide X fold spread ($\pm 0.14$) reflects large X-axis moves. Fourth, spindle (S) and arc parameters (I, J) have effectively zero positive support and cannot be meaningfully evaluated (Figure~\ref{fig:numeric-tier-pair}). The per-axis error distributions (\texttt{figures/numeric\_error\_histogram.pdf}) are bimodal: X/Y/Z errors heavy-tailed at $10^{-2}$ and $10^{-1}$-inch magnitudes, R near exact-match, so the Table~\ref{tab:per_axis} MAE is a two-regime midpoint.
+
+\subsection{Numeric Digit Head Decomposition}
+\label{sec:numeric-decomposition}
+
+The digit head achieves $0.5850 \pm 0.0331$ mean accuracy under teacher forcing, dropping to $0.1038 \pm 0.0322$ under autoregressive evaluation (Table~\ref{tab:headline}). The per-position decomposition uses the TF condition on the float-epsilon-corrected retrain (\texttt{audit/patched\_numeric\_analysis.json}), aligning the entropy and accuracy axes at the finest digits. The pooled 5-fold per-slot accuracy is bathtub-shaped (Figure~\ref{fig:per_digit_position_curve}): slot~0 ($10^{1}$, tens) $0.9999$; slot~1 ($10^{0}$, units) $0.9223 \pm 0.0180$; slot~2 (tenths) $0.7478 \pm 0.0253$; slot~3 (hundredths) $0.5465 \pm 0.0269$; and slot~4 ($10^{-3}$, thousandths) bottoms out at $0.4165 \pm 0.0239$, the \emph{true precision floor}, since the thousandths is the finest digit the CAM postprocessor emits. Slot~5 ($10^{-4}$, ten-thousandths) returns to $0.9931 \pm 0.0067$ because the V8 tokenizer quantizes X/Y/Z onto a $0.001$ grid ($p_X\!=\!p_Y\!=\!p_Z\!=\!10^{-3}$; Appendix~\ref{app3:addenda}), making the tokenized target's ten-thousandths digit structurally near-zero entropy ($0.31$~bits), deterministically reproduced rather than information-bearing. This slot-5 ``upturn'' is a tokenizer representation choice, not a source or sensor limit: the companion limit paper~\cite{paperB_entropy} shows R, quantized on a $0.0001$ grid, retains its ten-thousandths digit. Slot-5 also stratifies by operation class on the raw source, decoder-free: facing toolpaths are low-entropy through geometric coordinate repetition (in \texttt{face}, four edge-overrun X values, $X\!=\!-0.1254$/$-0.2084$/$3.275$/$3.358$, carry $96.5\%$ of the $2{,}238$ face X-coordinates; slot-5 entropy $\approx\!1.55$--$1.71$~bits), adaptive HSM toolpaths sit at the CAM-interpolation-noise ceiling ($\approx\!3.26$--$3.30$~bits), and pocket-style toolpaths fall between ($\approx\!2.58$--$3.22$~bits) (\texttt{audit/per\_slot\_per\_opclass\_entropy.json}; full stratification in~\cite{paperB_entropy}).
+
+The decoder therefore behaves as a \emph{coarse-resolution coordinate recoverer}: it reproduces the physically- or geometrically-constrained high-order digits and the deterministic trailing digit, bounded at a near-uniform-noise ceiling ($\approx\!\log_2 10$ bits) at the thousandths place where the CAM postprocessor's interpolation residuals dominate. The digit head tracks the corpus's per-(axis, slot) source-entropy ceiling~\cite{paperB_entropy} (corrected pooled $n\!=\!6$ Pearson $-0.89$; per-(axis,slot) $n\!=\!30$ Pearson $-0.83$).
+
+\paragraph{Per-axis sign recovery (Z is the only sensor-bearing sign axis).} The motion-sign head's $0.9888$ headline accuracy (Table~\ref{tab:headline}) is dominated by prior-deterministic axes ($\sim\!99\%$ positive Y, $\sim\!93\%$ positive X) and should not be read as a sensor-recovery figure; only Z carries non-trivial sign load ($H_{Z}^{\text{sign}}\!=\!1.04$~bits), splitting evenly between positive rapids above the stock and negative cuts into it. The deployment-relevant per-axis sign accuracies are the X/Y/Z means in Table~\ref{tab:per_axis} ($0.94$/$1.00$/$0.94$ 5-fold), Z carrying essentially all the discriminative work; the X/Y priors would fail on a workpiece of different orientation or origin~\cite{paperB_entropy}.
+
+\subsection{Per-Operation-Class Recoverability}
+\label{sec:per-op-class}
+
+Autoregressive predictions stratify sharply by operation class from a single mechanistic cause, not a per-class capability gradient. \texttt{face} ($n=144$ test windows) reaches token $0.56$ / numeric $0.40$ against a pooled AR baseline of $0.215 / 0.104$, while every other class falls into a narrow $0.09$--$0.25$ token / $0.01$--$0.15$ numeric band; the most-frequent non-facing class, \texttt{pocket150025} ($n=124$), sits at floor-level $0.09 / 0.01$ despite ample test support. This is the mode-collapse signature: the corpus-modal AR output the decoder converges to \emph{is} a facing-pattern toolpath, so \texttt{face} scores by coincidental agreement with it, not sensor-driven discrimination, and any other toolpath signature scores near floor regardless of support. The per-class \emph{numeric} story is thus constant-mode-collapse with one outlier, not evidence that \texttt{face} is easier to decode; the headline categorical recoverability (Section~\ref{sec:results-headline}) remains the central per-class claim (all nine classes charted in \texttt{figures/per\_op\_class\_breakdown.pdf}).
+\subsection{Metadata, Target-Mode, and Numeric-Collapse Ablations (Companion Study)}
+\label{sec:results-rq2}
+
+Three ablations refine the headline and are reported in full in a companion methods study: positional metadata does not improve the categorical heads under any regime but mitigates autoregressive mode-collapse ($+7.5$--$8.0$~pp on the AR token/numeric heads); the full-window target formulation lifts command accuracy from per-row $0.499$ to $0.888$ by restoring within-window row identifiability; and a no-numeric retraining decomposes the AR collapse into a numeric-desynchronization component and a dominant intrinsic structural-stream collapse.
+
+
+\subsection{RQ3: Sensor-Modality Ablation}
+\label{sec:abl-sensors}
+
+For each of seven sensor modality groups (accelerometer, gyroscope, magnetometer, environmental, color, audio-RMS, electrical) we zero the corresponding channels at the encoder input and evaluate the decoder without retraining, isolating its marginal contribution \emph{under the encoder's existing weight allocation}. This is a \emph{lower bound} on each modality's value; the system-level test is the encoder retraining of Section~\ref{sec:abl-lomo}. Audio-RMS is evaluated at $n=4$ (one fold's ablation run was unrecoverable) and the other six at $n=5$; given the uniform $\sim$40--44~pp collapse the verdicts do not hinge on the missing fold.
+
+\paragraph{Uniform collapse, not modality differentiation.} Every modality is critical to the command head, at a statistically uniform magnitude. Zeroing any single modality drops command accuracy from the full-modality baseline $0.888 \pm 0.056$ to the $0.449$--$0.484$ band (accelerometer $0.484$, environmental $0.474$, magnetometer $0.465$, gyroscope $0.462$, rms $0.460$, color $0.457$, electrical $0.449$; all $\pm 0.05$--$0.11$), a uniform $-40$ to $-44$~pp collapse. The ANOVA across the seven groups is \emph{not} significant ($F=0.07$, $p=0.998$; \texttt{audit/sensor\_anova\_7modality.json}), so the modalities are not separable at the present fold count, while every modality versus the baseline \emph{is} significant under a Welch test ($p<0.001$, $t$ from $-7.1$ to $-11.5$). \textbf{No single modality is shown more deletable than another:} this confirms joint necessity but cannot rank importance. A TOST + $\mathrm{BF}_{01}$ equivalence check on the seven means ($\Delta\!\le\!0.035$ at a $\pm 0.020$ margin) is \emph{inconclusive} on several pairs at $n\!=\!5$, at the resolution limit of a five-block test. Token, type, and parameter-type heads are more robust (token $\sim 4$~pp, type $<1$~pp, parameter-type $\sim 1.5$~pp across every ablation). Table~\ref{tab:sensor_ablation} reports the per-modality numbers.
+
+\input{../tables/sensor_ablation.tex}
+
+
+\paragraph{Interpretation.} The encoder's learned modality-gating routes command-discrimination signal through every modality at once; zeroing any one degenerates the representation to one sufficient for the coarse (type, param-type) heads but not the command head, so the frozen-encoder ``joint necessity'' reading is a gating artifact and the genuine ranking needs the retraining of Section~\ref{sec:abl-lomo}. It does not match the encoder paper's SHAP ranking (gyroscope/color/electrical) because the two answer different questions: inference-time joint necessity under the existing encoder versus training-time operation-class signal.
+
+\subsubsection{Per-Modality Encoder Retraining (Leave-One-Modality-Out)}
+\label{sec:abl-lomo}
+
+Because the zeroing ablation cannot rank modalities (Section~\ref{sec:abl-sensors}), the deployment-relevant question is whether the encoder, retrained without a modality, reallocates capacity onto the survivors. We retrain the multi-modal denoising encoder from scratch on the $98$-feature base with each modality removed, train a fresh six-head decoder on the resulting frozen encoder, and score all seven cells against a retrained full-stack baseline on the identical held-out test set; a deterministic coverage-repair ordering and per-cell channel-identity gate guarantee a byte-identical split across exclusions. The zeroing study's ``environmental'' group reduces to temperature on the $98$-feature base (pressure and proximity already excluded as low-activity channels), so the LOMO ``Temperature'' row is its counterpart.
+
+\paragraph{No measurable single-modality effect.} \textbf{Retraining the encoder without any single modality produces no measurable change in any decoder head.} The full-stack baseline reaches command accuracy $0.904 \pm 0.039$, and every removal lands within $\pm 0.013$ (electrical largest at $-0.013 \pm 0.015$). The fold-blocked ANOVA across the seven conditions is non-significant ($F=0.91$, $p=0.499$), and the Holm-corrected paired $t$-test against zero rejects none ($0/7$ at $\alpha=0.05$). Token and numeric heads behave the same (paired effects within $\pm 0.011$ token, $\pm 0.022$ numeric). Figure~\ref{fig:lomo_modality} charts the paired deltas against the frozen-encoder collapse (Table~\ref{tab:sensor_ablation}). Magnetometer is closest to significant (adjusted $p=0.41$, Hedges' $g_z \approx -0.94$), a medium-large paired effect that fails significance at $n\!=\!5$ but is informative. Per-fold $\Delta$, Holm-corrected $p$, and effect sizes are in \texttt{audit/lomo\_modality\_attribution.json}.
+
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.5\linewidth]{lomo_modality_bars.pdf}
+\caption{Leave-one-modality-out encoder retraining: per-modality fold-paired $\Delta$ command vs.\ the retrained baseline; every modality within $\pm 0.013$, none Holm-significant (fold-blocked ANOVA $F=0.91$, $p=0.499$). Contrast the $-42$~pp uniform collapse under \emph{frozen}-encoder inference-time zeroing (Table~\ref{tab:sensor_ablation}): the gap is the encoder's re-allocation capacity, not modality information content.}
+\label{fig:lomo_modality}
+\end{figure}
+
+
+
+\paragraph{Interpretation.} The $-42$~pp frozen-encoder collapse of Section~\ref{sec:abl-sensors} reduces to $\le\!1.3$~pp under encoder retraining (none significant), confirming the gating artifact: retraining reallocates capacity onto the remaining channels. The deployment-relevant statement upgrades from \emph{``the full multi-modal stack is required''} to \emph{``no single modality is individually load-bearing''}.
+
+\paragraph{Orthogonal probes (summary).}\label{sec:abl-lomo-sensor-stub} Two probes corroborate the LOMO main effect. The physical-sensor-unit axis (which board a deployment could ship without) is the LOSO study: per-board removals cost $\le\!2.6$~pp (fold-blocked ANOVA $p\!=\!0.415$; $0/6$ Holm-significant; \texttt{y\_bed\_\_4} indistinguishable from baseline at $p_{\text{Holm}}\!=\!0.975$; \texttt{audit/lomo\_sensor\_attribution.json}), and the nested $6\!\times\!6$ interior is flat within $\pm 0.022$ ($p\!=\!0.896$; $0/36$; \texttt{audit/lomo\_nested\_attribution.json}). No single-fold interaction pilot overturns the modality main effect or the headline. The three nulls (LOMO $p\!=\!0.499$, LOSO $p\!=\!0.415$, nested $p\!=\!0.896$) align: the redundancy is dense rather than a marginal-average effect; the joint deployment statement is consolidated in Section~\ref{sec:disc-modality}.
+
+
+% =====================================================================
+\subsection{RQ4: Cross-Class Generalization (Leave-One-Class-Out)}
+\label{sec:loco}
+
+For each of the nine operation classes (\texttt{adaptive}, \texttt{adaptive150025}, \texttt{face}, \texttt{face150025}, \texttt{pocket}, \texttt{pocket150025}, \texttt{damageadaptive}, \texttt{damageface}, \texttt{damagepocket}) we train the decoder without that class and evaluate on its held-out samples, testing whether the decoder generalizes across operations or memorizes per-class shortcuts.
+
+Each holdout removes every file of the held-out class from the fold~1 partitions, re-stratifies the remaining $8$-class partition at the headline $80/20$ split, and tests on all held-out-class files. The coverage-repair step is deliberately \emph{not} re-run, leaving the open-vocabulary residual exposed. Hyperparameters are reused verbatim and each holdout trained from scratch.
+
+Across all nine LOCO holdouts (one fold per holdout, fold-1 file split): token accuracy mean $0.501$ (min $0.29$, median $0.53$, max $0.61$); sequence accuracy mean $0.001$ (range $[0, 0.005]$); command accuracy mean $0.213$ (min $0.000$, median $0.21$, max $0.678$); numeric accuracy mean $0.152$ (min $0.000$, median $0.16$, max $0.402$). Type and parameter-type are more robust (means $0.883$ and $0.945$; spreads $\pm 0.061$ and $\pm 0.036$, subject to the same single-fold caveat below).
+
+Two scope caveats govern these numbers. The nine operation classes are the corpus population, not a sample, so we report the finite-population descriptive distribution, not between-class parametric/bootstrap CIs, and make no inferential claim about a wider class population. The per-holdout numbers are single-fold (file-split fold~1 only), so the open-vocabulary command mean $0.213$ is a single-fold result and the 9-class spread $\sigma = 0.191$ reflects between-class heterogeneity, not fold-to-fold sampling.
+
+Relative to the in-distribution 5-fold baseline ($0.781 / 0.026 / 0.888 / 0.585$), LOCO drops $\sim$$28$~pp on token, $\sim$$3$~pp on sequence, $\sim$$67$~pp on command (mean), and $\sim$$43$~pp on numeric. This is a descriptive gap, not a two-sample test: file-stratified CV and class enumeration are different experimental designs, so a Welch or Mann--Whitney test is undefined. The evidence is the per-holdout collapse itself (command-mean gap $0.675$); the 5-fold and 9-class per-cell ranges do not overlap on command or numeric.
+
+\paragraph{Per-holdout variance and the \texttt{damagepocket} outlier.} The nine per-holdout command accuracies span $[0.000, 0.678]$ with $\sigma = 0.191$. Eight cluster in $[0.000, 0.273]$; one, \texttt{damagepocket}, reaches command $0.678$, token $0.548$, numeric $0.402$, because it shares most of its motion vocabulary (predominantly G1 linear cuts with modest G3 finishing arcs) with the retained \texttt{pocket} and \texttt{pocket150025} variants. \texttt{damageadaptive} (command $0.000$) and \texttt{damageface} (command $0.094$) do not benefit, because adaptive and face motion patterns differ more between damaged and non-damaged variants than the pocket variants do. Cross-class generalization therefore succeeds when the held-out class shares motion vocabulary with retained classes and collapses otherwise; the median ($0.21$) reflects typical behavior better than the mean.
+
+\paragraph{Per-class LOCO command F1.} Under an unseen motion vocabulary the model defaults to the modal G1, and the collapse spans every command class: G0 $0.084 \pm 0.136$, G1 $0.243 \pm 0.277$ (modal; variance driven by the \texttt{damagepocket} outlier), G2 $0.044 \pm 0.107$, G3 $0.083 \pm 0.134$, G53/M30 $0.000$ at $n\!\le\!5$ (\texttt{audit/loco\_per\_class\_9holdouts.json}). The heads degrade asymmetrically: type and parameter-type survive LOCO ($-9$/$-5$~pp), so the encoder preserves gross instruction structure for a novel class, while command and numeric require the in-distribution pattern. The deployment-realistic claim is therefore bounded by these LOCO numbers, not the 5-fold headline (Section~\ref{sec:lim-dataset}), and is scoped to in-distribution post-hoc audit, closed-world over the G-code operation classes observed at training time; open-world / novel-operation-class deployment is out of scope and deferred to future cross-platform replication (Section~\ref{sec:future}). Within the closed-world envelope the operating point is the command-swap point of Section~\ref{sec:disc-threat-model}; outside it the system is not a usable detector (LOCO command-swap FPR $0.52$, sign-flip and feed-edit at or below chance). Figure~\ref{fig:loco_per_holdout} charts the per-holdout, per-head breakdown.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.5\linewidth]{loco_per_holdout.pdf}
+\caption{Leave-one-class-out recovery per held-out class: command/token/numeric/type/parameter-type accuracy; dashed lines are the in-distribution 5-fold baselines. Eight of nine holdouts collapse on command ($\le 0.28$); \texttt{damagepocket} ($0.68$) shares motion vocabulary with retained \texttt{pocket} variants. Type and parameter-type stay near baseline throughout.}
+\label{fig:loco_per_holdout}
+\end{figure}
+
+
+
+
+\subsection{From-Scratch Seq2Seq Baseline (Companion Study)}
+\label{sec:abl-seq2seq-baseline}
+
+A from-scratch Transformer seq2seq baseline matches the headline teacher-forced command accuracy ($0.877 \pm 0.031$ vs.\ $0.888 \pm 0.056$) but collapses to the most-frequent-class prior under autoregression; the companion study shows the architectural contribution is the routing of categorical prediction onto the encoder memory, robust to the exposure-bias collapse that limits any AR token reader.
+
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What is recoverable, and the class-prior boundary}
+\label{sec:disc-deployment}
+
+\paragraph{What is recoverable, and why.}\label{sec:disc-recoverability}\hspace*{0pt plus 1fill}
+
+Recoverability factorizes into three structural tiers (Section~\ref{sec:results-headline}, Table~\ref{tab:per_axis}). \emph{Categorical} structure (command and axis identity) is strongest: the sensor pathway determines the motion class and the axes involved independently of file position, and the metadata ablation (Section~\ref{sec:results-rq2}) confirms positional features add nothing. \emph{Motion sign} is recovered with an axis asymmetry, Y near-perfect and X and Z lower, on the prior-driven account of Section~\ref{sec:per-axis}. \emph{Numeric precision} is the limiting tier, and the limit is information-theoretic: loss concentrates at the middle (fine-value) digit positions (Section~\ref{sec:numeric-decomposition}), because a 64-second window observes only relative motion, not absolute machine coordinates. Recovering the latter requires positional context (deliberately withheld) or longer-range autoregressive context the per-row formulation does not provide.\label{sec:disc-failure-mode}
+
+\paragraph{Is categorical recovery sensor-driven or operation-class structure?}\label{sec:disc-confound}\hspace*{0pt plus 1fill}
+
+The frozen encoder was trained for nine-class operation classification on the \emph{same} file-level fold partitions used here (Appendix~\ref{app3:addenda}), and its memory is low-rank and linearly separates the operation classes. The headline command accuracy could therefore be operation-class structure re-expressed at the command level. A class-prior control (\texttt{audit/confound\_class\_prior.json}; \texttt{scripts/analysis/confound\_class\_prior.py}) tests this: at every COMMAND-token position of the full-window predictions, the decoder is compared against a \emph{class-prior} predictor emitting the modal command of the window's operation class (modal on the fold's training split) and against a within-window modal predictor.
+
+The decoder's command accuracy at command positions is $0.795 \pm 0.121$ (5-fold), versus a class-prior baseline of $0.572 \pm 0.004$ and a within-window-modal baseline of $0.587 \pm 0.003$. The $0.795$ is measured only at COMMAND-token positions of the full-window predictions, a different position subset and aggregation than the $0.8875$ head accuracy of Table~\ref{tab:headline} (consistent measurements, not a discrepancy; cf.\ Section~\ref{sec:lim-per-file}). The operation-class modal is the strictest legitimate sensor-independent null: each test file is unseen, so a train-only per-file modal reduces to it.
+
+\textbf{The $+22$~pp increment over that null is a 4-of-5-fold effect, not a uniform one.} On fold~1 the decoder ($0.552$) is at or below its own class prior ($0.568$, a $-0.016$ delta; fold~1 is the covariate-shift outlier of Section~\ref{sec:lim-covariate}), while folds 2--5 sit $+0.27$ to $+0.30$ above the prior ($0.85$--$0.86$ decoder vs.\ $\sim\!0.57$). The paired-by-fold mean increment is $+0.222$ (per-fold deltas $\{-0.02, +0.28, +0.27, +0.30, +0.28\}$, $4/5$ positive), driven by the four non-outlier folds and not surviving removal of more than one. At $n\!=\!5$ we report it as an effect size, not a $p$-value, since no five-point test can confirm an increment whose sign flips on one fold. A percentile bootstrap over the five deltas gives a 95\% CI of approximately $[+0.10, +0.29]$; jackknife means are $+0.20$ to $+0.21$ dropping any of folds~2--5 and $+0.28$ dropping the fold-1 outlier (folds~2--5 mean $+0.282$), so the fragility is a leave-one-fold effect, not a bootstrap-edge one. The magnitude is an \emph{upper} bound on the sensor-driven within-class signal.
+
+A majority of the headline command signal (roughly $0.57$ of the $0.79$) is therefore operation-class structure the encoder already encodes, the representational counterpart of the leave-one-class-out collapse (Section~\ref{sec:loco}). On top of that prior the decoder adds the within-class increment on the $97.4\% \pm 1.4\%$ of windows containing more than one distinct command; its accuracy on those command-heterogeneous windows, $0.794 \pm 0.122$, matches its pooled accuracy, so it is not echoing a per-window stereotype.
+
+\emph{This increment is an UPPER bound (closed-vocabulary regime, frozen-encoder representation reuse), but robust to conditioning the null on operation class.} A \emph{class-conditional} modal predictor (the most-frequent command \emph{within} each operation class), scored on the same all-command-position basis, reaches only $0.576 \pm 0.003$ (5-fold; \texttt{audit/class\_conditional\_modal\_5fold.json}), essentially the $0.572$ unconditional modal, so the $+22$~pp increment is \emph{not} shrunk by this stricter null. (A first-command-position-only class-conditional modal reaches $\sim\!0.81$, \texttt{audit/class\_conditional\_modal.json}, an easier estimand on a single position per window, not a like-for-like null for the decoder's all-position accuracy.)
+
+\subsection{Sensor-stack redundancy and deployment recommendations}
+\label{sec:disc-deployment-stack}
+
+\paragraph{Sensor-modality importance and deployment implications.}\label{sec:disc-modality}\hspace*{0pt plus 1fill}
+
+\textbf{A cost-reduced post-hoc audit installation is viable on this platform: drop \texttt{y\_bed\_\_4}, retain \texttt{spindle2}.} The frozen-encoder inference-time ablation establishes \emph{joint necessity} ($40$--$44$~pp uniform collapse, between-modality ANOVA $p\!=\!0.998$). The encoder-retraining LOMO complement (Section~\ref{sec:abl-lomo}) shows no single modality is individually load-bearing (paired $\Delta$ command $\le\!0.013$; $F\!=\!0.91$, $p\!=\!0.499$), so the frozen-encoder collapse is a gating artifact. The LOSO study (\texttt{audit/lomo\_sensor\_attribution.json}) shows any single physical sensor board costs $\le\!2.6$~pp (largest \texttt{spindle2} $-0.026$; \texttt{y\_bed\_\_4} $\approx\!0$ at $p_{\text{Holm}}\!=\!0.975$), and the nested $6\!\times\!6$ interior (\texttt{audit/lomo\_nested\_attribution.json}) is flat at $\pm0.022$~pp ($F\!=\!0.694$, $p\!=\!0.896$). Redundancy is dense: $\le\!1.3$~pp expected cost per modality, $\le\!2.6$~pp per board.
+
+\paragraph{When to use this decoder vs.\ alternative approaches.}\label{sec:disc-when-to-use} The decoder suits three offline patterns: post-hoc audit of contested runs (primary; the posture of Section~\ref{sec:disc-threat-model}), end-of-shift process verification with the measured-$\rho$ $K\!=\!10$ point (Section~\ref{sec:disc-threat-model}) as a human-in-the-loop triage aid, and localization of session-level anomaly flags~\cite{coelho2024anomaly,kimmell2025cnc} to specific G-code lines. In autoregressive deployment the per-row target mode is preferable to full-window: per-row predictions are short and independent across rows, and so robust to full-window mode-collapse, while categorical-head accuracy is unaffected by target mode (Section~\ref{sec:metrics}). The decoder is \emph{not} a stand-alone controller-log replacement (no exact-line reproduction): numeric precision is too low for coordinate reconstruction, though command/axis/sign analysis is reliable within the trained toolpath envelope.
+
+
+\subsection{Security Implications and the Companion Threat-Model Study}
+\label{sec:disc-threat-model}
+
+The per-field recoverability characterized here bounds what a sensor-side integrity monitor can and cannot see: categorical substitutions (command, axis, motion-sign) leave a recoverable trace, while numeric-coordinate and feed-rate edits do not (Section~\ref{sec:per-axis}). A companion security study develops the corresponding tamper-detection operating points, alert-budget analysis, and adaptive-adversary bounds under the same closed-world, single-platform scope; those results are illustrative and prior-dominated, and are reported separately so that this paper's claims rest on recoverability alone.
+
+% =====================================================================
+\section{Limitations and Future Work}
+\label{sec:future}
+
+\subsection{Dataset and Platform Limitations}
+\label{sec:lim-dataset}
+
+The most consequential dataset limitation is the near-absence of variation in feed rate (F), spindle speed (S), and arc parameters (I/J). Field positive support is negligible for these: F appears in $<\!1\%$ of per-row samples, S is essentially absent, and I and J never appear (arcs use R notation). The Table~\ref{tab:per_axis} accuracies for these fields are therefore artifacts of near-zero baseline support, not sensor-driven recovery. The corpus is also dominated by frequently-recurring lines, G1 strongly dominant with a long tail: each fold contains of order $10^3$ distinct lines but only a handful of motion-command classes (per-fold counts in \texttt{audit/train\_test\_gcode\_overlap.json}), and per-class metrics macro-average over that tail, so G3, M30, and arc parameters would benefit from more diverse data.
+
+All runs use one workpiece material on one Bantam Tools desktop mill (cast-aluminum frame, stepper drive, no flood coolant, dry cutting on machinable wax), so material-class generalization cannot be tested here and would require a multi-material corpus (aluminum, steel, Delrin). \emph{Cross-platform generalization is the larger open question.} A production VMC differs from this platform along every sensing axis quantified in Section~\ref{sec:dataset} (``Platform characterization''), and no result here has been replicated on one. Until cross-platform replication (Section~\ref{sec:roadmap}, item (d)), every recoverability claim, deployment recommendation, and detectable-attack-class guarantee is conditional on this single platform/material envelope: a characterization study, not a portable deployment claim. The AR mode-collapse mechanism, the structured-vs-numeric factorization, the class-prior decomposition, and the seq2seq architectural-contribution scoping are mechanism findings expected to hold under any low-rate multi-modal stack and Transformer decoder; the headline numbers, the 6-sensor 7-modality inventory, the machinable-wax signature, the 4~Hz rate, and the 9-class taxonomy are platform-specific and expected to transfer only with adjustment.
+
+\paragraph{Verbatim train/test line overlap (closed-vocabulary regime).} The file-level 5-fold splits guarantee file-level train/test disjointness, but the coverage-repair procedure (Section~\ref{sec:cv}; Appendix~\ref{app3:addenda}) ensures by design that every test-partition G-code line was seen during that fold's training. The measured line-level overlap (\texttt{audit/train\_test\_gcode\_overlap.json}) is $97.6\%$ of distinct test lines and $99.0\%$ of test line-instances in per\_row mode (5-fold average), and $97.9\%$/$99.1\%$ in full\_window mode. The 5-fold experiments therefore evaluate mapping a sensor signal to an in-vocabulary G-code line, not generating novel lines; the open-vocabulary evidence is the LOCO protocol of Section~\ref{sec:loco}, under which command accuracy degrades from $0.888$ to $0.213 \pm 0.191$ and numeric from $0.585$ to $0.152$.
+
+\subsection{Methodological and Statistical Limitations}
+\label{sec:lim-method}
+
+The encoder was trained on the same fold splits as the decoder, and its objective (nine-class operation classification) includes no row-level G-code supervision; both may limit its preservation of fine-grained per-row structure. Retraining with row-level supervision would quantify the residual encoder-side contribution, the principal open direction (Section~\ref{sec:roadmap}). The 256-sample window length was inherited from the encoder paper~\cite{encoder_paper} for consistent encoder inputs; a window/stride sweep requires retraining the encoder per $(\text{window}, \text{stride})$ pair and is not separable on the present frozen encoder.
+
+The 4~Hz rate is not marginal. The row-execution-duration audit ($21{,}541$ instances; \texttt{audit/gcode\_row\_durations.json}) shows the median row executing in a single $0.25$~s sample and \textbf{$77.7\%$ of instances occupying $\le\!1$ sample period} ($83.1\%$ $\le\!0.5$~s, $86.3\%$ $\le\!1$~s), so most instructions are sub-sample events the stack cannot resolve as distinct transients. The observable signal is the lower-frequency cutting-regime envelope, which is why categorical structure is recoverable while per-instruction numeric precision is not; the mechanism is physical, not only the sequence head's exposure bias. The 4~Hz rate is nevertheless \emph{not} the sole numeric bottleneck: the per-row target formulation (Section~\ref{sec:per-row}) imposes a within-window row-identification ambiguity co-responsible for the numeric ceiling independently of sample rate (Section~\ref{sec:numeric-decomposition}): a higher-rate stack addresses the aliasing component, the autoregressive sequence head the per-row component. We have not characterized the per-modality PSD/SNR of the 4~Hz envelope stream against a co-recorded raw stream, so the numeric-tier ceiling cannot be partitioned between envelope spectral loss and sub-sample aliasing; the ceiling is a property of the present stack, not the architecture. A higher-rate next-iteration stack (contact microphone $\geq 44.1$~kHz; axis encoders, IMU, and Hall-effect spindle sensors at $\geq 1$~kHz) could close the numeric tier and the AR-mode gap while leaving categorical recovery unchanged.
+
+\paragraph{Statistical power.}\label{sec:lim-power} Per-class command-head metrics rest on small per-fold per-class supports: G0 ($n\!=\!86$), G1 ($n\!=\!1{,}095$), G2 ($n\!=\!475$), G3 ($n\!=\!395$), none ($n\!=\!5{,}886$). A power analysis (\texttt{audit/extended\_rigor\_audits.json}, key \texttt{rec6\_power\_analysis}) computes each class's minimum detectable effect (MDE) at $\alpha\!=\!0.05$, $\beta\!=\!0.20$: G0 (baseline $\sim$0.40) MDE $\approx 18.8$~pp, G1 ($\sim$0.94) $\approx 2.3$~pp, G2 ($\sim$0.50) $\approx 8.0$~pp, G3 ($\sim$0.30) $\approx 8.4$~pp, none ($\sim$0.95) $\approx 0.9$~pp, and param-types X, Y, Z, R $\le 1.5$~pp. Differences below these sizes are not distinguishable from sampling noise; ``not significant'' on the long-tail classes (G0, G3) often means \emph{underpowered}, not \emph{equivalent}.
+
+\paragraph{Covariate shift.}\label{sec:lim-covariate} A per-field train-vs-test positive-support audit (\texttt{audit/extended\_rigor\_audits.json}, keys \texttt{rec7\_covariate\_shift\_*}) flags only modest shifts ($<\!6$~pp) on already-low-support fields: per-row fold-1 Z $-4.4$~pp; full-window fold-1 F $+3.2$~pp and fold-5 F $-5.3$~pp; none elsewhere. These contribute to the cross-fold standard deviation in Table~\ref{tab:per_axis} but do not change the per-axis ranking.
+
+\subsection{Evaluation and Per-File Limitations}
+\label{sec:lim-eval}
+
+\paragraph{Per-file variance.}\label{sec:lim-per-file} Slicing the 5-fold predictions by source file ($n=91$; released \texttt{full\_window\_5fold} JSONs) shows per-file command accuracy concentrated, not heavy-tailed ($0.953 \pm 0.088$; 10th percentile $0.846$; span $[0.571, 1.000]$; parameter-type $0.991$), so categorical-head success is not carried by a few memorizable files. AR token accuracy shows a wide per-file spread ($[0.052, 0.869]$, $0.302 \pm 0.283$), tracking the per-operation-class breakdown (Section~\ref{sec:per-op-class}). The unweighted per-file mean ($0.953$) differs from the per-fold-mean headline ($0.8875 \pm 0.0558$) by aggregation, not a prediction discrepancy. The entropy--accuracy inverse relation of Section~\ref{sec:numeric-decomposition} reproduces per-file (\texttt{figures/per\_file\_fingerprint.pdf};~\cite{paperB_entropy}).
+
+Each operation-class file is a single execution, so the metrics of Section~\ref{sec:experiments} conflate cross-condition variance with cross-trial variance; a multi-replicate corpus would support variance decomposition, the present one does not. Per-row autoregressive decoding on the RTX A6000 runs $30$--$60$~ms per G-code line at the median row length ($5$--$15$ tokens, $K\!=\!2{,}418$, FSM-masked greedy), within the $250$~ms inter-sample headroom of the $4$~Hz cadence; full-window mode ($\sim$$1{,}000$--$1{,}400$ tokens per sample) costs proportionally more and is not real-time on this hardware. Beam search does not close the AR gap; its deployment-cost profile and non-autoregressive variants remain unevaluated (Section~\ref{sec:disc-modality}).
+
+\paragraph{$K$-spectrum methodology confound: resolved.} The four-point vocabulary-cardinality sweep originally compared the headline $K\!=\!2{,}418$ row (SS$=$0.5, dw$=$1.0) against three smaller-$K$ Design~B variants (SS$=$0, dw$=$0), jointly contrasting cardinality and training schedule. A methodology-matched $K\!=\!2{,}418$ control under SS$=$0/dw$=$0 (T3.1; companion study) resolves it: under matched methodology $K\!=\!2{,}418$ is the highest-performing variant on every metric (AR struct token $0.470 \pm 0.034$ vs.\ K=335's $0.429 \pm 0.123$ and the headline's $0.317 \pm 0.116$). The earlier $+11.1$~pp K=335 advantage was the SS/dw schedule change, not cardinality; the K=335 ``sweet spot'' framing is accordingly retracted. The deployment-relevant configuration for AR structural recovery is $K\!=\!2{,}418$ with SS$=$0/dw$=$0, subject to cross-platform replication before it carries forward (Section~\ref{sec:roadmap}).
+
+\paragraph{TF-numeric baseline reversal (future-work item, not a deployment recommendation).} The seq2seq baseline (Section~\ref{sec:abl-seq2seq-baseline}) attains higher teacher-forced numeric accuracy ($0.754 \pm 0.053$) than the headline six-head digit-decomposition output ($0.585 \pm 0.033$), a gap attributable to the bucketization that makes the grammar mask tractable in the legacy-token head (Section~\ref{sec:problem-vocab}). Under autoregressive inference the two are within a fold ($0.100$ vs.\ $0.104$), so the reversal is a numeric-head future-work item, not an AR-mode deployment advantage. A non-autoregressive CTC-head pilot and a single-legacy-head Transformer-decoder pilot remain unexecuted on the artifact roadmap.
+
+\subsection{Future Directions}
+\label{sec:roadmap}
+
+Four directions remain open, each an open problem rather than a scheduled experiment.
+
+\emph{(a)~Continuous-parameter data-collection campaign.} A factorial corpus varying feed rate (F), spindle speed (S), depth of cut, and material at $\geq\!100$~Hz (to lift the 4-Hz aliasing of $77.7\%$ of rows) would populate the F/S/I/J fields the present 4-Hz corpus cannot evaluate. The first experiment is a $3\!\times\!3\!\times\!3$ (feed, speed, depth) full factorial with a higher-rate front end, scoped to recover feed-rate substitutions at the resolution the adversarial scenarios of Section~\ref{sec:disc-threat-model} require.
+
+\emph{(b)~Encoder retraining with row-level supervision.} The fold-1 last-LSTM-layer fine-tune pilot is within fold-1 noise and underpowered to settle the encoder-bottleneck question; the deliverable is a five-fold retrained encoder under matched preprocessing, checkpoints released, isolating the encoder-side residual.
+
+\emph{(c)~Window/stride re-optimization.} Requires the encoder retraining of (b); not separable on the present frozen encoder. Planned coverage is a $4\!\times\!4$ $(\text{window}, \text{stride})$ grid retrained per cell with the row-level-supervised encoder.
+
+\emph{(d)~Cross-platform validation.} A production-class VMC (cast-iron base, servo drive, flood coolant) and a second material class (aluminum or steel) with a matching sensor stack, running the present file-level five-fold protocol on the new corpus to yield the cross-platform transfer matrix for the categorical-vs-numeric factorization.
+
+% =====================================================================
+\section{Conclusion}
+\label{sec:conclusion}
+
+This study characterizes which components of an executing G-code block are recoverable from multi-modal CNC sensor data, using \modelname{}, a six-head Transformer decoder on a frozen multi-modal denoising encoder with per-row targets and grammar-constrained inference, under five-fold file-level cross-validation. Three findings follow, each detailed in the section cited:
+
+\begin{enumerate}[label=(\arabic*), leftmargin=*, itemsep=2pt]\let\item\olditem
+\item \textbf{Per-block categorical recovery} (command identity, axis presence, motion direction) is sensor-driven and TF/AR-invariant by construction (Section~\ref{sec:results-headline}). The class-prior-controlled within-class increment over the operation-class modal predictor (Section~\ref{sec:disc-confound}) survives conditioning the null on operation class. On an \emph{unseen} operation class the increment does not transfer: command recovery collapses to the open-vocabulary floor of $0.213$, below the class prior (Section~\ref{sec:loco}).
+\item \textbf{End-to-end token/numeric} reproduction is at floor (autoregressive whole-sequence exact-match $0.026$). Two mechanisms bound it: exposure-bias mode-collapse in the autoregressive head and 4-Hz temporal aliasing of $77.7\%$ of rows (Section~\ref{sec:lim-method}), acting on top of an information-theoretic floor the companion limit paper~\cite{paperB_entropy} characterizes. On the float-epsilon-corrected retrain the per-digit precision floor sits at the \emph{thousandths} ($10^{-3}$~inch, slot accuracy $0.42$), the finest digit the CAM postprocessor emits; the ten-thousandths digit is a structural zero of the V8 tokenizer's $0.001$ grid, reproduced trivially rather than information-bearing (Section~\ref{sec:numeric-decomposition}). Generative coordinate reconstruction is unsupported on this stack. The $K$-spectrum retraction and matched-methodology T3.1 control are in Section~\ref{sec:lim-eval}.
+\item \textbf{Sensor-stack redundancy.} Under the frozen encoder, inference-time modality removal collapses command accuracy uniformly ($p\!=\!0.998$ between modalities; Section~\ref{sec:abl-sensors}). Encoder-retraining ablations (LOMO and LOSO; Section~\ref{sec:disc-modality}) show no single sensing modality or sensor unit is individually decisive ($\Delta\!\le\!2.6$~pp), enabling a cost-reduced post-hoc audit installation.
+\end{enumerate}
+
+A from-scratch Transformer seq2seq baseline (Section~\ref{sec:abl-seq2seq-baseline}) matches the headline command accuracy under teacher forcing but collapses under autoregression, so the headline numbers stand and the architectural contribution of the frozen encoder, grammar-constrained decoder, and structured heads is sharpened to AR deployment-mode inference, the regime the post-hoc audit posture requires. Closing the gap to full reconstruction is a sequence-head problem first; whether the encoder is co-responsible cannot be settled by the present single-fold, underpowered last-LSTM-layer fine-tune pilot and requires full 5-fold encoder retraining with row-level supervision across the multi-modal projection and attention stack.
+
+Standard exposure-bias remedies~\cite{he2019exposure,ott2018uncertainty,ranzato2016sequence,holtzman2020curious,welleck2020neural}, a higher sample rate, encoder retraining with row-level supervision, and richer continuous-parameter data are the principal directions for the TRL~5--6 cross-platform target (Section~\ref{sec:future}). Cross-platform replication on a production-class VMC is the prerequisite for any deployment claim outside the single desktop CNC platform characterized here. The present \textbf{forensic-support post-hoc audit} posture is the boundary within which the results hold, and none of these directions upgrades it to real-time SOC alerting, which requires a structurally different sensing stack and an open-vocabulary recoverability regime the present corpus does not support.
+
+% =====================================================================
+\appendix
+\section{Specification Addenda}
+\label{app3:addenda}\label{app:spec-addenda}
+
+\paragraph{Coverage-repair split procedure.} The file-level stratified $k$-fold splits are post-processed into the closed-vocabulary regime of Section~\ref{sec:cv} by swapping files until every test line also appears in its fold's training partner. Each swap exchanges the test file contributing the most test-only lines with the training file that minimally perturbs the per-class fold proportions (alphabetical tie-break; swap budget $10$; residual test-only lines recorded as a novel-vocabulary diagnostic); it converges in $0$--$3$ swaps per fold, repaired fold sizes within one file per class of the stratified target. The per-fold assignment is released as \texttt{audit/file\_fold\_assignment.csv}.
+
+\paragraph{Encoder specification addendum.} The encoder architecture and training recipe are stated in Section~\ref{sec:encoder}. The representation-reuse caveat of Section~\ref{sec:results-headline} is quantified two ways: the worst-case class-label-leakage bound caps the leakage component of command accuracy at $0.572$ (so the $+22$~pp class-prior-controlled increment of Section~\ref{sec:disc-confound} is leakage-immune), and the leave-decoder-test-files-out LOMO-baseline check bounds the empirical reuse effect at $|\Delta|\!\le\!0.016$ ($0.904 \pm 0.039$ vs.\ headline $0.888 \pm 0.056$).
+
+\paragraph{Grammar tokenization addendum.} The per-axis quantization precisions are $p_X\!=\!p_Y\!=\!p_Z\!=\!p_P\!=\!p_Q\!=\!10^{-3}$, $p_I\!=\!p_J\!=\!p_K\!=\!p_R\!=\!p_E\!=\!10^{-4}$, $p_F\!=\!1.0$ (in/min), and $p_S\!=\!10.0$ (rpm); F and S are excluded from the first-order PID structural grammar. The \texttt{NUM\_a\_b} bucket index is $b_a(v) = \mathrm{sgn}(v)\cdot\lfloor |v|/p_a \rfloor$, with the sign carried by the separate sign head (Section~\ref{sec:multihead}) and zero mapping to $b\!=\!0$ on every axis. Per-axis bucket counts ($1{,}048$ NUM\_X, $1{,}086$ NUM\_Y, $231$ NUM\_Z, with smaller bucket sets for the remaining axes, summing to $2{,}418$) are determined empirically as the cardinality of the bucket-index set on the training corpus; any test-time index outside the trained range falls back to \texttt{UNK} (closed-vocabulary regime, Section~\ref{sec:cv}). The numeric-tier results are computed on the float-epsilon-corrected round-to-scaled-integer encoding; the categorical/token headline metrics drift $\le\!1.5$~pp between encodings (Section~\ref{sec:results-headline}).
+
+
+% =====================================================================
+\section{Relationship to the Companion Contributions and Data Availability}
+\label{app:companion}
+
+This study is one of four related contributions. (i)~The encoder paper~\cite{encoder_paper} establishes a multi-modal denoising sensor encoder and its operation-class representational competence ($96.3\%$ nine-class accuracy). (ii)~A grammar paper~\cite{grammar_paper} defines the hybrid G-code tokenization. (iii)~\emph{The present paper} addresses per-row, instruction-level G-code \emph{recoverability}: the per-field structured-output evaluation, the metadata-versus-sensor and per-row-versus-full-window ablations, the leave-one-class-out generalization study, the exposure-bias / mode-collapse characterization, and the tamper-detection scoping. It takes the encoder and grammar as fixed and asks what row-level instruction information survives the sensor$\rightarrow$latent map, re-deriving neither. (iv)~A companion limit paper~\cite{paperB_entropy} develops the decoder-agnostic information-theoretic and physical recoverability limit --- the per-(axis, slot, operation-class) source entropy of the CNC toolpath corpus, the per-axis sign and per-digit entropy decompositions, the float-epsilon numeric-target-encoding audit, and the 4~Hz sub-Nyquist floor --- that bounds the per-field recoverability characterized here. Stripped of the companion contributions, the standalone methodological novelty is modest (a frozen embedding, a Transformer decoder, a runtime grammar mask); the contribution is the characterization itself, including the negative results and the explicit in-distribution / open-vocabulary boundary. The encoder and grammar specification addenda (Section~\ref{sec:encoder}; Appendix~\ref{app3:addenda}) keep the work independently assessable and reproducible.
+
+\paragraph{Data and code availability.} The 120-file aligned corpus, the per-fold preprocessed arrays, the decoded prediction JSONs, and all audit artifacts referenced here are released as described in the Data Availability Statement below. Nothing required to reproduce this manuscript's results depends on the companion contributions. Raw confusion-matrix counts and other per-cell diagnostics are recomputable from the released decoded-prediction JSONs. \emph{Path convention:} all cited file paths (e.g., \texttt{audit/digit\_entropy.json}, \texttt{src/miracle/model/digit\_value\_head.py}, \texttt{scripts/analysis/...}) are relative to the repository root unless explicitly noted; \texttt{outputs/decoder20260511/} is the project working directory for the artifacts referenced throughout.
+
+% =====================================================================
+% v3 Appendix: Reproducibility. Folded from the replicability checklist per the
+% disposition map; statistical methodology lives in the body (Sections
+% \ref{sec:stats} and \ref{sec:abl-positional}) and is cross-referenced only.
+
+% =====================================================================
+\section{Reproducibility}
+\label{app3:repro}
+
+Code, data, per-fold splits, checkpoints (per-fold encoder and headline decoder), and every \texttt{audit/*.json} artifact cited in this paper are released (see the Data Availability Statement). Training uses AdamW ($\eta=5\times10^{-5}$, weight decay 0.05, batch 64, up to 300 epochs, patience 75) at seed~42; the headline command accuracy is seed-robust (four-seed 5-fold means $0.8875$/$0.8864$/$0.8937$/$0.8949$, span $0.0085$, far inside the $\pm 0.0558$ cross-fold spread; \texttt{audit/seed\_robustness\_full\_window.json}). The full hyperparameter grid, per-modality retraining protocol, calibration and grammar-FSM detail, and the statistical exhibits are in the released artifacts.
+
+% =====================================================================
+\authorcontributions{Conceptualization, S.S.E.\ and R.S.P.; methodology, S.S.E.; software, S.S.E.; validation, S.S.E.; formal analysis, S.S.E.; investigation, S.S.E.; resources, M.S.S.; data curation, S.S.E.\ and R.S.P.; writing---original draft, S.S.E.; writing---review and editing, R.S.P.\ and M.S.S.; visualization, S.S.E.; supervision, R.S.P.\ and M.S.S.; project administration, R.S.P. All authors have read and agreed to the published version of the manuscript.}
+
+\funding{This research received no external funding.}
+
+\institutionalreview{Not applicable.}
+
+\informedconsent{Not applicable.}
+
+\dataavailability{The sensor datasets and analysis code generated during this study are publicly available at \url{https://github.com/stephenseacuello/gcode_fingerprinting} (accessed on 28 May 2026), at the tagged release \texttt{v1.0-submission} corresponding to the commit hash recorded in the repository's \texttt{CITATION.cff}. A pre-acceptance Zenodo DOI for the same tagged release is minted via the GitHub--Zenodo integration prior to submission and is listed in the repository's top-level \texttt{README} alongside the SHA256 manifest of the released checkpoints (per-fold encoder weights, headline decoder weights, and the T3.1 control). Source code for the \modelname{} decoder architecture, training and evaluation pipelines, audit-JSON regeneration scripts, and figure-generation scripts is released under the MIT License; the 120-file aligned corpus is released under CC~BY~4.0.}
+
+\acknowledgments{The authors thank the Department of Industrial and Systems Engineering at the University of Rhode Island for providing laboratory facilities and computational resources.}
+
+\conflictsofinterest{The authors declare no conflicts of interest.}
+
+% =====================================================================
+\abbreviations{Abbreviations}{
+The following abbreviations are used in this manuscript:\\
+
+\noindent\footnotesize
+ANOVA, Analysis of Variance; AR, Autoregressive; AUC, Area Under the Curve; BH-FDR, Benjamini--Hochberg False Discovery Rate; CAM, Computer-Aided Manufacturing; CI, Confidence Interval; CNC, Computer Numerical Control; CV, Cross-Validation; dw, Digit-head Loss Weight; ECE, Expected Calibration Error; EMI, Electromagnetic Interference; FDM, Fused Deposition Modeling; FPR, False Positive Rate; FSM, Finite-State Machine; HGB, Histogram-based Gradient Boosting; ICS, Industrial Control System; IMU, Inertial Measurement Unit; LOCO, Leave-One-Class-Out; LOMO, Leave-One-Modality-Out; LSTM, Long Short-Term Memory; LOSO, Leave-One-Sensor-Out; MCE, Maximum Calibration Error; MAE, Mean Absolute Error; MDE, Minimum Detectable Effect; MLP, Multi-Layer Perceptron; MM-DTAE-LSTM, Multi-Modal Denoising Transformer Autoencoder with Long Short-Term Memory; NIST, National Institute of Standards and Technology; NLL, Negative Log-Likelihood; PCA, Principal Component Analysis; pp, Percentage Points; ROC, Receiver Operating Characteristic; RMS, Root Mean Square; SOC, Security Operations Center; SS, Scheduled Sampling; TCB, Trusted Computing Base; TF, Teacher-Forced; TPR, True Positive Rate; TRL, Technology Readiness Level; VMC, Vertical Machining Center.
+\normalsize
+}
+
+% =====================================================================
+% bibliographystyle is set by mdpi.cls; no need to re-emit it here.
+\bibliography{decoder_references.bib}
+
+\end{document}

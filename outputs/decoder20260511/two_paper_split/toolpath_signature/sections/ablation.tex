@@ -1,6 +1,6 @@
 \section{Ablation Study}\label{sec:ablation}
 
-To understand which components of the sensing and feature extraction pipeline are critical for classification performance, we conduct a comprehensive ablation study. All ablation experiments use the RF classifier with the raw isolation method (the best-performing configuration without PCA).
+The ablation study identifies which components of the sensing and feature extraction pipeline the classification performance depends on. All ablation experiments use the RF classifier with the raw isolation method (the best-performing configuration without PCA).
 
 \subsection{Sensor Group Ablation}
 
@@ -26,7 +26,7 @@ Electrical (current only) & $76.5 \pm 12.4$ & 112 \\
 \end{tabular}
 \end{table}
 
-The y\_bed\_\_3 sensor module alone achieves 100\% accuracy with only 238 features, demonstrating that a single well-placed IMU on the machine bed is sufficient for perfect toolpath classification. This finding has practical significance: a minimal sensor deployment of one IMU near the workpiece can match the performance of the full 10-sensor array. The electrical current sensors alone achieve only 76.5\% accuracy (112 features; corrected from an earlier leaked figure of 96.0\%/350 features that had folded IMU channels into the electrical set, Section~\ref{sec:results}), confirming that motor-current monitoring is substantially less discriminative than vibration sensing on this task---consistent with the near-constant spindle current under the shallow UHMW-PE cut.
+The y\_bed\_\_3 sensor module alone achieves 100\% accuracy with only 238 features, demonstrating that a single well-placed IMU on the machine bed is sufficient for perfect toolpath classification. A minimal deployment of one IMU near the workpiece can therefore match the performance of the full 10-sensor array. The electrical current sensors alone achieve only 76.5\% accuracy (112 features; corrected from an earlier leaked figure of 96.0\%/350 features that had folded IMU channels into the electrical set, Section~\ref{sec:results}). Motor-current monitoring is thus less discriminative than vibration sensing on this task, consistent with the near-constant spindle current under the shallow UHMW-PE cut.
 
 \subsection{Feature Statistic Ablation}
 
@@ -46,7 +46,7 @@ All 7 statistics                 & $100.0 \pm 0.0$ & 1{,}540 \\
 \end{tabular}
 \end{table}
 
-Even with only two statistics (mean and RMS), classification accuracy reaches 98\%, indicating that the temporal bin means and RMS values capture most of the discriminative information. The full 7-statistic set adds higher-order statistics (skewness, kurtosis) that contribute the final 2\% improvement.
+Two statistics (mean and RMS) already reach 98\% accuracy, indicating that the temporal bin means and RMS values capture most of the discriminative information. The full 7-statistic set adds higher-order statistics (skewness, kurtosis) that contribute the final 2\% improvement.
 
 \subsection{Alignment Ablation: Temporal Binning vs.\ Whole-Run Summary}
 
@@ -65,7 +65,7 @@ Whole-run summary           & $98.0 \pm 4.0$ & 770 \\
 \end{tabular}
 \end{table}
 
-Temporal binning outperforms whole-run summary by 2 percentage points. While modest, this confirms that the temporal evolution of sensor statistics carries discriminative information. The temporal approach also enables the fingerprint visualizations (Figure~\ref{fig:fingerprint}) that provide interpretable insight into how toolpath types differ.
+Temporal binning outperforms whole-run summary by 2 percentage points. The margin is modest but confirms that the temporal evolution of sensor statistics carries discriminative information. The temporal approach also enables the fingerprint visualizations (Figure~\ref{fig:fingerprint}), which show how the toolpath types differ over program time.
 
 \subsection{PCA Ablation}
 
@@ -90,9 +90,9 @@ No PCA (1{,}540)  & $100.0 \pm 0.0$ & $90.0 \pm 6.3$ & $86.0 \pm 10.2$ \\
 \end{tabular}
 \end{table}
 
-The PCA results reveal classifier-dependent behavior. RF accuracy drops to exactly 88.2\% for any number of PCA components from 3 to 30, because the leading principal components contain sufficient class-separating variance for the RF decision boundaries, and additional components add only noise within the PCA-reduced space. In contrast, SVM accuracy \textit{improves} with PCA to 5 components (94.0\%), likely because PCA removes irrelevant high-dimensional noise that the RBF kernel is sensitive to. MLP shows non-monotonic behavior, peaking at 15 components (92.0\%) before degrading due to overfitting in higher dimensions with only 51 training samples. These results demonstrate that dimensionality reduction interacts strongly with classifier choice, and that the ``PCA hurts RF'' finding should not be generalized to all classifiers.
+The PCA results are classifier-dependent. RF accuracy drops to exactly 88.2\% for any number of PCA components from 3 to 30, consistent with the leading principal components containing the class-separating variance available to the RF decision boundaries while additional components add only noise within the PCA-reduced space. SVM accuracy instead \textit{improves} with PCA to 5 components (94.0\%), likely because PCA removes irrelevant high-dimensional noise that the RBF kernel is sensitive to. MLP is non-monotonic, peaking at 15 components (92.0\%) before degrading, consistent with overfitting in higher dimensions with only 51 training samples. Dimensionality reduction therefore interacts with classifier choice, and the ``PCA hurts RF'' finding should not be generalized to all classifiers.
 
-\textbf{PCA misclassification analysis.} To explain why RF accuracy is invariant to PCA component count, we examined which individual samples are misclassified across all PCA configurations. The same 5--6 samples are misclassified in \textit{every} PCA setting (3 through 30 components): pocket150025\_001, pocket150025\_002, pocket150025\_012, face150025\_001, face150025\_010, and (in most settings) pocket150025\_006. These runs are consistently confused between the pocketing and facing classes. This confirms that the invariance is not a statistical artifact but reflects a genuine decision boundary: PCA projects the data into a subspace where these specific runs fall near the class boundary, and no amount of additional PCA dimensions resolves the ambiguity. Without PCA, the full 1{,}540-dimensional feature space provides sufficient redundancy for RF to correctly classify these borderline runs.
+\textbf{PCA misclassification analysis.} To explain why RF accuracy is invariant to PCA component count, we examined which individual samples are misclassified across all PCA configurations. The same 5--6 samples are misclassified in \textit{every} PCA setting (3 through 30 components): pocket150025\_001, pocket150025\_002, pocket150025\_012, face150025\_001, face150025\_010, and (in most settings) pocket150025\_006. These runs are consistently confused between the pocketing and facing classes. The invariance is therefore not a statistical artifact but a genuine decision boundary. PCA projects the data into a subspace where these specific runs fall near the class boundary, and no amount of additional PCA dimensions resolves the ambiguity. Without PCA, the full 1{,}540-dimensional feature space provides sufficient redundancy for RF to correctly classify these borderline runs.
 
 \subsection{Learning Curve}
 
@@ -105,11 +105,11 @@ Figure~\ref{fig:learning_curve} shows classification accuracy as a function of t
     \label{fig:learning_curve}
 \end{figure}
 
-With only 5 training runs per class (15 total), the classifier achieves 96.4\% accuracy. Performance plateaus above 8 runs per class at approximately 97\%. This steep learning curve demonstrates that the toolpath fingerprints are highly distinctive, requiring minimal training data.
+With only 5 training runs per class (15 total), the classifier achieves 96.4\% accuracy. Performance plateaus above 8 runs per class at approximately 97\%. The toolpath classes are therefore separable from minimal training data.
 
 \subsection{Sensor Contribution Heatmap}
 
-Figure~\ref{fig:sensor_heatmap} provides a comprehensive view of how each sensor group performs across all four isolation methods.
+Figure~\ref{fig:sensor_heatmap} shows how each sensor group performs across all four isolation methods.
 
 \begin{figure}[H]
     \centering
@@ -118,7 +118,7 @@ Figure~\ref{fig:sensor_heatmap} provides a comprehensive view of how each sensor
     \label{fig:sensor_heatmap}
 \end{figure}
 
-The heatmap reveals that sensor performance is relatively consistent across isolation methods, suggesting that the sensor placement (physical position on the machine) is more important than the signal normalization strategy for this classification task.
+Accuracy is similar across isolation methods within each sensor group, suggesting that sensor placement (physical position on the machine) matters more than the signal normalization strategy for this classification task.
 
 \subsection{Noise Robustness}
 
@@ -131,7 +131,7 @@ To assess how sensitive each isolation method is to measurement noise, we add ze
     \label{fig:noise_robustness}
 \end{figure}
 
-Subtracted features are dramatically more noise-robust than raw features: they maintain 100\% accuracy up to $1.0\times$ noise (where the added noise equals the feature's natural standard deviation), while raw features degrade to 97.8\% at the same level. At $2.0\times$ noise, subtracted features still achieve 94.6\% vs.\ 86.3\% for raw. This result provides the strongest practical argument for air-cut referencing: the referenced features are substantially more resilient to sensor degradation, calibration drift, and environmental interference.
+Subtracted features maintain 100\% accuracy up to $1.0\times$ noise, where the added noise equals the feature's natural standard deviation, while raw features degrade to 97.8\% at the same level. At $2.0\times$ noise, subtracted features still achieve 94.6\% vs.\ 86.3\% for raw. This noise resilience suggests that referenced features would better tolerate sensor degradation, calibration drift, and environmental interference in deployment.
 
 \subsection{Temporal Bin Importance}
 
@@ -144,7 +144,7 @@ Figure~\ref{fig:bin_importance} shows the accuracy impact of removing each of th
     \label{fig:bin_importance}
 \end{figure}
 
-Four bins share the largest impact: bins 3, 5, 6, and 16 (1-indexed), each causing a 2 percentage point drop to 98.0\% when removed. These correspond to approximately 10--30\% of normalized program time (the approach and early cutting phases) and 75--80\% (late cutting phase). The remaining 16 bins can each be removed without any accuracy loss, confirming that the temporal fingerprint's discriminative power is concentrated in specific program phases rather than distributed uniformly across the execution. This finding has practical implications: a coarser binning strategy focused on these critical phases could achieve comparable accuracy with fewer features.
+Bins 3, 5, 6, and 16 (1-indexed) have the largest impact; each causes a 2 percentage point drop to 98.0\% when removed. These bins correspond to approximately 10--30\% of normalized program time (the approach and early cutting phases) and 75--80\% (late cutting phase). The remaining 16 bins can each be removed without any accuracy loss, confirming that the temporal fingerprint's discriminative power is concentrated in specific program phases rather than distributed uniformly across the execution. A coarser binning strategy focused on these phases could therefore achieve comparable accuracy with fewer features.
 
 Figure~\ref{fig:ablation_summary} summarizes the core ablation results in a composite figure.
 

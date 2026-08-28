@@ -1125,7 +1125,7 @@ def beam_search_decode(decoder, memory, op_pred, device, beam_width=3, max_len=1
 
 @torch.no_grad()
 def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1,
-             save_predictions_path=None, fsm_forbidden=None):
+             save_predictions_path=None, fsm_forbidden=None, ar_categorical=False):
     """Evaluate on a dataset split. Returns metrics and sample predictions.
 
     Args:
@@ -1234,34 +1234,49 @@ def evaluate(decoder, loader, device, loss_fns, tokenizer, beam_width=1,
             all_preds.append(preds.cpu())
             all_targets.append(target_tokens.cpu())
 
+        # Categorical metric source: teacher-forced pass by default; with
+        # --ar_categorical and an autoregressive beam, a SECOND forward pass
+        # conditioned on the generated token stream (free-running conditioning).
+        cat_outputs = outputs
+        if ar_categorical and beam_width >= 1 and logits is not None:
+            gen_inputs = torch.cat([input_tokens[:, :1], preds[:, :-1]], dim=1)
+            with torch.no_grad():
+                cat_outputs = decoder(
+                    tokens=gen_inputs,
+                    sensor_embeddings=memory,
+                    operation_type=op_pred,
+                    tgt_key_padding_mask=(gen_inputs == PAD),
+                    **extra_kwargs,
+                )
+
         # Type accuracy
         type_targets_eval = batch['type_targets'].to(device)
-        type_preds = outputs['type_logits'].argmax(-1)
+        type_preds = cat_outputs['type_logits'].argmax(-1)
         all_type_preds.append(type_preds.cpu())
         all_type_targets.append(type_targets_eval.cpu())
 
         # Command accuracy
         cmd_targets = batch['command_targets'].to(device)
-        cmd_preds = outputs['command_logits'].argmax(-1)
+        cmd_preds = cat_outputs['command_logits'].argmax(-1)
         all_cmd_preds.append(cmd_preds.cpu())
         all_cmd_targets.append(cmd_targets.cpu())
 
         # Param type accuracy
         pt_targets = batch['param_type_targets'].to(device)
-        pt_preds = outputs['param_type_logits'].argmax(-1)
+        pt_preds = cat_outputs['param_type_logits'].argmax(-1)
         all_pt_preds.append(pt_preds.cpu())
         all_pt_targets.append(pt_targets.cpu())
 
         # Round-2 Phase A++: sign + digit predictions
-        if 'sign_logits' in outputs and 'sign_targets' in batch:
+        if 'sign_logits' in cat_outputs and 'sign_targets' in batch:
             sign_targets = batch['sign_targets'].to(device)
-            sign_preds = outputs['sign_logits'].argmax(-1)
+            sign_preds = cat_outputs['sign_logits'].argmax(-1)
             all_sign_preds.append(sign_preds.cpu())
             all_sign_targets.append(sign_targets.cpu())
-        if 'digit_logits' in outputs and 'digit_targets' in batch:
+        if 'digit_logits' in cat_outputs and 'digit_targets' in batch:
             digit_targets = batch['digit_targets'].to(device)
             # digit_logits: [B, L, 6, 11] -> argmax over last dim -> [B, L, 6]
-            digit_preds = outputs['digit_logits'].argmax(-1)
+            digit_preds = cat_outputs['digit_logits'].argmax(-1)
             all_digit_preds.append(digit_preds.cpu())
             all_digit_targets.append(digit_targets.cpu())
 
@@ -1420,6 +1435,10 @@ def main():
     # Data/model paths
     parser.add_argument("--data_dir", type=str, default=None, help="Preprocessed data dir")
     parser.add_argument("--encoder_ckpt", type=str, default=None, help="Encoder checkpoint path")
+    parser.add_argument("--cached_memory_dir", type=str, default=None,
+                        help="Load pre-cached frozen-encoder memory ({train,val,test}_memory.pt + "
+                             "{split}_op_pred.pt) from this dir instead of running the encoder "
+                             "(the encoder checkpoint is then not needed).")
     parser.add_argument("--encoder_config", type=str, default=None,
                         choices=list(ENCODER_CONFIGS.keys()) + list(V7_ENCODER_CONFIGS.keys()),
                         help="Encoder config name (overrides data_dir/encoder_ckpt)")
@@ -1443,6 +1462,9 @@ def main():
     # Loss / training strategy
     parser.add_argument("--digit_weight", type=float, default=2.0, help="Digit loss weight")
     parser.add_argument("--legacy_weight", type=float, default=1.0, help="Legacy token loss weight")
+    parser.add_argument("--structural_weight", type=float, default=1.0,
+                        help="Weight for type/command/param_type structural-head losses "
+                             "(default 1.0; set 0 with --digit_weight 0 for a flat-712-only baseline)")
     parser.add_argument("--label_smoothing", type=float, default=0.0, help="Label smoothing for legacy CE")
     parser.add_argument("--scheduled_sampling", type=float, default=0.0,
                         help="Max scheduled sampling ratio (0=pure teacher forcing)")
@@ -1466,6 +1488,11 @@ def main():
                         default=False, help="Enable numeric regression head")
     parser.add_argument("--regression_weight", type=float, default=1.0,
                         help="Weight for regression loss")
+    parser.add_argument("--ar_categorical", action="store_true",
+                        help="With an autoregressive beam, compute the categorical-head "
+                             "metrics from a second forward pass conditioned on the "
+                             "GENERATED token stream (free-running conditioning), instead "
+                             "of the teacher-forced pass.")
     parser.add_argument("--fsm_grammar", action="store_true",
                         help="Apply higher-order grammar rules in beam search "
                              "(e.g., G0/G1 forbid R/I/J). Inference-time only; "
@@ -1660,11 +1687,21 @@ def main():
             lprint(f"    WARNING: {ds.stats['unk_count']} UNK tokens in {split} ({ds.stats['unk_rate']:.2%})")
 
     # ── 3. Load frozen encoder ──
-    lprint(f"\n[3/7] Loading encoder from {args.encoder_ckpt}")
-    encoder, enc_config, ckpt = load_frozen_encoder(args.encoder_ckpt, device)
-    lprint(f"  Config: sensor_dims={list(enc_config.sensor_dims)}, d_model={enc_config.d_model}")
-    lprint(f"  Checkpoint epoch: {ckpt.get('epoch')}, best_val_acc: {ckpt.get('best_val_acc', 'N/A')}")
-    lprint(f"  Total encoder params: {sum(p.numel() for p in encoder.parameters()):,}")
+    if args.cached_memory_dir:
+        lprint(f"\n[3/7] Skipping encoder load; using cached memory from {args.cached_memory_dir}")
+        from types import SimpleNamespace
+        _probe = torch.load(Path(args.cached_memory_dir) / 'test_memory.pt',
+                            map_location='cpu', weights_only=False)
+        encoder, ckpt = None, {}
+        # Stand-in: d_model = cached-memory feature dim (the frozen-encoder output width).
+        enc_config = SimpleNamespace(d_model=int(_probe.shape[-1]), n_heads=args.n_heads, sensor_dims=None)
+        lprint(f"  Cached-memory feature dim (d_model) = {enc_config.d_model}")
+    else:
+        lprint(f"\n[3/7] Loading encoder from {args.encoder_ckpt}")
+        encoder, enc_config, ckpt = load_frozen_encoder(args.encoder_ckpt, device)
+        lprint(f"  Config: sensor_dims={list(enc_config.sensor_dims)}, d_model={enc_config.d_model}")
+        lprint(f"  Checkpoint epoch: {ckpt.get('epoch')}, best_val_acc: {ckpt.get('best_val_acc', 'N/A')}")
+        lprint(f"  Total encoder params: {sum(p.numel() for p in encoder.parameters()):,}")
     if args.e2e:
         # Unfreeze encoder for end-to-end training
         for p in encoder.parameters():
@@ -1685,9 +1722,13 @@ def main():
     columns = metadata['continuous_columns']
     group_names, group_indices, sensor_dims = build_modality_indices(columns)
     lprint(f"  Groups: {dict(zip(group_names, sensor_dims))}")
-    assert sensor_dims == list(enc_config.sensor_dims), \
-        f"Sensor dims mismatch: {sensor_dims} vs {list(enc_config.sensor_dims)}"
-    lprint(f"  Sensor dims verified: {sensor_dims}")
+    if enc_config.sensor_dims is not None:
+        assert sensor_dims == list(enc_config.sensor_dims), \
+            f"Sensor dims mismatch: {sensor_dims} vs {list(enc_config.sensor_dims)}"
+        lprint(f"  Sensor dims verified: {sensor_dims}")
+    else:
+        enc_config.sensor_dims = sensor_dims  # cached-memory mode: adopt computed dims
+        lprint(f"  Sensor dims (cached-memory mode): {sensor_dims}")
 
     # Phase-6: resolve --zero_modality_groups into indices for cache_encoder_memory.
     zero_modality_indices = []
@@ -1722,29 +1763,45 @@ def main():
         # Train uses raw dataset directly
         cached_datasets['train'] = None  # placeholder, train_loader uses datasets['train']
     else:
-        lprint(f"\n[5/7] Caching encoder memory for all splits")
         cached_datasets = {}
-        for split in ['train', 'val', 'test']:
-            lprint(f"  Caching {split}...")
-            t0 = time.time()
-            cache_path = output_dir / 'encoder_memory'
-            memory, op_pred, cls_acc = cache_encoder_memory(
-                encoder, datasets[split], group_indices, device,
-                batch_size=args.batch_size,
-                cache_dir=cache_path if split == 'train' else None,
-                zero_modality_indices=zero_modality_indices,
-            )
-            torch.save(memory, output_dir / 'encoder_memory' / f'{split}_memory.pt')
-            torch.save(op_pred, output_dir / 'encoder_memory' / f'{split}_op_pred.pt')
-            is_train = (split == 'train')
-            cached_datasets[split] = CachedDecoderDataset(
-                datasets[split], memory, op_pred,
-                multi_window_context=args.multi_window_context,
-                noise_scale=args.noise_scale if is_train else 0.0,
-                window_dropout=args.window_dropout if is_train else 0.0,
-                training=is_train,
-            )
-            lprint(f"    {split}: memory shape={memory.shape}, cls_acc={cls_acc:.4f} ({time.time()-t0:.1f}s)")
+        if args.cached_memory_dir:
+            lprint(f"\n[5/7] Loading pre-cached encoder memory from {args.cached_memory_dir}")
+            cmd_dir = Path(args.cached_memory_dir)
+            for split in ['train', 'val', 'test']:
+                memory = torch.load(cmd_dir / f'{split}_memory.pt', map_location=device, weights_only=False)
+                op_pred = torch.load(cmd_dir / f'{split}_op_pred.pt', map_location=device, weights_only=False)
+                is_train = (split == 'train')
+                cached_datasets[split] = CachedDecoderDataset(
+                    datasets[split], memory, op_pred,
+                    multi_window_context=args.multi_window_context,
+                    noise_scale=args.noise_scale if is_train else 0.0,
+                    window_dropout=args.window_dropout if is_train else 0.0,
+                    training=is_train,
+                )
+                lprint(f"    {split}: memory shape={tuple(memory.shape)} (loaded from cache)")
+        else:
+            lprint(f"\n[5/7] Caching encoder memory for all splits")
+            for split in ['train', 'val', 'test']:
+                lprint(f"  Caching {split}...")
+                t0 = time.time()
+                cache_path = output_dir / 'encoder_memory'
+                memory, op_pred, cls_acc = cache_encoder_memory(
+                    encoder, datasets[split], group_indices, device,
+                    batch_size=args.batch_size,
+                    cache_dir=cache_path if split == 'train' else None,
+                    zero_modality_indices=zero_modality_indices,
+                )
+                torch.save(memory, output_dir / 'encoder_memory' / f'{split}_memory.pt')
+                torch.save(op_pred, output_dir / 'encoder_memory' / f'{split}_op_pred.pt')
+                is_train = (split == 'train')
+                cached_datasets[split] = CachedDecoderDataset(
+                    datasets[split], memory, op_pred,
+                    multi_window_context=args.multi_window_context,
+                    noise_scale=args.noise_scale if is_train else 0.0,
+                    window_dropout=args.window_dropout if is_train else 0.0,
+                    training=is_train,
+                )
+                lprint(f"    {split}: memory shape={memory.shape}, cls_acc={cls_acc:.4f} ({time.time()-t0:.1f}s)")
 
     # ── 6. Create decoder ──
     lprint(f"\n[6/7] Creating SensorMultiHeadDecoder")
@@ -1821,7 +1878,8 @@ def main():
             lprint(f"  Legacy loss: CE(label_smoothing={args.label_smoothing})")
 
     loss_weights = {
-        'type': 1.0, 'command': 1.0, 'param_type': 1.0,
+        'type': args.structural_weight, 'command': args.structural_weight,
+        'param_type': args.structural_weight,
         'digit': args.digit_weight, 'legacy': args.legacy_weight,
     }
     if args.use_regression_head:
@@ -1956,7 +2014,8 @@ def main():
             test_metrics, test_samples = evaluate(decoder, test_loader, device, loss_fns, tokenizer,
                                                   beam_width=bw,
                                                   save_predictions_path=sp,
-                                                  fsm_forbidden=fsm)
+                                                  fsm_forbidden=fsm,
+                                                  ar_categorical=args.ar_categorical)
             lprint(f"\n  Test Results ({bw_label}):")
             for k, v in test_metrics.items():
                 if isinstance(v, (int, float)):

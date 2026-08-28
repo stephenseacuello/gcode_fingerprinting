@@ -1,0 +1,2570 @@
+{
+  "reports": [
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_1/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            132,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            132,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            132,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        }
+      },
+      "n_samples": 132,
+      "tokens_shape": [
+        132,
+        6
+      ],
+      "content_token_length": {
+        "n": 132,
+        "min": 1,
+        "max": 6,
+        "mean": 2.992424242424242,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 5.0,
+        "unique_values": 5
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 2,
+        "2": 25,
+        "3": 93,
+        "4": 0,
+        "5": 8,
+        "6": 4,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 132,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (1-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 132
+      },
+      "gcode_texts_distinct": 24,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.5748 Y1.4562 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 26,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_1/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            303,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            303,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            303,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            303
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            303
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            303
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            303
+          ]
+        }
+      },
+      "n_samples": 303,
+      "tokens_shape": [
+        303,
+        6
+      ],
+      "content_token_length": {
+        "n": 303,
+        "min": 2,
+        "max": 6,
+        "mean": 3.0825082508250827,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 5.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 58,
+        "3": 210,
+        "4": 0,
+        "5": 22,
+        "6": 13,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 303,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 303
+      },
+      "gcode_texts_distinct": 22,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.5748 Y1.4562 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 69,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 13,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_1/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            110,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            110,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            110,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            110
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            110
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            110
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            110
+          ]
+        }
+      },
+      "n_samples": 110,
+      "tokens_shape": [
+        110,
+        6
+      ],
+      "content_token_length": {
+        "n": 110,
+        "min": 2,
+        "max": 6,
+        "mean": 3.0272727272727273,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 5.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 25,
+        "3": 73,
+        "4": 0,
+        "5": 8,
+        "6": 4,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 110,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 110
+      },
+      "gcode_texts_distinct": 18,
+      "gcode_texts_examples": [
+        "Y0.1755",
+        "Y0.1755",
+        "Y2.9132"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 25,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_2/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            113,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            113,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            113,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            113
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            113
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            113
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            113
+          ]
+        }
+      },
+      "n_samples": 113,
+      "tokens_shape": [
+        113,
+        6
+      ],
+      "content_token_length": {
+        "n": 113,
+        "min": 1,
+        "max": 6,
+        "mean": 3.0265486725663715,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 6.0,
+        "unique_values": 5
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 2,
+        "2": 25,
+        "3": 74,
+        "4": 0,
+        "5": 4,
+        "6": 8,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 113,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (1-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 113
+      },
+      "gcode_texts_distinct": 19,
+      "gcode_texts_examples": [
+        "Y0.1755",
+        "Y0.1755",
+        "Y2.9132"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 25,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 8,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_2/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            327,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            327,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            327,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            327
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            327
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            327
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            327
+          ]
+        }
+      },
+      "n_samples": 327,
+      "tokens_shape": [
+        327,
+        6
+      ],
+      "content_token_length": {
+        "n": 327,
+        "min": 2,
+        "max": 6,
+        "mean": 3.091743119266055,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 6.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 63,
+        "3": 229,
+        "4": 0,
+        "5": 12,
+        "6": 23,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 327,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 327
+      },
+      "gcode_texts_distinct": 24,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.5748 Y1.4562 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 71,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 23,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_2/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            105,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            105,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            105,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            105
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            105
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            105
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            105
+          ]
+        }
+      },
+      "n_samples": 105,
+      "tokens_shape": [
+        105,
+        6
+      ],
+      "content_token_length": {
+        "n": 105,
+        "min": 2,
+        "max": 6,
+        "mean": 3.1142857142857143,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 6.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 20,
+        "3": 73,
+        "4": 0,
+        "5": 4,
+        "6": 8,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 105,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 105
+      },
+      "gcode_texts_distinct": 16,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.5748 Y1.4562 R0.1188",
+        "Y0.1755"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 8,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_3/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            106,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            106,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            106,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            106
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            106
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            106
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            106
+          ]
+        }
+      },
+      "n_samples": 106,
+      "tokens_shape": [
+        106,
+        6
+      ],
+      "content_token_length": {
+        "n": 106,
+        "min": 2,
+        "max": 6,
+        "mean": 3.1132075471698113,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 6.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 20,
+        "3": 74,
+        "4": 0,
+        "5": 4,
+        "6": 8,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 106,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 106
+      },
+      "gcode_texts_distinct": 18,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.4561 Y1.5749 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 8,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_3/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            331,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            331,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            331,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            331
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            331
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            331
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            331
+          ]
+        }
+      },
+      "n_samples": 331,
+      "tokens_shape": [
+        331,
+        6
+      ],
+      "content_token_length": {
+        "n": 331,
+        "min": 2,
+        "max": 6,
+        "mean": 3.0755287009063443,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 6.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 68,
+        "3": 228,
+        "4": 0,
+        "5": 12,
+        "6": 23,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 331,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 331
+      },
+      "gcode_texts_distinct": 26,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.4561 Y1.5749 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 72,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 23,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_3/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            108,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            108,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            108,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        }
+      },
+      "n_samples": 108,
+      "tokens_shape": [
+        108,
+        6
+      ],
+      "content_token_length": {
+        "n": 108,
+        "min": 1,
+        "max": 6,
+        "mean": 3.064814814814815,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 6.0,
+        "unique_values": 5
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 2,
+        "2": 21,
+        "3": 73,
+        "4": 0,
+        "5": 4,
+        "6": 8,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 108,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (1-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 108
+      },
+      "gcode_texts_distinct": 18,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.4561 Y1.5749 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 8,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_4/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            108,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            108,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            108,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            108
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            108
+          ]
+        }
+      },
+      "n_samples": 108,
+      "tokens_shape": [
+        108,
+        6
+      ],
+      "content_token_length": {
+        "n": 108,
+        "min": 1,
+        "max": 6,
+        "mean": 3.0277777777777777,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 5.0,
+        "unique_values": 5
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 2,
+        "2": 21,
+        "3": 73,
+        "4": 0,
+        "5": 8,
+        "6": 4,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 108,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (1-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 108
+      },
+      "gcode_texts_distinct": 17,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.4561 Y1.5749 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 24,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_4/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            344,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            344,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            344,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            344
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            344
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            344
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            344
+          ]
+        }
+      },
+      "n_samples": 344,
+      "tokens_shape": [
+        344,
+        6
+      ],
+      "content_token_length": {
+        "n": 344,
+        "min": 2,
+        "max": 6,
+        "mean": 3.0436046511627906,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 5.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 70,
+        "3": 238,
+        "4": 0,
+        "5": 23,
+        "6": 13,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 344,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 344
+      },
+      "gcode_texts_distinct": 26,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.4561 Y1.5749 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 75,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 13,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_4/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            93,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            93,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            93,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        }
+      },
+      "n_samples": 93,
+      "tokens_shape": [
+        93,
+        6
+      ],
+      "content_token_length": {
+        "n": 93,
+        "min": 2,
+        "max": 6,
+        "mean": 3.064516129032258,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 5.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 20,
+        "3": 62,
+        "4": 0,
+        "5": 7,
+        "6": 4,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 93,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 93
+      },
+      "gcode_texts_distinct": 16,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.4561 Y1.5749 R0.1188",
+        "Y0.1755"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 21,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 4,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_5/test_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            93,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            93,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            93,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            93
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            93
+          ]
+        }
+      },
+      "n_samples": 93,
+      "tokens_shape": [
+        93,
+        6
+      ],
+      "content_token_length": {
+        "n": 93,
+        "min": 2,
+        "max": 6,
+        "mean": 3.096774193548387,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 6.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 20,
+        "3": 62,
+        "4": 0,
+        "5": 4,
+        "6": 7,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 93,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 93
+      },
+      "gcode_texts_distinct": 17,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.4561 Y1.5749 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 21,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 7,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_5/train_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            320,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            320,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            320,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            320
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            320
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            320
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            320
+          ]
+        }
+      },
+      "n_samples": 320,
+      "tokens_shape": [
+        320,
+        6
+      ],
+      "content_token_length": {
+        "n": 320,
+        "min": 2,
+        "max": 6,
+        "mean": 3.103125,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 6.0,
+        "unique_values": 4
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 0,
+        "2": 63,
+        "3": 221,
+        "4": 0,
+        "5": 12,
+        "6": 24,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 320,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (2-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 320
+      },
+      "gcode_texts_distinct": 23,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.4561 Y1.5749 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 9,
+      "source_file_unique": 73,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 24,
+        "pct_exceeding_target": 0.0
+      }
+    },
+    {
+      "path": "outputs/decoder20260304/preprocessed_v7/fold_5/val_sequences.npz",
+      "keys": [
+        "continuous",
+        "categorical",
+        "tokens",
+        "lengths",
+        "gcode_texts",
+        "operation_type",
+        "operation_type_names",
+        "window_index",
+        "total_windows",
+        "source_file"
+      ],
+      "issues": [
+        "lengths_field_is_sensor_not_token_length",
+        "gcode_texts_single_line_only"
+      ],
+      "fields": {
+        "continuous": {
+          "dtype": "float32",
+          "shape": [
+            132,
+            256,
+            110
+          ]
+        },
+        "categorical": {
+          "dtype": "int64",
+          "shape": [
+            132,
+            256,
+            4
+          ]
+        },
+        "tokens": {
+          "dtype": "int64",
+          "shape": [
+            132,
+            6
+          ]
+        },
+        "lengths": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "gcode_texts": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "operation_type": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "operation_type_names": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        },
+        "window_index": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "total_windows": {
+          "dtype": "int64",
+          "shape": [
+            132
+          ]
+        },
+        "source_file": {
+          "dtype": "object",
+          "shape": [
+            132
+          ]
+        }
+      },
+      "n_samples": 132,
+      "tokens_shape": [
+        132,
+        6
+      ],
+      "content_token_length": {
+        "n": 132,
+        "min": 1,
+        "max": 6,
+        "mean": 3.022727272727273,
+        "median": 3.0,
+        "p05": 2.0,
+        "p95": 6.0,
+        "unique_values": 5
+      },
+      "content_token_length_hist": {
+        "0": 0,
+        "1": 2,
+        "2": 25,
+        "3": 93,
+        "4": 0,
+        "5": 4,
+        "6": 8,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+        "10": 0,
+        "11": 0,
+        "12": 0,
+        "13": 0,
+        "14": 0,
+        "15": 0,
+        "16": 0,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
+        "21": 0,
+        "22": 0,
+        "23": 0,
+        "24": 0,
+        "25": 0,
+        "26": 0,
+        "27": 0,
+        "28": 0,
+        "29": 0,
+        "30": 0,
+        "31": 0,
+        "32": 0
+      },
+      "content_token_length_hist_note": "key 32 includes any length >= 32",
+      "npz_lengths": {
+        "n": 132,
+        "min": 256,
+        "max": 256,
+        "mean": 256.0,
+        "median": 256.0,
+        "p05": 256.0,
+        "p95": 256.0,
+        "unique_values": 1
+      },
+      "npz_lengths_interpretation": "CONSTANT at 256; does NOT match content_token_length range (1-6). Likely SENSOR window length, not token length. BUG.",
+      "gcode_texts_line_count_distribution": {
+        "1": 132
+      },
+      "gcode_texts_distinct": 22,
+      "gcode_texts_examples": [
+        "G0 X1.4919 Y1.4848",
+        "X1.4561 Y1.5749 R0.1188",
+        "G0 X1.4919 Y1.4848"
+      ],
+      "position_leakage_fields_present": {
+        "window_index": true,
+        "total_windows": true,
+        "source_file": true,
+        "operation_type": true
+      },
+      "window_index_unique": 16,
+      "source_file_unique": 26,
+      "truncation_check": {
+        "max_token_len_target": 16,
+        "samples_exceeding_target_minus_2": 0,
+        "samples_at_npz_max_dim": 8,
+        "pct_exceeding_target": 0.0
+      }
+    }
+  ],
+  "max_token_len": 16
+}

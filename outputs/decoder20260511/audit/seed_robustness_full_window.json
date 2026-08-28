@@ -1,0 +1,72 @@
+{
+  "description": "Headline (full_window 5-fold) seed-robustness: per-seed per-fold command accuracy. Resolves App C.2(ii) / referee R1 M1.",
+  "config": "full_window 5-fold, headline composite HP config",
+  "seeds": {
+    "42": {
+      "per_fold_command_acc": [
+        0.7762,
+        0.9144,
+        0.9216,
+        0.9078,
+        0.9176
+      ],
+      "five_fold_mean": 0.8875,
+      "complete": true
+    },
+    "123": {
+      "per_fold_command_acc": [
+        0.781,
+        0.9124,
+        0.9262,
+        0.8987,
+        0.9136
+      ],
+      "five_fold_mean": 0.8864,
+      "complete": true
+    },
+    "456": {
+      "per_fold_command_acc": [
+        0.8301,
+        0.919,
+        0.9197,
+        0.9006,
+        0.8992
+      ],
+      "five_fold_mean": 0.8937,
+      "complete": true
+    },
+    "2024": {
+      "per_fold_command_acc": [
+        0.8181,
+        0.9071,
+        0.9197,
+        0.9078,
+        0.9216
+      ],
+      "five_fold_mean": 0.8949,
+      "complete": true
+    }
+  },
+  "aggregate": {
+    "seeds": [
+      "42",
+      "123",
+      "456",
+      "2024"
+    ],
+    "per_seed_5fold_means": [
+      0.8875,
+      0.8864,
+      0.8937,
+      0.8949
+    ],
+    "mean": 0.8906,
+    "std": 0.0043,
+    "range": [
+      0.8864,
+      0.8949
+    ],
+    "reported_headline": "0.8875 \u00b1 0.0558",
+    "headline_within_seed_envelope": true
+  }
+}

@@ -71,9 +71,9 @@ def generate_vocab_analysis(vocab: dict, output_dir: Path):
             "n_values": len(pairs),
             "min_value": min(values),
             "max_value": max(values),
-            "min_resolvable_delta_mm": round(float(min_delta), 6),
-            "mean_delta_mm": round(float(mean_delta), 6),
-            "max_delta_mm": round(float(max_delta), 6),
+            "min_resolvable_delta_in": round(float(min_delta), 6),
+            "mean_delta_in": round(float(mean_delta), 6),
+            "max_delta_in": round(float(max_delta), 6),
             "precision": vocab["config"]["precision"].get(axis, 0.001),
         }
 
@@ -85,7 +85,7 @@ def generate_vocab_analysis(vocab: dict, output_dir: Path):
         logger.info(
             f"  {ax}: {info['n_values']} values, "
             f"range=[{info['min_value']:.4f}, {info['max_value']:.4f}], "
-            f"min_delta={info['min_resolvable_delta_mm']:.6f}mm"
+            f"min_delta={info['min_resolvable_delta_in']:.6f}in"
         )
     return analysis
 
@@ -134,7 +134,7 @@ def generate_a2_attacks(all_targets: dict, vocab: dict, output_dir: Path):
                 "total_attacks": total,
             }
             if total > 0:
-                logger.info(f"A2 {axis} delta={delta}mm: {total} attacks")
+                logger.info(f"A2 {axis} delta={delta}in: {total} attacks")
 
     torch.save(results, output_dir / "attack_A2_coord_graded.pt")
 

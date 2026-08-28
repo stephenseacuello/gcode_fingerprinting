@@ -1,0 +1,765 @@
+{
+  "label": "V8 per_row 5fold fold1 (smoke)",
+  "n_folds": 1,
+  "per_fold": [
+    {
+      "path": "outputs/decoder20260511/checkpoints/per_row_5fold/fold_1/results/beam_0_all_predictions.json",
+      "n": 132,
+      "axes": {
+        "X": {
+          "has_axis": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 38
+              },
+              "present": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 94
+              }
+            },
+            "confusion_matrix": [
+              [
+                38,
+                0
+              ],
+              [
+                0,
+                94
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent",
+              "present"
+            ]
+          },
+          "sign": {
+            "n": 132,
+            "accuracy": 0.7954545454545454,
+            "macro_precision": 0.7407407407407408,
+            "macro_recall": 0.681407775935139,
+            "macro_f1": 0.6523525785905074,
+            "weighted_precision": 0.7567340067340067,
+            "weighted_recall": 0.7954545454545454,
+            "weighted_f1": 0.734557408894783,
+            "per_class": {
+              "negative": {
+                "precision": 0.5,
+                "recall": 0.07407407407407407,
+                "f1": 0.12903225806451613,
+                "support": 27
+              },
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 38
+              },
+              "positive": {
+                "precision": 0.7222222222222222,
+                "recall": 0.9701492537313433,
+                "f1": 0.8280254777070064,
+                "support": 67
+              }
+            },
+            "confusion_matrix": [
+              [
+                2,
+                0,
+                25
+              ],
+              [
+                0,
+                38,
+                0
+              ],
+              [
+                2,
+                0,
+                65
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "negative",
+              "absent",
+              "positive"
+            ]
+          },
+          "value_regression": {
+            "n_true_present": 94,
+            "n_pred_present_when_true": 94,
+            "presence_recall": 1.0,
+            "false_positive_count": 0,
+            "mae_when_both_present": 1.131957446808511
+          }
+        },
+        "Y": {
+          "has_axis": {
+            "n": 132,
+            "accuracy": 0.9621212121212122,
+            "macro_precision": 0.9719101123595506,
+            "macro_recall": 0.9479166666666667,
+            "macro_f1": 0.9580766054754494,
+            "weighted_precision": 0.9642492339121552,
+            "weighted_recall": 0.9621212121212122,
+            "weighted_f1": 0.9616279674083141,
+            "per_class": {
+              "absent": {
+                "precision": 0.9438202247191011,
+                "recall": 1.0,
+                "f1": 0.9710982658959537,
+                "support": 84
+              },
+              "present": {
+                "precision": 1.0,
+                "recall": 0.8958333333333334,
+                "f1": 0.945054945054945,
+                "support": 48
+              }
+            },
+            "confusion_matrix": [
+              [
+                84,
+                0
+              ],
+              [
+                5,
+                43
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent",
+              "present"
+            ]
+          },
+          "sign": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 89
+              },
+              "positive": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 43
+              }
+            },
+            "confusion_matrix": [
+              [
+                89,
+                0
+              ],
+              [
+                0,
+                43
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent",
+              "positive"
+            ]
+          },
+          "value_regression": {
+            "n_true_present": 48,
+            "n_pred_present_when_true": 43,
+            "presence_recall": 0.8958333333333334,
+            "false_positive_count": 0,
+            "mae_when_both_present": 0.6521860465116278
+          }
+        },
+        "Z": {
+          "has_axis": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 128
+              },
+              "present": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 4
+              }
+            },
+            "confusion_matrix": [
+              [
+                128,
+                0
+              ],
+              [
+                0,
+                4
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent",
+              "present"
+            ]
+          },
+          "sign": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 128
+              },
+              "positive": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 4
+              }
+            },
+            "confusion_matrix": [
+              [
+                128,
+                0
+              ],
+              [
+                0,
+                4
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent",
+              "positive"
+            ]
+          },
+          "value_regression": {
+            "n_true_present": 4,
+            "n_pred_present_when_true": 4,
+            "presence_recall": 1.0,
+            "false_positive_count": 0,
+            "mae_when_both_present": 0.0
+          }
+        },
+        "F": {
+          "has_axis": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 132
+              }
+            },
+            "confusion_matrix": [
+              [
+                132
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent"
+            ]
+          },
+          "sign": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 132
+              }
+            },
+            "confusion_matrix": [
+              [
+                132
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent"
+            ]
+          },
+          "value_regression": {
+            "n_true_present": 0,
+            "n_pred_present_when_true": 0,
+            "presence_recall": 0.0,
+            "false_positive_count": 0,
+            "mae_when_both_present": NaN
+          }
+        },
+        "S": {
+          "has_axis": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 132
+              }
+            },
+            "confusion_matrix": [
+              [
+                132
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent"
+            ]
+          },
+          "sign": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 132
+              }
+            },
+            "confusion_matrix": [
+              [
+                132
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent"
+            ]
+          },
+          "value_regression": {
+            "n_true_present": 0,
+            "n_pred_present_when_true": 0,
+            "presence_recall": 0.0,
+            "false_positive_count": 0,
+            "mae_when_both_present": NaN
+          }
+        },
+        "R": {
+          "has_axis": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 128
+              },
+              "present": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 4
+              }
+            },
+            "confusion_matrix": [
+              [
+                128,
+                0
+              ],
+              [
+                0,
+                4
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent",
+              "present"
+            ]
+          },
+          "sign": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 132
+              }
+            },
+            "confusion_matrix": [
+              [
+                132
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent"
+            ]
+          },
+          "value_regression": {
+            "n_true_present": 4,
+            "n_pred_present_when_true": 4,
+            "presence_recall": 1.0,
+            "false_positive_count": 0,
+            "mae_when_both_present": 0.0
+          }
+        },
+        "I": {
+          "has_axis": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 132
+              }
+            },
+            "confusion_matrix": [
+              [
+                132
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent"
+            ]
+          },
+          "sign": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 132
+              }
+            },
+            "confusion_matrix": [
+              [
+                132
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent"
+            ]
+          },
+          "value_regression": {
+            "n_true_present": 0,
+            "n_pred_present_when_true": 0,
+            "presence_recall": 0.0,
+            "false_positive_count": 0,
+            "mae_when_both_present": NaN
+          }
+        },
+        "J": {
+          "has_axis": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 132
+              }
+            },
+            "confusion_matrix": [
+              [
+                132
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent"
+            ]
+          },
+          "sign": {
+            "n": 132,
+            "accuracy": 1.0,
+            "macro_precision": 1.0,
+            "macro_recall": 1.0,
+            "macro_f1": 1.0,
+            "weighted_precision": 1.0,
+            "weighted_recall": 1.0,
+            "weighted_f1": 1.0,
+            "per_class": {
+              "absent": {
+                "precision": 1.0,
+                "recall": 1.0,
+                "f1": 1.0,
+                "support": 132
+              }
+            },
+            "confusion_matrix": [
+              [
+                132
+              ]
+            ],
+            "confusion_matrix_labels": [
+              "absent"
+            ]
+          },
+          "value_regression": {
+            "n_true_present": 0,
+            "n_pred_present_when_true": 0,
+            "presence_recall": 0.0,
+            "false_positive_count": 0,
+            "mae_when_both_present": NaN
+          }
+        }
+      },
+      "command": {
+        "n": 132,
+        "accuracy": 0.8863636363636364,
+        "macro_precision": 0.8203296703296703,
+        "macro_recall": 0.7148744113029828,
+        "macro_f1": 0.7043889322577847,
+        "weighted_precision": 0.9071262071262072,
+        "weighted_recall": 0.8863636363636364,
+        "weighted_f1": 0.8851318283012272,
+        "per_class": {
+          "G0": {
+            "precision": 0.6,
+            "recall": 0.75,
+            "f1": 0.6666666666666666,
+            "support": 4
+          },
+          "G1": {
+            "precision": 0.967032967032967,
+            "recall": 0.8979591836734694,
+            "f1": 0.9312169312169312,
+            "support": 98
+          },
+          "G3": {
+            "precision": 1.0,
+            "recall": 0.25,
+            "f1": 0.4,
+            "support": 4
+          },
+          "OTHER": {
+            "precision": 0.7142857142857143,
+            "recall": 0.9615384615384616,
+            "f1": 0.819672131147541,
+            "support": 26
+          }
+        },
+        "confusion_matrix": [
+          [
+            3,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            88,
+            0,
+            10
+          ],
+          [
+            2,
+            1,
+            1,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            25
+          ]
+        ],
+        "confusion_matrix_labels": [
+          "G0",
+          "G1",
+          "G3",
+          "OTHER"
+        ]
+      }
+    }
+  ],
+  "aggregate": {
+    "n_folds": 1,
+    "command": {
+      "accuracy_mean": 0.8863636363636364,
+      "accuracy_std": 0.0,
+      "macro_f1_mean": 0.7043889322577847,
+      "macro_f1_std": 0.0
+    },
+    "axes": {
+      "F": {
+        "has_axis_accuracy_mean": 1.0,
+        "has_axis_accuracy_std": 0.0,
+        "has_axis_macro_f1_mean": 1.0,
+        "has_axis_macro_f1_std": 0.0,
+        "sign_accuracy_mean": 1.0,
+        "sign_macro_f1_mean": 1.0,
+        "value_mae_mean": NaN,
+        "value_mae_std": NaN,
+        "presence_recall_mean": 0.0
+      },
+      "I": {
+        "has_axis_accuracy_mean": 1.0,
+        "has_axis_accuracy_std": 0.0,
+        "has_axis_macro_f1_mean": 1.0,
+        "has_axis_macro_f1_std": 0.0,
+        "sign_accuracy_mean": 1.0,
+        "sign_macro_f1_mean": 1.0,
+        "value_mae_mean": NaN,
+        "value_mae_std": NaN,
+        "presence_recall_mean": 0.0
+      },
+      "J": {
+        "has_axis_accuracy_mean": 1.0,
+        "has_axis_accuracy_std": 0.0,
+        "has_axis_macro_f1_mean": 1.0,
+        "has_axis_macro_f1_std": 0.0,
+        "sign_accuracy_mean": 1.0,
+        "sign_macro_f1_mean": 1.0,
+        "value_mae_mean": NaN,
+        "value_mae_std": NaN,
+        "presence_recall_mean": 0.0
+      },
+      "R": {
+        "has_axis_accuracy_mean": 1.0,
+        "has_axis_accuracy_std": 0.0,
+        "has_axis_macro_f1_mean": 1.0,
+        "has_axis_macro_f1_std": 0.0,
+        "sign_accuracy_mean": 1.0,
+        "sign_macro_f1_mean": 1.0,
+        "value_mae_mean": 0.0,
+        "value_mae_std": 0.0,
+        "presence_recall_mean": 1.0
+      },
+      "S": {
+        "has_axis_accuracy_mean": 1.0,
+        "has_axis_accuracy_std": 0.0,
+        "has_axis_macro_f1_mean": 1.0,
+        "has_axis_macro_f1_std": 0.0,
+        "sign_accuracy_mean": 1.0,
+        "sign_macro_f1_mean": 1.0,
+        "value_mae_mean": NaN,
+        "value_mae_std": NaN,
+        "presence_recall_mean": 0.0
+      },
+      "X": {
+        "has_axis_accuracy_mean": 1.0,
+        "has_axis_accuracy_std": 0.0,
+        "has_axis_macro_f1_mean": 1.0,
+        "has_axis_macro_f1_std": 0.0,
+        "sign_accuracy_mean": 0.7954545454545454,
+        "sign_macro_f1_mean": 0.6523525785905074,
+        "value_mae_mean": 1.131957446808511,
+        "value_mae_std": 0.0,
+        "presence_recall_mean": 1.0
+      },
+      "Y": {
+        "has_axis_accuracy_mean": 0.9621212121212122,
+        "has_axis_accuracy_std": 0.0,
+        "has_axis_macro_f1_mean": 0.9580766054754494,
+        "has_axis_macro_f1_std": 0.0,
+        "sign_accuracy_mean": 1.0,
+        "sign_macro_f1_mean": 1.0,
+        "value_mae_mean": 0.6521860465116278,
+        "value_mae_std": 0.0,
+        "presence_recall_mean": 0.8958333333333334
+      },
+      "Z": {
+        "has_axis_accuracy_mean": 1.0,
+        "has_axis_accuracy_std": 0.0,
+        "has_axis_macro_f1_mean": 1.0,
+        "has_axis_macro_f1_std": 0.0,
+        "sign_accuracy_mean": 1.0,
+        "sign_macro_f1_mean": 1.0,
+        "value_mae_mean": 0.0,
+        "value_mae_std": 0.0,
+        "presence_recall_mean": 1.0
+      }
+    }
+  }
+}

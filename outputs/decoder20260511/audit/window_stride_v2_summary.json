@@ -1,0 +1,72 @@
+[
+  {
+    "cell": "w64_s16",
+    "window": 64,
+    "stride": 16,
+    "command": 0.6,
+    "token": 0.748,
+    "numeric": 0.462,
+    "type": 0.988,
+    "param_type": 0.981
+  },
+  {
+    "cell": "w64_s32",
+    "window": 64,
+    "stride": 32,
+    "command": 0.457,
+    "token": 0.74,
+    "numeric": 0.458,
+    "type": 0.979,
+    "param_type": 0.98
+  },
+  {
+    "cell": "w128_s16",
+    "window": 128,
+    "stride": 16,
+    "command": 0.468,
+    "token": 0.739,
+    "numeric": 0.459,
+    "type": 0.978,
+    "param_type": 0.978
+  },
+  {
+    "cell": "w128_s32",
+    "window": 128,
+    "stride": 32,
+    "command": 0.513,
+    "token": 0.74,
+    "numeric": 0.462,
+    "type": 0.974,
+    "param_type": 0.979
+  },
+  {
+    "cell": "w128_s64",
+    "window": 128,
+    "stride": 64,
+    "command": 0.433,
+    "token": 0.737,
+    "numeric": 0.465,
+    "type": 0.975,
+    "param_type": 0.98
+  },
+  {
+    "cell": "w256_s128",
+    "window": 256,
+    "stride": 128,
+    "command": 0.345,
+    "token": 0.73,
+    "numeric": 0.465,
+    "type": 0.974,
+    "param_type": 0.977
+  },
+  {
+    "cell": "w512_s128",
+    "window": 512,
+    "stride": 128,
+    "command": 0.488,
+    "token": 0.67,
+    "numeric": 0.476,
+    "type": 0.905,
+    "param_type": 0.939
+  }
+]

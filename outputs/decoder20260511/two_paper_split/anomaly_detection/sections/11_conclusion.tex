@@ -2,31 +2,37 @@
 \label{sec:conclusion}
 
 We presented a multi-scale sensor-to-G-code reconstruction mismatch framework for detecting adversarial modifications to CNC machining programs.
-An autoregressive decoder reconstructs the G-code token sequence that should have produced the observed multi-modal sensor signals; anomalies manifest as elevated reconstruction error when the claimed G-code is inconsistent with the physical process.
+An autoregressive decoder reconstructs the G-code token sequence that should have produced the observed multi-modal sensor signals.
+When the claimed G-code is inconsistent with the physical process, the mismatch appears as elevated reconstruction error.
 
 No single decoder configuration or scoring method dominates all attack types.
-Short-context decoding (V7) achieves strong structural-attack detection through concentrated per-token probability mass, while multi-line decoding (V8) captures sequential consistency needed for semantic attacks.
-Rank-based scoring recovers coordinate-perturbation detection where NLL fails, by exploiting relative probability ordering rather than absolute likelihoods.
-The per-token confidence gradient of autoregressive G-code prediction---confident numeric tokens (54\% of positions, per-token AUROC = 0.89) versus low-confidence tokens (per-token AUROC near chance)---is the fundamental factor governing coordinate-attack detection and explains why multi-line context, which raises per-token confidence, improves it.
+Short-context decoding (V7) detects structural attacks because its short sequences concentrate per-token probability mass.
+Multi-line decoding (V8) captures the sequential consistency needed for semantic attacks.
+Rank-based scoring recovers coordinate-perturbation detection where NLL fails by exploiting relative probability ordering rather than absolute likelihoods.
+The per-token confidence gradient governs coordinate-attack detection.
+Confident numeric tokens (54\% of positions) reach per-token AUROC = 0.89, while per-token AUROC for low-confidence tokens is near chance.
+Multi-line context raises per-token confidence and thereby improves coordinate-attack detection.
 
-The system is robust to sensor dropout (worst single-board-out AUROC = 0.789), stable across feature configurations (56--110 channels, AUROC variation $< 0.02$), and deployable at low cost (\$492 sensor hardware; measured decoder inference 5.8~ms/window on GPU, 22.3~ms on CPU).
-Several negative results constrain the design space: multi-head disagreement scoring provides no signal (AUROC $\approx$ 0.500), embedding-distance methods are blind to token-level attacks, temperature-scaling calibration degrades ECE, and CUSUM achieves only 65.9\% detection at a 38.6\% false alarm rate.
+The system degrades gracefully under sensor dropout (worst single-board-out AUROC = 0.789).
+AUROC varies by less than 0.02 across feature configurations spanning 56--110 channels.
+Deployment cost is low (\$492 sensor hardware; measured decoder inference 5.8~ms/window on GPU, 22.3~ms on CPU).
+Several negative results constrain the design space: multi-head disagreement scoring provides no signal (AUROC $\approx$ 0.500), embedding-distance methods are blind to token-level attacks, temperature-scaling calibration degrades ECE for the multi-line (V8) decoder, and CUSUM achieves only 65.9\% detection at a 38.6\% false alarm rate.
 
 Future work should address five priorities:
 \begin{enumerate}
     \item \textbf{Real-time streaming deployment} with position-normalized scoring and CNC controller integration for automatic process halt.
     \item \textbf{Multi-machine and multi-material generalization} on production-grade machines cutting metals, using transfer learning to reduce retraining costs.
     \item \textbf{Attack diagnosis} beyond binary detection, tracing anomaly scores to specific token positions with estimated modification type and magnitude.
-    \item \textbf{Defenses against adaptive adversaries.} Our first-order adaptive attacker already nearly evades single-score detection (AUROC $\to$ 0.54); robust detection will require score ensembling, randomized thresholds, or detectors that bound the worst-case perturbation rather than the average case.
+    \item \textbf{Defenses against adaptive adversaries.} Our first-order adaptive attacker already nearly evades single-score detection (AUROC $\to$ 0.54). Robust detection will require score ensembling, randomized thresholds, or detectors that bound the worst-case perturbation rather than the average case.
     \item \textbf{Sensor integrity assurance} via hardware attestation and cryptographic authentication to prevent sensor spoofing.
 \end{enumerate}
 
-The reconstruction-mismatch paradigm---learning the inverse mapping from physical observations to commands and flagging discrepancies---generalizes beyond CNC machining to any cyber-physical system where a digital program controls a physical process (3D printers, robotic welders, semiconductor fabrication, chemical process controllers).
+The reconstruction-mismatch paradigm, which learns the inverse mapping from physical observations to commands and flags discrepancies, generalizes beyond CNC machining to any cyber-physical system where a digital program controls a physical process (3D printers, robotic welders, semiconductor fabrication, chemical process controllers).
 The key requirement is a sensor suite capturing sufficient physical information to constrain command-sequence reconstruction, a condition increasingly met as Industry~4.0 instrumentation becomes standard.
 
 \section*{Reproducibility}
 All training scripts, evaluation code, and experiment configurations will be made available upon publication.
-The dataset consists of sensor recordings from a Bantam Tools Desktop CNC milling machine; data sharing is subject to institutional approval.
+The dataset consists of sensor recordings from a Bantam Tools desktop CNC mill; data sharing is subject to institutional approval.
 All reported results use 5-fold cross-validation with file-level stratified splits to prevent data leakage.
 Attacks are generated deterministically (seed = 42).
 Per-fold results are provided in the supplementary material.

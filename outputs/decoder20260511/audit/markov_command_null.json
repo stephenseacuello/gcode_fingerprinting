@@ -1,0 +1,33 @@
+{
+  "description": "Per-operation-class first-order Markov command null with ground-truth history, scored at all command positions of the full-window test windows. The history-matched sensor-free counterpart of the class-modal nulls in audit/confound_class_prior.json.",
+  "generator": "scripts/analysis/markov_command_null.py",
+  "per_fold": {
+    "1": {
+      "accuracy": 0.655992236778263,
+      "n_command_positions": 2061
+    },
+    "2": {
+      "accuracy": 0.6638044914134742,
+      "n_command_positions": 1514
+    },
+    "3": {
+      "accuracy": 0.6631716906946264,
+      "n_command_positions": 1526
+    },
+    "4": {
+      "accuracy": 0.6584093872229465,
+      "n_command_positions": 1534
+    },
+    "5": {
+      "accuracy": 0.6680032076984763,
+      "n_command_positions": 1247
+    }
+  },
+  "mean": 0.6618762027615573,
+  "std_population": 0.004232650263798955,
+  "reference": {
+    "decoder_tf_command_positions": 0.795,
+    "class_modal_train_derived": 0.572,
+    "class_modal_test_derived": 0.576
+  }
+}

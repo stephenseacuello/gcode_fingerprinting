@@ -12,20 +12,20 @@ The adversary has sufficient G-code knowledge to produce syntactically valid, ph
 We assume a \emph{black-box} adversary with no access to the detection model's architecture, weights, or scoring thresholds.
 
 \paragraph{Goals.}
-The adversary's objective is \emph{sabotage}: introducing dimensional deviations, surface finish defects, or structural weaknesses without triggering process alarms or visual inspection.
+The adversary's objective is \emph{sabotage}, introducing dimensional deviations, surface finish defects, or structural weaknesses without triggering process alarms or visual inspection.
 This encompasses both targeted sabotage (modifying a specific feature to cause failure under load) and untargeted degradation (random errors reducing part quality below specification).
 Denial-of-service and IP theft attacks are outside scope, as they are addressed by other mechanisms.
 
 \paragraph{Constraints.}
 Modified G-code must be parseable by the controller and within machine travel limits, spindle speed ratings, and feed rate capabilities.
-We assume the sensor instrumentation is \emph{trustworthy}---the adversary cannot simultaneously modify G-code and spoof sensor signals.
-This is reasonable when sensors are physically attached to the machine and connected via dedicated wiring, as in our setup where six Arduino boards are hardwired with shielded cables.
+We assume the sensor instrumentation is \emph{trustworthy}, meaning the adversary cannot simultaneously modify G-code and spoof sensor signals.
+This assumption is reasonable when sensors are physically attached to the machine and connected via dedicated wiring, as in our setup where six Arduino boards are hardwired with shielded cables.
 Scenarios with wireless or network-accessible sensors would violate this assumption (Section~\ref{sec:limitations}).
 
 \subsection{Attack Taxonomy}
 \label{sec:attack_taxonomy}
 
-We define nine attack classes along two dimensions: the type of G-code modification (structural, numeric, semantic) and whether the result remains grammatically valid.
+We define nine attack classes along two dimensions, the type of G-code modification (structural, numeric, semantic) and whether the result remains grammatically valid.
 Table~\ref{tab:attack_taxonomy} summarizes the taxonomy.
 
 \begin{table}[t]
@@ -55,14 +55,16 @@ A9 & Multi-token compound & Combine two or more of A1--A5 & Combined effects & C
 \paragraph{Grammar-compliant vs.\ grammar-violating attacks.}
 Grammar-violating attacks (A6--A8) produce impossible token sequences under G-code grammar and are trivially detectable by a deterministic parser; no machine learning is required.
 Grammar-compliant attacks (A1--A5, A9) produce syntactically correct, physically realizable G-code.
-Detecting them requires understanding the \emph{semantic} relationship between sensor signals and the commanded program---precisely the capability that reconstruction-mismatch provides.
-Our quantitative results cover the grammar-compliant attacks A1--A4 and the A9 compound attack (Section~\ref{sec:results_revision}). A5 (feed-rate manipulation) cannot be evaluated on this dataset because the programmed feed rate is constant (the tokenizer retains a single feed-rate value); we report this as a corpus limitation rather than omit it.
+Detecting them requires understanding the \emph{semantic} relationship between sensor signals and the commanded program, the capability that reconstruction-mismatch provides.
+Our quantitative results cover the grammar-compliant attacks A1--A4 and the A9 compound attack (Section~\ref{sec:results_revision}).
+A5 (feed-rate manipulation) cannot be evaluated on this dataset because the programmed feed rate is constant (the tokenizer retains a single feed-rate value).
+We report this as a corpus limitation rather than omit it.
 
 \paragraph{Attack implementation.}
 Attacks are synthesized as follows:
 \begin{itemize}
     \item \textbf{A1 (command swap)}: The G/M command token is replaced with a randomly selected alternative (e.g., G1 $\to$ G0), preserving the parameter--value structure.
-    \item \textbf{A2 (coordinate perturbation)}: A fixed offset $\delta$ is added to one randomly selected axis coordinate (X, Y, or Z) and re-tokenized digit-by-digit. Ten magnitudes spanning four orders of magnitude are evaluated: $\delta \in \{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 50.0\}$~mm.
+    \item \textbf{A2 (coordinate perturbation)}: A fixed offset $\delta$ is added to one randomly selected axis coordinate (X, Y, or Z) and re-tokenized digit-by-digit. Ten magnitudes spanning four orders of magnitude are evaluated: $\delta \in \{0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 50.0\}$~in. The largest magnitudes exceed the machine's travel and would be caught by controller limit checks; they are included only to trace the magnitude--detectability curve.
     \item \textbf{A3 (parameter substitution)}: A parameter letter is swapped with a different valid letter (e.g., X $\to$ Y, F $\to$ S), preserving the numeric value.
     \item \textbf{A4 (cross-operation swap)}: The entire G-code token sequence for the window is replaced with a sequence from a different operation class.
 \end{itemize}
@@ -70,9 +72,12 @@ Attacks are synthesized as follows:
 \paragraph{Attack injection protocol.}
 For each normal sensor window in the test set, one attacked variant per attack type is generated, preserving the original sensor signals.
 The sensor signals reflect the \emph{original} process while the modified G-code represents the adversary's claim.
-The detection task is: given sensor signals and potentially tampered G-code, determine whether the G-code is consistent with the observations.
+The detection task is to determine, given sensor signals and potentially tampered G-code, whether the G-code is consistent with the observations.
 
-This defines the operative threat precisely as \emph{offline integrity verification}: the defender holds a sensor trace of the program that was actually executed and checks a claimed or transmitted G-code program against it, catching in-transit or at-rest tampering. The complementary case in which the adversary's modified program is \emph{itself executed}---so the sensors reflect the tampered process, as in the canonical dr0wned and Sturm sabotage scenarios---is explicitly \emph{out of scope} for this detector: there is no mismatch to find because the sensors and the claimed G-code agree. That regime instead requires a physical-anomaly detector operating in sensor space (the encoder path, Section~\ref{sec:results_enc_dec}), and the two detectors are complementary.
+This protocol defines the operative threat as \emph{offline integrity verification}.
+The defender holds a sensor trace of the program that was actually executed and checks a claimed or transmitted G-code program against it, catching in-transit or at-rest tampering.
+The complementary case, in which the adversary's modified program is \emph{itself executed} so that the sensors reflect the tampered process (the canonical dr0wned and Sturm sabotage scenarios), is \emph{out of scope} for this detector because the sensors and the claimed G-code agree and there is no mismatch to find.
+That regime instead requires a physical-anomaly detector operating in sensor space (the encoder path, Section~\ref{sec:results_enc_dec}), and the two detectors are complementary.
 
 \subsection{Detection Formalization}
 \label{sec:detection_model}
